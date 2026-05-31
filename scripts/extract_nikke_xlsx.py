@@ -103,6 +103,10 @@ CN_TOP_ID_OVERRIDES = {
     "013",  # Rapi: Red Hood / 拉毗:小红帽
 }
 
+COMMON_TOP_ID_OVERRIDES = {
+    "013",  # Rapi: Red Hood / 拉毗:小红帽
+}
+
 AVATAR_NAME_ALIASES = {
     "克拉斯特": "克劳斯特",
     "芙萝拉": "芙罗拉",
@@ -281,7 +285,7 @@ def load_nikke_top_regions():
             if top_id in CN_TOP_ID_OVERRIDES:
                 regions.add("cn")
             local_id_to_regions[int(match["id"])] = sorted(regions)
-            local_id_to_common[int(match["id"])] = top_id_to_common.get(top_id, False)
+            local_id_to_common[int(match["id"])] = top_id in COMMON_TOP_ID_OVERRIDES or top_id_to_common.get(top_id, False)
 
     return {
         "localIdToRegions": local_id_to_regions,

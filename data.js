@@ -15649,7 +15649,7 @@ const CHARACTERS = [
     "rarity": "SSR",
     "avatarUrl": "assets/avatars-nikke-top/181.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/0/2/90588.png",
-    "isCommon": false,
+    "isCommon": true,
     "weapon": "MG",
     "weaponCn": "机枪",
     "burstGen": 0.05,
