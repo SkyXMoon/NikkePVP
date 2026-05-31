@@ -66,6 +66,7 @@ EXTRA_DAMAGE_OVERRIDES = {
     "诺雅": True,
     "海伦 珍藏": True,
     "拉普拉斯 珍藏": True,
+    "杨": True,
 }
 
 PENETRATION_OVERRIDES = {
