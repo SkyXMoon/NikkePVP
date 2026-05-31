@@ -165,7 +165,7 @@ h2 {
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) repeat(4, minmax(100px, 136px));
+  grid-template-columns: minmax(220px, 1fr) repeat(5, minmax(100px, 136px));
   gap: 10px;
   padding: 12px;
 }

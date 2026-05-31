@@ -11,6 +11,7 @@ const state = {
   team: Array(TEAM_SIZE).fill(null),
   chargeSpeeds: Array(TEAM_SIZE).fill(0),
   filters: {
+    common: "common",
     weapon: "all",
     company: "all",
     stage: "all",
@@ -24,6 +25,7 @@ const els = {
   teamSlots: document.querySelector("#teamSlots"),
   resultPanel: document.querySelector("#resultPanel"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
+  commonFilter: document.querySelector("#commonFilter"),
   weaponFilter: document.querySelector("#weaponFilter"),
   companyFilter: document.querySelector("#companyFilter"),
   stageFilter: document.querySelector("#stageFilter"),
@@ -331,6 +333,7 @@ function getIconMarkup(src, label, className) {
 function getFilteredCharacters() {
   const keyword = state.filters.search.trim().toLowerCase();
   return CHARACTERS.filter((character) => {
+    const matchesCommon = state.filters.common === "all" || character.isCommon;
     const matchesWeapon = state.filters.weapon === "all" || character.weapon === state.filters.weapon;
     const matchesCompany = state.filters.company === "all" || character.company === state.filters.company;
     const matchesStage = state.filters.stage === "all" || character.burstStage.split("/").includes(state.filters.stage);
@@ -339,7 +342,7 @@ function getFilteredCharacters() {
       !keyword ||
       character.name.toLowerCase().includes(keyword) ||
       character.enName.toLowerCase().includes(keyword);
-    return matchesWeapon && matchesCompany && matchesStage && matchesRegion && matchesSearch;
+    return matchesCommon && matchesWeapon && matchesCompany && matchesStage && matchesRegion && matchesSearch;
   }).sort((a, b) => {
     const chargeDiff = getChargeValue(b) - getChargeValue(a);
     const weaponDiff = WEAPON_ORDER.indexOf(a.weapon) - WEAPON_ORDER.indexOf(b.weapon);
@@ -633,6 +636,10 @@ function showToast(message) {
 
 function bindEvents() {
   els.clearTeamButton.addEventListener("click", clearTeam);
+  els.commonFilter.addEventListener("change", (event) => {
+    state.filters.common = event.target.value;
+    renderCharacters();
+  });
   els.weaponFilter.addEventListener("change", (event) => {
     state.filters.weapon = event.target.value;
     renderCharacters();

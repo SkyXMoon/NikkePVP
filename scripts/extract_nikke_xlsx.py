@@ -446,6 +446,7 @@ def merge_records(global_attack, global_defense, cn_stable, avatar_map, top_regi
             "rarity": get_rarity(attack["name"]),
             "avatarUrl": local_avatar_path or avatar_url,
             "avatarSourceUrl": avatar_url,
+            "isCommon": True,
             "weapon": attack["weapon"],
             "weaponCn": attack["weaponCn"],
             "burstGen": attack["burstGen"],
