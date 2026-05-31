@@ -109,7 +109,7 @@ function getTeamPositionText() {
 }
 
 function getResultCopyText(result) {
-  return `${getTeamPositionText()}，${getStandardChargeBand(result.fullFrame)}`;
+  return `${getTeamPositionText()}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
 }
 
 function applyChargeSpeedFrames(baseFrames, chargeSpeedPercent = 0) {
