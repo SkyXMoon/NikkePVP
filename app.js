@@ -97,19 +97,22 @@ function getStandardChargeBand(frame) {
   return `快于${fasterThan[0].label}`;
 }
 
-function getTeamPositionText() {
+function getTeamPositionText(finishingPositionIndices = []) {
+  const finishingPositions = new Set(finishingPositionIndices);
   return state.team
     .map((character, index) => {
       if (!character) return "空位";
       const chargeSpeed = Number(state.chargeSpeeds[index]) || Number(character.chargeSpeedPercent) || 0;
       const isChargeWeapon = character.weapon === "RL" || character.weapon === "SR";
-      return isChargeWeapon && chargeSpeed > 0 ? `${character.name}(${chargeSpeed})` : character.name;
+      const prefix = finishingPositions.has(index) ? "*" : "";
+      const name = `${prefix}${character.name}`;
+      return isChargeWeapon && chargeSpeed > 0 ? `${name}(${chargeSpeed})` : name;
     })
     .join("，");
 }
 
 function getResultCopyText(result) {
-  return `${getTeamPositionText()}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
+  return `${getTeamPositionText(result.finishingPositionIndices)}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
 }
 
 function applyChargeSpeedFrames(baseFrames, chargeSpeedPercent = 0) {
@@ -307,18 +310,23 @@ function simulateBurst(team) {
   let totalCharge = 0;
   let currentFrame = 0;
   let pendingExtraEvents = [];
+  let currentFrameContributors = new Set();
 
   while (totalCharge < 100 - BURST_EPSILON && currentFrame <= 10000) {
     const nextAttackFrame = Math.min(...events.map((event) => event.nextFrame));
     const nextExtraFrame = pendingExtraEvents.length ? Math.min(...pendingExtraEvents.map((event) => event.frame)) : Infinity;
     currentFrame = Math.min(nextAttackFrame, nextExtraFrame);
+    currentFrameContributors = new Set();
 
     const activeExtras = pendingExtraEvents.filter((event) => event.frame === currentFrame);
     pendingExtraEvents = pendingExtraEvents.filter((event) => event.frame !== currentFrame);
     activeExtras.forEach((extra) => {
       totalCharge += extra.chargeValue;
       const owner = events.find((event) => event.character.id === extra.character.id);
-      if (owner) owner.totalCharge += extra.chargeValue;
+      if (owner) {
+        owner.totalCharge += extra.chargeValue;
+        currentFrameContributors.add(owner.positionIndex);
+      }
     });
 
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
@@ -329,6 +337,7 @@ function simulateBurst(team) {
       event.totalCharge += chargeValue;
       event.hits += shotCount;
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
+      currentFrameContributors.add(event.positionIndex);
       const hitCountExtraCharge = getHitCountExtraCharge(event);
       totalCharge += hitCountExtraCharge;
       event.totalCharge += hitCountExtraCharge;
@@ -351,6 +360,7 @@ function simulateBurst(team) {
     burst3Frame: currentFrame + 90,
     totalCharge,
     chargePerSecond: currentFrame === 0 ? totalCharge * FRAMES_PER_SECOND : (totalCharge / currentFrame) * FRAMES_PER_SECOND,
+    finishingPositionIndices: [...currentFrameContributors].sort((a, b) => a - b),
     members: events,
   };
 }
@@ -504,10 +514,13 @@ function renderCharacters() {
 
 function renderTeam() {
   const fragment = document.createDocumentFragment();
+  const result = simulateBurst(state.team);
+  const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
 
   state.team.forEach((character, index) => {
+    const isFinisher = finishingPositions.has(index);
     const slot = document.createElement("div");
-    slot.className = `team-slot${character ? " filled" : ""}`;
+    slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
     slot.dataset.slotIndex = index;
     slot.draggable = Boolean(character);
     slot.innerHTML = character
@@ -518,6 +531,7 @@ function renderTeam() {
           <span class="slot-copy">
             <strong>${escapeHtml(character.name)}</strong>
             <span>${escapeHtml(character.weapon)} · 单发 ${getChargeValue(character).toFixed(2)}%</span>
+            ${isFinisher ? '<span class="finish-mark">完成</span>' : ""}
           </span>
         </button>
         <label class="speed-control">
