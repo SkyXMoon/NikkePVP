@@ -8,7 +8,13 @@ const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
 const STANDARD_CHARGE_FRAMES = [
   { label: "2RL", frame: 120 },
+  { label: "4SG", frame: 126 },
   { label: "5SG", frame: 168 },
+  { label: "3RL", frame: 180 },
+  { label: "6SG", frame: 210 },
+  { label: "7SG", frame: 252 },
+  { label: "4RL", frame: 240 },
+  { label: "8SG", frame: 294 },
 ];
 
 const state = {
@@ -66,9 +72,9 @@ function getStandardChargeBand(frame) {
   const equalStandard = standards.find((standard) => frame === standard.frame);
 
   if (equalStandard) return `等于${equalStandard.label}`;
-  if (fasterThan.length === standards.length) return `大于${standards[0].label}`;
-  if (slowerThan.length === standards.length) return `低于${standards.at(-1).label}`;
-  return `大于${fasterThan[0].label}`;
+  if (fasterThan.length === standards.length) return `快过${standards[0].label}`;
+  if (slowerThan.length === standards.length) return `慢于${standards.at(-1).label}`;
+  return `快过${fasterThan[0].label}`;
 }
 
 function applyChargeSpeedFrames(baseFrames, chargeSpeedPercent = 0) {
