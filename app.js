@@ -6,6 +6,19 @@ const BURST_EPSILON = 1e-6;
 const STORAGE_KEY = "nikke-arena-charge-team-v2";
 const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
+const WEAPON_LABELS = {
+  SMG: "冲锋枪",
+  AR: "步枪",
+  SG: "霰弹枪",
+  MG: "机枪",
+  SR: "狙击步枪",
+  RL: "发射器",
+};
+const STAGE_LABELS = {
+  B1: "爆裂 I",
+  B2: "爆裂 II",
+  B3: "爆裂 III",
+};
 const STANDARD_CHARGE_FRAMES = [
   { label: "2RL", frame: 152 },
   { label: "4SG", frame: 126 },
@@ -339,13 +352,13 @@ function createOption(value, label) {
 }
 
 function initFilters() {
-  WEAPON_ORDER.forEach((weapon) => els.weaponFilter.append(createOption(weapon, weapon)));
+  WEAPON_ORDER.forEach((weapon) => els.weaponFilter.append(createOption(weapon, WEAPON_LABELS[weapon] || weapon)));
 
   [...new Set(CHARACTERS.map((character) => character.company))]
     .sort((a, b) => a.localeCompare(b, "zh-CN"))
     .forEach((company) => els.companyFilter.append(createOption(company, company)));
 
-  ["B1", "B2", "B3"].forEach((stage) => els.stageFilter.append(createOption(stage, stage)));
+  ["B1", "B2", "B3"].forEach((stage) => els.stageFilter.append(createOption(stage, STAGE_LABELS[stage] || stage)));
 }
 
 function getRegionLabel(character) {
