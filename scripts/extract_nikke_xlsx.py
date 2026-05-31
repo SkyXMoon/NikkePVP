@@ -13,6 +13,8 @@ JSON_OUT_PATH = Path(r"E:\CodexWorkSpace\nikke-data-extracted.json")
 AVATAR_MAP_PATH = Path(r"E:\CodexWorkSpace\gamekee-avatar-map.json")
 AVATAR_DIR = Path(r"E:\CodexWorkSpace\assets\avatars")
 NIKKE_TOP_AVATAR_DIR = Path(r"E:\CodexWorkSpace\assets\avatars-nikke-top")
+NIKKE_TOP_DATA_PATH = Path(r"E:\CodexWorkSpace\nikke-top-characters.json")
+NIKKE_TOP_MATCHES_PATH = Path(r"E:\CodexWorkSpace\nikke-top-avatar-matches.json")
 
 SHEETS = {
     "global_attack": "xl/worksheets/sheet5.xml",
@@ -211,6 +213,12 @@ def normalize_name(text):
     return re.sub(r"[\s:：·・<>《》〈〉（）()]+", "", str(text or "").strip()).lower()
 
 
+def normalize_top_name(text):
+    text = re.sub(r"\s+", "", str(text or ""))
+    text = re.sub(r"[()（）\[\]【】<>《》〈〉:：·・]", "", text)
+    return re.sub(r"[^0-9a-zA-Z\u4e00-\u9fff+]", "", text).lower()
+
+
 def load_avatar_map():
     if not AVATAR_MAP_PATH.exists():
         return {}
@@ -219,6 +227,63 @@ def load_avatar_map():
     for name, url in raw.items():
         normalized[normalize_name(name)] = url
     return normalized
+
+
+def load_nikke_top_regions():
+    if not NIKKE_TOP_DATA_PATH.exists():
+        return {
+            "localIdToRegions": {},
+            "nameToRegions": {},
+            "counts": {
+                "nikkeTopChina": 0,
+                "nikkeTopGlobal": 0,
+                "nikkeTopMatched": 0,
+            },
+        }
+
+    top_payload = json.loads(NIKKE_TOP_DATA_PATH.read_text(encoding="utf-8"))
+    china_items = top_payload.get("china-nikkes", [])
+    global_items = top_payload.get("global-nikkes", [])
+
+    top_id_to_regions = {}
+    name_to_regions = {}
+    for region_key, region in (("global-nikkes", "global"), ("china-nikkes", "cn")):
+        for item in top_payload.get(region_key, []):
+            top_id = str(item["id"])
+            top_id_to_regions.setdefault(top_id, set()).add(region)
+            for name in item.get("name", {}).values():
+                key = normalize_top_name(name)
+                if key:
+                    name_to_regions.setdefault(key, set()).add(region)
+
+    local_id_to_regions = {}
+    if NIKKE_TOP_MATCHES_PATH.exists():
+        matches = json.loads(NIKKE_TOP_MATCHES_PATH.read_text(encoding="utf-8"))
+        for match in matches:
+            top_id = str(match.get("topId", ""))
+            local_id_to_regions[int(match["id"])] = sorted(top_id_to_regions.get(top_id, {"global"}))
+
+    return {
+        "localIdToRegions": local_id_to_regions,
+        "nameToRegions": name_to_regions,
+        "counts": {
+            "nikkeTopChina": len(china_items),
+            "nikkeTopGlobal": len(global_items),
+            "nikkeTopMatched": len(local_id_to_regions),
+        },
+    }
+
+
+def get_nikke_top_regions(record_id, attack, top_regions):
+    matched_regions = top_regions["localIdToRegions"].get(record_id)
+    if matched_regions:
+        return ["global"] + (["cn"] if "cn" in matched_regions else [])
+
+    name_regions = set()
+    for key in (normalize_top_name(attack["name"]), normalize_top_name(attack["enName"])):
+        name_regions.update(top_regions["nameToRegions"].get(key, set()))
+
+    return ["global"] + (["cn"] if "cn" in name_regions else [])
 
 
 def find_avatar_url(name, avatar_map):
@@ -349,11 +414,10 @@ def row_to_record(row, source_key):
     }
 
 
-def merge_records(global_attack, global_defense, cn_stable, avatar_map):
+def merge_records(global_attack, global_defense, cn_stable, avatar_map, top_regions):
     defense_by_key = {
         (item["name"], item["weapon"], item["company"]): item for item in global_defense
     }
-    cn_keys = {(item["name"], item["weapon"], item["company"]) for item in cn_stable}
 
     records = []
     seen_slugs = {}
@@ -395,7 +459,7 @@ def merge_records(global_attack, global_defense, cn_stable, avatar_map):
             "burstStage": attack["burstStage"],
             "classType": attack["classType"],
             "element": attack["element"],
-            "regions": ["global"] + (["cn"] if key in cn_keys else []),
+            "regions": get_nikke_top_regions(idx, attack, top_regions),
             "stats": {
                 "weaponDamage": attack["weaponDamage"],
                 "magazine": attack["magazine"],
@@ -464,13 +528,15 @@ def main():
             ]
 
     avatar_map = load_avatar_map()
-    characters = merge_records(parsed["global_attack"], parsed["global_defense"], parsed["cn_stable"], avatar_map)
+    top_regions = load_nikke_top_regions()
+    characters = merge_records(parsed["global_attack"], parsed["global_defense"], parsed["cn_stable"], avatar_map, top_regions)
     payload = {
         "source": str(source),
         "counts": {
             "globalAttack": len(parsed["global_attack"]),
             "globalDefense": len(parsed["global_defense"]),
             "cnStable": len(parsed["cn_stable"]),
+            **top_regions["counts"],
             "characters": len(characters),
             "cnTagged": sum(1 for item in characters if "cn" in item["regions"]),
         },

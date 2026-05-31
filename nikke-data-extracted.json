@@ -4,8 +4,11 @@
     "globalAttack": 193,
     "globalDefense": 193,
     "cnStable": 41,
+    "nikkeTopChina": 87,
+    "nikkeTopGlobal": 188,
+    "nikkeTopMatched": 178,
     "characters": 193,
-    "cnTagged": 41
+    "cnTagged": 78
   },
   "characters": [
     {
@@ -44,7 +47,8 @@
       "classType": "火力",
       "element": "水冷",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 69.04,
@@ -489,7 +493,8 @@
       "classType": "防御",
       "element": "铁甲",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 65.02,
@@ -1295,7 +1300,8 @@
       "classType": "火力",
       "element": "燃烧",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 214.3,
@@ -1464,7 +1470,8 @@
       "classType": "火力",
       "element": "水冷",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 220.4,
@@ -1802,7 +1809,8 @@
       "classType": "火力",
       "element": "风压",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 204.6,
@@ -2056,7 +2064,8 @@
       "classType": "火力",
       "element": "铁甲",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 231.6,
@@ -2746,7 +2755,8 @@
       "classType": "火力",
       "element": "燃烧",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 67.65,
@@ -3018,7 +3028,8 @@
       "classType": "火力",
       "element": "燃烧",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 61.3,
@@ -3457,7 +3468,8 @@
       "classType": "辅助",
       "element": "风压",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 61.3,
@@ -3818,7 +3830,8 @@
       "classType": "辅助",
       "element": "电击",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 61.3,
@@ -4178,7 +4191,8 @@
       "classType": "辅助",
       "element": "风压",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 61.3,
@@ -4707,7 +4721,8 @@
       "classType": "辅助",
       "element": "电击",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 259.2,
@@ -4890,7 +4905,8 @@
       "classType": "火力",
       "element": "风压",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 57.29,
@@ -5154,7 +5170,8 @@
       "classType": "火力",
       "element": "铁甲",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 61.3,
@@ -5406,7 +5423,8 @@
       "classType": "防御",
       "element": "电击",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 214.3,
@@ -6164,7 +6182,8 @@
       "classType": "火力",
       "element": "电击",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 210.7,
@@ -6248,7 +6267,8 @@
       "classType": "辅助",
       "element": "水冷",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 201.5,
@@ -6332,7 +6352,8 @@
       "classType": "辅助",
       "element": "燃烧",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 201.5,
@@ -6668,7 +6689,8 @@
       "classType": "防御",
       "element": "燃烧",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 5.59,
@@ -6921,7 +6943,8 @@
       "classType": "火力",
       "element": "铁甲",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 14.71,
@@ -7173,7 +7196,8 @@
       "classType": "火力",
       "element": "水冷",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 15.07,
@@ -7852,7 +7876,8 @@
       "classType": "防御",
       "element": "水冷",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 10.32,
@@ -8298,7 +8323,8 @@
       "classType": "防御",
       "element": "燃烧",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 61.3,
@@ -8550,7 +8576,8 @@
       "classType": "辅助",
       "element": "电击",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 69.04,
@@ -8634,7 +8661,8 @@
       "classType": "辅助",
       "element": "电击",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 69.04,
@@ -8802,7 +8830,8 @@
       "classType": "辅助",
       "element": "风压",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 69.04,
@@ -9561,7 +9590,8 @@
       "classType": "火力",
       "element": "铁甲",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 69.04,
@@ -10740,7 +10770,8 @@
       "classType": "辅助",
       "element": "铁甲",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 65.95,
@@ -10908,7 +10939,8 @@
       "classType": "防御",
       "element": "燃烧",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 5.99,
@@ -10992,7 +11024,8 @@
       "classType": "防御",
       "element": "风压",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 13.65,
@@ -11920,7 +11953,8 @@
       "classType": "辅助",
       "element": "水冷",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 13.65,
@@ -12930,7 +12964,8 @@
       "classType": "防御",
       "element": "水冷",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 9.15,
@@ -14194,7 +14229,8 @@
       "classType": "火力",
       "element": "燃烧",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 7.71,
@@ -14453,7 +14489,8 @@
       "classType": "防御",
       "element": "电击",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 32.11,
@@ -14537,7 +14574,8 @@
       "classType": "火力",
       "element": "电击",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 5.1,
@@ -15044,7 +15082,8 @@
       "classType": "防御",
       "element": "风压",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 5.38,
@@ -16221,7 +16260,8 @@
       "classType": "防御",
       "element": "水冷",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 5.57,

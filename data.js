@@ -39,7 +39,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "水冷",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 69.04,
@@ -484,7 +485,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "铁甲",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 65.02,
@@ -1290,7 +1292,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 214.3,
@@ -1459,7 +1462,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "水冷",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 220.4,
@@ -1797,7 +1801,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "风压",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 204.6,
@@ -2051,7 +2056,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "铁甲",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 231.6,
@@ -2741,7 +2747,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 67.65,
@@ -3013,7 +3020,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 61.3,
@@ -3452,7 +3460,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "风压",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 61.3,
@@ -3813,7 +3822,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 61.3,
@@ -4173,7 +4183,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "风压",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 61.3,
@@ -4702,7 +4713,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 259.2,
@@ -4885,7 +4897,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "风压",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 57.29,
@@ -5149,7 +5162,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "铁甲",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 61.3,
@@ -5401,7 +5415,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 214.3,
@@ -6159,7 +6174,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 210.7,
@@ -6243,7 +6259,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "水冷",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 201.5,
@@ -6327,7 +6344,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 201.5,
@@ -6663,7 +6681,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 5.59,
@@ -6916,7 +6935,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "铁甲",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 14.71,
@@ -7168,7 +7188,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "水冷",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 15.07,
@@ -7847,7 +7868,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "水冷",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 10.32,
@@ -8293,7 +8315,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 61.3,
@@ -8545,7 +8568,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 69.04,
@@ -8629,7 +8653,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 69.04,
@@ -8797,7 +8822,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "风压",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 69.04,
@@ -9556,7 +9582,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "铁甲",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 69.04,
@@ -10735,7 +10762,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "铁甲",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 65.95,
@@ -10903,7 +10931,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 5.99,
@@ -10987,7 +11016,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "风压",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 13.65,
@@ -11915,7 +11945,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "水冷",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 13.65,
@@ -12925,7 +12956,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "水冷",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 9.15,
@@ -14189,7 +14221,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 7.71,
@@ -14448,7 +14481,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 32.11,
@@ -14532,7 +14566,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 5.1,
@@ -15039,7 +15074,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "风压",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 5.38,
@@ -16216,7 +16252,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "水冷",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 5.57,
