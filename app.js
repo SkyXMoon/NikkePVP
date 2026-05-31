@@ -7,13 +7,13 @@ const STORAGE_KEY = "nikke-arena-charge-team-v2";
 const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
 const STANDARD_CHARGE_FRAMES = [
-  { label: "2RL", frame: 120 },
+  { label: "2RL", frame: 152 },
   { label: "4SG", frame: 126 },
   { label: "5SG", frame: 168 },
-  { label: "3RL", frame: 180 },
+  { label: "3RL", frame: 228 },
   { label: "6SG", frame: 210 },
   { label: "7SG", frame: 252 },
-  { label: "4RL", frame: 240 },
+  { label: "4RL", frame: 304 },
   { label: "8SG", frame: 294 },
 ];
 
