@@ -14378,7 +14378,7 @@ const CHARACTERS = [
       "turnFrames": null
     },
     "hasPenetration": false,
-    "hasExtraDamage": false,
+    "hasExtraDamage": true,
     "delayedExtraHits": [],
     "hitCountExtraEvents": [],
     "flatBurstBonus": 0,
@@ -14433,7 +14433,7 @@ const CHARACTERS = [
       "attack": "↗",
       "defense": "↙"
     },
-    "notes": "机枪；系数 0.0005",
+    "notes": "机枪；系数 0.0005；额外造成",
     "source": "NIKKE PVP 充能计算器 v2.3.20（更新20260516）.xlsx"
   },
   {
