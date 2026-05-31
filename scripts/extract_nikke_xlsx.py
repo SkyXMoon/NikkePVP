@@ -238,10 +238,13 @@ def load_nikke_top_regions():
         return {
             "localIdToRegions": {},
             "nameToRegions": {},
+            "localIdToCommon": {},
+            "nameToCommon": {},
             "counts": {
                 "nikkeTopChina": 0,
                 "nikkeTopGlobal": 0,
                 "nikkeTopMatched": 0,
+                "nikkeTopCommon": 0,
             },
         }
 
@@ -250,17 +253,22 @@ def load_nikke_top_regions():
     global_items = top_payload.get("global-nikkes", [])
 
     top_id_to_regions = {}
+    top_id_to_common = {}
     name_to_regions = {}
+    name_to_common = {}
     for region_key, region in (("global-nikkes", "global"), ("china-nikkes", "cn")):
         for item in top_payload.get(region_key, []):
             top_id = str(item["id"])
             top_id_to_regions.setdefault(top_id, set()).add(region)
+            top_id_to_common[top_id] = top_id_to_common.get(top_id, False) or item.get("visible") is True
             for name in item.get("name", {}).values():
                 key = normalize_top_name(name)
                 if key:
                     name_to_regions.setdefault(key, set()).add(region)
+                    name_to_common[key] = name_to_common.get(key, False) or item.get("visible") is True
 
     local_id_to_regions = {}
+    local_id_to_common = {}
     if NIKKE_TOP_MATCHES_PATH.exists():
         matches = json.loads(NIKKE_TOP_MATCHES_PATH.read_text(encoding="utf-8"))
         for match in matches:
@@ -269,14 +277,18 @@ def load_nikke_top_regions():
             if top_id in CN_TOP_ID_OVERRIDES:
                 regions.add("cn")
             local_id_to_regions[int(match["id"])] = sorted(regions)
+            local_id_to_common[int(match["id"])] = top_id_to_common.get(top_id, False)
 
     return {
         "localIdToRegions": local_id_to_regions,
         "nameToRegions": name_to_regions,
+        "localIdToCommon": local_id_to_common,
+        "nameToCommon": name_to_common,
         "counts": {
             "nikkeTopChina": len(china_items),
             "nikkeTopGlobal": len(global_items),
             "nikkeTopMatched": len(local_id_to_regions),
+            "nikkeTopCommon": sum(1 for is_common in local_id_to_common.values() if is_common),
         },
     }
 
@@ -291,6 +303,18 @@ def get_nikke_top_regions(record_id, attack, top_regions):
         name_regions.update(top_regions["nameToRegions"].get(key, set()))
 
     return ["global"] + (["cn"] if "cn" in name_regions else [])
+
+
+def get_nikke_top_common(record_id, attack, top_regions):
+    matched_common = top_regions["localIdToCommon"].get(record_id)
+    if matched_common is not None:
+        return matched_common
+
+    for key in (normalize_top_name(attack["name"]), normalize_top_name(attack["enName"])):
+        if key in top_regions["nameToCommon"]:
+            return top_regions["nameToCommon"][key]
+
+    return False
 
 
 def find_avatar_url(name, avatar_map):
@@ -446,7 +470,7 @@ def merge_records(global_attack, global_defense, cn_stable, avatar_map, top_regi
             "rarity": get_rarity(attack["name"]),
             "avatarUrl": local_avatar_path or avatar_url,
             "avatarSourceUrl": avatar_url,
-            "isCommon": True,
+            "isCommon": get_nikke_top_common(idx, attack, top_regions),
             "weapon": attack["weapon"],
             "weaponCn": attack["weaponCn"],
             "burstGen": attack["burstGen"],
