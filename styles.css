@@ -609,6 +609,21 @@ input:focus {
   font-size: 20px;
 }
 
+.metric em {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  margin-top: 7px;
+  border: 1px solid rgba(53, 199, 191, 0.35);
+  border-radius: 999px;
+  padding: 2px 8px;
+  color: var(--cyan);
+  background: rgba(53, 199, 191, 0.1);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .metric.primary strong {
   color: var(--green);
 }

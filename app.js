@@ -6,6 +6,10 @@ const BURST_EPSILON = 1e-6;
 const STORAGE_KEY = "nikke-arena-charge-team-v2";
 const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
+const STANDARD_CHARGE_FRAMES = [
+  { label: "2RL", frame: 120 },
+  { label: "5SG", frame: 168 },
+];
 
 const state = {
   team: Array(TEAM_SIZE).fill(null),
@@ -53,6 +57,18 @@ function frameToSeconds(frame) {
 
 function formatFrame(frame) {
   return `${frame} 帧 / ${frameToSeconds(frame)} 秒`;
+}
+
+function getStandardChargeBand(frame) {
+  const standards = [...STANDARD_CHARGE_FRAMES].sort((a, b) => a.frame - b.frame);
+  const fasterThan = standards.filter((standard) => frame < standard.frame);
+  const slowerThan = standards.filter((standard) => frame > standard.frame);
+  const equalStandard = standards.find((standard) => frame === standard.frame);
+
+  if (equalStandard) return `等于${equalStandard.label}`;
+  if (fasterThan.length === standards.length) return `大于${standards[0].label}`;
+  if (slowerThan.length === standards.length) return `低于${standards.at(-1).label}`;
+  return `大于${fasterThan[0].label}`;
 }
 
 function applyChargeSpeedFrames(baseFrames, chargeSpeedPercent = 0) {
@@ -529,6 +545,7 @@ function renderResults() {
       <div class="metric primary">
         <span>充满时间</span>
         <strong>${formatFrame(result.fullFrame)}</strong>
+        <em>${getStandardChargeBand(result.fullFrame)}</em>
       </div>
       <div class="metric">
         <span>爆裂1开启</span>
