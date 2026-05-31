@@ -628,6 +628,10 @@ input:focus {
   color: var(--green);
 }
 
+.result-copy-target {
+  cursor: copy;
+}
+
 .sub-metrics {
   display: grid;
   grid-template-columns: 1fr 1fr;

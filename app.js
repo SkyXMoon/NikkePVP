@@ -92,9 +92,17 @@ function getStandardChargeBand(frame) {
   const equalStandard = standards.find((standard) => frame === standard.frame);
 
   if (equalStandard) return `等于${equalStandard.label}`;
-  if (fasterThan.length === standards.length) return `快过${standards[0].label}`;
+  if (fasterThan.length === standards.length) return `快于${standards[0].label}`;
   if (slowerThan.length === standards.length) return `慢于${standards.at(-1).label}`;
-  return `快过${fasterThan[0].label}`;
+  return `快于${fasterThan[0].label}`;
+}
+
+function getTeamPositionText() {
+  return state.team.map((character, index) => `P${index + 1}${character?.name || "空位"}`).join("，");
+}
+
+function getResultCopyText(result) {
+  return `${getTeamPositionText()}，${getStandardChargeBand(result.fullFrame)}`;
 }
 
 function applyChargeSpeedFrames(baseFrames, chargeSpeedPercent = 0) {
@@ -592,7 +600,7 @@ function renderResults() {
   els.summaryStrip.textContent = `充满 ${result.fullFrame} 帧，爆裂1 ${result.burst1Frame} 帧`;
   els.resultPanel.innerHTML = `
     <div class="result-main">
-      <div class="metric primary">
+      <div class="metric primary result-copy-target" title="右键复制结果">
         <span>充满时间</span>
         <strong>${formatFrame(result.fullFrame)}</strong>
         <em>${getStandardChargeBand(result.fullFrame)}</em>
@@ -629,6 +637,12 @@ function renderResults() {
       </div>
     </details>
   `;
+
+  const resultCopyTarget = els.resultPanel.querySelector(".result-copy-target");
+  resultCopyTarget.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+    copyResultSummary(result);
+  });
 }
 
 function render() {
@@ -773,6 +787,15 @@ async function copyCharacterDetails(character) {
   try {
     await copyTextToClipboard(getCharacterDetailText(character));
     showToast(`已复制 ${character.name} 的详细信息`);
+  } catch {
+    showToast("复制失败，请检查浏览器剪切板权限");
+  }
+}
+
+async function copyResultSummary(result) {
+  try {
+    await copyTextToClipboard(getResultCopyText(result));
+    showToast("已复制充能结果");
   } catch {
     showToast("复制失败，请检查浏览器剪切板权限");
   }
