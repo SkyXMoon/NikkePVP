@@ -95,6 +95,10 @@ DEFAULT_RL_FLIGHT_FRAMES = {
     "P5": 14,
 }
 
+CN_TOP_ID_OVERRIDES = {
+    "009",  # Crown / 皇冠
+}
+
 AVATAR_NAME_ALIASES = {
     "克拉斯特": "克劳斯特",
     "芙萝拉": "芙罗拉",
@@ -261,7 +265,10 @@ def load_nikke_top_regions():
         matches = json.loads(NIKKE_TOP_MATCHES_PATH.read_text(encoding="utf-8"))
         for match in matches:
             top_id = str(match.get("topId", ""))
-            local_id_to_regions[int(match["id"])] = sorted(top_id_to_regions.get(top_id, {"global"}))
+            regions = set(top_id_to_regions.get(top_id, {"global"}))
+            if top_id in CN_TOP_ID_OVERRIDES:
+                regions.add("cn")
+            local_id_to_regions[int(match["id"])] = sorted(regions)
 
     return {
         "localIdToRegions": local_id_to_regions,

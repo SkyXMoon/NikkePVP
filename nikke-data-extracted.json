@@ -8,7 +8,7 @@
     "nikkeTopGlobal": 188,
     "nikkeTopMatched": 178,
     "characters": 193,
-    "cnTagged": 78
+    "cnTagged": 79
   },
   "characters": [
     {
@@ -15251,7 +15251,8 @@
       "classType": "防御",
       "element": "铁甲",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 5.57,
