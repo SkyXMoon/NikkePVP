@@ -55,6 +55,7 @@ FIRST_FRAME_OVERRIDES = {
 
 PROJECTILE_FLIGHT_FRAME_OVERRIDES = {
     "红莲:暗影": 5,
+    "拉普拉斯": 6,
     "拉普拉斯 珍藏": 6,
 }
 

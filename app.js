@@ -122,28 +122,38 @@ function applyChargeSpeedFrames(baseFrames, chargeSpeedPercent = 0) {
   return Math.floor((baseFrames / 2) / (1 + speed / 100)) * 2;
 }
 
+function applyChargeSpeedTotalFrames(baseFrames, chargeSpeedPercent = 0) {
+  if (!baseFrames) return baseFrames;
+  const speed = Number(chargeSpeedPercent) || 0;
+  if (speed <= 0) return baseFrames;
+  return Math.floor(baseFrames / (1 + speed / 100) / 2) * 2;
+}
+
 function getChargeFrames(character, positionIndex) {
   const speed = Number(character.chargeSpeedPercent) || 0;
 
   if (character.timing?.firstFrame !== null && character.timing?.intervalFrames !== null) {
     const baseChargeFrames = character.timing.chargeFrames ?? 0;
     const chargeFrames = applyChargeSpeedFrames(baseChargeFrames, speed);
-    const intervalBase = character.timing.turnFrames != null ? chargeFrames + character.timing.turnFrames : character.timing.intervalFrames;
+    const baseIntervalFrames =
+      character.timing.turnFrames != null ? baseChargeFrames + character.timing.turnFrames : character.timing.intervalFrames;
+    const intervalFrames = applyChargeSpeedTotalFrames(baseIntervalFrames, speed);
 
     if (character.weapon === "RL" && character.timing.projectileFlightFramesByPosition) {
       const positionKey = `P${positionIndex + 1}`;
       const flightFrames = character.timing.projectileFlightFramesByPosition[positionKey] ?? 0;
+      const baseFirstFrame = baseChargeFrames + flightFrames;
       return {
-        firstFrame: character.firstFrameOverride ?? chargeFrames + flightFrames,
-        interval: character.attackIntervalFrames || intervalBase,
+        firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseFirstFrame, speed),
+        interval: character.attackIntervalFrames || intervalFrames,
         chargeFrames,
       };
     }
 
     if (["SR", "RL"].includes(character.weapon)) {
       return {
-        firstFrame: character.firstFrameOverride ?? chargeFrames,
-        interval: character.attackIntervalFrames || intervalBase,
+        firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames, speed),
+        interval: character.attackIntervalFrames || intervalFrames,
         chargeFrames,
       };
     }
@@ -165,18 +175,20 @@ function getChargeFrames(character, positionIndex) {
   if (character.weapon === "MG") return { firstFrame: MG_WARMUP_EVENTS[0].frame, interval: MG_SUSTAIN_INTERVAL_FRAMES, chargeFrames: 0 };
   if (character.weapon === "SR") {
     const turnFrames = character.turnFrames ?? 16;
+    const baseChargeFrames = sheetChargeFrames ?? 60;
     return {
-      firstFrame: character.firstFrameOverride ?? chargeFrames,
-      interval: character.attackIntervalFrames || chargeFrames + turnFrames,
+      firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames, speed),
+      interval: character.attackIntervalFrames || applyChargeSpeedTotalFrames(baseChargeFrames + turnFrames, speed),
       chargeFrames,
     };
   }
   if (character.weapon === "RL") {
     const flightFrames = character.projectileFlightFrames ?? (positionIndex <= 1 ? 16 : 14);
     const turnFrames = character.turnFrames ?? 16;
+    const baseChargeFrames = sheetChargeFrames ?? 60;
     return {
-      firstFrame: character.firstFrameOverride ?? chargeFrames + flightFrames,
-      interval: character.attackIntervalFrames || chargeFrames + turnFrames,
+      firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames + flightFrames, speed),
+      interval: character.attackIntervalFrames || applyChargeSpeedTotalFrames(baseChargeFrames + turnFrames, speed),
       chargeFrames,
     };
   }

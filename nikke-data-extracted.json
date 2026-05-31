@@ -2854,19 +2854,19 @@
       "rlExplosionRange": 1,
       "firstFrameOverride": null,
       "attackIntervalFrames": null,
-      "projectileFlightFrames": null,
+      "projectileFlightFrames": 6,
       "turnFrames": null,
       "timing": {
         "chargeFrames": 60,
-        "firstFrame": 76,
+        "firstFrame": 66,
         "intervalFrames": 76,
-        "projectileFlightFrames": null,
+        "projectileFlightFrames": 6,
         "projectileFlightFramesByPosition": {
-          "P1": 16,
-          "P2": 16,
-          "P3": 14,
-          "P4": 14,
-          "P5": 14
+          "P1": 6,
+          "P2": 6,
+          "P3": 6,
+          "P4": 6,
+          "P5": 6
         },
         "turnFrames": 16
       },
