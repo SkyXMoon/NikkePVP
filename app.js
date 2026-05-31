@@ -169,6 +169,28 @@ function getChargeBreakdown(character) {
   return lines.join("\n");
 }
 
+function getCharacterDetailText(character) {
+  const timing = getChargeFrames(character, 0);
+  const specialTags = [];
+  if (character.hasPenetration) specialTags.push("穿透");
+  if (character.hasExtraDamage) specialTags.push("额外伤害");
+  if (character.flatBurstBonus) specialTags.push(`固定补充 +${character.flatBurstBonus.toFixed(2)}%`);
+  if (character.weapon === "RL") specialTags.push(`RL ${getRlHitSegments(character)} 段`);
+  if (character.hitCountExtraEvents?.length) specialTags.push("攻击次数追加");
+  if (character.delayedExtraHits?.length) specialTags.push("延迟追加");
+
+  return [
+    `${character.name}（${character.rarity || "SSR"}）`,
+    `武器：${character.weapon} / 爆裂：${character.burstStage} / 属性：${character.element} / 企业：${character.company}`,
+    `服务器：${getRegionLabel(character)} / 常用：${character.isCommon ? "是" : "否"}`,
+    `最终单发充能：${getChargeValue(character).toFixed(2)}%`,
+    getChargeBreakdown(character),
+    `时间参数：首发生效 ${timing.firstFrame ?? "-"}f / 攻击间隔 ${timing.interval ?? "-"}f / 蓄力 ${timing.chargeFrames ?? "-"}f`,
+    `特殊：${specialTags.length ? specialTags.join("，") : "无"}`,
+    `数据来源：${character.source || DATA_SOURCES.XLSX}`,
+  ].join("\n");
+}
+
 function getDelayedExtraEvents(event, currentFrame) {
   return (event.character.delayedExtraHits || []).map((extra) => ({
     character: event.character,
@@ -403,6 +425,10 @@ function renderCharacters() {
       <span class="tile-check" aria-hidden="true">✓</span>
     `;
     tile.addEventListener("click", () => toggleCharacter(character));
+    tile.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      copyCharacterDetails(character);
+    });
     fragment.append(tile);
   });
 
@@ -664,6 +690,39 @@ function showToast(message) {
   els.toast.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => els.toast.classList.remove("show"), 2200);
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Fall through for file:// or permission-limited contexts.
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  textarea.style.top = "0";
+  document.body.append(textarea);
+  textarea.focus();
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  if (!copied) throw new Error("copy command failed");
+}
+
+async function copyCharacterDetails(character) {
+  try {
+    await copyTextToClipboard(getCharacterDetailText(character));
+    showToast(`已复制 ${character.name} 的详细信息`);
+  } catch {
+    showToast("复制失败，请检查浏览器剪切板权限");
+  }
 }
 
 function bindEvents() {
