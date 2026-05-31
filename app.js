@@ -563,7 +563,7 @@ function renderTeam() {
       `;
 
     slot.addEventListener("dragstart", (event) => {
-      if (!character) {
+      if (!character || event.target.closest(".speed-control")) {
         event.preventDefault();
         return;
       }
@@ -600,6 +600,13 @@ function renderTeam() {
 
     if (character) {
       slot.querySelector(".slot-remove").addEventListener("click", () => removeCharacter(index));
+      const speedControl = slot.querySelector(".speed-control");
+      speedControl.addEventListener("pointerdown", (event) => event.stopPropagation());
+      speedControl.addEventListener("mousedown", (event) => event.stopPropagation());
+      speedControl.addEventListener("dragstart", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
       const speedInput = slot.querySelector("[data-speed-index]");
       speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
       speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
