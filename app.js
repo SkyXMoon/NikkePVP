@@ -594,7 +594,7 @@ function renderTeam() {
       speedInput.addEventListener("input", (event) => {
         state.chargeSpeeds[index] = Math.max(0, Number(event.target.value) || 0);
         saveTeam();
-        renderResults();
+        updateTeamFinishMarkers(renderResults());
       });
     }
     fragment.append(slot);
@@ -603,19 +603,45 @@ function renderTeam() {
   els.teamSlots.replaceChildren(fragment);
 }
 
+function updateTeamFinishMarkers(result = simulateBurst(state.team)) {
+  const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
+
+  els.teamSlots.querySelectorAll(".team-slot").forEach((slot) => {
+    const index = Number(slot.dataset.slotIndex);
+    const isFinisher = finishingPositions.has(index);
+    slot.classList.toggle("is-finisher", isFinisher);
+
+    const slotCopy = slot.querySelector(".slot-copy");
+    if (!slotCopy) return;
+
+    const existingMark = slotCopy.querySelector(".finish-mark");
+    if (isFinisher && !existingMark) {
+      const mark = document.createElement("span");
+      mark.className = "finish-mark";
+      mark.textContent = "完成";
+      slotCopy.append(mark);
+      return;
+    }
+
+    if (!isFinisher && existingMark) {
+      existingMark.remove();
+    }
+  });
+}
+
 function renderResults() {
   const result = simulateBurst(state.team);
 
   if (!result) {
     els.summaryStrip.textContent = "队伍为空，选择角色后开始计算";
     els.resultPanel.innerHTML = '<p class="empty-result">当前队伍为空。按 P1 到 P5 的顺序加入角色，即可查看充满帧、爆裂开启帧和每名角色的充能明细。</p>';
-    return;
+    return null;
   }
 
   if (result.error) {
     els.summaryStrip.textContent = result.error;
     els.resultPanel.innerHTML = `<p class="empty-result">${escapeHtml(result.error)}</p>`;
-    return;
+    return result;
   }
 
   els.summaryStrip.textContent = `充满 ${result.fullFrame} 帧，爆裂1 ${result.burst1Frame} 帧`;
@@ -664,6 +690,8 @@ function renderResults() {
     event.preventDefault();
     copyResultSummary(result);
   });
+
+  return result;
 }
 
 function render() {
