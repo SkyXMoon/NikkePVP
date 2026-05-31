@@ -98,7 +98,14 @@ function getStandardChargeBand(frame) {
 }
 
 function getTeamPositionText() {
-  return state.team.map((character, index) => `P${index + 1}${character?.name || "空位"}`).join("，");
+  return state.team
+    .map((character, index) => {
+      if (!character) return "空位";
+      const chargeSpeed = Number(state.chargeSpeeds[index]) || Number(character.chargeSpeedPercent) || 0;
+      const isChargeWeapon = character.weapon === "RL" || character.weapon === "SR";
+      return isChargeWeapon && chargeSpeed > 0 ? `${character.name}(${chargeSpeed})` : character.name;
+    })
+    .join("，");
 }
 
 function getResultCopyText(result) {
