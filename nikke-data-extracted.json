@@ -9,7 +9,7 @@
     "nikkeTopMatched": 178,
     "nikkeTopCommon": 79,
     "characters": 193,
-    "cnTagged": 79
+    "cnTagged": 80
   },
   "characters": [
     {
@@ -15687,7 +15687,8 @@
       "classType": "火力",
       "element": "燃烧",
       "regions": [
-        "global"
+        "global",
+        "cn"
       ],
       "stats": {
         "weaponDamage": 5.57,

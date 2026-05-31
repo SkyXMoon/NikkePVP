@@ -15678,7 +15678,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 5.57,

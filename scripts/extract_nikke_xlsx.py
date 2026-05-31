@@ -100,6 +100,7 @@ DEFAULT_RL_FLIGHT_FRAMES = {
 
 CN_TOP_ID_OVERRIDES = {
     "009",  # Crown / 皇冠
+    "013",  # Rapi: Red Hood / 拉毗:小红帽
 }
 
 AVATAR_NAME_ALIASES = {
