@@ -170,24 +170,10 @@ function getChargeBreakdown(character) {
 }
 
 function getCharacterDetailText(character) {
-  const timing = getChargeFrames(character, 0);
-  const specialTags = [];
-  if (character.hasPenetration) specialTags.push("穿透");
-  if (character.hasExtraDamage) specialTags.push("额外伤害");
-  if (character.flatBurstBonus) specialTags.push(`固定补充 +${character.flatBurstBonus.toFixed(2)}%`);
-  if (character.weapon === "RL") specialTags.push(`RL ${getRlHitSegments(character)} 段`);
-  if (character.hitCountExtraEvents?.length) specialTags.push("攻击次数追加");
-  if (character.delayedExtraHits?.length) specialTags.push("延迟追加");
-
   return [
     `${character.name}（${character.rarity || "SSR"}）`,
-    `武器：${character.weapon} / 爆裂：${character.burstStage} / 属性：${character.element} / 企业：${character.company}`,
-    `服务器：${getRegionLabel(character)} / 常用：${character.isCommon ? "是" : "否"}`,
     `最终单发充能：${getChargeValue(character).toFixed(2)}%`,
     getChargeBreakdown(character),
-    `时间参数：首发生效 ${timing.firstFrame ?? "-"}f / 攻击间隔 ${timing.interval ?? "-"}f / 蓄力 ${timing.chargeFrames ?? "-"}f`,
-    `特殊：${specialTags.length ? specialTags.join("，") : "无"}`,
-    `数据来源：${character.source || DATA_SOURCES.XLSX}`,
   ].join("\n");
 }
 
