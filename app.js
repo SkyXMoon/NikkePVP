@@ -137,6 +137,38 @@ function getChargeValue(character) {
   return character.burstGen * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
+function getChargeBreakdown(character) {
+  const hitMultiplier = character.weapon === "RL" ? getRlHitSegments(character) : character.hasPenetration ? 2 : 1;
+  const extraMultiplier = character.hasExtraDamage ? 2 : 1;
+  const hitLabel = character.weapon === "RL" ? `RL命中 ${hitMultiplier} 段` : character.hasPenetration ? "穿透 2 段" : "命中 1 段";
+  const baseCharge = character.burstGen * hitMultiplier * extraMultiplier;
+  const flatBonus = character.flatBurstBonus || 0;
+  const lines = [
+    `充能组成：${character.burstGen.toFixed(2)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${flatBonus.toFixed(2)}` : ""} = ${getChargeValue(character).toFixed(2)}%`,
+    `基础 ${character.burstGen.toFixed(2)}%`,
+    hitLabel,
+  ];
+
+  if (character.hasExtraDamage) lines.push("额外伤害 ×2");
+  if (flatBonus) lines.push(`固定补充 +${flatBonus.toFixed(2)}%`);
+  if (character.hitCountExtraEvents?.length) {
+    lines.push(
+      `攻击次数追加：${character.hitCountExtraEvents
+        .map((event) => `第${event.hit}次 +${(character.burstGen * event.segments * extraMultiplier).toFixed(2)}%`)
+        .join("，")}`,
+    );
+  }
+  if (character.delayedExtraHits?.length) {
+    lines.push(
+      `延迟追加：${character.delayedExtraHits
+        .map((event) => `${event.delayFrames}帧后 +${(character.burstGen * event.segments * extraMultiplier).toFixed(2)}%`)
+        .join("，")}`,
+    );
+  }
+
+  return lines.join("\n");
+}
+
 function getDelayedExtraEvents(event, currentFrame) {
   return (event.character.delayedExtraHits || []).map((extra) => ({
     character: event.character,
@@ -361,7 +393,7 @@ function renderCharacters() {
     tile.type = "button";
     tile.className = `character-tile rarity-${getRarityClass(character)}${pickedIds.has(character.id) ? " is-picked" : ""}`;
     tile.setAttribute("aria-label", `加入 ${character.name}，${character.weapon}，单发 ${getChargeValue(character).toFixed(2)}%`);
-    tile.title = `#${index + 1} ${character.name}\n${character.rarity || "SSR"} · ${character.weapon} · ${character.burstStage} · ${getRegionLabel(character)}\n最终单发 ${getChargeValue(character).toFixed(2)}%`;
+    tile.title = `#${index + 1} ${character.name}\n${character.rarity || "SSR"} · ${character.weapon} · ${character.burstStage} · ${getRegionLabel(character)}\n最终单发 ${getChargeValue(character).toFixed(2)}%\n${getChargeBreakdown(character)}`;
     tile.innerHTML = `
       <span class="tile-avatar">${getAvatarMarkup(character)}</span>
       ${getIconMarkup(getWeaponIcon(character), character.weapon, "weapon-icon")}
