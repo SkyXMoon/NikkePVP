@@ -14,7 +14,7 @@ const state = {
     weapon: "all",
     company: "all",
     stage: "all",
-    region: "all",
+    region: "cn",
     search: "",
   },
 };
