@@ -16,6 +16,13 @@ const STANDARD_CHARGE_FRAMES = [
   { label: "4RL", frame: 304 },
   { label: "8SG", frame: 294 },
 ];
+const MG_WARMUP_EVENTS = [
+  { frame: 96, shots: 12 },
+  { frame: 152, shots: 22 },
+  { frame: 180, shots: 14 },
+];
+const MG_SUSTAIN_START_FRAME = 182;
+const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 
 const state = {
   team: Array(TEAM_SIZE).fill(null),
@@ -124,7 +131,7 @@ function getChargeFrames(character, positionIndex) {
   if (character.weapon === "SMG") return { firstFrame: 0, interval: 4, chargeFrames: 0 };
   if (character.weapon === "AR") return { firstFrame: 0, interval: 6, chargeFrames: 0 };
   if (character.weapon === "SG") return { firstFrame: 0, interval: 42, chargeFrames: 0 };
-  if (character.weapon === "MG") return { firstFrame: 180, interval: 2, chargeFrames: 0 };
+  if (character.weapon === "MG") return { firstFrame: MG_WARMUP_EVENTS[0].frame, interval: MG_SUSTAIN_INTERVAL_FRAMES, chargeFrames: 0 };
   if (character.weapon === "SR") {
     const turnFrames = character.turnFrames ?? 16;
     return {
@@ -218,6 +225,27 @@ function getHitCountExtraCharge(event) {
     }, 0);
 }
 
+function getAttackShotCount(event) {
+  if (event.character.weapon !== "MG") return 1;
+  return MG_WARMUP_EVENTS[event.mgWarmupIndex]?.shots ?? 1;
+}
+
+function advanceAttackEvent(event) {
+  if (event.character.weapon !== "MG") {
+    event.nextFrame += event.interval;
+    return;
+  }
+
+  if (event.mgWarmupIndex < MG_WARMUP_EVENTS.length - 1) {
+    event.mgWarmupIndex += 1;
+    event.nextFrame = MG_WARMUP_EVENTS[event.mgWarmupIndex].frame;
+    return;
+  }
+
+  event.mgWarmupIndex += 1;
+  event.nextFrame = event.nextFrame < MG_SUSTAIN_START_FRAME ? MG_SUSTAIN_START_FRAME : event.nextFrame + MG_SUSTAIN_INTERVAL_FRAMES;
+}
+
 function characterForSlot(character, positionIndex) {
   if (!character) return null;
   return {
@@ -242,6 +270,7 @@ function simulateBurst(team) {
       chargeFrames: timing.chargeFrames,
       chargeValue: getChargeValue(member.character),
       hits: 0,
+      mgWarmupIndex: member.character.weapon === "MG" ? 0 : null,
       totalCharge: 0,
       hitFrames: [],
     };
@@ -266,15 +295,17 @@ function simulateBurst(team) {
 
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
-      totalCharge += event.chargeValue;
-      event.totalCharge += event.chargeValue;
-      event.hits += 1;
-      event.hitFrames.push(currentFrame);
+      const shotCount = getAttackShotCount(event);
+      const chargeValue = event.chargeValue * shotCount;
+      totalCharge += chargeValue;
+      event.totalCharge += chargeValue;
+      event.hits += shotCount;
+      event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
       const hitCountExtraCharge = getHitCountExtraCharge(event);
       totalCharge += hitCountExtraCharge;
       event.totalCharge += hitCountExtraCharge;
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
-      event.nextFrame += event.interval;
+      advanceAttackEvent(event);
     });
   }
 
