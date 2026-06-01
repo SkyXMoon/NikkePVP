@@ -23,16 +23,15 @@
           <aside class="team-workbench" aria-label="队伍与结果">
             <section class="team-panel">
               <div class="panel-heading">
-                <div>
-                  <p class="eyebrow">Team</p>
-                  <h2>队伍槽位</h2>
-                </div>
+                <p class="eyebrow">Team</p>
                 <div class="team-actions">
-                  <label class="miss-toggle" title="开启后，RL 命中换弹中的目标会判定为空枪且不产生充能">
+                  <label class="icon-toggle miss-toggle" aria-label="允许空枪" title="允许空枪">
                     <input id="allowMissedShotsToggle" type="checkbox" checked />
-                    <span>允许空枪</span>
+                    <span class="miss-icon" aria-hidden="true"></span>
                   </label>
-                  <button class="ghost-button" id="clearTeamButton" type="button">清空</button>
+                  <button class="icon-button clear-team-button" id="clearTeamButton" type="button" aria-label="清空双方队伍" title="清空双方队伍">
+                    <span class="clear-icon" aria-hidden="true"></span>
+                  </button>
                 </div>
               </div>
               <div class="summary-strip" id="summaryStrip">选择角色后实时计算首轮爆裂</div>

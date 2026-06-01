@@ -2335,14 +2335,11 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
 }
 
 function clearTeam() {
-  if (state.activeTeamKey === "defense") {
-    state.defenseTeam = Array(TEAM_SIZE).fill(null);
-    state.defenseChargeSpeeds = Array(TEAM_SIZE).fill(0);
-  } else {
-    state.team = Array(TEAM_SIZE).fill(null);
-    state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
-  }
-  normalizeJackalLink(state.activeTeamKey);
+  state.defenseTeam = Array(TEAM_SIZE).fill(null);
+  state.defenseChargeSpeeds = Array(TEAM_SIZE).fill(0);
+  state.team = Array(TEAM_SIZE).fill(null);
+  state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
+  normalizeJackalLinks();
   openSlotSettings = null;
   saveTeam();
   render();
