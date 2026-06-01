@@ -658,6 +658,29 @@ function getFrameAfterStun(frame, positionIndex, stunWindows = []) {
   return adjustedFrame;
 }
 
+function isChargeWeapon(character) {
+  return character && ["RL", "SR"].includes(character.weapon);
+}
+
+function getChargeInterruptedFrame(character, positionIndex, startFrame, endFrame, resetFrames, stunWindows = []) {
+  if (!isChargeWeapon(character)) return null;
+  const interruption = stunWindows
+    .filter((window) => window.positionIndex === positionIndex && window.startFrame > startFrame && window.startFrame <= endFrame)
+    .sort((a, b) => a.startFrame - b.startFrame)[0];
+  return interruption ? interruption.endFrame + resetFrames : null;
+}
+
+function getInitialAttackFrameAfterStun(character, positionIndex, firstFrame, stunWindows = []) {
+  return getChargeInterruptedFrame(character, positionIndex, 0, firstFrame, firstFrame, stunWindows) ?? getFrameAfterStun(firstFrame, positionIndex, stunWindows);
+}
+
+function getNextAttackFrameAfterStun(event, currentFrame, baseNextFrame, stunWindows = []) {
+  return (
+    getChargeInterruptedFrame(event.character, event.positionIndex, currentFrame, baseNextFrame, event.interval, stunWindows) ??
+    getFrameAfterStun(baseNextFrame, event.positionIndex, stunWindows)
+  );
+}
+
 function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []) {
   const baseNextFrame = getBaseNextAttackFrame(event, currentFrame);
   const magazine = getMagazineSize(event.character);
@@ -674,11 +697,11 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []
       reloadFrames,
     };
     event.reloadEvents.push(reloadEvent);
-    event.nextFrame = getFrameAfterStun(baseNextFrame + reloadFrames, event.positionIndex, stunWindows);
+    event.nextFrame = getNextAttackFrameAfterStun(event, currentFrame + reloadFrames, baseNextFrame + reloadFrames, stunWindows);
     return;
   }
 
-  event.nextFrame = getFrameAfterStun(baseNextFrame, event.positionIndex, stunWindows);
+  event.nextFrame = getNextAttackFrameAfterStun(event, currentFrame, baseNextFrame, stunWindows);
 }
 
 function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline = []) {
@@ -718,7 +741,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
     const timing = getChargeFrames(member.character, member.positionIndex, teamKey);
     return {
       ...member,
-      nextFrame: getFrameAfterStun(timing.firstFrame, member.positionIndex, stunWindows),
+      nextFrame: getInitialAttackFrameAfterStun(member.character, member.positionIndex, timing.firstFrame, stunWindows),
       interval: timing.interval,
       chargeFrames: timing.chargeFrames,
       projectileFlightFrames: timing.projectileFlightFrames || 0,
@@ -2237,6 +2260,21 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     if (cursor < endFrame) segments.push({ start: cursor, end: endFrame });
     return segments;
   };
+  const getStunTrackPauses = (group) => {
+    const groupStuns = visibleStunEvents.filter(
+      (stun) => stun.teamKey === group.teamKey && stun.positionIndex === group.member.positionIndex,
+    );
+    if (!isChargeWeapon(group.member.character)) return groupStuns;
+
+    return groupStuns.map((stun) => {
+      const previousFrame = group.frames.filter((frame) => frame < stun.startFrame).at(-1);
+      const nextFrame = group.frames.find((frame) => frame > stun.startFrame);
+      return {
+        ...stun,
+        startFrame: previousFrame !== undefined && nextFrame !== undefined ? previousFrame : stun.startFrame,
+      };
+    });
+  };
   const tracks = memberPointGroups
     .flatMap((group) => {
       if (group.frames.length < 2) return "";
@@ -2246,15 +2284,37 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const groupReloads = visibleReloadEvents.filter(
         (reload) => reload.teamKey === group.teamKey && reload.positionIndex === group.member.positionIndex,
       );
-      const groupStuns = visibleStunEvents.filter(
-        (stun) => stun.teamKey === group.teamKey && stun.positionIndex === group.member.positionIndex,
-      );
+      const groupStuns = getStunTrackPauses(group);
       return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupStuns]).map(
         (segment) =>
           `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(segment.start)}" y1="${y}" x2="${xForFrame(segment.end)}" y2="${y}" />`,
       );
     })
     .flat()
+    .join("");
+  const stunPoints = visibleStunEvents
+    .flatMap((stun) => {
+      const groupKey = `${stun.teamKey}-${stun.positionIndex}`;
+      if (!laneByGroupKey.has(groupKey)) return [];
+      const y = yForGroup(groupKey);
+      const endFrame = Math.min(stun.endFrame, maxFrame, stun.displayEndFrame);
+      const markers = [
+        {
+          frame: Math.min(stun.startFrame, maxFrame),
+          tooltip: `${TEAM_LABELS[stun.teamKey]} P${stun.positionIndex + 1}\n时间：${stun.startFrame} F\n状态：被晕眩`,
+        },
+      ];
+      if (endFrame >= stun.endFrame) {
+        markers.push({
+          frame: endFrame,
+          tooltip: `${TEAM_LABELS[stun.teamKey]} P${stun.positionIndex + 1}\n时间：${stun.endFrame} F\n状态：晕眩解除`,
+        });
+      }
+      return markers.map(
+        (marker) =>
+          `<circle class="chart-stun-point team-${stun.teamKey}" cx="${xForFrame(marker.frame)}" cy="${y}" r="5" data-tooltip="${escapeHtml(marker.tooltip)}"></circle>`,
+      );
+    })
     .join("");
   const reloadTracks = visibleReloadEvents
     .map((reload) => {
@@ -2408,6 +2468,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${burstTotalTrack}
       ${pointMarks}
       ${missedPoints}
+      ${stunPoints}
       ${scarletCounterPoints}
       ${totalPoints}
       ${burstPoints}
