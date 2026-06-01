@@ -2750,7 +2750,7 @@ const CHARACTERS = [
     "burstGen": 1.3,
     "burstCoefficient": 0.013,
     "chargeSpeedPercent": 0,
-    "rlExplosionRange": 1,
+    "rlExplosionRange": 2,
     "firstFrameOverride": null,
     "attackIntervalFrames": null,
     "projectileFlightFrames": null,
@@ -2825,7 +2825,7 @@ const CHARACTERS = [
       "attack": "↗",
       "defense": "↙"
     },
-    "notes": "发射器；系数 0.013；RL爆炸范围 1；额外造成",
+    "notes": "发射器；系数 0.013；RL爆炸范围 2；额外造成",
     "source": "NIKKE PVP 充能计算器 v2.3.20（更新20260516）.xlsx"
   },
   {
