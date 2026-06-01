@@ -1306,22 +1306,28 @@ function showNearestChartTooltip(event) {
   if (!tooltipText) return;
 
   const chartBox = els.chargeChart.getBoundingClientRect();
+  const svgBox = svg.getBoundingClientRect();
   const pointBox = nearest.getBoundingClientRect();
   const pointX = pointBox.left + pointBox.width / 2 - chartBox.left;
   const pointY = pointBox.top + pointBox.height / 2 - chartBox.top;
+  const svgLeft = svgBox.left - chartBox.left;
+  const svgTop = svgBox.top - chartBox.top;
+  const viewBox = svg.viewBox.baseVal;
+  const labelGutter = Number(svg.dataset.labelGutter) || 0;
+  const frameZeroX = svgLeft + (labelGutter / viewBox.width) * svgBox.width;
   const horizontalGuide = getChartGuideLine("chart-hover-guide-x");
   const verticalGuide = getChartGuideLine("chart-hover-guide-y");
   const tooltip = getChartTooltip();
 
   horizontalGuide.classList.add("show");
-  horizontalGuide.style.left = "0";
+  horizontalGuide.style.left = `${frameZeroX}px`;
   horizontalGuide.style.top = `${pointY}px`;
-  horizontalGuide.style.width = `${Math.max(pointX, 0)}px`;
+  horizontalGuide.style.width = `${Math.max(pointX - frameZeroX, 0)}px`;
 
   verticalGuide.classList.add("show");
   verticalGuide.style.left = `${pointX}px`;
-  verticalGuide.style.top = `${pointY}px`;
-  verticalGuide.style.height = `${Math.max(chartBox.height - pointY, 0)}px`;
+  verticalGuide.style.top = `${svgTop}px`;
+  verticalGuide.style.height = `${Math.max(pointY - svgTop, 0)}px`;
 
   tooltip.textContent = tooltipText;
   tooltip.classList.add("show");
