@@ -37,6 +37,7 @@ const MG_WARMUP_EVENTS = [
 const STANDARD_TIMELINE_EVENTS = [
   { label: "罗姗娜", tooltip: "罗姗娜（96F）消除BUFF", frame: 96 },
 ];
+const ROSANNA_BUFF_REMOVE_FRAME = 96;
 const CHART_MAX_FRAME = 600;
 const CHART_WIDTH = 1800;
 const CHART_HEIGHT = 660;
@@ -1317,6 +1318,10 @@ function isRosanna(character) {
   return character?.name === "罗珊娜" || character?.slug === "罗珊娜";
 }
 
+function resultHasRosanna(result) {
+  return Boolean(result && !result.error && result.members.some((member) => isRosanna(member.character)));
+}
+
 function getCounterTriggerCount(entry) {
   const count = entry.contributions.reduce((sum, contribution) => {
     if (Number.isFinite(contribution.counterHits)) {
@@ -1357,9 +1362,29 @@ function getJackalLinkedHitCount(entry, linkedPositionIndices) {
   }, 0);
 }
 
-function getScarletCounterTriggerCount(result, member, entry) {
+function getPositionHitCount(entry, positionIndex) {
+  return entry.contributions.reduce((sum, contribution) => {
+    if (!Array.isArray(contribution.positionHits)) return sum;
+    return (
+      sum +
+      contribution.positionHits.reduce(
+        (positionSum, positionHit) => positionSum + (positionHit.positionIndex === positionIndex ? positionHit.hitCount : 0),
+        0,
+      )
+    );
+  }, 0);
+}
+
+function isLinkSuppressedByRosanna(opponentResult, frame) {
+  return frame >= ROSANNA_BUFF_REMOVE_FRAME && resultHasRosanna(opponentResult);
+}
+
+function getScarletCounterTriggerCount(result, member, entry, opponentResult = null) {
   const linkedPositionIndices = getJackalLinkedPositionIndices(result);
   if (linkedPositionIndices.includes(member.positionIndex)) {
+    if (isLinkSuppressedByRosanna(opponentResult, entry.frame)) {
+      return getPositionHitCount(entry, member.positionIndex);
+    }
     return getJackalLinkedHitCount(entry, linkedPositionIndices);
   }
   return getCounterTriggerCount(entry);
@@ -1377,7 +1402,8 @@ function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
         const chargePerCounter = getChargeValue(member.character) * SCARLET_COUNTER_PROBABILITY;
         let cumulativeCharge = 0;
         const timeline = opponentTimeline.map((entry) => {
-          const triggerCount = getScarletCounterTriggerCount(item.result, member, entry);
+          const opponentResult = chartResults.find((resultItem) => resultItem.teamKey === opponentTeamKey)?.result || null;
+          const triggerCount = getScarletCounterTriggerCount(item.result, member, entry, opponentResult);
           const charge = chargePerCounter * triggerCount;
           cumulativeCharge += charge;
           return {
@@ -1419,7 +1445,12 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
         let cumulativeCharge = 0;
         const timeline = opponentTimeline
           .map((entry) => {
-            const hitCount = getJackalLinkedHitCount(entry, linkedPositionIndices);
+            const hitCount = isLinkSuppressedByRosanna(
+              chartResults.find((resultItem) => resultItem.teamKey === opponentTeamKey)?.result || null,
+              entry.frame,
+            )
+              ? getPositionHitCount(entry, member.positionIndex)
+              : getJackalLinkedHitCount(entry, linkedPositionIndices);
             accumulatedHits += hitCount;
             const nextTriggeredLinks = Math.floor(accumulatedHits / JACKAL_LINK_HIT_THRESHOLD);
             const triggerCount = nextTriggeredLinks - triggeredLinks;
@@ -1481,7 +1512,7 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
     if (isScarlet(member.character)) {
       const chargePerCounter = getChargeValue(member.character) * SCARLET_COUNTER_PROBABILITY;
       opponentTimeline.forEach((entry) => {
-        const triggerCount = getScarletCounterTriggerCount(targetResult, member, entry);
+        const triggerCount = getScarletCounterTriggerCount(targetResult, member, entry, opponentResult);
         if (triggerCount <= 0) return;
         events.push({
           frame: entry.frame,
@@ -1500,7 +1531,9 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
       let accumulatedHits = 0;
       let triggeredLinks = 0;
       opponentTimeline.forEach((entry) => {
-        const hitCount = getJackalLinkedHitCount(entry, linkedPositionIndices);
+        const hitCount = isLinkSuppressedByRosanna(opponentResult, entry.frame)
+          ? getPositionHitCount(entry, member.positionIndex)
+          : getJackalLinkedHitCount(entry, linkedPositionIndices);
         accumulatedHits += hitCount;
         const nextTriggeredLinks = Math.floor(accumulatedHits / JACKAL_LINK_HIT_THRESHOLD);
         const triggerCount = nextTriggeredLinks - triggeredLinks;
