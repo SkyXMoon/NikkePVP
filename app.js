@@ -1102,12 +1102,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           `${group.label} · ${entry.frame}F`,
           `累计总充能：${entry.totalCharge.toFixed(2)}%`,
           ...(cumulativeLines.length ? ["各角色累计贡献：", ...cumulativeLines] : []),
-          ...entry.contributions.map(
-            (contribution) => `${contribution.characterName}：+${contribution.charge.toFixed(2)}%（${contribution.labels.join(" + ")}）`,
-          ),
         ]);
         const isFullFrame = entry.frame === group.result.fullFrame;
-        return `<circle class="${isFullFrame ? `chart-total-point team-${group.teamKey} is-full` : `chart-total-point team-${group.teamKey}`}" cx="${x}" cy="${y}" r="${isFullFrame ? 7 : 5}"><title>${tooltip}</title></circle>`;
+        return `<circle class="${isFullFrame ? `chart-total-point team-${group.teamKey} is-full` : `chart-total-point team-${group.teamKey}`}" cx="${x}" cy="${y}" r="${isFullFrame ? 8 : 6}"><title>${tooltip}</title></circle>`;
       }),
     )
     .join("");

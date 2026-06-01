@@ -630,7 +630,7 @@ input:focus {
 }
 
 .chart-total-track {
-  stroke-width: 3.5;
+  stroke-width: 5;
 }
 
 .chart-point {
@@ -660,7 +660,7 @@ input:focus {
 
 .chart-total-point {
   stroke: rgba(7, 9, 13, 0.95);
-  stroke-width: 1.8;
+  stroke-width: 2.2;
 }
 
 .chart-total-point.team-defense {
@@ -673,7 +673,7 @@ input:focus {
 
 .chart-total-point.is-full {
   stroke: #ffd9dc;
-  stroke-width: 2.2;
+  stroke-width: 2.8;
 }
 
 .chart-burst-point {
