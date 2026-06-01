@@ -677,7 +677,7 @@ function renderSingleTeamLegacy() {
           <span class="position">P${index + 1}</span>
           <span class="team-avatar">${getAvatarMarkup(character)}</span>
           <span class="slot-copy" aria-hidden="true">
-            ${isFinisher ? '<span class="finish-mark">✓</span>' : ""}
+            ${isFinisher ? '<span class="finish-mark">定轴</span>' : ""}
           </span>
         </button>
         <label class="speed-control">
@@ -790,7 +790,7 @@ function renderTeam() {
           <button class="slot-remove" type="button" aria-label="移除 ${escapeHtml(character.name)}">
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
             <span class="slot-copy" aria-hidden="true">
-              ${isFinisher ? '<span class="finish-mark">✓</span>' : ""}
+              ${isFinisher ? '<span class="finish-mark">定轴</span>' : ""}
             </span>
           </button>
           <button class="slot-settings-toggle${isSettingsOpen ? " is-open" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)}" title="设置">
@@ -941,7 +941,7 @@ function updateTeamFinishMarkers(result = simulateBurst(state.team, "attack"), d
     if (isFinisher && !existingMark) {
       const mark = document.createElement("span");
       mark.className = "finish-mark";
-      mark.textContent = "✓";
+      mark.textContent = "定轴";
       slotCopy.append(mark);
       return;
     }
