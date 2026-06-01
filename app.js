@@ -913,12 +913,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     { teamKey: "defense", result: defenseChartResult },
     { teamKey: "attack", result: attackResult },
   ].filter((item) => item.result);
-  const primaryResult = attackResult || defenseChartResult;
-
-  if (!primaryResult) {
-    return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
-  }
-
   const width = chartSize.width;
   const margin = { top: 30, right: 42, bottom: 42, left: 0 };
   const visibleTimelineByTeam = new Map(
@@ -966,14 +960,14 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const visibleStandards = totalGroups
     .filter((group) => group.result.fullFrame <= CHART_MAX_FRAME)
     .map((group) => ({ label: "", frame: group.result.fullFrame, isFullFrame: true, teamKey: group.teamKey }));
-  const maxFrame = Math.min(
-    CHART_MAX_FRAME,
-    Math.max(
-      ...chartResults.flatMap((item) => [item.result.fullFrame, item.result.burst1Frame, item.result.burst2Frame, item.result.burst3Frame]),
-      ...chartResults.flatMap((item) => (item.result.chartExtraTimeline || []).map((entry) => entry.frame)),
-      1,
-    ),
-  );
+  const resultFrameCandidates = chartResults.flatMap((item) => [
+    item.result.fullFrame,
+    item.result.burst1Frame,
+    item.result.burst2Frame,
+    item.result.burst3Frame,
+    ...(item.result.chartExtraTimeline || []).map((entry) => entry.frame),
+  ]);
+  const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
   const rlStandards = Array.from({ length: Math.floor(maxFrame / 76) }, (_, index) => ({
     label: `${index + 1}RL`,
     frame: (index + 1) * 76,
