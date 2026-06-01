@@ -1116,7 +1116,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const x = xForFrame(standard.frame);
       const y = yForStandard();
       const tooltip = escapeHtml(`${standard.label} · ${standard.frame} F`);
-      return `<circle class="chart-standard-point" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle><text class="chart-standard-label" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(standard.label)}</text>`;
+      return `<circle class="chart-standard-point" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"><title>${tooltip}</title></circle><text class="chart-standard-label" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(standard.label)}</text>`;
     })
     .join("");
 
@@ -1148,7 +1148,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         : "";
       const isFinisher =
         point.frame === point.result.fullFrame && (finishingPositionsByTeam.get(point.teamKey) || new Set()).has(point.positionIndex);
-      return `<circle class="${isFinisher ? `chart-point team-${point.teamKey} is-finisher` : `chart-point team-${point.teamKey}`}" cx="${x}" cy="${y}" r="${isFinisher ? 7 : 5}" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
+      return `<circle class="${isFinisher ? `chart-point team-${point.teamKey} is-finisher` : `chart-point team-${point.teamKey}`}" cx="${x}" cy="${y}" r="${isFinisher ? 6 : 4}" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
     })
     .join("");
 
@@ -1164,7 +1164,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           ...(cumulativeLines.length ? ["各角色累计贡献：", ...cumulativeLines] : []),
         ]);
         const isFullFrame = entry.frame === group.result.fullFrame;
-        return `<circle class="${isFullFrame ? `chart-total-point team-${group.teamKey} is-full` : `chart-total-point team-${group.teamKey}`}" cx="${x}" cy="${y}" r="${isFullFrame ? 8 : 6}" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
+        return `<circle class="${isFullFrame ? `chart-total-point team-${group.teamKey} is-full` : `chart-total-point team-${group.teamKey}`}" cx="${x}" cy="${y}" r="${isFullFrame ? 7 : 5}" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
       }),
     )
     .join("");
@@ -1181,7 +1181,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           const x = xForFrame(marker.frame);
           const y = yForTeamTotal(group.teamKey);
           const tooltip = escapeHtml(`${TEAM_LABELS[group.teamKey]} ${marker.label} · ${marker.frame} F`);
-          return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="6" data-tooltip="${tooltip}"><title>${tooltip}</title></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
+          return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
         }),
     )
     .join("");
