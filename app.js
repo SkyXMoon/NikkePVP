@@ -46,6 +46,7 @@ const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
+const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
 const state = {
   defenseTeam: Array(TEAM_SIZE).fill(null),
@@ -53,6 +54,10 @@ const state = {
   team: Array(TEAM_SIZE).fill(null),
   chargeSpeeds: Array(TEAM_SIZE).fill(0),
   characterChargeSpeeds: {
+    defense: {},
+    attack: {},
+  },
+  characterQuantumCubes: {
     defense: {},
     attack: {},
   },
@@ -174,6 +179,14 @@ function getCharacterChargeSpeedMemory(teamKey = state.activeTeamKey) {
   return state.characterChargeSpeeds[normalizedTeamKey];
 }
 
+function getCharacterQuantumCubeMemory(teamKey = state.activeTeamKey) {
+  const normalizedTeamKey = normalizeTeamKey(teamKey);
+  if (!state.characterQuantumCubes[normalizedTeamKey]) {
+    state.characterQuantumCubes[normalizedTeamKey] = {};
+  }
+  return state.characterQuantumCubes[normalizedTeamKey];
+}
+
 function sanitizeChargeSpeed(value) {
   return Math.max(0, Number(value) || 0);
 }
@@ -186,6 +199,16 @@ function getSavedCharacterChargeSpeed(character, teamKey = state.activeTeamKey) 
 function saveCharacterChargeSpeed(character, value, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
   getCharacterChargeSpeedMemory(teamKey)[character.id] = sanitizeChargeSpeed(value);
+}
+
+function getSavedCharacterQuantumCube(character, teamKey = state.activeTeamKey) {
+  if (!character?.id) return false;
+  return Boolean(getCharacterQuantumCubeMemory(teamKey)[character.id]);
+}
+
+function saveCharacterQuantumCube(character, enabled, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  getCharacterQuantumCubeMemory(teamKey)[character.id] = Boolean(enabled);
 }
 
 function rememberTeamSlotChargeSpeed(teamKey, index) {
@@ -309,21 +332,26 @@ function getRlHitSegments(character) {
   return (end - start + 1) * 2;
 }
 
+function getEffectiveBurstGen(character) {
+  const baseBurstGen = Number(character.burstGen) || 0;
+  return character.quantumRelicCubeEnabled ? baseBurstGen * QUANTUM_RELIC_CUBE_MULTIPLIER : baseBurstGen;
+}
+
 function getChargeValue(character) {
   const coverMultiplier = character.weapon === "RL" ? getRlHitSegments(character) : character.hasPenetration ? 2 : 1;
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
-  return character.burstGen * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
+  return getEffectiveBurstGen(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
 function getChargeBreakdown(character) {
   const hitMultiplier = character.weapon === "RL" ? getRlHitSegments(character) : character.hasPenetration ? 2 : 1;
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
   const hitLabel = character.weapon === "RL" ? `RL命中 ${hitMultiplier} 段` : character.hasPenetration ? "穿透 2 段" : "命中 1 段";
-  const baseCharge = character.burstGen * hitMultiplier * extraMultiplier;
+  const effectiveBurstGen = getEffectiveBurstGen(character);
   const flatBonus = character.flatBurstBonus || 0;
   const lines = [
-    `充能组成：${character.burstGen.toFixed(2)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${flatBonus.toFixed(2)}` : ""} = ${getChargeValue(character).toFixed(2)}%`,
-    `基础 ${character.burstGen.toFixed(2)}%`,
+    `充能组成：${effectiveBurstGen.toFixed(5)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${flatBonus.toFixed(2)}` : ""} = ${getChargeValue(character).toFixed(2)}%`,
+    `基础 ${effectiveBurstGen.toFixed(5)}%${character.quantumRelicCubeEnabled ? `（量子遗迹魔方 ${character.burstGen.toFixed(2)} × 1.0466）` : ""}`,
     hitLabel,
   ];
 
@@ -332,14 +360,14 @@ function getChargeBreakdown(character) {
   if (character.hitCountExtraEvents?.length) {
     lines.push(
       `攻击次数追加：${character.hitCountExtraEvents
-        .map((event) => `第${event.hit}次 +${(character.burstGen * event.segments * extraMultiplier).toFixed(2)}%`)
+        .map((event) => `第${event.hit}次 +${(effectiveBurstGen * event.segments * extraMultiplier).toFixed(2)}%`)
         .join("，")}`,
     );
   }
   if (character.delayedExtraHits?.length) {
     lines.push(
       `延迟追加：${character.delayedExtraHits
-        .map((event) => `${event.delayFrames}帧后 +${(character.burstGen * event.segments * extraMultiplier).toFixed(2)}%`)
+        .map((event) => `${event.delayFrames}帧后 +${(effectiveBurstGen * event.segments * extraMultiplier).toFixed(2)}%`)
         .join("，")}`,
     );
   }
@@ -360,7 +388,7 @@ function getDelayedExtraEvents(event, currentFrame) {
     character: event.character,
     positionIndex: event.positionIndex,
     frame: currentFrame + extra.delayFrames,
-    chargeValue: event.character.burstGen * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
+    chargeValue: getEffectiveBurstGen(event.character) * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
     source: "delayed",
   }));
 }
@@ -370,7 +398,7 @@ function getHitCountExtraCharge(event) {
     .filter((extra) => extra.hit === event.hits)
     .reduce((sum, extra) => {
       const extraMultiplier = event.character.hasExtraDamage ? 2 : 1;
-      return sum + event.character.burstGen * extra.segments * extraMultiplier;
+      return sum + getEffectiveBurstGen(event.character) * extra.segments * extraMultiplier;
     }, 0);
 }
 
@@ -486,6 +514,7 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   return {
     ...character,
     chargeSpeedPercent: Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
+    quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
   };
 }
 
@@ -1021,6 +1050,7 @@ function createSlotSettingsModal() {
 
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
+  const quantumCubeEnabled = getSavedCharacterQuantumCube(character, teamKey);
   const backdrop = document.createElement("div");
   backdrop.className = "slot-settings-backdrop";
   backdrop.setAttribute("role", "presentation");
@@ -1037,6 +1067,10 @@ function createSlotSettingsModal() {
         <span>蓄速</span>
         <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" />
         <span>%</span>
+      </label>
+      <label class="settings-check-field">
+        <input class="slot-settings-quantum-cube" type="checkbox"${quantumCubeEnabled ? " checked" : ""} />
+        <span>启用量子遗迹魔方</span>
       </label>
     </section>
   `;
@@ -1072,6 +1106,13 @@ function createSlotSettingsModal() {
     saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
     saveTeam();
     updateTeamFinishMarkers(renderResults());
+  });
+
+  const quantumCubeInput = backdrop.querySelector(".slot-settings-quantum-cube");
+  quantumCubeInput.addEventListener("change", (event) => {
+    saveCharacterQuantumCube(character, event.target.checked, teamKey);
+    saveTeam();
+    render();
   });
 
   return backdrop;
@@ -1457,7 +1498,7 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
     return item.result.members
       .filter((member) => member.character.id === linkOwner.id)
       .map((member) => {
-        const chargePerLink = member.character.burstGen;
+        const chargePerLink = getEffectiveBurstGen(member.character);
         let accumulatedHits = 0;
         let triggeredLinks = 0;
         let cumulativeCharge = 0;
@@ -1545,7 +1586,7 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
     if (isJackal(member.character) && linkOwner?.id === member.character.id) {
       const linkedPositionIndices = getJackalLinkedPositionIndices(targetResult);
       if (linkedPositionIndices.length === 0) return;
-      const chargePerLink = member.character.burstGen;
+      const chargePerLink = getEffectiveBurstGen(member.character);
       let accumulatedHits = 0;
       let triggeredLinks = 0;
       opponentTimeline.forEach((entry) => {
@@ -2383,6 +2424,14 @@ function normalizeSavedCharacterChargeSpeeds(savedSpeeds = {}) {
   );
 }
 
+function normalizeSavedCharacterFlags(savedFlags = {}) {
+  return Object.fromEntries(
+    Object.entries(savedFlags || {})
+      .map(([characterId, enabled]) => [characterId, Boolean(enabled)])
+      .filter(([characterId]) => getCharacterById(characterId)),
+  );
+}
+
 function rememberLoadedTeamChargeSpeeds(teamKey) {
   getTeamState(teamKey).forEach((character, index) => {
     if (character) {
@@ -2401,6 +2450,7 @@ function saveTeam() {
       team: state.team.map((character) => character?.id || null),
       chargeSpeeds: state.chargeSpeeds,
       characterChargeSpeeds: state.characterChargeSpeeds,
+      characterQuantumCubes: state.characterQuantumCubes,
       jackalLinks: state.jackalLinks,
       allowMissedShots: state.allowMissedShots,
       activeTeamKey: state.activeTeamKey,
@@ -2420,6 +2470,10 @@ function loadTeam() {
       state.characterChargeSpeeds = {
         defense: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.defense),
         attack: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.attack),
+      };
+      state.characterQuantumCubes = {
+        defense: normalizeSavedCharacterFlags(saved.characterQuantumCubes?.defense),
+        attack: normalizeSavedCharacterFlags(saved.characterQuantumCubes?.attack),
       };
       state.jackalLinks = {
         defense: {
@@ -2451,6 +2505,7 @@ function loadTeam() {
     state.team = Array(TEAM_SIZE).fill(null);
     state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
     state.characterChargeSpeeds = { defense: {}, attack: {} };
+    state.characterQuantumCubes = { defense: {}, attack: {} };
     state.jackalLinks = {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
