@@ -1676,28 +1676,19 @@ function getCumulativeContributionLines(result, frame) {
     .filter(Boolean);
 }
 
-function getSpecialContributionLines(result, frame, labelText) {
-  const cumulativeByPosition = new Map();
+function getSpecialContributionTotal(result, frame, labelText) {
+  let cumulative = 0;
   result.timeline
     .filter((entry) => entry.frame <= frame)
     .forEach((entry) => {
       entry.contributions.forEach((contribution) => {
         if (contribution.showOnMember !== false) return;
         if (!contribution.labels.some((label) => label.includes(labelText))) return;
-        cumulativeByPosition.set(
-          contribution.positionIndex,
-          (cumulativeByPosition.get(contribution.positionIndex) || 0) + contribution.charge,
-        );
+        cumulative += contribution.charge;
       });
     });
 
-  return result.members
-    .map((member) => {
-      const cumulative = cumulativeByPosition.get(member.positionIndex) || 0;
-      if (cumulative <= BURST_EPSILON) return null;
-      return `${member.character.name}：${cumulative.toFixed(2)}%`;
-    })
-    .filter(Boolean);
+  return cumulative;
 }
 
 function getChargeChartSize() {
@@ -2013,14 +2004,14 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       group.timeline.map((entry) => {
         const x = xForFrame(entry.frame);
         const y = yForTeamTotal(group.teamKey);
-        const jackalLinkLines = getSpecialContributionLines(group.result, entry.frame, "豺狼链接");
-        const scarletCounterLines = getSpecialContributionLines(group.result, entry.frame, "红莲反击");
+        const jackalLinkTotal = getSpecialContributionTotal(group.result, entry.frame, "豺狼链接");
+        const scarletCounterTotal = getSpecialContributionTotal(group.result, entry.frame, "红莲反击");
         const characterChargeLines = getCumulativeContributionLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
           `累计总充能：${entry.totalCharge.toFixed(2)}%`,
-          ...(jackalLinkLines.length ? ["豺狼链接充能：", ...jackalLinkLines] : []),
-          ...(scarletCounterLines.length ? ["红莲反击充能：", ...scarletCounterLines] : []),
+          ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${jackalLinkTotal.toFixed(2)}%`] : []),
+          ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${scarletCounterTotal.toFixed(2)}%`] : []),
           ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
         ]);
         return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
@@ -2210,10 +2201,12 @@ function showNearestChartTooltip(event) {
 
   tooltip.textContent = tooltipText;
   tooltip.classList.add("show");
-  const tooltipWidth = 250;
+  const tooltipWidth = 360;
   const placeLeft = pointX + tooltipWidth + 18 > chartBox.width;
   tooltip.style.left = `${placeLeft ? Math.max(pointX - tooltipWidth - 14, 8) : pointX + 14}px`;
-  tooltip.style.top = `${Math.min(Math.max(pointY - 18, 8), chartBox.height - 96)}px`;
+  const tooltipHeight = tooltip.offsetHeight || 120;
+  const preferredTop = pointY + tooltipHeight + 18 > chartBox.height ? pointY - tooltipHeight - 14 : pointY - 18;
+  tooltip.style.top = `${Math.min(Math.max(preferredTop, 8), Math.max(chartBox.height - tooltipHeight - 8, 8))}px`;
 }
 
 function hideChartTooltip() {

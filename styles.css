@@ -724,7 +724,8 @@ input:focus {
 .chart-hover-tooltip {
   position: absolute;
   z-index: 5;
-  max-width: 250px;
+  width: max-content;
+  max-width: min(360px, calc(100% - 16px));
   padding: 8px 10px;
   border: 1px solid rgba(242, 245, 250, 0.28);
   border-radius: 6px;
