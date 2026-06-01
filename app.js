@@ -357,13 +357,19 @@ function getCounterHitCount(character, shotCount = 1) {
   return shotCount;
 }
 
-function getAttackHitProfile(character, shotCount = 1) {
+function getTargetPositionIndex(character, teamKey = "attack") {
+  const rule = character.targetRule?.[normalizeTeamKey(teamKey)] || "↗";
+  return rule === "↖" || rule === "↘" ? ENEMY_TEAM_SIZE - 1 : DEFAULT_RL_TARGET_INDEX;
+}
+
+function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
   const shotHits = getCounterHitCount(character, shotCount);
+  const targetPositionIndex = getTargetPositionIndex(character, teamKey);
 
   if (character.weapon === "RL") {
     const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
-    const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
-    const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
+    const start = Math.max(0, targetPositionIndex - range);
+    const end = Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndex + range);
     return {
       totalHits: shotHits,
       positionHits: Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]),
@@ -374,15 +380,15 @@ function getAttackHitProfile(character, shotCount = 1) {
     return {
       totalHits: shotHits,
       positionHits: [
-        [DEFAULT_RL_TARGET_INDEX, shotCount],
-        [Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + 1), shotCount],
+        [targetPositionIndex, shotCount],
+        [targetPositionIndex === ENEMY_TEAM_SIZE - 1 ? targetPositionIndex - 1 : targetPositionIndex + 1, shotCount],
       ],
     };
   }
 
   return {
     totalHits: shotHits,
-    positionHits: [[DEFAULT_RL_TARGET_INDEX, shotHits]],
+    positionHits: [[targetPositionIndex, shotHits]],
   };
 }
 
@@ -498,7 +504,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
-      const hitProfile = getAttackHitProfile(event.character, shotCount);
+      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey);
       const chargeValue = event.chargeValue * shotCount;
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
