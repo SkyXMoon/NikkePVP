@@ -587,6 +587,12 @@ input:focus {
   stroke: var(--gold);
 }
 
+.chart-standard-reference {
+  stroke: rgba(240, 196, 92, 0.58);
+  stroke-dasharray: 4 6;
+  stroke-width: 1.6;
+}
+
 .chart-standard-point {
   fill: var(--gold);
   stroke: rgba(7, 9, 13, 0.95);

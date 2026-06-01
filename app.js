@@ -712,7 +712,10 @@ function getChargeChartMarkup(result) {
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, positionIndex: group.member.positionIndex })),
   );
-  const rlStandards = STANDARD_CHARGE_FRAMES.filter((standard) => standard.label.includes("RL"));
+  const rlStandards = [
+    { label: "1RL", frame: 76 },
+    ...STANDARD_CHARGE_FRAMES.filter((standard) => standard.label.includes("RL")),
+  ];
   const visibleStandards = [{ label: "", frame: result.fullFrame, isFullFrame: true }];
   const burstMarkers = [
     { label: "爆裂1", frame: result.burst1Frame },
@@ -735,7 +738,7 @@ function getChargeChartMarkup(result) {
   const firstMemberLaneIndex = 1;
   const totalLaneIndex = result.members.length + 1;
   const laneCount = result.members.length + 2;
-  const yForLane = (index) => margin.top + (chartHeight / (laneCount + 1)) * (index + 1);
+  const yForLane = (index) => margin.top + (laneCount === 1 ? chartHeight / 2 : (chartHeight / laneCount) * index);
   const yForPosition = (index) => yForLane((laneByPosition.get(index) ?? result.members.length) + firstMemberLaneIndex);
   const yForStandard = () => yForLane(standardLaneIndex);
   const yForTotal = () => yForLane(totalLaneIndex);
@@ -773,6 +776,12 @@ function getChargeChartMarkup(result) {
     return `<line class="chart-position-line" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />`;
   }).join("");
 
+  const standardReferenceLines = rlStandards
+    .map((standard) => {
+      const x = xForFrame(standard.frame);
+      return `<line class="chart-standard-reference" x1="${x}" y1="${yForStandard()}" x2="${x}" y2="${height - margin.bottom}" />`;
+    })
+    .join("");
   const standardTrack = `<line class="chart-track chart-standard-track" x1="${xForFrame(rlStandards[0]?.frame ?? 0)}" y1="${yForStandard()}" x2="${xForFrame(rlStandards.at(-1)?.frame ?? 0)}" y2="${yForStandard()}" />`;
   const standardPoints = rlStandards
     .map((standard) => {
@@ -857,6 +866,7 @@ function getChargeChartMarkup(result) {
       ${gridLines}
       ${standardLines}
       ${positionLines}
+      ${standardReferenceLines}
       ${standardTrack}
       ${standardPoints}
       ${tracks}
