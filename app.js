@@ -413,7 +413,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
     currentFrame = Math.min(nextAttackFrame, nextExtraFrame, nextSpecialFrame);
     currentFrameContributors = new Set();
     const contributions = new Map();
-    const addContribution = (event, value, label, counterHits = 1) => {
+    const addContribution = (event, value, label, counterHits = 1, showOnMember = true) => {
       if (!event || !value) return;
       currentFrameContributors.add(event.positionIndex);
       const current = contributions.get(event.positionIndex) || {
@@ -423,11 +423,13 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
         cumulativeCharge: 0,
         labels: [],
         counterHits: 0,
+        showOnMember: false,
       };
       current.charge += value;
       current.cumulativeCharge = event.totalCharge;
       current.labels.push(label);
-      current.counterHits += Math.max(Number(counterHits) || 0, 1);
+      current.counterHits += Math.max(Number(counterHits) || 0, 0);
+      current.showOnMember = current.showOnMember || showOnMember;
       contributions.set(event.positionIndex, current);
     };
 
@@ -438,11 +440,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
       if (!owner) return;
       totalCharge += special.chargeValue;
       owner.totalCharge += special.chargeValue;
-      addContribution(owner, special.chargeValue, special.label, 1);
-      const currentContribution = contributions.get(owner.positionIndex);
-      if (currentContribution) {
-        currentContribution.counterHits -= 1;
-      }
+      addContribution(owner, special.chargeValue, special.label, 0, false);
     });
 
     const activeExtras = pendingExtraEvents.filter((event) => event.frame === currentFrame);
@@ -488,6 +486,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
           cumulativeCharge: contribution.cumulativeCharge,
           labels: contribution.labels,
           counterHits: contribution.counterHits,
+          showOnMember: contribution.showOnMember,
         })),
       });
     }
@@ -1247,10 +1246,12 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const pointByMemberFrame = new Map(
     chartResults.flatMap((item) =>
       visibleTimelineByTeam.get(item.teamKey).flatMap((entry) =>
-        entry.contributions.map((contribution) => [
-          `${item.teamKey}-${contribution.positionIndex}-${entry.frame}`,
-          { entry, contribution, teamKey: item.teamKey, result: item.result },
-        ]),
+        entry.contributions
+          .filter((contribution) => contribution.showOnMember !== false)
+          .map((contribution) => [
+            `${item.teamKey}-${contribution.positionIndex}-${entry.frame}`,
+            { entry, contribution, teamKey: item.teamKey, result: item.result },
+          ]),
       ),
     ),
   );
@@ -1262,7 +1263,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       member,
       frames: visibleTimelineByTeam
         .get(item.teamKey)
-        .filter((entry) => entry.contributions.some((contribution) => contribution.positionIndex === member.positionIndex))
+        .filter((entry) =>
+          entry.contributions.some((contribution) => contribution.positionIndex === member.positionIndex && contribution.showOnMember !== false),
+        )
         .map((entry) => entry.frame),
     })),
   );
