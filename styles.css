@@ -827,6 +827,14 @@ input:focus {
   min-height: 26px;
   padding: 0 6px;
   text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.speed-control input::-webkit-inner-spin-button,
+.speed-control input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
 }
 
 .empty-result {
