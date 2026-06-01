@@ -821,10 +821,11 @@ function getChargeChartMarkup(result) {
     })
     .join("");
 
-  const totalTrack =
+  const chargeTotalTrack =
     result.timeline.length > 1
-      ? `<line class="chart-track chart-total-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(Math.max(result.timeline.at(-1).frame, ...burstMarkers.map((marker) => marker.frame)))}" y2="${yForTotal()}" />`
+      ? `<line class="chart-track chart-total-track chart-total-charge-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(result.fullFrame)}" y2="${yForTotal()}" />`
       : "";
+  const burstTotalTrack = `<line class="chart-track chart-total-track chart-total-burst-track" x1="${xForFrame(result.fullFrame)}" y1="${yForTotal()}" x2="${xForFrame(Math.max(...burstMarkers.map((marker) => marker.frame)))}" y2="${yForTotal()}" />`;
 
   const labels = result.members.map((member) => {
     const y = yForPosition(member.positionIndex);
@@ -840,7 +841,8 @@ function getChargeChartMarkup(result) {
       ${standardLines}
       ${positionLines}
       ${tracks}
-      ${totalTrack}
+      ${chargeTotalTrack}
+      ${burstTotalTrack}
       ${pointMarks}
       ${totalPoints}
       ${burstPoints}

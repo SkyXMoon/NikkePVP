@@ -588,6 +588,10 @@ input:focus {
   stroke-width: 3.5;
 }
 
+.chart-total-burst-track {
+  stroke: var(--blue);
+}
+
 .chart-point {
   fill: var(--gold);
   stroke: rgba(7, 9, 13, 0.95);
