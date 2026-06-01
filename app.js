@@ -848,8 +848,16 @@ function estimateChartLabelWidth(label) {
   return [...String(label)].reduce((width, char) => width + (char.charCodeAt(0) > 255 ? 15 : 8), 0);
 }
 
-function getChargeChartMarkup(result, measuredLabelGutter = null) {
-  if (!result || result.error) {
+function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult = null) {
+  const attackResult = result && !result.error ? result : null;
+  const defenseChartResult = defenseResult && !defenseResult.error ? defenseResult : null;
+  const chartResults = [
+    { teamKey: "defense", result: defenseChartResult },
+    { teamKey: "attack", result: attackResult },
+  ].filter((item) => item.result);
+  const primaryResult = attackResult || defenseChartResult;
+
+  if (!primaryResult) {
     return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
   }
 
@@ -857,33 +865,51 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
   const height = 440;
   const margin = { top: 30, right: 42, bottom: 42, left: 0 };
   const chartHeight = height - margin.top - margin.bottom;
-  const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
-  const laneByPosition = new Map(result.members.map((member, index) => [member.positionIndex, index]));
-  const visibleTimeline = result.timeline.filter((entry) => entry.frame <= CHART_MAX_FRAME);
-  const timelineByFrame = new Map(visibleTimeline.map((entry) => [entry.frame, entry]));
+  const visibleTimelineByTeam = new Map(
+    chartResults.map((item) => [item.teamKey, item.result.timeline.filter((entry) => entry.frame <= CHART_MAX_FRAME)]),
+  );
+  const timelineByFrame = new Map(
+    chartResults.flatMap((item) => visibleTimelineByTeam.get(item.teamKey).map((entry) => [`${item.teamKey}-${entry.frame}`, entry])),
+  );
   const pointByMemberFrame = new Map(
-    visibleTimeline.flatMap((entry) =>
-      entry.contributions.map((contribution) => [`${contribution.positionIndex}-${entry.frame}`, { entry, contribution }]),
+    chartResults.flatMap((item) =>
+      visibleTimelineByTeam.get(item.teamKey).flatMap((entry) =>
+        entry.contributions.map((contribution) => [
+          `${item.teamKey}-${contribution.positionIndex}-${entry.frame}`,
+          { entry, contribution, teamKey: item.teamKey, result: item.result },
+        ]),
+      ),
     ),
   );
-  const memberPointGroups = result.members.map((member) => ({
-    member,
-    frames: visibleTimeline
-      .filter((entry) => entry.contributions.some((contribution) => contribution.positionIndex === member.positionIndex))
-      .map((entry) => entry.frame),
-  }));
-  const points = memberPointGroups.flatMap((group) =>
-    group.frames.map((frame) => ({ frame, positionIndex: group.member.positionIndex })),
+  const memberPointGroups = chartResults.flatMap((item) =>
+    item.result.members.map((member) => ({
+      teamKey: item.teamKey,
+      groupKey: `${item.teamKey}-${member.positionIndex}`,
+      result: item.result,
+      member,
+      frames: visibleTimelineByTeam
+        .get(item.teamKey)
+        .filter((entry) => entry.contributions.some((contribution) => contribution.positionIndex === member.positionIndex))
+        .map((entry) => entry.frame),
+    })),
   );
-  const visibleStandards = result.fullFrame <= CHART_MAX_FRAME ? [{ label: "", frame: result.fullFrame, isFullFrame: true }] : [];
+  const points = memberPointGroups.flatMap((group) =>
+    group.frames.map((frame) => ({ frame, groupKey: group.groupKey, teamKey: group.teamKey, positionIndex: group.member.positionIndex, result: group.result })),
+  );
+  const totalResult = attackResult || primaryResult;
+  const totalTimeline = visibleTimelineByTeam.get(attackResult ? "attack" : primaryResult === defenseChartResult ? "defense" : "attack") || [];
+  const visibleStandards = totalResult.fullFrame <= CHART_MAX_FRAME ? [{ label: "", frame: totalResult.fullFrame, isFullFrame: true }] : [];
   const burstMarkers = [
-    { label: "爆裂1", frame: result.burst1Frame },
-    { label: "爆裂2", frame: result.burst2Frame },
-    { label: "爆裂3", frame: result.burst3Frame },
+    { label: "爆裂1", frame: totalResult.burst1Frame },
+    { label: "爆裂2", frame: totalResult.burst2Frame },
+    { label: "爆裂3", frame: totalResult.burst3Frame },
   ].filter((marker) => marker.frame <= CHART_MAX_FRAME);
   const maxFrame = Math.min(
     CHART_MAX_FRAME,
-    Math.max(result.fullFrame, result.burst1Frame, result.burst2Frame, result.burst3Frame, 1),
+    Math.max(
+      ...chartResults.flatMap((item) => [item.result.fullFrame, item.result.burst1Frame, item.result.burst2Frame, item.result.burst3Frame]),
+      1,
+    ),
   );
   const maxBurstFrame = burstMarkers.length ? Math.max(...burstMarkers.map((marker) => marker.frame)) : maxFrame;
   const rlStandards = Array.from({ length: Math.floor(maxFrame / 76) }, (_, index) => ({
@@ -893,30 +919,42 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
   const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
   const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
-  const finishingPositions = new Set(result.finishingPositionIndices);
+  const finishingPositionsByTeam = new Map(chartResults.map((item) => [item.teamKey, new Set(item.result.finishingPositionIndices)]));
   const labelGap = 10;
   const chartLabels = [
     "标准轴",
     "总充能",
-    ...result.members.map((member) => `${finishingPositions.has(member.positionIndex) ? "*" : ""}${member.character.name}`),
+    ...memberPointGroups.map((group) => {
+      const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
+      return `${finishingPositions.has(group.member.positionIndex) ? "*" : ""}${group.member.character.name}`;
+    }),
   ];
   const labelGutter =
     measuredLabelGutter ?? Math.ceil(Math.max(...chartLabels.map(estimateChartLabelWidth), 0) + labelGap);
   const chartWidth = width - labelGutter - margin.right;
   const xForFrame = (frame) => labelGutter + (frame / maxFrame) * chartWidth;
   const standardLaneIndex = 0;
+  const defenseGroups = memberPointGroups.filter((group) => group.teamKey === "defense");
+  const attackGroups = memberPointGroups.filter((group) => group.teamKey === "attack");
+  const hasTeamSeparator = defenseGroups.length > 0 && attackGroups.length > 0;
   const firstMemberLaneIndex = 1;
-  const totalLaneIndex = result.members.length + 1;
-  const laneCount = result.members.length + 2;
+  const separatorLaneIndex = hasTeamSeparator ? firstMemberLaneIndex + defenseGroups.length : null;
+  const firstAttackLaneIndex = firstMemberLaneIndex + defenseGroups.length + (hasTeamSeparator ? 1 : 0);
+  const totalLaneIndex = firstAttackLaneIndex + attackGroups.length;
+  const laneCount = totalLaneIndex + 1;
+  const laneByGroupKey = new Map([
+    ...defenseGroups.map((group, index) => [group.groupKey, firstMemberLaneIndex + index]),
+    ...attackGroups.map((group, index) => [group.groupKey, firstAttackLaneIndex + index]),
+  ]);
   const yForLane = (index) => margin.top + (laneCount === 1 ? chartHeight / 2 : (chartHeight / laneCount) * index);
-  const yForPosition = (index) => yForLane((laneByPosition.get(index) ?? result.members.length) + firstMemberLaneIndex);
+  const yForGroup = (groupKey) => yForLane(laneByGroupKey.get(groupKey) ?? totalLaneIndex);
   const yForStandard = () => yForLane(standardLaneIndex);
   const yForTotal = () => yForLane(totalLaneIndex);
 
   const gridLines = tickFrames
     .map((frame) => {
       const x = xForFrame(frame);
-      const isFullFrame = frame === result.fullFrame;
+      const isFullFrame = frame === totalResult.fullFrame;
       return `
         <g class="${isFullFrame ? "chart-grid is-full" : "chart-grid"}">
           <line x1="${x}" y1="${margin.top}" x2="${x}" y2="${height - margin.bottom}" />
@@ -945,6 +983,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
     const y = yForLane(index);
     return `<line class="chart-position-line" x1="${labelGutter}" y1="${y}" x2="${width - margin.right}" y2="${y}" />`;
   }).join("");
+  const teamSeparatorLine =
+    separatorLaneIndex !== null
+      ? `<line class="chart-team-separator" x1="0" y1="${yForLane(separatorLaneIndex)}" x2="${width - margin.right}" y2="${yForLane(separatorLaneIndex)}" />`
+      : "";
 
   const standardReferenceLines = rlStandards
     .map((standard) => {
@@ -964,7 +1006,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
   const tracks = memberPointGroups
     .map((group) => {
       if (group.frames.length < 2) return "";
-      const y = yForPosition(group.member.positionIndex);
+      const y = yForGroup(group.groupKey);
       const firstFrame = Math.min(...group.frames);
       const lastFrame = Math.max(...group.frames);
       return `<line class="chart-track" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
@@ -974,10 +1016,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
   const pointMarks = points
     .map((point) => {
       const x = xForFrame(point.frame);
-      const y = yForPosition(point.positionIndex);
-      const pointDetail = pointByMemberFrame.get(`${point.positionIndex}-${point.frame}`);
+      const y = yForGroup(point.groupKey);
+      const pointDetail = pointByMemberFrame.get(`${point.teamKey}-${point.positionIndex}-${point.frame}`);
       const contribution = pointDetail?.contribution;
-      const entry = pointDetail?.entry || timelineByFrame.get(point.frame);
+      const entry = pointDetail?.entry || timelineByFrame.get(`${point.teamKey}-${point.frame}`);
       const tooltip = contribution
         ? formatTooltipLines([
             contribution.characterName,
@@ -987,12 +1029,13 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
             `充能组成：${contribution.labels.join(" + ")}`,
           ])
         : "";
-      const isFinisher = point.frame === result.fullFrame && finishingPositions.has(point.positionIndex);
+      const isFinisher =
+        point.frame === point.result.fullFrame && (finishingPositionsByTeam.get(point.teamKey) || new Set()).has(point.positionIndex);
       return `<circle class="${isFinisher ? "chart-point is-finisher" : "chart-point"}" cx="${x}" cy="${y}" r="${isFinisher ? 7 : 5}"><title>${tooltip}</title></circle>`;
     })
     .join("");
 
-  const totalPoints = visibleTimeline
+  const totalPoints = totalTimeline
     .map((entry) => {
       const x = xForFrame(entry.frame);
       const y = yForTotal();
@@ -1003,7 +1046,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
           (contribution) => `${contribution.characterName}：+${contribution.charge.toFixed(2)}%（${contribution.labels.join(" + ")}）`,
         ),
       ]);
-      const isFullFrame = entry.frame === result.fullFrame;
+      const isFullFrame = entry.frame === totalResult.fullFrame;
       return `<circle class="${isFullFrame ? "chart-total-point is-full" : "chart-total-point"}" cx="${x}" cy="${y}" r="${isFullFrame ? 7 : 5}"><title>${tooltip}</title></circle>`;
     })
     .join("");
@@ -1017,18 +1060,19 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
     .join("");
 
   const chargeTotalTrack =
-    visibleTimeline.length > 1
-      ? `<line class="chart-track chart-total-track chart-total-charge-track" x1="${xForFrame(visibleTimeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(Math.min(result.fullFrame, CHART_MAX_FRAME))}" y2="${yForTotal()}" />`
+    totalTimeline.length > 1
+      ? `<line class="chart-track chart-total-track chart-total-charge-track" x1="${xForFrame(totalTimeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(Math.min(totalResult.fullFrame, CHART_MAX_FRAME))}" y2="${yForTotal()}" />`
       : "";
   const burstTotalTrack =
     burstMarkers.length > 0
       ? `<line class="chart-track chart-total-track chart-total-burst-track" x1="${xForFrame(burstMarkers[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(maxBurstFrame)}" y2="${yForTotal()}" />`
       : "";
 
-  const labels = result.members.map((member) => {
-    const y = yForPosition(member.positionIndex);
-    const prefix = finishingPositions.has(member.positionIndex) ? "*" : "";
-    return `<text class="chart-name" x="0" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + member.character.name)}</text>`;
+  const labels = memberPointGroups.map((group) => {
+    const y = yForGroup(group.groupKey);
+    const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
+    const prefix = finishingPositions.has(group.member.positionIndex) ? "*" : "";
+    return `<text class="chart-name" x="0" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + group.member.character.name)}</text>`;
   }).join("");
   const standardLabel = `<text class="chart-name chart-standard-name" x="0" y="${yForStandard() + 4}" text-anchor="start">标准轴</text>`;
   const totalLabel = `<text class="chart-name chart-total-name" x="0" y="${yForTotal() + 4}" text-anchor="start">总充能</text>`;
@@ -1039,6 +1083,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
       ${gridLines}
       ${standardLines}
       ${positionLines}
+      ${teamSeparatorLine}
       ${standardReferenceLines}
       ${standardTrack}
       ${standardPoints}
@@ -1055,15 +1100,15 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
   `;
 }
 
-function renderChargeChart(result) {
-  els.chargeChart.innerHTML = getChargeChartMarkup(result);
-  fitChargeChartLabels(result);
-  requestAnimationFrame(() => fitChargeChartLabels(result));
+function renderChargeChart(result, defenseResult = simulateBurst(state.defenseTeam, "defense")) {
+  els.chargeChart.innerHTML = getChargeChartMarkup(result, null, defenseResult);
+  fitChargeChartLabels(result, defenseResult);
+  requestAnimationFrame(() => fitChargeChartLabels(result, defenseResult));
 }
 
-function fitChargeChartLabels(result) {
+function fitChargeChartLabels(result, defenseResult = null) {
   const svg = els.chargeChart.querySelector("svg");
-  if (!svg || !result || result.error) return;
+  if (!svg || ((!result || result.error) && (!defenseResult || defenseResult.error))) return;
 
   const labels = [...svg.querySelectorAll(".chart-name")];
   if (labels.length === 0) return;
@@ -1074,7 +1119,7 @@ function fitChargeChartLabels(result) {
     const measuredGutter = Math.ceil(Math.max(...labels.map((label) => label.getBBox().width), 0) + labelGap);
 
     if (Math.abs(measuredGutter - currentGutter) > 1) {
-      els.chargeChart.innerHTML = getChargeChartMarkup(result, measuredGutter);
+      els.chargeChart.innerHTML = getChargeChartMarkup(result, measuredGutter, defenseResult);
     }
   } catch {
     // getBBox can fail while the SVG is detached; the estimated layout remains usable.

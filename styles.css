@@ -578,6 +578,12 @@ input:focus {
   stroke-width: 1.2;
 }
 
+.chart-team-separator {
+  stroke: rgba(242, 245, 250, 0.42);
+  stroke-dasharray: 8 8;
+  stroke-width: 1.4;
+}
+
 .chart-track {
   stroke: var(--cyan);
   stroke-linecap: round;
