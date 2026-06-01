@@ -378,7 +378,7 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   };
 }
 
-function simulateBurst(team, teamKey = "attack") {
+function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
     .filter((member) => member.character);
@@ -409,7 +409,8 @@ function simulateBurst(team, teamKey = "attack") {
   while (totalCharge < 100 - BURST_EPSILON && currentFrame <= 10000) {
     const nextAttackFrame = Math.min(...events.map((event) => event.nextFrame));
     const nextExtraFrame = pendingExtraEvents.length ? Math.min(...pendingExtraEvents.map((event) => event.frame)) : Infinity;
-    currentFrame = Math.min(nextAttackFrame, nextExtraFrame);
+    const nextSpecialFrame = specialChargeEvents.length ? Math.min(...specialChargeEvents.map((event) => event.frame)) : Infinity;
+    currentFrame = Math.min(nextAttackFrame, nextExtraFrame, nextSpecialFrame);
     currentFrameContributors = new Set();
     const contributions = new Map();
     const addContribution = (event, value, label, counterHits = 1) => {
@@ -429,6 +430,20 @@ function simulateBurst(team, teamKey = "attack") {
       current.counterHits += Math.max(Number(counterHits) || 0, 1);
       contributions.set(event.positionIndex, current);
     };
+
+    const activeSpecials = specialChargeEvents.filter((event) => event.frame === currentFrame);
+    specialChargeEvents = specialChargeEvents.filter((event) => event.frame !== currentFrame);
+    activeSpecials.forEach((special) => {
+      const owner = events.find((event) => event.positionIndex === special.positionIndex);
+      if (!owner) return;
+      totalCharge += special.chargeValue;
+      owner.totalCharge += special.chargeValue;
+      addContribution(owner, special.chargeValue, special.label, 1);
+      const currentContribution = contributions.get(owner.positionIndex);
+      if (currentContribution) {
+        currentContribution.counterHits -= 1;
+      }
+    });
 
     const activeExtras = pendingExtraEvents.filter((event) => event.frame === currentFrame);
     pendingExtraEvents = pendingExtraEvents.filter((event) => event.frame !== currentFrame);
@@ -769,9 +784,10 @@ function renderSingleTeamLegacy() {
 
 function renderTeam() {
   const fragment = document.createDocumentFragment();
+  const { attackResult, defenseResult } = computeBattleResults();
   const resultsByTeam = new Map([
-    ["defense", simulateBurst(state.defenseTeam, "defense")],
-    ["attack", simulateBurst(state.team, "attack")],
+    ["defense", defenseResult],
+    ["attack", attackResult],
   ]);
 
   ["defense", "attack"].forEach((teamKey) => {
@@ -887,7 +903,8 @@ function renderTeam() {
         slot.querySelector(".slot-remove").addEventListener("contextmenu", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          const result = simulateBurst(getTeamState(teamKey), teamKey);
+          const { attackResult: currentAttackResult, defenseResult: currentDefenseResult } = computeBattleResults();
+          const result = teamKey === "defense" ? currentDefenseResult : currentAttackResult;
           if (result && !result.error) {
             copyResultSummary(result, teamKey);
           } else {
@@ -937,7 +954,12 @@ function renderTeam() {
   els.teamSlots.replaceChildren(fragment);
 }
 
-function updateTeamFinishMarkers(result = simulateBurst(state.team, "attack"), defenseResult = simulateBurst(state.defenseTeam, "defense")) {
+function updateTeamFinishMarkers(result = null, defenseResult = null) {
+  if (!result || !defenseResult) {
+    const battleResults = computeBattleResults();
+    result = battleResults.attackResult;
+    defenseResult = battleResults.defenseResult;
+  }
   const finishingPositionsByTeam = new Map([
     ["defense", new Set(defenseResult && !defenseResult.error ? defenseResult.finishingPositionIndices : [])],
     ["attack", new Set(result && !result.error ? result.finishingPositionIndices : [])],
@@ -987,7 +1009,7 @@ function isJackal(character) {
 function getCounterTriggerCount(entry) {
   const count = entry.contributions.reduce((sum, contribution) => {
     if (Number.isFinite(contribution.counterHits)) {
-      return sum + Math.max(contribution.counterHits, 1);
+      return sum + Math.max(contribution.counterHits, 0);
     }
     const labelCount = contribution.labels.reduce((labelSum, label) => {
       const match = String(label).match(/(\d+)\s*发|[x×]\s*(\d+)/i);
@@ -995,7 +1017,7 @@ function getCounterTriggerCount(entry) {
     }, 0);
     return sum + Math.max(labelCount, 1);
   }, 0);
-  return Math.max(count, 1);
+  return Math.max(count, 0);
 }
 
 function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
@@ -1044,7 +1066,7 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
     return item.result.members
       .filter((member) => isJackal(member.character))
       .map((member) => {
-        const chargePerLink = getChargeValue(member.character);
+        const chargePerLink = member.character.burstGen;
         let accumulatedHits = 0;
         let triggeredLinks = 0;
         let cumulativeCharge = 0;
@@ -1100,6 +1122,77 @@ function getSpecialChargeTooltipLines(group, entry) {
     `期望反击：${entry.triggerCount} × ${group.chargePerCounter.toFixed(3)}% = ${entry.charge.toFixed(3)}%`,
     `累计充能：${entry.cumulativeCharge.toFixed(3)}%`,
   ];
+}
+
+function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
+  if (!targetResult || targetResult.error || !opponentResult || opponentResult.error) return [];
+  const opponentTimeline = opponentResult.timeline || [];
+  if (opponentTimeline.length === 0) return [];
+  const events = [];
+
+  targetResult.members.forEach((member) => {
+    if (isScarlet(member.character)) {
+      const chargePerCounter = getChargeValue(member.character) * SCARLET_COUNTER_PROBABILITY;
+      opponentTimeline.forEach((entry) => {
+        const triggerCount = getCounterTriggerCount(entry);
+        if (triggerCount <= 0) return;
+        events.push({
+          frame: entry.frame,
+          positionIndex: member.positionIndex,
+          chargeValue: chargePerCounter * triggerCount,
+          label: "红莲反击",
+        });
+      });
+    }
+
+    if (isJackal(member.character)) {
+      const chargePerLink = member.character.burstGen;
+      let accumulatedHits = 0;
+      let triggeredLinks = 0;
+      opponentTimeline.forEach((entry) => {
+        const hitCount = getCounterTriggerCount(entry);
+        accumulatedHits += hitCount;
+        const nextTriggeredLinks = Math.floor(accumulatedHits / JACKAL_LINK_HIT_THRESHOLD);
+        const triggerCount = nextTriggeredLinks - triggeredLinks;
+        if (triggerCount <= 0) return;
+        triggeredLinks = nextTriggeredLinks;
+        events.push({
+          frame: entry.frame,
+          positionIndex: member.positionIndex,
+          chargeValue: chargePerLink * triggerCount,
+          label: "豺狼连接",
+        });
+      });
+    }
+  });
+
+  return events.sort((a, b) => a.frame - b.frame || a.positionIndex - b.positionIndex);
+}
+
+function getResultSignature(result) {
+  if (!result) return "empty";
+  if (result.error) return `error:${result.error}`;
+  return `${result.fullFrame}:${result.finishingPositionIndices.join(",")}:${result.timeline.length}:${result.totalCharge.toFixed(3)}`;
+}
+
+function computeBattleResults() {
+  let attackResult = simulateBurst(state.team, "attack");
+  let defenseResult = simulateBurst(state.defenseTeam, "defense");
+
+  for (let index = 0; index < 8; index += 1) {
+    const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
+    const defenseSpecials = getSpecialChargeEventsForTeam(defenseResult, attackResult);
+    const nextAttackResult = simulateBurst(state.team, "attack", attackSpecials);
+    const nextDefenseResult = simulateBurst(state.defenseTeam, "defense", defenseSpecials);
+    const stable =
+      getResultSignature(nextAttackResult) === getResultSignature(attackResult) &&
+      getResultSignature(nextDefenseResult) === getResultSignature(defenseResult);
+    attackResult = nextAttackResult;
+    defenseResult = nextDefenseResult;
+    if (stable) break;
+  }
+
+  return { attackResult, defenseResult };
 }
 
 function estimateChartLabelWidth(label) {
@@ -1594,8 +1687,7 @@ function renderSummaryStrip(attackResult, defenseResult) {
 }
 
 function renderResults() {
-  const result = simulateBurst(state.team, "attack");
-  const defenseResult = simulateBurst(state.defenseTeam, "defense");
+  const { attackResult: result, defenseResult } = computeBattleResults();
   renderSummaryStrip(result, defenseResult);
 
   if (!result) {
