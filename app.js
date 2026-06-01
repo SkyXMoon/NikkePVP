@@ -34,6 +34,7 @@ const MG_WARMUP_EVENTS = [
   { frame: 152, shots: 22 },
   { frame: 180, shots: 14 },
 ];
+const CHART_MAX_FRAME = 600;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 
@@ -702,44 +703,42 @@ function getChargeChartMarkup(result) {
 
   const width = 1800;
   const height = 440;
-  const margin = { top: 30, right: 0, bottom: 42, left: 58 };
+  const margin = { top: 30, right: 0, bottom: 42, left: 0 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
   const laneByPosition = new Map(result.members.map((member, index) => [member.positionIndex, index]));
-  const timelineByFrame = new Map(result.timeline.map((entry) => [entry.frame, entry]));
+  const visibleTimeline = result.timeline.filter((entry) => entry.frame <= CHART_MAX_FRAME);
+  const timelineByFrame = new Map(visibleTimeline.map((entry) => [entry.frame, entry]));
   const pointByMemberFrame = new Map(
-    result.timeline.flatMap((entry) =>
+    visibleTimeline.flatMap((entry) =>
       entry.contributions.map((contribution) => [`${contribution.positionIndex}-${entry.frame}`, { entry, contribution }]),
     ),
   );
   const memberPointGroups = result.members.map((member) => ({
     member,
-    frames: result.timeline
+    frames: visibleTimeline
       .filter((entry) => entry.contributions.some((contribution) => contribution.positionIndex === member.positionIndex))
       .map((entry) => entry.frame),
   }));
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, positionIndex: group.member.positionIndex })),
   );
-  const visibleStandards = [{ label: "", frame: result.fullFrame, isFullFrame: true }];
+  const visibleStandards = result.fullFrame <= CHART_MAX_FRAME ? [{ label: "", frame: result.fullFrame, isFullFrame: true }] : [];
   const burstMarkers = [
     { label: "爆裂1", frame: result.burst1Frame },
     { label: "爆裂2", frame: result.burst2Frame },
     { label: "爆裂3", frame: result.burst3Frame },
-  ];
-  const maxBurstFrame = Math.max(...burstMarkers.map((marker) => marker.frame));
-  const rlStandards = Array.from({ length: Math.ceil(maxBurstFrame / 76) }, (_, index) => ({
+  ].filter((marker) => marker.frame <= CHART_MAX_FRAME);
+  const maxFrame = Math.min(
+    CHART_MAX_FRAME,
+    Math.max(result.fullFrame, result.burst1Frame, result.burst2Frame, result.burst3Frame, 1),
+  );
+  const maxBurstFrame = burstMarkers.length ? Math.max(...burstMarkers.map((marker) => marker.frame)) : maxFrame;
+  const rlStandards = Array.from({ length: Math.floor(maxFrame / 76) }, (_, index) => ({
     label: `${index + 1}RL`,
     frame: (index + 1) * 76,
   }));
-  const maxFrame = Math.max(
-    result.fullFrame,
-    ...visibleStandards.map((standard) => standard.frame),
-    ...rlStandards.map((standard) => standard.frame),
-    ...burstMarkers.map((marker) => marker.frame),
-    1,
-  );
   const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
   const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
@@ -793,7 +792,7 @@ function getChargeChartMarkup(result) {
       return `<line class="chart-standard-reference" x1="${x}" y1="${yForStandard()}" x2="${x}" y2="${height - margin.bottom}" />`;
     })
     .join("");
-  const standardTrack = `<line class="chart-track chart-standard-track" x1="${xForFrame(0)}" y1="${yForStandard()}" x2="${xForFrame(maxBurstFrame)}" y2="${yForStandard()}" />`;
+  const standardTrack = `<line class="chart-track chart-standard-track" x1="${xForFrame(0)}" y1="${yForStandard()}" x2="${xForFrame(maxFrame)}" y2="${yForStandard()}" />`;
   const standardPoints = rlStandards
     .map((standard) => {
       const x = xForFrame(standard.frame);
@@ -833,7 +832,7 @@ function getChargeChartMarkup(result) {
     })
     .join("");
 
-  const totalPoints = result.timeline
+  const totalPoints = visibleTimeline
     .map((entry) => {
       const x = xForFrame(entry.frame);
       const y = yForTotal();
@@ -858,18 +857,21 @@ function getChargeChartMarkup(result) {
     .join("");
 
   const chargeTotalTrack =
-    result.timeline.length > 1
-      ? `<line class="chart-track chart-total-track chart-total-charge-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(result.fullFrame)}" y2="${yForTotal()}" />`
+    visibleTimeline.length > 1
+      ? `<line class="chart-track chart-total-track chart-total-charge-track" x1="${xForFrame(visibleTimeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(Math.min(result.fullFrame, CHART_MAX_FRAME))}" y2="${yForTotal()}" />`
       : "";
-  const burstTotalTrack = `<line class="chart-track chart-total-track chart-total-burst-track" x1="${xForFrame(result.burst1Frame)}" y1="${yForTotal()}" x2="${xForFrame(maxBurstFrame)}" y2="${yForTotal()}" />`;
+  const burstTotalTrack =
+    burstMarkers.length > 0
+      ? `<line class="chart-track chart-total-track chart-total-burst-track" x1="${xForFrame(burstMarkers[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(maxBurstFrame)}" y2="${yForTotal()}" />`
+      : "";
 
   const labels = result.members.map((member) => {
     const y = yForPosition(member.positionIndex);
     const prefix = finishingPositions.has(member.positionIndex) ? "*" : "";
-    return `<text class="chart-name" x="${margin.left - 14}" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + member.character.name)}</text>`;
+    return `<text class="chart-name" x="8" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + member.character.name)}</text>`;
   }).join("");
-  const standardLabel = `<text class="chart-name chart-standard-name" x="${margin.left - 14}" y="${yForStandard() + 4}" text-anchor="end">标准轴</text>`;
-  const totalLabel = `<text class="chart-name chart-total-name" x="${margin.left - 14}" y="${yForTotal() + 4}" text-anchor="end">总充能</text>`;
+  const standardLabel = `<text class="chart-name chart-standard-name" x="8" y="${yForStandard() + 4}" text-anchor="start">标准轴</text>`;
+  const totalLabel = `<text class="chart-name chart-total-name" x="8" y="${yForTotal() + 4}" text-anchor="start">总充能</text>`;
 
   return `
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="队伍充能关键帧图表">
