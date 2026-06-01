@@ -1095,19 +1095,76 @@ input:focus {
   height: 16px;
 }
 
-.slot-settings-panel {
-  position: absolute;
-  top: 38px;
-  right: 7px;
-  z-index: 5;
-  width: 140px;
-  padding: 9px;
-  border: 1px solid rgba(71, 200, 212, 0.78);
-  border-radius: 6px;
-  background: linear-gradient(180deg, rgba(16, 34, 45, 0.98), rgba(7, 10, 16, 0.98));
+.slot-settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(2px);
+}
+
+.slot-settings-modal {
+  width: min(320px, calc(100vw - 44px));
+  padding: 14px;
+  border: 1px solid rgba(71, 200, 212, 0.82);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(19, 37, 49, 0.98), rgba(8, 12, 18, 0.98)),
+    var(--panel);
   box-shadow:
-    0 0 0 1px rgba(221, 251, 255, 0.08) inset,
-    var(--shadow);
+    0 0 0 1px rgba(221, 251, 255, 0.1) inset,
+    0 18px 42px rgba(0, 0, 0, 0.48),
+    0 0 28px rgba(71, 200, 212, 0.18);
+}
+
+.slot-settings-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.slot-settings-modal-head div {
+  display: grid;
+  gap: 3px;
+}
+
+.slot-settings-modal-head strong {
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.slot-settings-team {
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.slot-settings-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(235, 241, 248, 0.34);
+  border-radius: 6px;
+  padding: 0;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.slot-settings-close:hover {
+  border-color: rgba(71, 200, 212, 0.9);
+  color: #fff;
+  background: rgba(71, 200, 212, 0.16);
 }
 
 .settings-field {

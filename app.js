@@ -925,6 +925,76 @@ function renderSingleTeamLegacy() {
   els.teamSlots.replaceChildren(fragment);
 }
 
+function createSlotSettingsModal() {
+  if (!openSlotSettings) return null;
+
+  const teamKey = normalizeTeamKey(openSlotSettings.teamKey);
+  const index = Number(openSlotSettings.index);
+  const team = getTeamState(teamKey);
+  const character = team[index];
+  if (!character) {
+    openSlotSettings = null;
+    return null;
+  }
+
+  const chargeSpeeds = getChargeSpeedState(teamKey);
+  const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
+  const backdrop = document.createElement("div");
+  backdrop.className = "slot-settings-backdrop";
+  backdrop.setAttribute("role", "presentation");
+  backdrop.innerHTML = `
+    <section class="slot-settings-modal" role="dialog" aria-modal="true" aria-label="设置 ${escapeHtml(character.name)}">
+      <div class="slot-settings-modal-head">
+        <div>
+          <span class="slot-settings-team">${escapeHtml(TEAM_LABELS[teamKey])} P${index + 1}</span>
+          <strong>${escapeHtml(character.name)}</strong>
+        </div>
+        <button class="slot-settings-close" type="button" aria-label="关闭设置">X</button>
+      </div>
+      <label class="settings-field">
+        <span>蓄速</span>
+        <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" />
+        <span>%</span>
+      </label>
+    </section>
+  `;
+
+  backdrop.addEventListener("click", (event) => {
+    if (event.target !== backdrop) return;
+    openSlotSettings = null;
+    render();
+  });
+
+  const modal = backdrop.querySelector(".slot-settings-modal");
+  modal.addEventListener("click", (event) => event.stopPropagation());
+  modal.addEventListener("pointerdown", (event) => event.stopPropagation());
+  modal.addEventListener("mousedown", (event) => event.stopPropagation());
+  modal.addEventListener("dragstart", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+
+  backdrop.querySelector(".slot-settings-close").addEventListener("click", (event) => {
+    event.preventDefault();
+    openSlotSettings = null;
+    render();
+  });
+
+  const speedInput = backdrop.querySelector(".slot-settings-input");
+  speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
+  speedInput.addEventListener("focus", (event) => event.target.select());
+  speedInput.addEventListener("click", (event) => event.target.select());
+  speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
+  speedInput.addEventListener("input", (event) => {
+    chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
+    saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
+    saveTeam();
+    updateTeamFinishMarkers(renderResults());
+  });
+
+  return backdrop;
+}
+
 function renderTeam() {
   const fragment = document.createDocumentFragment();
   const { attackResult, defenseResult } = computeBattleResults();
@@ -999,19 +1069,6 @@ function renderTeam() {
               `
               : ""
           }
-          ${
-            isSettingsOpen
-              ? `
-                <div class="slot-settings-panel">
-                  <label class="settings-field">
-                    <span>蓄速</span>
-                    <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" data-speed-index="${index}" />
-                    <span>%</span>
-                  </label>
-                </div>
-              `
-              : ""
-          }
         `
         : `
           <div class="slot-empty">
@@ -1028,7 +1085,7 @@ function renderTeam() {
       });
 
       slot.addEventListener("dragstart", (event) => {
-        if (!character || event.target.closest(".slot-settings-toggle, .slot-settings-panel, .slot-link-toggle, .slot-link-target")) {
+        if (!character || event.target.closest(".slot-settings-toggle, .slot-link-toggle, .slot-link-target")) {
           event.preventDefault();
           return;
         }
@@ -1123,32 +1180,15 @@ function renderTeam() {
             event.stopPropagation();
           });
         }
-        const speedInput = slot.querySelector("[data-speed-index]");
-        if (speedInput) {
-          const settingsPanel = slot.querySelector(".slot-settings-panel");
-          settingsPanel.addEventListener("pointerdown", (event) => event.stopPropagation());
-          settingsPanel.addEventListener("mousedown", (event) => event.stopPropagation());
-          settingsPanel.addEventListener("dragstart", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-          });
-          speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
-          speedInput.addEventListener("focus", (event) => event.target.select());
-          speedInput.addEventListener("click", (event) => event.target.select());
-          speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
-          speedInput.addEventListener("input", (event) => {
-            chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
-            saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
-            saveTeam();
-            updateTeamFinishMarkers(renderResults());
-          });
-        }
       }
       slotsRow.append(slot);
     });
 
     fragment.append(row);
   });
+
+  const settingsModal = createSlotSettingsModal();
+  if (settingsModal) fragment.append(settingsModal);
 
   els.teamSlots.replaceChildren(fragment);
 }
