@@ -35,6 +35,8 @@ const MG_WARMUP_EVENTS = [
   { frame: 180, shots: 14 },
 ];
 const CHART_MAX_FRAME = 600;
+const CHART_WIDTH = 1800;
+const CHART_HEIGHT = 660;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 
@@ -907,8 +909,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
   }
 
-  const width = 1800;
-  const height = 440;
+  const width = CHART_WIDTH;
+  const height = CHART_HEIGHT;
   const margin = { top: 30, right: 42, bottom: 42, left: 0 };
   const chartHeight = height - margin.top - margin.bottom;
   const visibleTimelineByTeam = new Map(
