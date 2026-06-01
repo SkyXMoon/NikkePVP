@@ -39,8 +39,11 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 
 const state = {
+  defenseTeam: Array(TEAM_SIZE).fill(null),
+  defenseChargeSpeeds: Array(TEAM_SIZE).fill(0),
   team: Array(TEAM_SIZE).fill(null),
   chargeSpeeds: Array(TEAM_SIZE).fill(0),
+  activeTeamKey: "attack",
   filters: {
     common: "common",
     weapon: "all",
@@ -69,6 +72,12 @@ const els = {
 };
 
 let draggedTeamIndex = null;
+let draggedTeamKey = null;
+
+const TEAM_LABELS = {
+  defense: "防守队",
+  attack: "进攻队",
+};
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -115,6 +124,18 @@ function getTeamPositionText(finishingPositionIndices = []) {
 
 function getResultCopyText(result) {
   return `${getTeamPositionText(result.finishingPositionIndices)}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
+}
+
+function getTeamState(teamKey = state.activeTeamKey) {
+  return teamKey === "defense" ? state.defenseTeam : state.team;
+}
+
+function getChargeSpeedState(teamKey = state.activeTeamKey) {
+  return teamKey === "defense" ? state.defenseChargeSpeeds : state.chargeSpeeds;
+}
+
+function setActiveTeam(teamKey) {
+  state.activeTeamKey = teamKey === "defense" ? "defense" : "attack";
 }
 
 function applyChargeSpeedFrames(baseFrames, chargeSpeedPercent = 0) {
@@ -298,17 +319,18 @@ function advanceAttackEvent(event) {
   event.nextFrame = event.nextFrame < MG_SUSTAIN_START_FRAME ? MG_SUSTAIN_START_FRAME : event.nextFrame + MG_SUSTAIN_INTERVAL_FRAMES;
 }
 
-function characterForSlot(character, positionIndex) {
+function characterForSlot(character, positionIndex, teamKey = "attack") {
   if (!character) return null;
+  const chargeSpeeds = getChargeSpeedState(teamKey);
   return {
     ...character,
-    chargeSpeedPercent: Number(state.chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
+    chargeSpeedPercent: Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
   };
 }
 
-function simulateBurst(team) {
+function simulateBurst(team, teamKey = "attack") {
   const members = team
-    .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex), positionIndex }))
+    .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
     .filter((member) => member.character);
 
   if (members.length === 0) return null;
@@ -539,7 +561,7 @@ function getFilteredCharacters() {
 }
 
 function renderCharacters() {
-  const pickedIds = new Set(state.team.filter(Boolean).map((character) => character.id));
+  const pickedIds = new Set(getTeamState().filter(Boolean).map((character) => character.id));
   const fragment = document.createDocumentFragment();
   const characters = getFilteredCharacters();
   els.listCount.textContent = `${characters.length} / ${CHARACTERS.length} 名角色`;
@@ -569,9 +591,9 @@ function renderCharacters() {
   els.characterGrid.replaceChildren(fragment);
 }
 
-function renderTeam() {
+function renderSingleTeamLegacy() {
   const fragment = document.createDocumentFragment();
-  const result = simulateBurst(state.team);
+  const result = simulateBurst(state.team, "attack");
   const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
 
   state.team.forEach((character, index) => {
@@ -662,10 +684,138 @@ function renderTeam() {
   els.teamSlots.replaceChildren(fragment);
 }
 
-function updateTeamFinishMarkers(result = simulateBurst(state.team)) {
+function renderTeam() {
+  const fragment = document.createDocumentFragment();
+  const result = simulateBurst(state.team, "attack");
   const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
 
-  els.teamSlots.querySelectorAll(".team-slot").forEach((slot) => {
+  ["defense", "attack"].forEach((teamKey) => {
+    const team = getTeamState(teamKey);
+    const chargeSpeeds = getChargeSpeedState(teamKey);
+    const row = document.createElement("section");
+    row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
+    row.dataset.teamKey = teamKey;
+    row.innerHTML = `
+      <button class="team-row-title" type="button">
+        <strong>${TEAM_LABELS[teamKey]}</strong>
+        <span>${state.activeTeamKey === teamKey ? "正在编辑" : "点击编辑"}</span>
+      </button>
+      <div class="team-slots-row"></div>
+    `;
+    row.querySelector(".team-row-title").addEventListener("click", () => {
+      setActiveTeam(teamKey);
+      render();
+    });
+
+    const slotsRow = row.querySelector(".team-slots-row");
+    team.forEach((character, index) => {
+      const isFinisher = teamKey === "attack" && finishingPositions.has(index);
+      const slot = document.createElement("div");
+      slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
+      slot.dataset.slotIndex = index;
+      slot.dataset.teamKey = teamKey;
+      slot.draggable = Boolean(character);
+      slot.innerHTML = character
+        ? `
+          <button class="slot-remove" type="button" aria-label="移除 ${escapeHtml(character.name)}">
+            <span class="position">P${index + 1}</span>
+            <span class="team-avatar">${getAvatarMarkup(character)}</span>
+            <span class="slot-copy" aria-hidden="true">
+              ${isFinisher ? '<span class="finish-mark">✓</span>' : ""}
+            </span>
+          </button>
+          <label class="speed-control">
+            <span>蓄</span>
+            <input type="number" min="0" max="100" step="1" value="${Number(chargeSpeeds[index]) || 0}" data-speed-index="${index}" />
+            <span>%</span>
+          </label>
+        `
+        : `
+          <div class="slot-empty">
+            <span class="position">P${index + 1}</span>
+            <span class="team-avatar empty-avatar">+</span>
+          </div>
+        `;
+
+      slot.addEventListener("click", () => {
+        if (state.activeTeamKey !== teamKey) {
+          setActiveTeam(teamKey);
+          render();
+        }
+      });
+
+      slot.addEventListener("dragstart", (event) => {
+        if (!character || event.target.closest(".speed-control")) {
+          event.preventDefault();
+          return;
+        }
+        draggedTeamIndex = index;
+        draggedTeamKey = teamKey;
+        slot.classList.add("is-dragging");
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", `${teamKey}:${index}`);
+      });
+
+      slot.addEventListener("dragend", () => {
+        draggedTeamIndex = null;
+        draggedTeamKey = null;
+        els.teamSlots.querySelectorAll(".team-slot").forEach((teamSlot) => {
+          teamSlot.classList.remove("is-dragging", "is-drop-target");
+        });
+      });
+
+      slot.addEventListener("dragover", (event) => {
+        if (draggedTeamIndex === null || (draggedTeamKey === teamKey && draggedTeamIndex === index)) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        slot.classList.add("is-drop-target");
+      });
+
+      slot.addEventListener("dragleave", () => {
+        slot.classList.remove("is-drop-target");
+      });
+
+      slot.addEventListener("drop", (event) => {
+        event.preventDefault();
+        const [sourceTeamKey, sourceIndexText] = String(event.dataTransfer.getData("text/plain") || `${draggedTeamKey}:${draggedTeamIndex}`).split(":");
+        slot.classList.remove("is-drop-target");
+        moveTeamSlot(sourceTeamKey, Number(sourceIndexText), teamKey, index);
+      });
+
+      if (character) {
+        slot.querySelector(".slot-remove").addEventListener("click", (event) => {
+          event.stopPropagation();
+          removeCharacter(teamKey, index);
+        });
+        const speedControl = slot.querySelector(".speed-control");
+        speedControl.addEventListener("pointerdown", (event) => event.stopPropagation());
+        speedControl.addEventListener("mousedown", (event) => event.stopPropagation());
+        speedControl.addEventListener("dragstart", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+        const speedInput = slot.querySelector("[data-speed-index]");
+        speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
+        speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
+        speedInput.addEventListener("input", (event) => {
+          chargeSpeeds[index] = Math.max(0, Number(event.target.value) || 0);
+          saveTeam();
+          if (teamKey === "attack") updateTeamFinishMarkers(renderResults());
+        });
+      }
+      slotsRow.append(slot);
+    });
+
+    fragment.append(row);
+  });
+
+  els.teamSlots.replaceChildren(fragment);
+}
+
+function updateTeamFinishMarkers(result = simulateBurst(state.team, "attack")) {
+  const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
+
+  els.teamSlots.querySelectorAll('.team-slot[data-team-key="attack"]').forEach((slot) => {
     const index = Number(slot.dataset.slotIndex);
     const isFinisher = finishingPositions.has(index);
     slot.classList.toggle("is-finisher", isFinisher);
@@ -934,7 +1084,7 @@ function fitChargeChartLabels(result) {
 }
 
 function renderResults() {
-  const result = simulateBurst(state.team);
+  const result = simulateBurst(state.team, "attack");
 
   if (!result) {
     els.summaryStrip.textContent = "队伍为空，选择角色后开始计算";
@@ -1007,7 +1157,7 @@ function render() {
   renderResults();
 }
 
-function addCharacter(character) {
+function addCharacterLegacy(character) {
   if (state.team.some((member) => member && member.id === character.id)) {
     showToast(`${character.name} 已在队伍中，不能重复加入。`);
     return;
@@ -1024,7 +1174,7 @@ function addCharacter(character) {
   render();
 }
 
-function toggleCharacter(character) {
+function toggleCharacterLegacy(character) {
   const pickedIndex = state.team.findIndex((member) => member && member.id === character.id);
   if (pickedIndex !== -1) {
     removeCharacter(pickedIndex);
@@ -1034,14 +1184,14 @@ function toggleCharacter(character) {
   addCharacter(character);
 }
 
-function removeCharacter(index) {
+function removeCharacterLegacy(index) {
   state.team[index] = null;
   state.chargeSpeeds[index] = 0;
   saveTeam();
   render();
 }
 
-function moveTeamSlot(fromIndex, toIndex) {
+function moveTeamSlotLegacy(fromIndex, toIndex) {
   if (
     fromIndex === toIndex ||
     fromIndex < 0 ||
@@ -1070,9 +1220,93 @@ function moveTeamSlot(fromIndex, toIndex) {
   render();
 }
 
-function clearTeam() {
+function clearTeamLegacy() {
   state.team = Array(TEAM_SIZE).fill(null);
   state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
+  saveTeam();
+  render();
+}
+
+function addCharacter(character) {
+  const team = getTeamState();
+  if (team.some((member) => member && member.id === character.id)) {
+    showToast(`${character.name} 已在${TEAM_LABELS[state.activeTeamKey]}中`);
+    return;
+  }
+
+  const emptyIndex = team.findIndex((member) => !member);
+  if (emptyIndex === -1) {
+    showToast(`${TEAM_LABELS[state.activeTeamKey]}已满，请先移除一个槽位`);
+    return;
+  }
+
+  team[emptyIndex] = character;
+  saveTeam();
+  render();
+}
+
+function toggleCharacter(character) {
+  const pickedIndex = getTeamState().findIndex((member) => member && member.id === character.id);
+  if (pickedIndex !== -1) {
+    removeCharacter(state.activeTeamKey, pickedIndex);
+    return;
+  }
+
+  addCharacter(character);
+}
+
+function removeCharacter(teamKey, index) {
+  const team = getTeamState(teamKey);
+  const chargeSpeeds = getChargeSpeedState(teamKey);
+  team[index] = null;
+  chargeSpeeds[index] = 0;
+  saveTeam();
+  render();
+}
+
+function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
+  const fromTeam = getTeamState(fromTeamKey);
+  const toTeam = getTeamState(toTeamKey);
+  const fromSpeeds = getChargeSpeedState(fromTeamKey);
+  const toSpeeds = getChargeSpeedState(toTeamKey);
+
+  if (
+    (fromTeamKey === toTeamKey && fromIndex === toIndex) ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= TEAM_SIZE ||
+    toIndex >= TEAM_SIZE ||
+    !fromTeam[fromIndex]
+  ) {
+    return;
+  }
+
+  const fromCharacter = fromTeam[fromIndex];
+  const fromSpeed = fromSpeeds[fromIndex];
+
+  if (toTeam[toIndex]) {
+    [fromTeam[fromIndex], toTeam[toIndex]] = [toTeam[toIndex], fromTeam[fromIndex]];
+    [fromSpeeds[fromIndex], toSpeeds[toIndex]] = [toSpeeds[toIndex], fromSpeeds[fromIndex]];
+  } else {
+    toTeam[toIndex] = fromCharacter;
+    toSpeeds[toIndex] = fromSpeed;
+    fromTeam[fromIndex] = null;
+    fromSpeeds[fromIndex] = 0;
+  }
+
+  setActiveTeam(toTeamKey);
+  saveTeam();
+  render();
+}
+
+function clearTeam() {
+  if (state.activeTeamKey === "defense") {
+    state.defenseTeam = Array(TEAM_SIZE).fill(null);
+    state.defenseChargeSpeeds = Array(TEAM_SIZE).fill(0);
+  } else {
+    state.team = Array(TEAM_SIZE).fill(null);
+    state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
+  }
   saveTeam();
   render();
 }
@@ -1081,8 +1315,11 @@ function saveTeam() {
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
+      defenseTeam: state.defenseTeam.map((character) => character?.id || null),
+      defenseChargeSpeeds: state.defenseChargeSpeeds,
       team: state.team.map((character) => character?.id || null),
       chargeSpeeds: state.chargeSpeeds,
+      activeTeamKey: state.activeTeamKey,
     }),
   );
 }
@@ -1092,8 +1329,11 @@ function loadTeam() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const saved = JSON.parse(raw);
+      state.defenseTeam = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(saved.defenseTeam?.[index]));
+      state.defenseChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => Number(saved.defenseChargeSpeeds?.[index]) || 0);
       state.team = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(saved.team?.[index]));
       state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => Number(saved.chargeSpeeds?.[index]) || 0);
+      setActiveTeam(saved.activeTeamKey || "attack");
       return;
     }
 
@@ -1102,6 +1342,8 @@ function loadTeam() {
       state.team = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(legacyIds[index]));
     }
   } catch {
+    state.defenseTeam = Array(TEAM_SIZE).fill(null);
+    state.defenseChargeSpeeds = Array(TEAM_SIZE).fill(0);
     state.team = Array(TEAM_SIZE).fill(null);
     state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
   }

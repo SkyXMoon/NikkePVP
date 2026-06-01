@@ -688,10 +688,57 @@ input:focus {
 }
 
 .team-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.team-row {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.team-row-title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  padding: 6px;
+  color: var(--muted);
+  background: #0f131a;
+  text-align: left;
+}
+
+.team-row-title strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.team-row-title span {
+  color: var(--quiet);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.team-row.is-active .team-row-title {
+  border-color: var(--blue);
+  background: rgba(77, 163, 255, 0.12);
+}
+
+.team-row.is-active .team-row-title span {
+  color: var(--blue);
+}
+
+.team-slots-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
-  margin-top: 10px;
 }
 
 .team-slot {
@@ -950,7 +997,7 @@ summary {
     grid-template-columns: 1fr;
   }
 
-  .team-slots {
+  .team-slots-row {
     grid-template-columns: repeat(5, minmax(84px, 1fr));
   }
 
@@ -1009,7 +1056,15 @@ summary {
     text-align: left;
   }
 
-  .team-slots {
+  .team-row {
+    grid-template-columns: 1fr;
+  }
+
+  .team-row-title {
+    min-height: 38px;
+  }
+
+  .team-slots-row {
     grid-template-columns: repeat(5, minmax(56px, 1fr));
     gap: 6px;
   }
