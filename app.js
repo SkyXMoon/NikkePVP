@@ -60,6 +60,7 @@ const state = {
     defense: { enabled: false, ownerId: null, targetIds: [] },
     attack: { enabled: false, ownerId: null, targetIds: [] },
   },
+  allowMissedShots: true,
   activeTeamKey: "attack",
   filters: {
     common: "common",
@@ -77,6 +78,7 @@ const els = {
   resultPanel: document.querySelector("#resultPanel"),
   chargeChart: document.querySelector("#chargeChart"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
+  allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
   commonFilter: document.querySelector("#commonFilter"),
   weaponFilter: document.querySelector("#weaponFilter"),
   companyFilter: document.querySelector("#companyFilter"),
@@ -450,6 +452,7 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1) {
 }
 
 function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline = []) {
+  if (!state.allowMissedShots) return false;
   if (event.character.weapon !== "RL" || event.projectileFlightFrames <= 0) return false;
   const targetPositionIndex = getTargetPositionIndex(event.character, teamKey);
   const flightStartFrame = Math.max(0, currentFrame - event.projectileFlightFrames);
@@ -2372,6 +2375,7 @@ function saveTeam() {
       chargeSpeeds: state.chargeSpeeds,
       characterChargeSpeeds: state.characterChargeSpeeds,
       jackalLinks: state.jackalLinks,
+      allowMissedShots: state.allowMissedShots,
       activeTeamKey: state.activeTeamKey,
     }),
   );
@@ -2402,6 +2406,7 @@ function loadTeam() {
           targetIds: Array.isArray(saved.jackalLinks?.attack?.targetIds) ? saved.jackalLinks.attack.targetIds : [],
         },
       };
+      state.allowMissedShots = saved.allowMissedShots !== false;
       rememberLoadedTeamChargeSpeeds("defense");
       rememberLoadedTeamChargeSpeeds("attack");
       normalizeJackalLinks();
@@ -2423,6 +2428,7 @@ function loadTeam() {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
     };
+    state.allowMissedShots = true;
   }
 }
 
@@ -2478,6 +2484,11 @@ async function copyResultSummary(result, teamKey = "attack") {
 
 function bindEvents() {
   els.clearTeamButton.addEventListener("click", clearTeam);
+  els.allowMissedShotsToggle.addEventListener("change", (event) => {
+    state.allowMissedShots = event.target.checked;
+    saveTeam();
+    render();
+  });
   els.chargeChart.addEventListener("mousemove", showNearestChartTooltip);
   els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
   window.addEventListener("resize", () => {
@@ -2516,4 +2527,5 @@ function bindEvents() {
 initFilters();
 bindEvents();
 loadTeam();
+els.allowMissedShotsToggle.checked = state.allowMissedShots;
 render();

@@ -27,7 +27,13 @@
                   <p class="eyebrow">Team</p>
                   <h2>队伍槽位</h2>
                 </div>
-                <button class="ghost-button" id="clearTeamButton" type="button">清空</button>
+                <div class="team-actions">
+                  <label class="miss-toggle" title="开启后，RL 命中换弹中的目标会判定为空枪且不产生充能">
+                    <input id="allowMissedShotsToggle" type="checkbox" checked />
+                    <span>允许空枪</span>
+                  </label>
+                  <button class="ghost-button" id="clearTeamButton" type="button">清空</button>
+                </div>
               </div>
               <div class="summary-strip" id="summaryStrip">选择角色后实时计算首轮爆裂</div>
               <div class="team-slots" id="teamSlots"></div>

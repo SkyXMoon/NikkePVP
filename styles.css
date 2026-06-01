@@ -558,6 +558,34 @@ input:focus {
   margin-bottom: 6px;
 }
 
+.team-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.miss-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid rgba(242, 245, 250, 0.2);
+  border-radius: 6px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.miss-toggle input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--blue);
+}
+
 .charge-chart {
   position: relative;
   height: calc(50vh - 19px);
