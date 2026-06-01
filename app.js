@@ -1009,7 +1009,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const laneByTotalKey = new Map(
     totalGroups.map((group) => [group.teamKey, group.teamKey === "defense" ? defenseTotalLaneIndex : attackTotalLaneIndex]).filter(([, lane]) => lane !== null),
   );
-  const yForLane = (index) => margin.top + (laneCount === 1 ? chartHeight / 2 : (chartHeight / laneCount) * index);
+  const yForLane = (index) => margin.top + (chartHeight / Math.max(laneCount, 1)) * index;
   const yForGroup = (groupKey) => yForLane(laneByGroupKey.get(groupKey) ?? attackTotalLaneIndex);
   const yForTeamTotal = (teamKey) => yForLane(laneByTotalKey.get(teamKey) ?? attackTotalLaneIndex);
   const yForStandard = () => yForLane(standardLaneIndex);
@@ -1057,7 +1057,11 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       return `<line class="chart-standard-reference" x1="${x}" y1="${yForStandard()}" x2="${x}" y2="${height - margin.bottom}" />`;
     })
     .join("");
-  const standardTrack = `<line class="chart-track chart-standard-track" x1="${xForFrame(0)}" y1="${yForStandard()}" x2="${xForFrame(maxFrame)}" y2="${yForStandard()}" />`;
+  const firstStandardFrame = rlStandards[0]?.frame;
+  const standardTrack =
+    firstStandardFrame === undefined
+      ? ""
+      : `<line class="chart-track chart-standard-track" x1="${xForFrame(firstStandardFrame)}" y1="${yForStandard()}" x2="${xForFrame(maxFrame)}" y2="${yForStandard()}" />`;
   const standardPoints = rlStandards
     .map((standard) => {
       const x = xForFrame(standard.frame);
