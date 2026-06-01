@@ -1056,7 +1056,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     .map((standard) => {
       const x = xForFrame(standard.frame);
       const y = yForStandard();
-      return `<circle class="chart-standard-point" cx="${x}" cy="${y}" r="5"><title>${escapeHtml(`${standard.label} · ${standard.frame} F`)}</title></circle><text class="chart-standard-label" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(standard.label)}</text>`;
+      const tooltip = escapeHtml(`${standard.label} · ${standard.frame} F`);
+      return `<circle class="chart-standard-point" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle><text class="chart-standard-label" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(standard.label)}</text>`;
     })
     .join("");
 
@@ -1088,7 +1089,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         : "";
       const isFinisher =
         point.frame === point.result.fullFrame && (finishingPositionsByTeam.get(point.teamKey) || new Set()).has(point.positionIndex);
-      return `<circle class="${isFinisher ? `chart-point team-${point.teamKey} is-finisher` : `chart-point team-${point.teamKey}`}" cx="${x}" cy="${y}" r="${isFinisher ? 7 : 5}"><title>${tooltip}</title></circle>`;
+      return `<circle class="${isFinisher ? `chart-point team-${point.teamKey} is-finisher` : `chart-point team-${point.teamKey}`}" cx="${x}" cy="${y}" r="${isFinisher ? 7 : 5}" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
     })
     .join("");
 
@@ -1104,7 +1105,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           ...(cumulativeLines.length ? ["各角色累计贡献：", ...cumulativeLines] : []),
         ]);
         const isFullFrame = entry.frame === group.result.fullFrame;
-        return `<circle class="${isFullFrame ? `chart-total-point team-${group.teamKey} is-full` : `chart-total-point team-${group.teamKey}`}" cx="${x}" cy="${y}" r="${isFullFrame ? 8 : 6}"><title>${tooltip}</title></circle>`;
+        return `<circle class="${isFullFrame ? `chart-total-point team-${group.teamKey} is-full` : `chart-total-point team-${group.teamKey}`}" cx="${x}" cy="${y}" r="${isFullFrame ? 8 : 6}" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
       }),
     )
     .join("");
@@ -1120,7 +1121,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         .map((marker) => {
           const x = xForFrame(marker.frame);
           const y = yForTeamTotal(group.teamKey);
-          return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="6"><title>${TEAM_LABELS[group.teamKey]} ${marker.frame} F</title></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
+          const tooltip = escapeHtml(`${TEAM_LABELS[group.teamKey]} ${marker.label} · ${marker.frame} F`);
+          return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="6" data-tooltip="${tooltip}"><title>${tooltip}</title></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
         }),
     )
     .join("");
@@ -1203,6 +1205,48 @@ function fitChargeChartLabels(result, defenseResult = null) {
   } catch {
     // getBBox can fail while the SVG is detached; the estimated layout remains usable.
   }
+}
+
+function getChartTooltip() {
+  let tooltip = els.chargeChart.querySelector(".chart-hover-tooltip");
+  if (!tooltip) {
+    tooltip = document.createElement("div");
+    tooltip.className = "chart-hover-tooltip";
+    els.chargeChart.append(tooltip);
+  }
+  return tooltip;
+}
+
+function showNearestChartTooltip(event) {
+  const svg = els.chargeChart.querySelector("svg");
+  if (!svg) return;
+
+  const points = [...svg.querySelectorAll("[data-tooltip]")];
+  if (points.length === 0) return;
+
+  const nearest = points
+    .map((point) => {
+      const box = point.getBoundingClientRect();
+      const dx = event.clientX - (box.left + box.width / 2);
+      const dy = event.clientY - (box.top + box.height / 2);
+      return { point, distance: dx * dx + dy * dy };
+    })
+    .sort((a, b) => a.distance - b.distance)[0]?.point;
+
+  const tooltipText = nearest?.dataset.tooltip;
+  if (!tooltipText) return;
+
+  const chartBox = els.chargeChart.getBoundingClientRect();
+  const tooltip = getChartTooltip();
+  tooltip.textContent = tooltipText;
+  tooltip.classList.add("show");
+  tooltip.style.left = `${Math.min(event.clientX - chartBox.left + 14, chartBox.width - 260)}px`;
+  tooltip.style.top = `${Math.max(event.clientY - chartBox.top + 14, 8)}px`;
+}
+
+function hideChartTooltip() {
+  const tooltip = els.chargeChart.querySelector(".chart-hover-tooltip");
+  if (tooltip) tooltip.classList.remove("show");
 }
 
 function renderResults() {
@@ -1523,6 +1567,8 @@ async function copyResultSummary(result) {
 
 function bindEvents() {
   els.clearTeamButton.addEventListener("click", clearTeam);
+  els.chargeChart.addEventListener("mousemove", showNearestChartTooltip);
+  els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
   els.commonFilter.addEventListener("change", (event) => {
     state.filters.common = event.target.value;
     renderCharacters();
