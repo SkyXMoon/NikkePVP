@@ -634,23 +634,6 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
     };
   }
 
-  const chartExtraTimeline = events
-    .filter((event) => ["RL", "SR"].includes(event.character.weapon) && event.nextFrame <= CHART_MAX_FRAME)
-    .map((event) => ({
-      frame: event.nextFrame,
-      totalCharge,
-      isExtraKeyFrame: true,
-      contributions: [
-        {
-          positionIndex: event.positionIndex,
-          characterName: event.character.name,
-          charge: event.chargeValue,
-          cumulativeCharge: event.totalCharge + event.chargeValue,
-          labels: ["下一发预览"],
-        },
-      ],
-    }));
-
   return {
     teamKey,
     fullFrame: currentFrame,
@@ -661,7 +644,6 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
     chargePerSecond: currentFrame === 0 ? totalCharge * FRAMES_PER_SECOND : (totalCharge / currentFrame) * FRAMES_PER_SECOND,
     finishingPositionIndices: [...currentFrameContributors].sort((a, b) => a - b),
     timeline,
-    chartExtraTimeline,
     reloadTimeline: events.flatMap((event) => event.reloadEvents),
     flightTimeline: events.flatMap((event) => event.flightEvents),
     missedTimeline: events.flatMap((event) => event.missedShotEvents),
@@ -1607,7 +1589,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const visibleTimelineByTeam = new Map(
     chartResults.map((item) => [
       item.teamKey,
-      [...item.result.timeline, ...(item.result.chartExtraTimeline || [])].filter((entry) => entry.frame <= CHART_MAX_FRAME),
+      item.result.timeline.filter((entry) => entry.frame <= CHART_MAX_FRAME),
     ]),
   );
   const timelineByFrame = new Map(
@@ -1677,7 +1659,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     item.result.burst1Frame,
     item.result.burst2Frame,
     item.result.burst3Frame,
-    ...(item.result.chartExtraTimeline || []).map((entry) => entry.frame),
     ...(item.result.reloadTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME)),
     ...(item.result.flightTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME)),
     ...(item.result.missedTimeline || []).map((entry) => Math.min(entry.frame, CHART_MAX_FRAME)),
