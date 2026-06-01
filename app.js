@@ -132,7 +132,7 @@ function getTeamPositionText(finishingPositionIndices = [], teamKey = "attack") 
       if (!character) return "空位";
       const chargeSpeed = Number(chargeSpeeds[index]) || Number(character.chargeSpeedPercent) || 0;
       const isChargeWeapon = character.weapon === "RL" || character.weapon === "SR";
-      const prefix = finishingPositions.has(index) ? "*" : "";
+      const prefix = finishingPositions.has(index) && canShowFinishMarker(character) ? "*" : "";
       const name = `${prefix}${character.name}`;
       return isChargeWeapon && chargeSpeed > 0 ? `${name}(${chargeSpeed})` : name;
     })
