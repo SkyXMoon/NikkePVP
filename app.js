@@ -324,12 +324,27 @@ function simulateBurst(team) {
   let currentFrame = 0;
   let pendingExtraEvents = [];
   let currentFrameContributors = new Set();
+  const timeline = [];
 
   while (totalCharge < 100 - BURST_EPSILON && currentFrame <= 10000) {
     const nextAttackFrame = Math.min(...events.map((event) => event.nextFrame));
     const nextExtraFrame = pendingExtraEvents.length ? Math.min(...pendingExtraEvents.map((event) => event.frame)) : Infinity;
     currentFrame = Math.min(nextAttackFrame, nextExtraFrame);
     currentFrameContributors = new Set();
+    const contributions = new Map();
+    const addContribution = (event, value, label) => {
+      if (!event || !value) return;
+      currentFrameContributors.add(event.positionIndex);
+      const current = contributions.get(event.positionIndex) || {
+        positionIndex: event.positionIndex,
+        character: event.character,
+        charge: 0,
+        labels: [],
+      };
+      current.charge += value;
+      current.labels.push(label);
+      contributions.set(event.positionIndex, current);
+    };
 
     const activeExtras = pendingExtraEvents.filter((event) => event.frame === currentFrame);
     pendingExtraEvents = pendingExtraEvents.filter((event) => event.frame !== currentFrame);
@@ -338,7 +353,7 @@ function simulateBurst(team) {
       const owner = events.find((event) => event.character.id === extra.character.id);
       if (owner) {
         owner.totalCharge += extra.chargeValue;
-        currentFrameContributors.add(owner.positionIndex);
+        addContribution(owner, extra.chargeValue, "延迟额外");
       }
     });
 
@@ -350,13 +365,27 @@ function simulateBurst(team) {
       event.totalCharge += chargeValue;
       event.hits += shotCount;
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
-      currentFrameContributors.add(event.positionIndex);
+      addContribution(event, chargeValue, shotCount > 1 ? `${shotCount}发命中` : "命中");
       const hitCountExtraCharge = getHitCountExtraCharge(event);
       totalCharge += hitCountExtraCharge;
       event.totalCharge += hitCountExtraCharge;
+      addContribution(event, hitCountExtraCharge, "额外触发");
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
       advanceAttackEvent(event);
     });
+
+    if (contributions.size) {
+      timeline.push({
+        frame: currentFrame,
+        totalCharge,
+        contributions: [...contributions.values()].map((contribution) => ({
+          positionIndex: contribution.positionIndex,
+          characterName: contribution.character.name,
+          charge: contribution.charge,
+          labels: contribution.labels,
+        })),
+      });
+    }
   }
 
   if (totalCharge < 100 - BURST_EPSILON) {
@@ -374,6 +403,7 @@ function simulateBurst(team) {
     totalCharge,
     chargePerSecond: currentFrame === 0 ? totalCharge * FRAMES_PER_SECOND : (totalCharge / currentFrame) * FRAMES_PER_SECOND,
     finishingPositionIndices: [...currentFrameContributors].sort((a, b) => a - b),
+    timeline,
     members: events,
   };
 }
@@ -653,6 +683,10 @@ function getHitFrameValue(frame) {
   return Number.parseInt(String(frame).split("×")[0], 10);
 }
 
+function formatTooltipLines(lines) {
+  return escapeHtml(lines.join("\n"));
+}
+
 function getChargeChartMarkup(result) {
   if (!result || result.error) {
     return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
@@ -664,11 +698,17 @@ function getChargeChartMarkup(result) {
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
+  const timelineByFrame = new Map(result.timeline.map((entry) => [entry.frame, entry]));
+  const pointByMemberFrame = new Map(
+    result.timeline.flatMap((entry) =>
+      entry.contributions.map((contribution) => [`${contribution.positionIndex}-${entry.frame}`, { entry, contribution }]),
+    ),
+  );
   const memberPointGroups = result.members.map((member) => ({
     member,
-    frames: member.hitFrames
-      .map((frame) => getHitFrameValue(frame))
-      .filter((frame) => Number.isFinite(frame) && frame <= result.fullFrame),
+    frames: result.timeline
+      .filter((entry) => entry.contributions.some((contribution) => contribution.positionIndex === member.positionIndex))
+      .map((entry) => entry.frame),
   }));
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, positionIndex: group.member.positionIndex })),
@@ -683,7 +723,11 @@ function getChargeChartMarkup(result) {
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
   const finishingPositions = new Set(result.finishingPositionIndices);
   const xForFrame = (frame) => margin.left + (frame / maxFrame) * chartWidth;
-  const yForPosition = (index) => margin.top + (TEAM_SIZE === 1 ? chartHeight / 2 : (chartHeight / (TEAM_SIZE - 1)) * index);
+  const totalLaneIndex = TEAM_SIZE;
+  const laneCount = TEAM_SIZE + 1;
+  const yForLane = (index) => margin.top + (laneCount === 1 ? chartHeight / 2 : (chartHeight / (laneCount - 1)) * index);
+  const yForPosition = (index) => yForLane(index);
+  const yForTotal = () => yForLane(totalLaneIndex);
 
   const gridLines = tickFrames
     .map((frame) => {
@@ -712,8 +756,8 @@ function getChargeChartMarkup(result) {
     })
     .join("");
 
-  const positionLines = Array.from({ length: TEAM_SIZE }, (_, index) => {
-    const y = yForPosition(index);
+  const positionLines = Array.from({ length: laneCount }, (_, index) => {
+    const y = yForLane(index);
     return `<line class="chart-position-line" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />`;
   }).join("");
 
@@ -731,10 +775,42 @@ function getChargeChartMarkup(result) {
     .map((point) => {
       const x = xForFrame(point.frame);
       const y = yForPosition(point.positionIndex);
+      const pointDetail = pointByMemberFrame.get(`${point.positionIndex}-${point.frame}`);
+      const contribution = pointDetail?.contribution;
+      const entry = pointDetail?.entry || timelineByFrame.get(point.frame);
+      const tooltip = contribution
+        ? formatTooltipLines([
+            `${contribution.characterName} · ${point.frame}F`,
+            `本次贡献：${contribution.charge.toFixed(2)}%`,
+            `组成：${contribution.labels.join(" + ")}`,
+            `累计总充能：${entry.totalCharge.toFixed(2)}%`,
+          ])
+        : "";
       const isFinisher = point.frame === result.fullFrame && finishingPositions.has(point.positionIndex);
-      return `<circle class="${isFinisher ? "chart-point is-finisher" : "chart-point"}" cx="${x}" cy="${y}" r="${isFinisher ? 7 : 5}" />`;
+      return `<circle class="${isFinisher ? "chart-point is-finisher" : "chart-point"}" cx="${x}" cy="${y}" r="${isFinisher ? 7 : 5}"><title>${tooltip}</title></circle>`;
     })
     .join("");
+
+  const totalPoints = result.timeline
+    .map((entry) => {
+      const x = xForFrame(entry.frame);
+      const y = yForTotal();
+      const tooltip = formatTooltipLines([
+        `总充能 · ${entry.frame}F`,
+        `累计总充能：${entry.totalCharge.toFixed(2)}%`,
+        ...entry.contributions.map(
+          (contribution) => `${contribution.characterName}：+${contribution.charge.toFixed(2)}%（${contribution.labels.join(" + ")}）`,
+        ),
+      ]);
+      const isFullFrame = entry.frame === result.fullFrame;
+      return `<circle class="${isFullFrame ? "chart-total-point is-full" : "chart-total-point"}" cx="${x}" cy="${y}" r="${isFullFrame ? 7 : 5}"><title>${tooltip}</title></circle>`;
+    })
+    .join("");
+
+  const totalTrack =
+    result.timeline.length > 1
+      ? `<line class="chart-track chart-total-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(result.timeline.at(-1).frame)}" y2="${yForTotal()}" />`
+      : "";
 
   const labels = Array.from({ length: TEAM_SIZE }, (_, index) => {
     const member = memberByPosition.get(index);
@@ -743,6 +819,7 @@ function getChargeChartMarkup(result) {
     const prefix = finishingPositions.has(index) ? "*" : "";
     return `<text class="chart-name" x="${margin.left - 14}" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + name)}</text>`;
   }).join("");
+  const totalLabel = `<text class="chart-name chart-total-name" x="${margin.left - 14}" y="${yForTotal() + 4}" text-anchor="end">总充能</text>`;
 
   return `
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="队伍充能关键帧图表">
@@ -751,8 +828,11 @@ function getChargeChartMarkup(result) {
       ${standardLines}
       ${positionLines}
       ${tracks}
+      ${totalTrack}
       ${pointMarks}
+      ${totalPoints}
       ${labels}
+      ${totalLabel}
       <text class="chart-axis-label" x="${margin.left + chartWidth / 2}" y="${height - 12}" text-anchor="middle">时间 (F)</text>
     </svg>
   `;

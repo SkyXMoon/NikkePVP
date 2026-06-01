@@ -607,10 +607,21 @@ input:focus {
   stroke-width: 3;
 }
 
+.chart-total-track {
+  stroke: var(--accent-2);
+  stroke-dasharray: 8 6;
+  stroke-width: 3.5;
+}
+
 .chart-point {
   fill: var(--gold);
   stroke: rgba(7, 9, 13, 0.95);
   stroke-width: 1.5;
+}
+
+.chart-point,
+.chart-total-point {
+  cursor: help;
 }
 
 .chart-point.is-finisher {
@@ -619,10 +630,26 @@ input:focus {
   stroke-width: 2;
 }
 
+.chart-total-point {
+  fill: var(--accent-2);
+  stroke: rgba(7, 9, 13, 0.95);
+  stroke-width: 1.8;
+}
+
+.chart-total-point.is-full {
+  fill: var(--accent);
+  stroke: #ffd9dc;
+  stroke-width: 2.2;
+}
+
 .chart-name {
   fill: #f2f5fa;
   font-size: 15px;
   font-weight: 900;
+}
+
+.chart-total-name {
+  fill: var(--accent-2);
 }
 
 .chart-axis-label {
