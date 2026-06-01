@@ -496,8 +496,6 @@ input:focus {
 }
 
 .charge-chart-panel {
-  width: calc(100vw - 24px);
-  margin-left: -76px;
   padding: 0;
   min-height: 42vh;
   border-top: 3px solid var(--accent);
