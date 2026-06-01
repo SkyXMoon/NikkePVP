@@ -875,6 +875,25 @@ function estimateChartLabelWidth(label) {
   return [...String(label)].reduce((width, char) => width + (char.charCodeAt(0) > 255 ? 15 : 8), 0);
 }
 
+function getCumulativeContributionLines(result, frame) {
+  const cumulativeByPosition = new Map();
+  result.timeline
+    .filter((entry) => entry.frame <= frame)
+    .forEach((entry) => {
+      entry.contributions.forEach((contribution) => {
+        cumulativeByPosition.set(contribution.positionIndex, contribution.cumulativeCharge);
+      });
+    });
+
+  return result.members
+    .map((member) => {
+      const cumulative = cumulativeByPosition.get(member.positionIndex) || 0;
+      if (cumulative <= BURST_EPSILON) return null;
+      return `${member.character.name}：${cumulative.toFixed(2)}%`;
+    })
+    .filter(Boolean);
+}
+
 function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult = null) {
   const attackResult = result && !result.error ? result : null;
   const defenseChartResult = defenseResult && !defenseResult.error ? defenseResult : null;
@@ -1078,9 +1097,11 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       group.timeline.map((entry) => {
         const x = xForFrame(entry.frame);
         const y = yForTeamTotal(group.teamKey);
+        const cumulativeLines = getCumulativeContributionLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
           `累计总充能：${entry.totalCharge.toFixed(2)}%`,
+          ...(cumulativeLines.length ? ["各角色累计贡献：", ...cumulativeLines] : []),
           ...entry.contributions.map(
             (contribution) => `${contribution.characterName}：+${contribution.charge.toFixed(2)}%（${contribution.labels.join(" + ")}）`,
           ),
