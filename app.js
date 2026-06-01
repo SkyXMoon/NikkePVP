@@ -847,7 +847,7 @@ function toggleJackalLinkTarget(teamKey, character) {
 function getFilteredCharacters() {
   const keyword = state.filters.search.trim().toLowerCase();
   return CHARACTERS.filter((character) => {
-    const matchesCommon = state.filters.common === "all" || character.isCommon;
+    const matchesCommon = Boolean(keyword) || state.filters.common === "all" || character.isCommon;
     const matchesWeapon = state.filters.weapon === "all" || character.weapon === state.filters.weapon;
     const matchesCompany = state.filters.company === "all" || character.company === state.filters.company;
     const matchesStage = state.filters.stage === "all" || character.burstStage.split("/").includes(state.filters.stage);

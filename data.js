@@ -1450,7 +1450,7 @@ const CHARACTERS = [
     "rarity": "SSR",
     "avatarUrl": "assets/avatars-nikke-top/17.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/2/31/434605.png",
-    "isCommon": false,
+    "isCommon": true,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
     "burstGen": 4.5,
