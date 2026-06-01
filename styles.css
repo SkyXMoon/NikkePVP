@@ -923,6 +923,18 @@ input:focus {
   box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.24);
 }
 
+.team-slot.is-jackal-link-owner {
+  border-color: rgba(77, 163, 255, 0.9);
+  background: rgba(77, 163, 255, 0.12);
+  box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.18);
+}
+
+.team-slot.is-jackal-link-target {
+  border-color: rgba(228, 63, 79, 0.92);
+  background: rgba(228, 63, 79, 0.14);
+  box-shadow: 0 0 0 2px rgba(228, 63, 79, 0.2);
+}
+
 .slot-remove,
 .slot-empty {
   position: relative;
@@ -1031,6 +1043,67 @@ input:focus {
 .slot-settings-toggle img {
   width: 28px;
   height: 28px;
+}
+
+.slot-link-toggle,
+.slot-link-target {
+  position: absolute;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(235, 241, 248, 0.44);
+  border-radius: 6px;
+  padding: 0;
+  color: #f2f5fa;
+  background: rgba(60, 65, 72, 0.9);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.48);
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, filter 140ms ease;
+}
+
+.slot-link-toggle {
+  left: 4px;
+  bottom: 4px;
+}
+
+.slot-link-target {
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+}
+
+.slot-link-toggle:hover,
+.slot-link-target:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.12);
+}
+
+.slot-link-target:hover {
+  transform: translateX(-50%) translateY(-1px);
+}
+
+.slot-link-toggle.is-active {
+  border-color: rgba(127, 211, 255, 0.9);
+  background: rgba(34, 137, 223, 0.94);
+}
+
+.slot-link-target.is-selected {
+  border-color: rgba(255, 184, 193, 0.92);
+  background: rgba(228, 63, 79, 0.95);
+}
+
+.slot-link-target span {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.slot-link-toggle img,
+.slot-link-target img {
+  width: 16px;
+  height: 16px;
 }
 
 .slot-settings-panel {
