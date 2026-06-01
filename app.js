@@ -47,6 +47,9 @@ const LITTLE_MERMAID_TIMELINE_EVENT = {
   tooltip: "小美人鱼（196F）晕眩P1，持续3秒",
   frame: LITTLE_MERMAID_STUN_FRAME,
 };
+const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 10;
+const CINDERELLA_ATTACK_INTERVAL_FRAMES = 12;
+const DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES = 60;
 const CHART_MAX_FRAME = 600;
 const CHART_WIDTH = 1800;
 const CHART_HEIGHT = 660;
@@ -399,7 +402,12 @@ function applyChargeSpeedTotalFrames(baseFrames, chargeSpeedPercent = 0) {
   return Math.floor(baseFrames / (1 + speed / 100) / 2) * 2;
 }
 
+function isCinderella(character) {
+  return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
+}
+
 function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
+  if (isCinderella(character)) return CINDERELLA_PROJECTILE_FLIGHT_FRAMES;
   if (Number.isFinite(character.projectileFlightFrames)) return character.projectileFlightFrames;
   if (normalizeTeamKey(teamKey) === "defense") {
     if (positionIndex <= 1) return 16;
@@ -422,7 +430,9 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
   }
 
   if (character.timing?.firstFrame !== null && character.timing?.intervalFrames !== null) {
-    const baseChargeFrames = character.timing.chargeFrames ?? 0;
+    const baseChargeFrames = isCinderella(character)
+      ? DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES
+      : character.timing.chargeFrames ?? 0;
     const chargeFrames = applyChargeSpeedFrames(baseChargeFrames, speed);
     const baseIntervalFrames =
       character.timing.turnFrames != null ? baseChargeFrames + character.timing.turnFrames : character.timing.intervalFrames;
@@ -430,10 +440,13 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 
     if (character.weapon === "RL" && character.timing.projectileFlightFramesByPosition) {
       const flightFrames = getRlProjectileFlightFrames(character, positionIndex, teamKey);
-      const baseFirstFrame = baseChargeFrames + flightFrames;
+      const firstFrame = isCinderella(character)
+        ? chargeFrames + flightFrames
+        : character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames + flightFrames, speed);
       return {
-        firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseFirstFrame, speed),
-        interval: character.attackIntervalFrames || intervalFrames,
+        firstFrame,
+        interval: isCinderella(character) ? CINDERELLA_ATTACK_INTERVAL_FRAMES : character.attackIntervalFrames || intervalFrames,
+        reloadInterval: isCinderella(character) ? firstFrame : null,
         chargeFrames,
         projectileFlightFrames: flightFrames,
       };
@@ -681,6 +694,14 @@ function getNextAttackFrameAfterStun(event, currentFrame, baseNextFrame, stunWin
   );
 }
 
+function getReloadAttackFrameAfterStun(event, reloadEndFrame, defaultNextFrame, stunWindows = []) {
+  const nextFrame = isCinderella(event.character) ? reloadEndFrame + event.reloadInterval : defaultNextFrame;
+  return (
+    getChargeInterruptedFrame(event.character, event.positionIndex, reloadEndFrame, nextFrame, event.reloadInterval, stunWindows) ??
+    getFrameAfterStun(nextFrame, event.positionIndex, stunWindows)
+  );
+}
+
 function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []) {
   const baseNextFrame = getBaseNextAttackFrame(event, currentFrame);
   const magazine = getMagazineSize(event.character);
@@ -697,7 +718,7 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []
       reloadFrames,
     };
     event.reloadEvents.push(reloadEvent);
-    event.nextFrame = getNextAttackFrameAfterStun(event, currentFrame + reloadFrames, baseNextFrame + reloadFrames, stunWindows);
+    event.nextFrame = getReloadAttackFrameAfterStun(event, reloadEvent.endFrame, baseNextFrame + reloadFrames, stunWindows);
     return;
   }
 
@@ -743,6 +764,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       ...member,
       nextFrame: getInitialAttackFrameAfterStun(member.character, member.positionIndex, timing.firstFrame, stunWindows),
       interval: timing.interval,
+      reloadInterval: timing.reloadInterval || timing.interval,
       chargeFrames: timing.chargeFrames,
       projectileFlightFrames: timing.projectileFlightFrames || 0,
       chargeValue: getChargeValue(member.character),
