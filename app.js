@@ -1300,31 +1300,56 @@ function hideChartTooltip() {
   els.chargeChart.querySelectorAll(".chart-hover-guide-x, .chart-hover-guide-y").forEach((line) => line.classList.remove("show"));
 }
 
-function renderResults() {
-  const result = simulateBurst(state.team, "attack");
+function renderSummaryStrip(attackResult, defenseResult) {
+  const entries = [
+    { teamKey: "defense", result: defenseResult },
+    { teamKey: "attack", result: attackResult },
+  ].filter((entry) => entry.result && !entry.result.error);
 
-  if (!result) {
+  if (entries.length === 0) {
     els.summaryStrip.textContent = "队伍为空，选择角色后开始计算";
     els.summaryStrip.oncontextmenu = null;
+    return;
+  }
+
+  els.summaryStrip.innerHTML = entries
+    .map(
+      (entry, index) => `
+        ${index > 0 ? '<span class="summary-vs">VS</span>' : ""}
+        <span class="summary-team summary-${entry.teamKey}">
+          <span>${TEAM_LABELS[entry.teamKey]}</span>
+          <strong>${formatFrame(entry.result.fullFrame)}</strong>
+          <em>${getStandardChargeBand(entry.result.fullFrame)}</em>
+        </span>
+      `,
+    )
+    .join("");
+
+  els.summaryStrip.oncontextmenu = (event) => {
+    event.preventDefault();
+    const copyEntry = entries.find((entry) => entry.teamKey === "attack") || entries[0];
+    copyResultSummary(copyEntry.result, copyEntry.teamKey);
+  };
+}
+
+function renderResults() {
+  const result = simulateBurst(state.team, "attack");
+  const defenseResult = simulateBurst(state.defenseTeam, "defense");
+  renderSummaryStrip(result, defenseResult);
+
+  if (!result) {
     els.resultPanel.innerHTML = "";
-    renderChargeChart(null);
+    renderChargeChart(null, defenseResult);
     return null;
   }
 
   if (result.error) {
-    els.summaryStrip.textContent = result.error;
-    els.summaryStrip.oncontextmenu = null;
     els.resultPanel.innerHTML = `<p class="empty-result">${escapeHtml(result.error)}</p>`;
-    renderChargeChart(result);
+    renderChargeChart(result, defenseResult);
     return result;
   }
 
-  renderChargeChart(result);
-  els.summaryStrip.textContent = "结果已更新，详情见上方充能轴";
-  els.summaryStrip.oncontextmenu = (event) => {
-    event.preventDefault();
-    copyResultSummary(result);
-  };
+  renderChargeChart(result, defenseResult);
   els.resultPanel.innerHTML = "";
 
   return result;
