@@ -554,6 +554,29 @@ input:focus {
   transform: translateY(0);
 }
 
+.chart-hover-guide-x,
+.chart-hover-guide-y {
+  position: absolute;
+  z-index: 4;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chart-hover-guide-x {
+  height: 0;
+  border-top: 1px dashed rgba(242, 245, 250, 0.72);
+}
+
+.chart-hover-guide-y {
+  width: 0;
+  border-left: 1px dashed rgba(242, 245, 250, 0.72);
+}
+
+.chart-hover-guide-x.show,
+.chart-hover-guide-y.show {
+  opacity: 1;
+}
+
 .chart-bg {
   fill: #0b0e14;
 }

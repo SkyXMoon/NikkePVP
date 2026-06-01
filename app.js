@@ -1217,6 +1217,16 @@ function getChartTooltip() {
   return tooltip;
 }
 
+function getChartGuideLine(className) {
+  let line = els.chargeChart.querySelector(`.${className}`);
+  if (!line) {
+    line = document.createElement("div");
+    line.className = className;
+    els.chargeChart.append(line);
+  }
+  return line;
+}
+
 function showNearestChartTooltip(event) {
   const svg = els.chargeChart.querySelector("svg");
   if (!svg) return;
@@ -1237,7 +1247,23 @@ function showNearestChartTooltip(event) {
   if (!tooltipText) return;
 
   const chartBox = els.chargeChart.getBoundingClientRect();
+  const pointBox = nearest.getBoundingClientRect();
+  const pointX = pointBox.left + pointBox.width / 2 - chartBox.left;
+  const pointY = pointBox.top + pointBox.height / 2 - chartBox.top;
+  const horizontalGuide = getChartGuideLine("chart-hover-guide-x");
+  const verticalGuide = getChartGuideLine("chart-hover-guide-y");
   const tooltip = getChartTooltip();
+
+  horizontalGuide.classList.add("show");
+  horizontalGuide.style.left = "0";
+  horizontalGuide.style.top = `${pointY}px`;
+  horizontalGuide.style.width = `${Math.max(pointX, 0)}px`;
+
+  verticalGuide.classList.add("show");
+  verticalGuide.style.left = `${pointX}px`;
+  verticalGuide.style.top = `${pointY}px`;
+  verticalGuide.style.height = `${Math.max(chartBox.height - pointY, 0)}px`;
+
   tooltip.textContent = tooltipText;
   tooltip.classList.add("show");
   tooltip.style.left = `${Math.min(event.clientX - chartBox.left + 14, chartBox.width - 260)}px`;
@@ -1247,6 +1273,7 @@ function showNearestChartTooltip(event) {
 function hideChartTooltip() {
   const tooltip = els.chargeChart.querySelector(".chart-hover-tooltip");
   if (tooltip) tooltip.classList.remove("show");
+  els.chargeChart.querySelectorAll(".chart-hover-guide-x, .chart-hover-guide-y").forEach((line) => line.classList.remove("show"));
 }
 
 function renderResults() {
