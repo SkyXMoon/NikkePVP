@@ -1901,7 +1901,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const x = xForFrame(standard.frame);
       const y = yForStandard();
       const tooltip = escapeHtml(standard.tooltip || `${standard.label} · ${standard.frame} F`);
-      return `<circle class="chart-standard-point" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"><title>${tooltip}</title></circle><text class="chart-standard-label" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(standard.label)}</text>`;
+      return `<circle class="chart-standard-point" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle><text class="chart-standard-label" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(standard.label)}</text>`;
     })
     .join("");
 
@@ -1945,7 +1945,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const endFrame = Math.min(reload.endFrame, maxFrame);
       if (endFrame <= startFrame) return "";
       const tooltip = escapeHtml(`${reload.characterName}\n换弹：${reload.startFrame}F → ${reload.endFrame}F\n耗时：${reload.reloadFrames}F`);
-      return `<line class="chart-reload-track team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"><title>${tooltip}</title></line>`;
+      return `<line class="chart-reload-track team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
     })
     .join("");
   const flightTracks = visibleFlightEvents
@@ -1955,14 +1955,14 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const endFrame = Math.min(flight.endFrame, maxFrame);
       if (endFrame <= startFrame) return "";
       const tooltip = escapeHtml(`${flight.characterName}\n飞行：${flight.startFrame}F → ${flight.endFrame}F\n耗时：${flight.flightFrames}F`);
-      return `<line class="chart-flight-track" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"><title>${tooltip}</title></line>`;
+      return `<line class="chart-flight-track" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
     })
     .join("");
   const missedPoints = visibleMissedEvents
     .map((miss) => {
       const y = yForGroup(`${miss.teamKey}-${miss.positionIndex}`);
       const tooltip = escapeHtml(`${miss.characterName}\n时间：${miss.frame} F\n结果：空枪，未命中\n飞行：${miss.flightStartFrame}F → ${miss.frame}F`);
-      return `<circle class="chart-missed-point" cx="${xForFrame(miss.frame)}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
+      return `<circle class="chart-missed-point" cx="${xForFrame(miss.frame)}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle>`;
     })
     .join("");
   const scarletCounterTracks = scarletCounterGroups
@@ -1995,7 +1995,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         point.frame === point.result.fullFrame &&
         (finishingPositionsByTeam.get(point.teamKey) || new Set()).has(point.positionIndex) &&
         canShowFinishMarker(point.result.members.find((member) => member.positionIndex === point.positionIndex)?.character);
-      return `<circle class="${isFinisher ? `chart-point team-${point.teamKey} is-finisher` : `chart-point team-${point.teamKey}`}" cx="${x}" cy="${y}" r="${isFinisher ? 6 : 4}" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
+      return `<circle class="${isFinisher ? `chart-point team-${point.teamKey} is-finisher` : `chart-point team-${point.teamKey}`}" cx="${x}" cy="${y}" r="${isFinisher ? 6 : 4}" data-tooltip="${tooltip}"></circle>`;
     })
     .join("");
 
@@ -2014,7 +2014,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${scarletCounterTotal.toFixed(2)}%`] : []),
           ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
         ]);
-        return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
+        return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle>`;
       }),
     )
     .join("");
@@ -2024,7 +2024,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const x = xForFrame(entry.frame);
         const y = yForCounterGroup(group.groupKey);
         const tooltip = formatTooltipLines(getSpecialChargeTooltipLines(group, entry));
-        return `<circle class="chart-scarlet-counter-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
+        return `<circle class="chart-scarlet-counter-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle>`;
       }),
     )
     .join("");
@@ -2041,7 +2041,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           const x = xForFrame(marker.frame);
           const y = yForTeamTotal(group.teamKey);
           const tooltip = escapeHtml(`${TEAM_LABELS[group.teamKey]} ${marker.label} · ${marker.frame} F`);
-          return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
+          return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
         }),
     )
     .join("");
