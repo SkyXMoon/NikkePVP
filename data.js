@@ -9683,7 +9683,7 @@ const CHARACTERS = [
       "projectileFlightFramesByPosition": null,
       "turnFrames": 16
     },
-    "hasPenetration": false,
+    "hasPenetration": true,
     "hasExtraDamage": false,
     "delayedExtraHits": [],
     "hitCountExtraEvents": [],
