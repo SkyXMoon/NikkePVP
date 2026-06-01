@@ -339,9 +339,11 @@ function simulateBurst(team) {
         positionIndex: event.positionIndex,
         character: event.character,
         charge: 0,
+        cumulativeCharge: 0,
         labels: [],
       };
       current.charge += value;
+      current.cumulativeCharge = event.totalCharge;
       current.labels.push(label);
       contributions.set(event.positionIndex, current);
     };
@@ -382,6 +384,7 @@ function simulateBurst(team) {
           positionIndex: contribution.positionIndex,
           characterName: contribution.character.name,
           charge: contribution.charge,
+          cumulativeCharge: contribution.cumulativeCharge,
           labels: contribution.labels,
         })),
       });
@@ -788,7 +791,7 @@ function getChargeChartMarkup(result) {
             contribution.characterName,
             `时间：${point.frame} F`,
             `充能：${contribution.charge.toFixed(2)}%`,
-            `累积充能：${entry.totalCharge.toFixed(2)}%`,
+            `累积充能：${contribution.cumulativeCharge.toFixed(2)}%`,
             `充能组成：${contribution.labels.join(" + ")}`,
           ])
         : "";
