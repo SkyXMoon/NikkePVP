@@ -715,7 +715,10 @@ function getChargeChartMarkup(result) {
   );
   const visibleStandards = [
     ...STANDARD_CHARGE_FRAMES.filter((standard) => standard.label.includes("RL") || standard.label === "5SG"),
-    { label: "完成", frame: result.fullFrame, isFullFrame: true },
+    { label: "", frame: result.fullFrame, isFullFrame: true },
+    { label: "爆裂1", frame: result.burst1Frame, isBurstFrame: true },
+    { label: "爆裂2", frame: result.burst2Frame, isBurstFrame: true },
+    { label: "爆裂3", frame: result.burst3Frame, isBurstFrame: true },
   ];
   const maxFrame = Math.max(result.fullFrame, ...visibleStandards.map((standard) => standard.frame), 1);
   const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
@@ -747,10 +750,12 @@ function getChargeChartMarkup(result) {
     .map((standard) => {
       const x = xForFrame(standard.frame);
       const isFullFrame = standard.isFullFrame;
+      const isBurstFrame = standard.isBurstFrame;
+      const label = standard.label ? `<text x="${x}" y="${margin.top - 34}" text-anchor="middle">${escapeHtml(standard.label)}</text>` : "";
       return `
-        <g class="${isFullFrame ? "chart-standard is-full" : "chart-standard"}">
+        <g class="${isFullFrame ? "chart-standard is-full" : isBurstFrame ? "chart-standard is-burst" : "chart-standard"}">
           <line x1="${x}" y1="${margin.top - 24}" x2="${x}" y2="${height - margin.bottom}" />
-          <text x="${x}" y="${margin.top - 34}" text-anchor="middle">${escapeHtml(standard.label)}</text>
+          ${label}
         </g>
       `;
     })

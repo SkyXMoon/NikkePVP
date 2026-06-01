@@ -596,6 +596,16 @@ input:focus {
   fill: #ffd9dc;
 }
 
+.chart-standard.is-burst line {
+  stroke: var(--blue);
+  stroke-dasharray: none;
+  stroke-width: 2;
+}
+
+.chart-standard.is-burst text {
+  fill: #b9dcff;
+}
+
 .chart-position-line {
   stroke: rgba(255, 255, 255, 0.14);
   stroke-width: 1.2;
@@ -621,7 +631,7 @@ input:focus {
 
 .chart-point,
 .chart-total-point {
-  cursor: help;
+  cursor: pointer;
 }
 
 .chart-point.is-finisher {
