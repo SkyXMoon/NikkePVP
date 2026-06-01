@@ -764,18 +764,7 @@ function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTime
 }
 
 function characterForSlot(character, positionIndex, teamKey = "attack") {
-  if (!character) {
-    const universalChargeValue = sanitizeUniversalCharge(getUniversalChargeState(teamKey)[positionIndex]);
-    if (universalChargeValue <= 0) return null;
-    return {
-      id: `universal-${teamKey}-${positionIndex}`,
-      name: `P${positionIndex + 1}万能`,
-      rarity: "CUSTOM",
-      weapon: "UNIVERSAL",
-      burstStage: "B0",
-      universalChargeValue,
-    };
-  }
+  if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const savedMagazine = isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
   return {
@@ -786,19 +775,21 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   };
 }
 
-function isUniversalChargeCharacter(character) {
-  return character?.weapon === "UNIVERSAL";
-}
-
 function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], opponentReloadTimeline = [], stunWindows = []) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
     .filter((member) => member.character);
+  const universalMembers = getUniversalChargeState(teamKey)
+    .map((charge, positionIndex) => ({
+      positionIndex,
+      charge: sanitizeUniversalCharge(charge),
+      characterName: `P${positionIndex + 1}万能`,
+    }))
+    .filter((member) => !team[member.positionIndex] && member.charge > 0);
 
-  if (members.length === 0) return null;
+  if (members.length === 0 && universalMembers.length === 0) return null;
 
-  const universalMembers = members.filter((member) => isUniversalChargeCharacter(member.character));
-  const events = members.filter((member) => !isUniversalChargeCharacter(member.character)).map((member) => {
+  const events = members.map((member) => {
     const timing = getChargeFrames(member.character, member.positionIndex, teamKey);
     return {
       ...member,
@@ -827,17 +818,17 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
   const timeline = [];
   if (universalMembers.length) {
     const contributions = universalMembers.map((member) => {
-      const charge = member.character.universalChargeValue;
+      const charge = member.charge;
       totalCharge += charge;
       return {
         positionIndex: member.positionIndex,
-        characterName: member.character.name,
+        characterName: member.characterName,
         charge,
         cumulativeCharge: charge,
         labels: ["万能充能"],
         counterHits: 0,
         positionHits: [],
-        showOnMember: true,
+        showOnMember: false,
       };
     });
     timeline.push({
@@ -1594,7 +1585,7 @@ function renderTeam() {
             <span class="position">P${index + 1}</span>
             <label class="universal-charge-field" aria-label="P${index + 1}万能充能值">
               <span>万能</span>
-              <input type="number" min="0" max="100" step="0.01" value="${universalChargeValue || ""}" placeholder="0" data-universal-index="${index}" />
+              <input type="text" inputmode="decimal" value="${universalChargeValue || ""}" placeholder="0" data-universal-index="${index}" />
             </label>
           </div>
         `;
@@ -2208,6 +2199,31 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     ...getScarletCounterGroups(chartResults, visibleTimelineByTeam),
     ...getJackalLinkGroups(chartResults, visibleTimelineByTeam),
   ];
+  const universalChargeGroups = chartResults
+    .map((item) => {
+      const timeline = item.result.timeline
+        .map((entry) => {
+          const contributions = entry.contributions.filter((contribution) =>
+            contribution.showOnMember === false && contribution.labels.some((label) => label.includes("万能充能")),
+          );
+          if (contributions.length === 0) return null;
+          return {
+            frame: entry.frame,
+            charge: contributions.reduce((sum, contribution) => sum + contribution.charge, 0),
+            cumulativeCharge: contributions.reduce((sum, contribution) => sum + contribution.cumulativeCharge, 0),
+            contributions,
+          };
+        })
+        .filter(Boolean);
+      if (timeline.length === 0) return null;
+      return {
+        teamKey: item.teamKey,
+        groupKey: `${item.teamKey}-universal-charge`,
+        label: `${TEAM_LABELS[item.teamKey]}-万能充能`,
+        timeline,
+      };
+    })
+    .filter(Boolean);
   const totalGroups = chartResults.map((item) => ({
     teamKey: item.teamKey,
     result: item.result,
@@ -2249,6 +2265,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const chartLabels = [
     "标准轴",
     ...totalGroups.map((group) => group.label),
+    ...universalChargeGroups.map((group) => group.label),
     ...scarletCounterGroups.map((group) => group.label),
     ...memberPointGroups.map((group) => {
       const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
@@ -2264,15 +2281,19 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const attackGroups = memberPointGroups.filter((group) => group.teamKey === "attack");
   const defenseCounterGroups = scarletCounterGroups.filter((group) => group.teamKey === "defense");
   const attackCounterGroups = scarletCounterGroups.filter((group) => group.teamKey === "attack");
+  const defenseUniversalGroups = universalChargeGroups.filter((group) => group.teamKey === "defense");
+  const attackUniversalGroups = universalChargeGroups.filter((group) => group.teamKey === "attack");
   const hasTeamSeparator = defenseGroups.length > 0 && attackGroups.length > 0;
   const hasDefenseTotal = totalGroups.some((group) => group.teamKey === "defense");
   const firstMemberLaneIndex = 1;
-  const firstDefenseCounterLaneIndex = firstMemberLaneIndex + defenseGroups.length;
+  const firstDefenseUniversalLaneIndex = firstMemberLaneIndex + defenseGroups.length;
+  const firstDefenseCounterLaneIndex = firstDefenseUniversalLaneIndex + defenseUniversalGroups.length;
   const defenseTotalLaneIndex = hasDefenseTotal ? firstDefenseCounterLaneIndex + defenseCounterGroups.length : null;
   const separatorLaneIndex = hasTeamSeparator ? firstDefenseCounterLaneIndex + defenseCounterGroups.length + (hasDefenseTotal ? 1 : 0) : null;
   const firstAttackLaneIndex =
     firstDefenseCounterLaneIndex + defenseCounterGroups.length + (hasDefenseTotal ? 1 : 0) + (hasTeamSeparator ? 1 : 0);
-  const firstAttackCounterLaneIndex = firstAttackLaneIndex + attackGroups.length;
+  const firstAttackUniversalLaneIndex = firstAttackLaneIndex + attackGroups.length;
+  const firstAttackCounterLaneIndex = firstAttackUniversalLaneIndex + attackUniversalGroups.length;
   const attackTotalLaneIndex = firstAttackCounterLaneIndex + attackCounterGroups.length;
   const laneCount = attackTotalLaneIndex + (totalGroups.some((group) => group.teamKey === "attack") ? 1 : 0);
   const height = chartSize.height;
@@ -2285,12 +2306,17 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     ...defenseCounterGroups.map((group, index) => [group.groupKey, firstDefenseCounterLaneIndex + index]),
     ...attackCounterGroups.map((group, index) => [group.groupKey, firstAttackCounterLaneIndex + index]),
   ]);
+  const laneByUniversalGroupKey = new Map([
+    ...defenseUniversalGroups.map((group, index) => [group.groupKey, firstDefenseUniversalLaneIndex + index]),
+    ...attackUniversalGroups.map((group, index) => [group.groupKey, firstAttackUniversalLaneIndex + index]),
+  ]);
   const laneByTotalKey = new Map(
     totalGroups.map((group) => [group.teamKey, group.teamKey === "defense" ? defenseTotalLaneIndex : attackTotalLaneIndex]).filter(([, lane]) => lane !== null),
   );
   const yForLane = (index) => margin.top + (chartHeight / Math.max(laneCount, 1)) * index;
   const yForGroup = (groupKey) => yForLane(laneByGroupKey.get(groupKey) ?? attackTotalLaneIndex);
   const yForCounterGroup = (groupKey) => yForLane(laneByCounterGroupKey.get(groupKey) ?? attackTotalLaneIndex);
+  const yForUniversalGroup = (groupKey) => yForLane(laneByUniversalGroupKey.get(groupKey) ?? attackTotalLaneIndex);
   const yForTeamTotal = (teamKey) => yForLane(laneByTotalKey.get(teamKey) ?? attackTotalLaneIndex);
   const yForStandard = () => yForLane(standardLaneIndex);
 
@@ -2460,6 +2486,22 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       return `<line class="chart-track chart-scarlet-counter-track team-${group.teamKey}" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
     })
     .join("");
+  const universalChargePoints = universalChargeGroups
+    .flatMap((group) =>
+      group.timeline.map((entry) => {
+        const x = xForFrame(entry.frame);
+        const y = yForUniversalGroup(group.groupKey);
+        const lines = [
+          group.label,
+          `时间：${entry.frame} F`,
+          `充能：${entry.charge.toFixed(2)}%`,
+          "组成：",
+          ...entry.contributions.map((contribution) => `${contribution.characterName}：${contribution.charge.toFixed(2)}%`),
+        ];
+        return `<circle class="chart-universal-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${formatTooltipLines(lines)}"></circle>`;
+      }),
+    )
+    .join("");
 
   const pointMarks = points
     .map((point) => {
@@ -2553,6 +2595,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const scarletCounterLabels = scarletCounterGroups
     .map((group) => `<text class="chart-name chart-scarlet-counter-name team-${group.teamKey}" x="0" y="${yForCounterGroup(group.groupKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
     .join("");
+  const universalChargeLabels = universalChargeGroups
+    .map((group) => `<text class="chart-name chart-universal-name team-${group.teamKey}" x="0" y="${yForUniversalGroup(group.groupKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
+    .join("");
   const standardLabel = `<text class="chart-name chart-standard-name" x="0" y="${yForStandard() + 4}" text-anchor="start">标准轴</text>`;
   const totalLabels = totalGroups
     .map((group) => `<text class="chart-name chart-total-name team-${group.teamKey}" x="0" y="${yForTeamTotal(group.teamKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
@@ -2574,6 +2619,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${scarletCounterTracks}
       ${chargeTotalTrack}
       ${burstTotalTrack}
+      ${universalChargePoints}
       ${pointMarks}
       ${missedPoints}
       ${stunPoints}
@@ -2582,6 +2628,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${burstPoints}
       ${standardLabel}
       ${labels}
+      ${universalChargeLabels}
       ${scarletCounterLabels}
       ${totalLabels}
     </svg>
