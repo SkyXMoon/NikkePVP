@@ -1063,8 +1063,9 @@ input:focus {
 }
 
 .slot-link-toggle {
-  left: 4px;
-  bottom: 4px;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
 }
 
 .slot-link-target {
@@ -1075,10 +1076,10 @@ input:focus {
 
 .slot-link-toggle:hover,
 .slot-link-target:hover {
-  transform: translateY(-1px);
   filter: brightness(1.12);
 }
 
+.slot-link-toggle:hover,
 .slot-link-target:hover {
   transform: translateX(-50%) translateY(-1px);
 }
