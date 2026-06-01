@@ -1259,7 +1259,7 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
     const opponentTeamKey = item.teamKey === "defense" ? "attack" : "defense";
     const opponentTimeline = visibleTimelineByTeam.get(opponentTeamKey) || [];
     const linkedPositionIndices = getJackalLinkedPositionIndices(item.result);
-    if (!isJackalLinkEnabled(item.teamKey) || linkedPositionIndices.length <= 1 || opponentTimeline.length === 0) return [];
+    if (!isJackalLinkEnabled(item.teamKey) || linkedPositionIndices.length === 0 || opponentTimeline.length === 0) return [];
 
     return item.result.members
       .filter((member) => isJackal(member.character))
@@ -1345,7 +1345,7 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
 
     if (isJackal(member.character) && isJackalLinkEnabled(targetResult.teamKey)) {
       const linkedPositionIndices = getJackalLinkedPositionIndices(targetResult);
-      if (linkedPositionIndices.length <= 1) return;
+      if (linkedPositionIndices.length === 0) return;
       const chargePerLink = member.character.burstGen;
       let accumulatedHits = 0;
       let triggeredLinks = 0;
