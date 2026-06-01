@@ -1163,8 +1163,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           `累计总充能：${entry.totalCharge.toFixed(2)}%`,
           ...(cumulativeLines.length ? ["各角色累计贡献：", ...cumulativeLines] : []),
         ]);
-        const isFullFrame = entry.frame === group.result.fullFrame;
-        return `<circle class="${isFullFrame ? `chart-total-point team-${group.teamKey} is-full` : `chart-total-point team-${group.teamKey}`}" cx="${x}" cy="${y}" r="${isFullFrame ? 7 : 5}" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
+        return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
       }),
     )
     .join("");

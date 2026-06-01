@@ -761,11 +761,6 @@ input:focus {
   fill: var(--accent);
 }
 
-.chart-total-point.is-full {
-  stroke: #ffd9dc;
-  stroke-width: 2.4;
-}
-
 .chart-burst-point {
   stroke: rgba(7, 9, 13, 0.95);
   stroke-width: 1.7;
