@@ -139,6 +139,10 @@ function getTeamPositionText(finishingPositionIndices = [], teamKey = "attack") 
     .join("，");
 }
 
+function canShowFinishMarker(character) {
+  return character && ["RL", "SR"].includes(character.weapon);
+}
+
 function getResultCopyText(result, teamKey = "attack") {
   return `${getTeamPositionText(result.finishingPositionIndices, teamKey)}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
 }
@@ -813,7 +817,7 @@ function renderSingleTeamLegacy() {
   const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
 
   state.team.forEach((character, index) => {
-    const isFinisher = finishingPositions.has(index);
+    const isFinisher = finishingPositions.has(index) && canShowFinishMarker(character);
     const slot = document.createElement("div");
     slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
     slot.dataset.slotIndex = index;
@@ -929,7 +933,7 @@ function renderTeam() {
     team.forEach((character, index) => {
       const teamResult = resultsByTeam.get(teamKey);
       const finishingPositions = new Set(teamResult && !teamResult.error ? teamResult.finishingPositionIndices : []);
-      const isFinisher = finishingPositions.has(index);
+      const isFinisher = finishingPositions.has(index) && canShowFinishMarker(character);
       const isSettingsOpen = character && isSlotSettingsOpen(teamKey, index);
       const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
       const isJackalOwner = character && isJackal(character);
@@ -1140,7 +1144,8 @@ function updateTeamFinishMarkers(result = null, defenseResult = null) {
     const teamKey = slot.dataset.teamKey || "attack";
     const index = Number(slot.dataset.slotIndex);
     const finishingPositions = finishingPositionsByTeam.get(teamKey) || new Set();
-    const isFinisher = finishingPositions.has(index);
+    const character = getTeamState(teamKey)[index];
+    const isFinisher = finishingPositions.has(index) && canShowFinishMarker(character);
     slot.classList.toggle("is-finisher", isFinisher);
 
     const slotCopy = slot.querySelector(".slot-copy");
@@ -1518,7 +1523,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     ...scarletCounterGroups.map((group) => group.label),
     ...memberPointGroups.map((group) => {
       const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
-      return `${finishingPositions.has(group.member.positionIndex) ? "*" : ""}${group.member.character.name}`;
+      return `${finishingPositions.has(group.member.positionIndex) && canShowFinishMarker(group.member.character) ? "*" : ""}${group.member.character.name}`;
     }),
   ];
   const labelGutter =
@@ -1653,7 +1658,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           ])
         : "";
       const isFinisher =
-        point.frame === point.result.fullFrame && (finishingPositionsByTeam.get(point.teamKey) || new Set()).has(point.positionIndex);
+        point.frame === point.result.fullFrame &&
+        (finishingPositionsByTeam.get(point.teamKey) || new Set()).has(point.positionIndex) &&
+        canShowFinishMarker(point.result.members.find((member) => member.positionIndex === point.positionIndex)?.character);
       return `<circle class="${isFinisher ? `chart-point team-${point.teamKey} is-finisher` : `chart-point team-${point.teamKey}`}" cx="${x}" cy="${y}" r="${isFinisher ? 6 : 4}" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
     })
     .join("");
@@ -1724,7 +1731,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const labels = memberPointGroups.map((group) => {
     const y = yForGroup(group.groupKey);
     const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
-    const prefix = finishingPositions.has(group.member.positionIndex) ? "*" : "";
+    const prefix = finishingPositions.has(group.member.positionIndex) && canShowFinishMarker(group.member.character) ? "*" : "";
     return `<text class="chart-name" x="0" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + group.member.character.name)}</text>`;
   }).join("");
   const scarletCounterLabels = scarletCounterGroups
