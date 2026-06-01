@@ -597,16 +597,6 @@ input:focus {
   fill: #ffd9dc;
 }
 
-.chart-standard.is-burst line {
-  stroke: var(--blue);
-  stroke-dasharray: none;
-  stroke-width: 2;
-}
-
-.chart-standard.is-burst text {
-  fill: #b9dcff;
-}
-
 .chart-position-line {
   stroke: rgba(255, 255, 255, 0.14);
   stroke-width: 1.2;
@@ -651,6 +641,19 @@ input:focus {
   fill: var(--accent);
   stroke: #ffd9dc;
   stroke-width: 2.2;
+}
+
+.chart-burst-point {
+  fill: var(--blue);
+  stroke: rgba(7, 9, 13, 0.95);
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.chart-burst-label {
+  fill: #b9dcff;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .chart-name {

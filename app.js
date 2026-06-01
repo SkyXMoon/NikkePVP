@@ -719,11 +719,13 @@ function getChargeChartMarkup(result) {
   const visibleStandards = [
     ...STANDARD_CHARGE_FRAMES.filter((standard) => standard.label.includes("RL") || standard.label === "5SG"),
     { label: "", frame: result.fullFrame, isFullFrame: true },
-    { label: "爆裂1", frame: result.burst1Frame, isBurstFrame: true },
-    { label: "爆裂2", frame: result.burst2Frame, isBurstFrame: true },
-    { label: "爆裂3", frame: result.burst3Frame, isBurstFrame: true },
   ];
-  const maxFrame = Math.max(result.fullFrame, ...visibleStandards.map((standard) => standard.frame), 1);
+  const burstMarkers = [
+    { label: "爆裂1", frame: result.burst1Frame },
+    { label: "爆裂2", frame: result.burst2Frame },
+    { label: "爆裂3", frame: result.burst3Frame },
+  ];
+  const maxFrame = Math.max(result.fullFrame, ...visibleStandards.map((standard) => standard.frame), ...burstMarkers.map((marker) => marker.frame), 1);
   const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
   const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
@@ -753,10 +755,9 @@ function getChargeChartMarkup(result) {
     .map((standard) => {
       const x = xForFrame(standard.frame);
       const isFullFrame = standard.isFullFrame;
-      const isBurstFrame = standard.isBurstFrame;
       const label = standard.label ? `<text x="${x}" y="${margin.top - 34}" text-anchor="middle">${escapeHtml(standard.label)}</text>` : "";
       return `
-        <g class="${isFullFrame ? "chart-standard is-full" : isBurstFrame ? "chart-standard is-burst" : "chart-standard"}">
+        <g class="${isFullFrame ? "chart-standard is-full" : "chart-standard"}">
           <line x1="${x}" y1="${margin.top - 24}" x2="${x}" y2="${height - margin.bottom}" />
           ${label}
         </g>
@@ -816,9 +817,17 @@ function getChargeChartMarkup(result) {
     })
     .join("");
 
+  const burstPoints = burstMarkers
+    .map((marker) => {
+      const x = xForFrame(marker.frame);
+      const y = yForTotal();
+      return `<circle class="chart-burst-point" cx="${x}" cy="${y}" r="6"><title>${marker.frame} F</title></circle><text class="chart-burst-label" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
+    })
+    .join("");
+
   const totalTrack =
     result.timeline.length > 1
-      ? `<line class="chart-track chart-total-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(result.timeline.at(-1).frame)}" y2="${yForTotal()}" />`
+      ? `<line class="chart-track chart-total-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(Math.max(result.timeline.at(-1).frame, ...burstMarkers.map((marker) => marker.frame)))}" y2="${yForTotal()}" />`
       : "";
 
   const labels = Array.from({ length: TEAM_SIZE }, (_, index) => {
@@ -840,6 +849,7 @@ function getChargeChartMarkup(result) {
       ${totalTrack}
       ${pointMarks}
       ${totalPoints}
+      ${burstPoints}
       ${labels}
       ${totalLabel}
       <text class="chart-axis-label" x="${margin.left + chartWidth / 2}" y="${height - 12}" text-anchor="middle">时间 (F)</text>
