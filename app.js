@@ -133,6 +133,14 @@ function applyChargeSpeedTotalFrames(baseFrames, chargeSpeedPercent = 0) {
 function getChargeFrames(character, positionIndex) {
   const speed = Number(character.chargeSpeedPercent) || 0;
 
+  if (character.weapon === "MG") {
+    return {
+      firstFrame: MG_WARMUP_EVENTS[0].frame,
+      interval: MG_SUSTAIN_INTERVAL_FRAMES,
+      chargeFrames: 0,
+    };
+  }
+
   if (character.timing?.firstFrame !== null && character.timing?.intervalFrames !== null) {
     const baseChargeFrames = character.timing.chargeFrames ?? 0;
     const chargeFrames = applyChargeSpeedFrames(baseChargeFrames, speed);
@@ -173,7 +181,6 @@ function getChargeFrames(character, positionIndex) {
   if (character.weapon === "SMG") return { firstFrame: 0, interval: 4, chargeFrames: 0 };
   if (character.weapon === "AR") return { firstFrame: 0, interval: 6, chargeFrames: 0 };
   if (character.weapon === "SG") return { firstFrame: 0, interval: 42, chargeFrames: 0 };
-  if (character.weapon === "MG") return { firstFrame: MG_WARMUP_EVENTS[0].frame, interval: MG_SUSTAIN_INTERVAL_FRAMES, chargeFrames: 0 };
   if (character.weapon === "SR") {
     const turnFrames = character.turnFrames ?? 16;
     const baseChargeFrames = sheetChargeFrames ?? 60;
@@ -444,6 +451,9 @@ function getAvatarMarkup(character) {
 }
 
 function getTimingLabel(character) {
+  if (character.weapon === "MG") {
+    return "暖机 96f×12 / 152f×22 / 180f×14 / 182f后每2f";
+  }
   if (character.weapon === "RL") {
     const timing = character.timing || {};
     const flight = timing.projectileFlightFrames ?? timing.projectileFlightFramesByPosition?.P1 ?? character.projectileFlightFrames ?? 16;
