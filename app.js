@@ -573,15 +573,13 @@ function renderTeam() {
       ? `
         <button class="slot-remove" type="button" aria-label="移除 ${escapeHtml(character.name)}">
           <span class="position">P${index + 1}</span>
-          <span class="avatar small">${getAvatarMarkup(character)}</span>
-          <span class="slot-copy">
-            <strong>${escapeHtml(character.name)}</strong>
-            <span>${escapeHtml(character.weapon)} · 单发 ${getChargeValue(character).toFixed(2)}%</span>
-            ${isFinisher ? '<span class="finish-mark">完成</span>' : ""}
+          <span class="team-avatar">${getAvatarMarkup(character)}</span>
+          <span class="slot-copy" aria-hidden="true">
+            ${isFinisher ? '<span class="finish-mark">✓</span>' : ""}
           </span>
         </button>
         <label class="speed-control">
-          <span>蓄速</span>
+          <span>蓄</span>
           <input type="number" min="0" max="100" step="1" value="${Number(state.chargeSpeeds[index]) || 0}" data-speed-index="${index}" />
           <span>%</span>
         </label>
@@ -589,10 +587,7 @@ function renderTeam() {
       : `
         <div class="slot-empty">
           <span class="position">P${index + 1}</span>
-          <span>
-            <strong>等待加入</strong>
-            <span>点击角色填入第一个空位</span>
-          </span>
+          <span class="team-avatar empty-avatar">+</span>
         </div>
       `;
 
@@ -671,7 +666,7 @@ function updateTeamFinishMarkers(result = simulateBurst(state.team)) {
     if (isFinisher && !existingMark) {
       const mark = document.createElement("span");
       mark.className = "finish-mark";
-      mark.textContent = "完成";
+      mark.textContent = "✓";
       slotCopy.append(mark);
       return;
     }

@@ -102,7 +102,7 @@ button {
 
 .main-stage,
 .workspace,
-.side-panel {
+.team-workbench {
   min-width: 0;
 }
 
@@ -114,7 +114,7 @@ button {
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-columns: 520px minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
 }
@@ -418,25 +418,12 @@ input:focus {
   flex: 0 0 auto;
 }
 
-.efficiency,
-.slot-copy,
-.slot-empty span {
+.efficiency {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.slot-copy strong,
-.slot-empty strong {
-  overflow: hidden;
-  font-size: 15px;
-  font-weight: 900;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.slot-copy span,
-.slot-empty span span,
 .timing,
 .efficiency span {
   overflow: hidden;
@@ -447,15 +434,20 @@ input:focus {
 }
 
 .slot-copy .finish-mark {
-  align-self: flex-start;
-  margin-top: 4px;
-  border: 1px solid rgba(77, 163, 255, 0.42);
-  border-radius: 4px;
-  padding: 1px 7px;
-  color: #9ed0ff;
-  background: rgba(77, 163, 255, 0.14);
-  font-size: 11px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 217, 220, 0.82);
+  border-radius: 999px;
+  color: #fff;
+  background: var(--accent);
+  font-size: 18px;
   font-weight: 900;
+  transform: translate(-50%, -50%);
 }
 
 .row-meta {
@@ -491,25 +483,16 @@ input:focus {
   font-size: 19px;
 }
 
-.side-panel {
+.team-workbench {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  position: sticky;
-  top: calc(42vh + 26px);
-  align-self: start;
-  max-height: calc(58vh - 40px);
-  overflow: auto;
 }
 
 .charge-chart-panel,
 .team-panel,
 .result-panel {
   padding: 12px;
-}
-
-.team-panel-horizontal {
-  border-top: 3px solid var(--accent);
 }
 
 .charge-chart-panel {
@@ -523,14 +506,6 @@ input:focus {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
-}
-
-.team-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  min-width: min(520px, 55vw);
 }
 
 .panel-heading.compact {
@@ -687,14 +662,15 @@ input:focus {
 
 .team-slots {
   display: grid;
-  grid-template-columns: repeat(5, minmax(150px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .team-slot {
   border: 1px dashed var(--line);
   border-radius: 6px;
-  padding: 8px;
+  padding: 7px;
   color: var(--muted);
   background: #0f131a;
   transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease, opacity 140ms ease, transform 140ms ease;
@@ -731,11 +707,12 @@ input:focus {
 
 .slot-remove,
 .slot-empty {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  position: relative;
+  display: grid;
+  place-items: center;
   width: 100%;
-  min-height: 48px;
+  aspect-ratio: 1;
+  min-height: 0;
   border: 0;
   padding: 0;
   color: inherit;
@@ -744,27 +721,66 @@ input:focus {
 }
 
 .position {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  z-index: 2;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 auto;
+  width: 28px;
+  height: 24px;
   border-radius: 4px;
   color: var(--gold);
-  background: rgba(229, 184, 93, 0.12);
+  background: rgba(7, 9, 13, 0.82);
+  border: 1px solid rgba(229, 184, 93, 0.42);
+  font-size: 12px;
   font-weight: 900;
+}
+
+.team-avatar {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #0b0e14;
+}
+
+.team-avatar img {
+  width: 100%;
+  height: calc(100% + 15px);
+  object-fit: cover;
+  object-position: top center;
+  transform: translateY(-15px);
+}
+
+.empty-avatar {
+  color: var(--quiet);
+  border: 1px dashed var(--line);
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.slot-copy {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .speed-control {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   margin-top: 6px;
+  font-size: 11px;
 }
 
 .speed-control input {
-  min-height: 32px;
+  min-height: 26px;
+  padding: 0 6px;
+  text-align: center;
 }
 
 .empty-result {
@@ -907,13 +923,8 @@ summary {
     grid-template-columns: 1fr;
   }
 
-  .side-panel {
-    position: static;
-    max-height: none;
-  }
-
   .team-slots {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(5, minmax(84px, 1fr));
   }
 
   .character-list {
@@ -932,7 +943,7 @@ summary {
   }
 
   .workspace,
-  .side-panel,
+  .team-workbench,
   .team-panel,
   .charge-chart-panel {
     margin-bottom: 12px;
@@ -969,6 +980,21 @@ summary {
   .summary-strip {
     justify-content: flex-start;
     text-align: left;
+  }
+
+  .team-slots {
+    grid-template-columns: repeat(5, minmax(56px, 1fr));
+    gap: 6px;
+  }
+
+  .position {
+    width: 24px;
+    height: 21px;
+    font-size: 10px;
+  }
+
+  .speed-control {
+    grid-template-columns: 1fr;
   }
 
   .character-list {
