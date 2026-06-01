@@ -54,6 +54,7 @@ const els = {
   characterGrid: document.querySelector("#characterGrid"),
   teamSlots: document.querySelector("#teamSlots"),
   resultPanel: document.querySelector("#resultPanel"),
+  chargeChart: document.querySelector("#chargeChart"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
   commonFilter: document.querySelector("#commonFilter"),
   weaponFilter: document.querySelector("#weaponFilter"),
@@ -648,21 +649,107 @@ function updateTeamFinishMarkers(result = simulateBurst(state.team)) {
   });
 }
 
+function getHitFrameValue(frame) {
+  return Number.parseInt(String(frame).split("×")[0], 10);
+}
+
+function getChargeChartMarkup(result) {
+  if (!result || result.error) {
+    return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
+  }
+
+  const width = 520;
+  const height = 220;
+  const margin = { top: 16, right: 22, bottom: 42, left: 52 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+  const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
+  const points = result.members.flatMap((member) =>
+    member.hitFrames
+      .map((frame) => getHitFrameValue(frame))
+      .filter((frame) => Number.isFinite(frame) && frame <= result.fullFrame)
+      .map((frame) => ({ frame, positionIndex: member.positionIndex })),
+  );
+  const frameValues = [...new Set([0, result.fullFrame, ...points.map((point) => point.frame)])].sort((a, b) => a - b);
+  const tickFrames =
+    frameValues.length <= 8
+      ? frameValues
+      : [...new Set([0, ...frameValues.filter((_, index) => index % Math.ceil(frameValues.length / 6) === 0), result.fullFrame])].sort(
+          (a, b) => a - b,
+        );
+  const maxFrame = Math.max(result.fullFrame, 1);
+  const finishingPositions = new Set(result.finishingPositionIndices);
+  const xForPosition = (index) => margin.left + (TEAM_SIZE === 1 ? chartWidth / 2 : (chartWidth / (TEAM_SIZE - 1)) * index);
+  const yForFrame = (frame) => margin.top + (frame / maxFrame) * chartHeight;
+
+  const gridLines = tickFrames
+    .map((frame) => {
+      const y = yForFrame(frame);
+      const isFullFrame = frame === result.fullFrame;
+      return `
+        <g class="${isFullFrame ? "chart-grid is-full" : "chart-grid"}">
+          <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />
+          <text x="${margin.left - 10}" y="${y + 4}" text-anchor="end">${frame}F</text>
+        </g>
+      `;
+    })
+    .join("");
+
+  const positionLines = Array.from({ length: TEAM_SIZE }, (_, index) => {
+    const x = xForPosition(index);
+    return `<line class="chart-position-line" x1="${x}" y1="${margin.top}" x2="${x}" y2="${height - margin.bottom}" />`;
+  }).join("");
+
+  const pointMarks = points
+    .map((point) => {
+      const x = xForPosition(point.positionIndex);
+      const y = yForFrame(point.frame);
+      const isFinisher = point.frame === result.fullFrame && finishingPositions.has(point.positionIndex);
+      return `<circle class="${isFinisher ? "chart-point is-finisher" : "chart-point"}" cx="${x}" cy="${y}" r="${isFinisher ? 5 : 3.5}" />`;
+    })
+    .join("");
+
+  const labels = Array.from({ length: TEAM_SIZE }, (_, index) => {
+    const member = memberByPosition.get(index);
+    const name = member?.character.name || "空位";
+    const x = xForPosition(index);
+    const prefix = finishingPositions.has(index) ? "*" : "";
+    return `<text class="chart-name" x="${x}" y="${height - 14}" text-anchor="middle">${escapeHtml(prefix + name)}</text>`;
+  }).join("");
+
+  return `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="队伍充能关键帧图表">
+      <rect class="chart-bg" x="0" y="0" width="${width}" height="${height}" rx="8" />
+      ${gridLines}
+      ${positionLines}
+      ${pointMarks}
+      ${labels}
+    </svg>
+  `;
+}
+
+function renderChargeChart(result) {
+  els.chargeChart.innerHTML = getChargeChartMarkup(result);
+}
+
 function renderResults() {
   const result = simulateBurst(state.team);
 
   if (!result) {
     els.summaryStrip.textContent = "队伍为空，选择角色后开始计算";
     els.resultPanel.innerHTML = '<p class="empty-result">当前队伍为空。按 P1 到 P5 的顺序加入角色，即可查看充满帧、爆裂开启帧和每名角色的充能明细。</p>';
+    renderChargeChart(null);
     return null;
   }
 
   if (result.error) {
     els.summaryStrip.textContent = result.error;
     els.resultPanel.innerHTML = `<p class="empty-result">${escapeHtml(result.error)}</p>`;
+    renderChargeChart(result);
     return result;
   }
 
+  renderChargeChart(result);
   els.summaryStrip.textContent = `充满 ${result.fullFrame} 帧，爆裂1 ${result.burst1Frame} 帧`;
   els.resultPanel.innerHTML = `
     <div class="result-main">

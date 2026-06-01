@@ -105,6 +105,7 @@ button {
 .topbar,
 .filters,
 .list-header,
+.charge-chart-panel,
 .team-panel,
 .result-panel {
   border: 1px solid var(--line-soft);
@@ -485,6 +486,7 @@ input:focus {
   overflow: auto;
 }
 
+.charge-chart-panel,
 .team-panel,
 .result-panel {
   padding: 14px;
@@ -496,6 +498,67 @@ input:focus {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.panel-heading.compact {
+  margin-bottom: 8px;
+}
+
+.charge-chart {
+  min-height: 190px;
+  overflow: hidden;
+}
+
+.charge-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-bg {
+  fill: #11141a;
+}
+
+.chart-grid line {
+  stroke: rgba(116, 128, 147, 0.24);
+  stroke-dasharray: 4 5;
+}
+
+.chart-grid text {
+  fill: var(--quiet);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.chart-grid.is-full line {
+  stroke: rgba(77, 163, 255, 0.78);
+  stroke-dasharray: none;
+}
+
+.chart-grid.is-full text {
+  fill: #8bc5ff;
+}
+
+.chart-position-line {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.chart-point {
+  fill: var(--gold);
+  stroke: rgba(15, 17, 22, 0.92);
+  stroke-width: 1.5;
+}
+
+.chart-point.is-finisher {
+  fill: #4da3ff;
+  stroke: #d5ebff;
+  stroke-width: 2;
+}
+
+.chart-name {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .ghost-button {
