@@ -723,10 +723,6 @@ input:focus {
   font-weight: 900;
 }
 
-.chart-total-track {
-  stroke-width: 4;
-}
-
 .chart-point {
   fill: var(--gold);
   stroke: rgba(7, 9, 13, 0.95);
