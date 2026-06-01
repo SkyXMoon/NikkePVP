@@ -707,7 +707,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
 
   const width = 1800;
   const height = 440;
-  const margin = { top: 30, right: 0, bottom: 42, left: 0 };
+  const margin = { top: 30, right: 42, bottom: 42, left: 0 };
   const chartHeight = height - margin.top - margin.bottom;
   const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
   const laneByPosition = new Map(result.members.map((member, index) => [member.positionIndex, index]));
