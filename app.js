@@ -1315,6 +1315,7 @@ function showNearestChartTooltip(event) {
   const viewBox = svg.viewBox.baseVal;
   const labelGutter = Number(svg.dataset.labelGutter) || 0;
   const frameZeroX = svgLeft + (labelGutter / viewBox.width) * svgBox.width;
+  const plotBottomY = svgTop + ((viewBox.height - 42) / viewBox.height) * svgBox.height;
   const horizontalGuide = getChartGuideLine("chart-hover-guide-x");
   const verticalGuide = getChartGuideLine("chart-hover-guide-y");
   const tooltip = getChartTooltip();
@@ -1326,8 +1327,8 @@ function showNearestChartTooltip(event) {
 
   verticalGuide.classList.add("show");
   verticalGuide.style.left = `${pointX}px`;
-  verticalGuide.style.top = `${svgTop}px`;
-  verticalGuide.style.height = `${Math.max(pointY - svgTop, 0)}px`;
+  verticalGuide.style.top = `${pointY}px`;
+  verticalGuide.style.height = `${Math.max(plotBottomY - pointY, 0)}px`;
 
   tooltip.textContent = tooltipText;
   tooltip.classList.add("show");
