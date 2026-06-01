@@ -701,6 +701,22 @@ input:focus {
   stroke: var(--accent);
 }
 
+.chart-reload-track {
+  stroke: rgba(242, 245, 250, 0.78);
+  stroke-dasharray: 5 6;
+  stroke-linecap: round;
+  stroke-width: 2.2;
+  cursor: pointer;
+}
+
+.chart-reload-track.team-defense {
+  stroke: rgba(157, 204, 255, 0.86);
+}
+
+.chart-reload-track.team-attack {
+  stroke: rgba(255, 155, 165, 0.86);
+}
+
 .chart-scarlet-counter-track {
   stroke-dasharray: none;
 }

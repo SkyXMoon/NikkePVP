@@ -399,20 +399,51 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
   };
 }
 
-function advanceAttackEvent(event) {
+function getMagazineSize(character) {
+  const magazine = Math.floor(Number(character.stats?.magazine) || 0);
+  return magazine > 0 ? magazine : Infinity;
+}
+
+function getReloadFrames(character) {
+  const reloadSeconds = Number(character.stats?.reloadSeconds) || 0;
+  return reloadSeconds > 0 ? Math.round(reloadSeconds * FRAMES_PER_SECOND) : 0;
+}
+
+function getBaseNextAttackFrame(event, currentFrame) {
   if (event.character.weapon !== "MG") {
-    event.nextFrame += event.interval;
-    return;
+    return currentFrame + event.interval;
   }
 
   if (event.mgWarmupIndex < MG_WARMUP_EVENTS.length - 1) {
     event.mgWarmupIndex += 1;
-    event.nextFrame = MG_WARMUP_EVENTS[event.mgWarmupIndex].frame;
-    return;
+    return MG_WARMUP_EVENTS[event.mgWarmupIndex].frame;
   }
 
   event.mgWarmupIndex += 1;
-  event.nextFrame = event.nextFrame < MG_SUSTAIN_START_FRAME ? MG_SUSTAIN_START_FRAME : event.nextFrame + MG_SUSTAIN_INTERVAL_FRAMES;
+  return event.nextFrame < MG_SUSTAIN_START_FRAME ? MG_SUSTAIN_START_FRAME : event.nextFrame + MG_SUSTAIN_INTERVAL_FRAMES;
+}
+
+function advanceAttackEvent(event, currentFrame, shotCount = 1) {
+  const baseNextFrame = getBaseNextAttackFrame(event, currentFrame);
+  const magazine = getMagazineSize(event.character);
+  const reloadFrames = getReloadFrames(event.character);
+  event.shotsInMagazine += shotCount;
+
+  if (Number.isFinite(magazine) && reloadFrames > 0 && event.shotsInMagazine >= magazine) {
+    event.shotsInMagazine %= magazine;
+    const reloadEvent = {
+      positionIndex: event.positionIndex,
+      characterName: event.character.name,
+      startFrame: currentFrame,
+      endFrame: currentFrame + reloadFrames,
+      reloadFrames,
+    };
+    event.reloadEvents.push(reloadEvent);
+    event.nextFrame = baseNextFrame + reloadFrames;
+    return;
+  }
+
+  event.nextFrame = baseNextFrame;
 }
 
 function characterForSlot(character, positionIndex, teamKey = "attack") {
@@ -440,9 +471,11 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
       chargeFrames: timing.chargeFrames,
       chargeValue: getChargeValue(member.character),
       hits: 0,
+      shotsInMagazine: 0,
       mgWarmupIndex: member.character.weapon === "MG" ? 0 : null,
       totalCharge: 0,
       hitFrames: [],
+      reloadEvents: [],
     };
   });
 
@@ -528,7 +561,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
       event.totalCharge += hitCountExtraCharge;
       addContribution(event, hitCountExtraCharge, "额外触发");
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
-      advanceAttackEvent(event);
+      advanceAttackEvent(event, currentFrame, shotCount);
     });
 
     if (contributions.size) {
@@ -584,6 +617,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
     finishingPositionIndices: [...currentFrameContributors].sort((a, b) => a - b),
     timeline,
     chartExtraTimeline,
+    reloadTimeline: events.flatMap((event) => event.reloadEvents),
     members: events,
   };
 }
@@ -1558,6 +1592,11 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         .map((entry) => entry.frame),
     })),
   );
+  const visibleReloadEvents = chartResults.flatMap((item) =>
+    (item.result.reloadTimeline || [])
+      .filter((reload) => reload.startFrame <= CHART_MAX_FRAME)
+      .map((reload) => ({ ...reload, teamKey: item.teamKey })),
+  );
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, groupKey: group.groupKey, teamKey: group.teamKey, positionIndex: group.member.positionIndex, result: group.result })),
   );
@@ -1582,6 +1621,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     item.result.burst2Frame,
     item.result.burst3Frame,
     ...(item.result.chartExtraTimeline || []).map((entry) => entry.frame),
+    ...(item.result.reloadTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME)),
   ]);
   const counterFrameCandidates = scarletCounterGroups.flatMap((group) => group.timeline.map((entry) => entry.frame));
   const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, ...counterFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
@@ -1711,6 +1751,16 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       return `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
     })
     .join("");
+  const reloadTracks = visibleReloadEvents
+    .map((reload) => {
+      const y = yForGroup(`${reload.teamKey}-${reload.positionIndex}`);
+      const startFrame = Math.min(reload.startFrame, maxFrame);
+      const endFrame = Math.min(reload.endFrame, maxFrame);
+      if (endFrame <= startFrame) return "";
+      const tooltip = escapeHtml(`${reload.characterName}\n换弹：${reload.startFrame}F → ${reload.endFrame}F\n耗时：${reload.reloadFrames}F`);
+      return `<line class="chart-reload-track team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"><title>${tooltip}</title></line>`;
+    })
+    .join("");
   const scarletCounterTracks = scarletCounterGroups
     .map((group) => {
       if (group.timeline.length < 2) return "";
@@ -1833,6 +1883,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${standardTrack}
       ${standardPoints}
       ${tracks}
+      ${reloadTracks}
       ${scarletCounterTracks}
       ${chargeTotalTrack}
       ${burstTotalTrack}
