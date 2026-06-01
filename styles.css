@@ -702,7 +702,7 @@ input:focus {
 }
 
 .chart-scarlet-counter-track {
-  stroke-dasharray: 4 5;
+  stroke-dasharray: none;
 }
 
 .chart-scarlet-counter-track.team-defense {
