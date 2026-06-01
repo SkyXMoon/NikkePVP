@@ -46,6 +46,10 @@ const state = {
   defenseChargeSpeeds: Array(TEAM_SIZE).fill(0),
   team: Array(TEAM_SIZE).fill(null),
   chargeSpeeds: Array(TEAM_SIZE).fill(0),
+  characterChargeSpeeds: {
+    defense: {},
+    attack: {},
+  },
   activeTeamKey: "attack",
   filters: {
     common: "common",
@@ -132,16 +136,48 @@ function getResultCopyText(result, teamKey = "attack") {
   return `${getTeamPositionText(result.finishingPositionIndices, teamKey)}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
 }
 
+function normalizeTeamKey(teamKey = state.activeTeamKey) {
+  return teamKey === "defense" ? "defense" : "attack";
+}
+
 function getTeamState(teamKey = state.activeTeamKey) {
-  return teamKey === "defense" ? state.defenseTeam : state.team;
+  return normalizeTeamKey(teamKey) === "defense" ? state.defenseTeam : state.team;
 }
 
 function getChargeSpeedState(teamKey = state.activeTeamKey) {
-  return teamKey === "defense" ? state.defenseChargeSpeeds : state.chargeSpeeds;
+  return normalizeTeamKey(teamKey) === "defense" ? state.defenseChargeSpeeds : state.chargeSpeeds;
+}
+
+function getCharacterChargeSpeedMemory(teamKey = state.activeTeamKey) {
+  const normalizedTeamKey = normalizeTeamKey(teamKey);
+  if (!state.characterChargeSpeeds[normalizedTeamKey]) {
+    state.characterChargeSpeeds[normalizedTeamKey] = {};
+  }
+  return state.characterChargeSpeeds[normalizedTeamKey];
+}
+
+function sanitizeChargeSpeed(value) {
+  return Math.max(0, Number(value) || 0);
+}
+
+function getSavedCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
+  if (!character?.id) return 0;
+  return sanitizeChargeSpeed(getCharacterChargeSpeedMemory(teamKey)[character.id]);
+}
+
+function saveCharacterChargeSpeed(character, value, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  getCharacterChargeSpeedMemory(teamKey)[character.id] = sanitizeChargeSpeed(value);
+}
+
+function rememberTeamSlotChargeSpeed(teamKey, index) {
+  const character = getTeamState(teamKey)[index];
+  if (!character) return;
+  saveCharacterChargeSpeed(character, getChargeSpeedState(teamKey)[index], teamKey);
 }
 
 function setActiveTeam(teamKey) {
-  state.activeTeamKey = teamKey === "defense" ? "defense" : "attack";
+  state.activeTeamKey = normalizeTeamKey(teamKey);
 }
 
 function applyChargeSpeedFrames(baseFrames, chargeSpeedPercent = 0) {
@@ -834,7 +870,8 @@ function renderTeam() {
         speedInput.addEventListener("click", (event) => event.target.select());
         speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
         speedInput.addEventListener("input", (event) => {
-          chargeSpeeds[index] = Math.max(0, Number(event.target.value) || 0);
+          chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
+          saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
           saveTeam();
           updateTeamFinishMarkers(renderResults());
         });
@@ -1432,6 +1469,7 @@ function clearTeamLegacy() {
 
 function addCharacter(character) {
   const team = getTeamState();
+  const chargeSpeeds = getChargeSpeedState();
   if (team.some((member) => member && member.id === character.id)) {
     showToast(`${character.name} 已在${TEAM_LABELS[state.activeTeamKey]}中`);
     return;
@@ -1444,6 +1482,7 @@ function addCharacter(character) {
   }
 
   team[emptyIndex] = character;
+  chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, state.activeTeamKey);
   saveTeam();
   render();
 }
@@ -1490,11 +1529,14 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
   if (toTeam[toIndex]) {
     [fromTeam[fromIndex], toTeam[toIndex]] = [toTeam[toIndex], fromTeam[fromIndex]];
     [fromSpeeds[fromIndex], toSpeeds[toIndex]] = [toSpeeds[toIndex], fromSpeeds[fromIndex]];
+    rememberTeamSlotChargeSpeed(fromTeamKey, fromIndex);
+    rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
   } else {
     toTeam[toIndex] = fromCharacter;
     toSpeeds[toIndex] = fromSpeed;
     fromTeam[fromIndex] = null;
     fromSpeeds[fromIndex] = 0;
+    rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
   }
 
   setActiveTeam(toTeamKey);
@@ -1514,6 +1556,22 @@ function clearTeam() {
   render();
 }
 
+function normalizeSavedCharacterChargeSpeeds(savedSpeeds = {}) {
+  return Object.fromEntries(
+    Object.entries(savedSpeeds || {})
+      .map(([characterId, speed]) => [characterId, sanitizeChargeSpeed(speed)])
+      .filter(([characterId]) => getCharacterById(characterId)),
+  );
+}
+
+function rememberLoadedTeamChargeSpeeds(teamKey) {
+  getTeamState(teamKey).forEach((character, index) => {
+    if (character) {
+      saveCharacterChargeSpeed(character, getChargeSpeedState(teamKey)[index], teamKey);
+    }
+  });
+}
+
 function saveTeam() {
   localStorage.setItem(
     STORAGE_KEY,
@@ -1522,6 +1580,7 @@ function saveTeam() {
       defenseChargeSpeeds: state.defenseChargeSpeeds,
       team: state.team.map((character) => character?.id || null),
       chargeSpeeds: state.chargeSpeeds,
+      characterChargeSpeeds: state.characterChargeSpeeds,
       activeTeamKey: state.activeTeamKey,
     }),
   );
@@ -1536,6 +1595,12 @@ function loadTeam() {
       state.defenseChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => Number(saved.defenseChargeSpeeds?.[index]) || 0);
       state.team = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(saved.team?.[index]));
       state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => Number(saved.chargeSpeeds?.[index]) || 0);
+      state.characterChargeSpeeds = {
+        defense: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.defense),
+        attack: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.attack),
+      };
+      rememberLoadedTeamChargeSpeeds("defense");
+      rememberLoadedTeamChargeSpeeds("attack");
       setActiveTeam(saved.activeTeamKey || "attack");
       return;
     }
@@ -1549,6 +1614,7 @@ function loadTeam() {
     state.defenseChargeSpeeds = Array(TEAM_SIZE).fill(0);
     state.team = Array(TEAM_SIZE).fill(null);
     state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
+    state.characterChargeSpeeds = { defense: {}, attack: {} };
   }
 }
 
