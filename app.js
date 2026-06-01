@@ -1185,6 +1185,10 @@ function isJackal(character) {
   return character?.name === "豺狼" || character?.slug === "豺狼";
 }
 
+function isRosanna(character) {
+  return character?.name === "罗珊娜" || character?.slug === "罗珊娜";
+}
+
 function getCounterTriggerCount(entry) {
   const count = entry.contributions.reduce((sum, contribution) => {
     if (Number.isFinite(contribution.counterHits)) {
@@ -1447,6 +1451,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     { teamKey: "defense", result: defenseChartResult },
     { teamKey: "attack", result: attackResult },
   ].filter((item) => item.result);
+  const hasRosanna = chartResults.some((item) => item.result.members.some((member) => isRosanna(member.character)));
   const width = chartSize.width;
   const margin = { top: 30, right: 42, bottom: 42, left: 0 };
   const visibleTimelineByTeam = new Map(
@@ -1516,7 +1521,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     tooltip: `${index + 1}RL · ${(index + 1) * 76} F`,
     frame: (index + 1) * 76,
   }));
-  const standardMarkers = [...rlStandards, ...STANDARD_TIMELINE_EVENTS.filter((event) => event.frame <= maxFrame)].sort((a, b) => a.frame - b.frame);
+  const standardEvents = hasRosanna ? STANDARD_TIMELINE_EVENTS.filter((event) => event.frame <= maxFrame) : [];
+  const standardMarkers = [...rlStandards, ...standardEvents].sort((a, b) => a.frame - b.frame);
   const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
   const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
