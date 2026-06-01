@@ -780,6 +780,7 @@ function renderTeam() {
       const finishingPositions = new Set(teamResult && !teamResult.error ? teamResult.finishingPositionIndices : []);
       const isFinisher = finishingPositions.has(index);
       const isSettingsOpen = character && isSlotSettingsOpen(teamKey, index);
+      const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
       const slot = document.createElement("div");
       slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
       slot.dataset.slotIndex = index;
@@ -791,6 +792,7 @@ function renderTeam() {
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
             <span class="slot-copy" aria-hidden="true">
               ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
+              ${chargeSpeedValue > 0 ? `<span class="slot-speed-badge">${chargeSpeedValue}%</span>` : ""}
             </span>
           </button>
           <button class="slot-settings-toggle${isSettingsOpen ? " is-open" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)}" title="设置">
@@ -802,7 +804,7 @@ function renderTeam() {
                 <div class="slot-settings-panel">
                   <label class="settings-field">
                     <span>蓄速</span>
-                    <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${Number(chargeSpeeds[index]) || 0}" data-speed-index="${index}" />
+                    <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" data-speed-index="${index}" />
                     <span>%</span>
                   </label>
                 </div>
