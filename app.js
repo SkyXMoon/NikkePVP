@@ -692,10 +692,11 @@ function getChargeChartMarkup(result) {
 
   const width = 1800;
   const height = 440;
-  const margin = { top: 54, right: 34, bottom: 56, left: 164 };
+  const margin = { top: 30, right: 34, bottom: 56, left: 164 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
+  const laneByPosition = new Map(result.members.map((member, index) => [member.positionIndex, index]));
   const timelineByFrame = new Map(result.timeline.map((entry) => [entry.frame, entry]));
   const pointByMemberFrame = new Map(
     result.timeline.flatMap((entry) =>
@@ -726,10 +727,10 @@ function getChargeChartMarkup(result) {
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
   const finishingPositions = new Set(result.finishingPositionIndices);
   const xForFrame = (frame) => margin.left + (frame / maxFrame) * chartWidth;
-  const totalLaneIndex = TEAM_SIZE;
-  const laneCount = TEAM_SIZE + 1;
+  const totalLaneIndex = result.members.length;
+  const laneCount = result.members.length + 1;
   const yForLane = (index) => margin.top + (laneCount === 1 ? chartHeight / 2 : (chartHeight / (laneCount - 1)) * index);
-  const yForPosition = (index) => yForLane(index);
+  const yForPosition = (index) => yForLane(laneByPosition.get(index) ?? totalLaneIndex);
   const yForTotal = () => yForLane(totalLaneIndex);
 
   const gridLines = tickFrames
@@ -825,12 +826,10 @@ function getChargeChartMarkup(result) {
       ? `<line class="chart-track chart-total-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(Math.max(result.timeline.at(-1).frame, ...burstMarkers.map((marker) => marker.frame)))}" y2="${yForTotal()}" />`
       : "";
 
-  const labels = Array.from({ length: TEAM_SIZE }, (_, index) => {
-    const member = memberByPosition.get(index);
-    const name = member?.character.name || "空位";
-    const y = yForPosition(index);
-    const prefix = finishingPositions.has(index) ? "*" : "";
-    return `<text class="chart-name" x="${margin.left - 14}" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + name)}</text>`;
+  const labels = result.members.map((member) => {
+    const y = yForPosition(member.positionIndex);
+    const prefix = finishingPositions.has(member.positionIndex) ? "*" : "";
+    return `<text class="chart-name" x="${margin.left - 14}" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + member.character.name)}</text>`;
   }).join("");
   const totalLabel = `<text class="chart-name chart-total-name" x="${margin.left - 14}" y="${yForTotal() + 4}" text-anchor="end">总充能</text>`;
 

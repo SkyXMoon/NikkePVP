@@ -513,7 +513,7 @@ input:focus {
 }
 
 .charge-chart {
-  height: calc(42vh - 58px);
+  height: calc(42vh - 24px);
   min-height: 360px;
   overflow: hidden;
   border: 1px solid #222936;
