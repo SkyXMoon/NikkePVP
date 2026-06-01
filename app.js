@@ -163,6 +163,37 @@ function canShowFinishMarker(character) {
   return character && ["RL", "SR"].includes(character.weapon);
 }
 
+function getCharacterBurstStages(character) {
+  return String(character?.burstStage || "")
+    .split("/")
+    .map((stage) => stage.trim())
+    .filter((stage) => ["B1", "B2", "B3"].includes(stage));
+}
+
+function getAvailableBurstLevel(members = []) {
+  const stageSet = new Set(members.flatMap((member) => getCharacterBurstStages(member.character || member)));
+  if (!stageSet.has("B1")) return 0;
+  if (!stageSet.has("B2")) return 1;
+  if (!stageSet.has("B3")) return 2;
+  return 3;
+}
+
+function getAvailableBurstMarkers(result) {
+  if (!result || result.error) return [];
+  return [
+    { label: "爆裂1", frame: result.burst1Frame, stage: "B1" },
+    { label: "爆裂2", frame: result.burst2Frame, stage: "B2" },
+    { label: "爆裂3", frame: result.burst3Frame, stage: "B3" },
+  ]
+    .slice(0, Number.isFinite(result.availableBurstLevel) ? result.availableBurstLevel : 3)
+    .filter((marker) => Number.isFinite(marker.frame));
+}
+
+function getBurstDisplayEndFrame(result) {
+  const markers = getAvailableBurstMarkers(result);
+  return markers.length ? markers.at(-1).frame : result?.fullFrame || 0;
+}
+
 function getResultCopyText(result, teamKey = "attack") {
   return `${getTeamPositionText(result.finishingPositionIndices, teamKey)}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
 }
@@ -824,12 +855,16 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
     };
   }
 
+  const availableBurstLevel = getAvailableBurstLevel(events);
+
   return {
     teamKey,
     fullFrame: currentFrame,
     burst1Frame: currentFrame + 26,
     burst2Frame: currentFrame + 58,
     burst3Frame: currentFrame + 90,
+    availableBurstLevel,
+    canFullBurst: availableBurstLevel === 3,
     totalCharge,
     chargePerSecond: currentFrame === 0 ? totalCharge * FRAMES_PER_SECOND : (totalCharge / currentFrame) * FRAMES_PER_SECOND,
     finishingPositionIndices: [...currentFrameContributors].sort((a, b) => a - b),
@@ -1957,21 +1992,24 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         .map((entry) => entry.frame),
     })),
   );
-  const visibleReloadEvents = chartResults.flatMap((item) =>
-    (item.result.reloadTimeline || [])
-      .filter((reload) => reload.startFrame <= CHART_MAX_FRAME)
-      .map((reload) => ({ ...reload, teamKey: item.teamKey })),
-  );
-  const visibleFlightEvents = chartResults.flatMap((item) =>
-    (item.result.flightTimeline || [])
-      .filter((flight) => flight.startFrame <= CHART_MAX_FRAME)
-      .map((flight) => ({ ...flight, teamKey: item.teamKey })),
-  );
-  const visibleMissedEvents = chartResults.flatMap((item) =>
-    (item.result.missedTimeline || [])
-      .filter((miss) => miss.frame <= CHART_MAX_FRAME)
-      .map((miss) => ({ ...miss, teamKey: item.teamKey })),
-  );
+  const visibleReloadEvents = chartResults.flatMap((item) => {
+    const displayEndFrame = getBurstDisplayEndFrame(item.result);
+    return (item.result.reloadTimeline || [])
+      .filter((reload) => reload.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
+      .map((reload) => ({ ...reload, teamKey: item.teamKey, displayEndFrame }));
+  });
+  const visibleFlightEvents = chartResults.flatMap((item) => {
+    const displayEndFrame = getBurstDisplayEndFrame(item.result);
+    return (item.result.flightTimeline || [])
+      .filter((flight) => flight.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
+      .map((flight) => ({ ...flight, teamKey: item.teamKey, displayEndFrame }));
+  });
+  const visibleMissedEvents = chartResults.flatMap((item) => {
+    const displayEndFrame = getBurstDisplayEndFrame(item.result);
+    return (item.result.missedTimeline || [])
+      .filter((miss) => miss.frame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
+      .map((miss) => ({ ...miss, teamKey: item.teamKey, displayEndFrame }));
+  });
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, groupKey: group.groupKey, teamKey: group.teamKey, positionIndex: group.member.positionIndex, result: group.result })),
   );
@@ -1990,15 +2028,16 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const visibleStandards = totalGroups
     .filter((group) => group.result.fullFrame <= CHART_MAX_FRAME)
     .map((group) => ({ label: "", frame: group.result.fullFrame, isFullFrame: true, teamKey: group.teamKey }));
-  const resultFrameCandidates = chartResults.flatMap((item) => [
-    item.result.fullFrame,
-    item.result.burst1Frame,
-    item.result.burst2Frame,
-    item.result.burst3Frame,
-    ...(item.result.reloadTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME)),
-    ...(item.result.flightTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME)),
-    ...(item.result.missedTimeline || []).map((entry) => Math.min(entry.frame, CHART_MAX_FRAME)),
-  ]);
+  const resultFrameCandidates = chartResults.flatMap((item) => {
+    const displayEndFrame = getBurstDisplayEndFrame(item.result);
+    return [
+      item.result.fullFrame,
+      ...getAvailableBurstMarkers(item.result).map((marker) => marker.frame),
+      ...(item.result.reloadTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME, displayEndFrame)),
+      ...(item.result.flightTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME, displayEndFrame)),
+      ...(item.result.missedTimeline || []).map((entry) => Math.min(entry.frame, CHART_MAX_FRAME, displayEndFrame)),
+    ];
+  });
   const counterFrameCandidates = scarletCounterGroups.flatMap((group) => group.timeline.map((entry) => entry.frame));
   const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, ...counterFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
   const rlStandards = Array.from({ length: Math.floor(maxFrame / 76) }, (_, index) => ({
@@ -2155,7 +2194,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     .map((reload) => {
       const y = yForGroup(`${reload.teamKey}-${reload.positionIndex}`);
       const startFrame = Math.min(reload.startFrame, maxFrame);
-      const endFrame = Math.min(reload.endFrame, maxFrame);
+      const endFrame = Math.min(reload.endFrame, maxFrame, reload.displayEndFrame);
       if (endFrame <= startFrame) return "";
       const tooltip = escapeHtml(`${reload.characterName}\n换弹：${reload.startFrame}F → ${reload.endFrame}F\n耗时：${reload.reloadFrames}F`);
       return `<line class="chart-reload-track team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
@@ -2165,7 +2204,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     .map((flight) => {
       const y = yForGroup(`${flight.teamKey}-${flight.positionIndex}`);
       const startFrame = Math.min(flight.startFrame, maxFrame);
-      const endFrame = Math.min(flight.endFrame, maxFrame);
+      const endFrame = Math.min(flight.endFrame, maxFrame, flight.displayEndFrame);
       if (endFrame <= startFrame) return "";
       const tooltip = escapeHtml(`${flight.characterName}\n飞行：${flight.startFrame}F → ${flight.endFrame}F\n耗时：${flight.flightFrames}F`);
       return `<line class="chart-flight-track" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
@@ -2244,11 +2283,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
 
   const burstPoints = totalGroups
     .flatMap((group) =>
-      [
-        { label: "爆裂1", frame: group.result.burst1Frame },
-        { label: "爆裂2", frame: group.result.burst2Frame },
-        { label: "爆裂3", frame: group.result.burst3Frame },
-      ]
+      getAvailableBurstMarkers(group.result)
         .filter((marker) => marker.frame <= CHART_MAX_FRAME)
         .map((marker) => {
           const x = xForFrame(marker.frame);
@@ -2268,11 +2303,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     .join("");
   const burstTotalTrack = totalGroups
     .map((group) => {
-      const markers = [
-        { label: "爆裂1", frame: group.result.burst1Frame },
-        { label: "爆裂2", frame: group.result.burst2Frame },
-        { label: "爆裂3", frame: group.result.burst3Frame },
-      ].filter((marker) => marker.frame <= CHART_MAX_FRAME);
+      const markers = getAvailableBurstMarkers(group.result).filter((marker) => marker.frame <= CHART_MAX_FRAME);
       if (markers.length === 0) return "";
       const maxBurstFrame = Math.max(...markers.map((marker) => marker.frame));
       return `<line class="chart-track chart-total-track chart-total-burst-track team-${group.teamKey}" x1="${xForFrame(markers[0].frame)}" y1="${yForTeamTotal(group.teamKey)}" x2="${xForFrame(maxBurstFrame)}" y2="${yForTeamTotal(group.teamKey)}" />`;
