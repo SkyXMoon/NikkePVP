@@ -941,7 +941,7 @@ function renderTeam() {
       const canSelectJackalTarget =
         character && !isJackalOwner && isJackalConnecting && (isJackalTarget || jackalTargetIds.size < 2);
       const slot = document.createElement("div");
-      slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}${isJackalOwner && isJackalConnecting ? " is-jackal-link-owner" : ""}${isJackalTarget ? " is-jackal-link-target" : ""}`;
+      slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
       slot.dataset.slotIndex = index;
       slot.dataset.teamKey = teamKey;
       slot.draggable = Boolean(character);
