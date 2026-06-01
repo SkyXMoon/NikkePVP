@@ -538,6 +538,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       shotsInMagazine: 0,
       mgWarmupIndex: member.character.weapon === "MG" ? 0 : null,
       totalCharge: 0,
+      attackChargeTotal: 0,
       hitFrames: [],
       reloadEvents: [],
       flightEvents: [],
@@ -558,10 +559,13 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
     currentFrame = Math.min(nextAttackFrame, nextExtraFrame, nextSpecialFrame);
     currentFrameContributors = new Set();
     const contributions = new Map();
+    const getContributionKey = (event, showOnMember, label = "") =>
+      `${event.positionIndex}:${showOnMember ? "member" : `special:${label}`}`;
     const addContribution = (event, value, label, counterHits = 1, showOnMember = true) => {
       if (!event || !value) return;
       currentFrameContributors.add(event.positionIndex);
-      const current = contributions.get(event.positionIndex) || {
+      const contributionKey = getContributionKey(event, showOnMember, label);
+      const current = contributions.get(contributionKey) || {
         positionIndex: event.positionIndex,
         character: event.character,
         charge: 0,
@@ -572,14 +576,14 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
         showOnMember: false,
       };
       current.charge += value;
-      current.cumulativeCharge = event.totalCharge;
+      current.cumulativeCharge = showOnMember ? event.attackChargeTotal : event.totalCharge;
       current.labels.push(label);
       current.counterHits += Math.max(Number(counterHits) || 0, 0);
       current.showOnMember = current.showOnMember || showOnMember;
-      contributions.set(event.positionIndex, current);
+      contributions.set(contributionKey, current);
     };
     const addPositionHits = (event, positionHits) => {
-      const current = contributions.get(event.positionIndex);
+      const current = contributions.get(getContributionKey(event, true));
       if (!current) return;
       positionHits.forEach(([positionIndex, hitCount]) => {
         current.positionHits.set(positionIndex, (current.positionHits.get(positionIndex) || 0) + hitCount);
@@ -603,6 +607,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       const owner = events.find((event) => event.character.id === extra.character.id);
       if (owner) {
         owner.totalCharge += extra.chargeValue;
+        owner.attackChargeTotal += extra.chargeValue;
         addContribution(owner, extra.chargeValue, "延迟额外");
       }
     });
@@ -643,8 +648,9 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       const chargeValue = event.chargeValue * shotCount;
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
+      event.attackChargeTotal += chargeValue;
       addContribution(event, chargeValue, shotCount > 1 ? `${shotCount}发命中` : "命中");
-      const currentContribution = contributions.get(event.positionIndex);
+      const currentContribution = contributions.get(getContributionKey(event, true));
       if (currentContribution) {
         currentContribution.counterHits += hitProfile.totalHits - 1;
       }
@@ -652,6 +658,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       const hitCountExtraCharge = getHitCountExtraCharge(event);
       totalCharge += hitCountExtraCharge;
       event.totalCharge += hitCountExtraCharge;
+      event.attackChargeTotal += hitCountExtraCharge;
       addContribution(event, hitCountExtraCharge, "额外触发");
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
       advanceAttackEvent(event, currentFrame, shotCount);
