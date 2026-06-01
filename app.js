@@ -284,6 +284,11 @@ function saveCharacterChargeSpeed(character, value, teamKey = state.activeTeamKe
   getCharacterChargeSpeedMemory(teamKey)[character.id] = sanitizeChargeSpeed(value);
 }
 
+function resetCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  delete getCharacterChargeSpeedMemory(teamKey)[character.id];
+}
+
 function getSavedCharacterQuantumCube(character, teamKey = state.activeTeamKey) {
   if (!character?.id) return false;
   return Boolean(getCharacterQuantumCubeMemory(teamKey)[character.id]);
@@ -292,6 +297,11 @@ function getSavedCharacterQuantumCube(character, teamKey = state.activeTeamKey) 
 function saveCharacterQuantumCube(character, enabled, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
   getCharacterQuantumCubeMemory(teamKey)[character.id] = Boolean(enabled);
+}
+
+function resetCharacterQuantumCube(character, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  delete getCharacterQuantumCubeMemory(teamKey)[character.id];
 }
 
 function getSavedCharacterMagazine(character, teamKey = state.activeTeamKey) {
@@ -305,6 +315,11 @@ function getSavedCharacterMagazine(character, teamKey = state.activeTeamKey) {
 function saveCharacterMagazine(character, value, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
   getCharacterMagazineMemory(teamKey)[character.id] = sanitizeMagazine(value);
+}
+
+function resetCharacterMagazine(character, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  delete getCharacterMagazineMemory(teamKey)[character.id];
 }
 
 function rememberTeamSlotChargeSpeed(teamKey, index) {
@@ -1222,6 +1237,7 @@ function createSlotSettingsModal() {
         <span>启用量子遗迹魔方</span>
         <input class="slot-settings-quantum-cube" type="checkbox"${quantumCubeEnabled ? " checked" : ""} />
       </label>
+      <button class="slot-settings-reset" type="button">重置默认</button>
     </section>
   `;
 
@@ -1278,6 +1294,16 @@ function createSlotSettingsModal() {
   const quantumCubeInput = backdrop.querySelector(".slot-settings-quantum-cube");
   quantumCubeInput.addEventListener("change", (event) => {
     saveCharacterQuantumCube(character, event.target.checked, teamKey);
+    saveTeam();
+    render();
+  });
+
+  backdrop.querySelector(".slot-settings-reset").addEventListener("click", (event) => {
+    event.preventDefault();
+    chargeSpeeds[index] = 0;
+    resetCharacterChargeSpeed(character, teamKey);
+    resetCharacterQuantumCube(character, teamKey);
+    resetCharacterMagazine(character, teamKey);
     saveTeam();
     render();
   });

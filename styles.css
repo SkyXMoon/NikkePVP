@@ -1402,6 +1402,25 @@ input:focus {
   background: rgba(71, 200, 212, 0.16);
 }
 
+.slot-settings-reset {
+  width: 100%;
+  min-height: 30px;
+  margin-top: 14px;
+  border: 1px solid rgba(242, 85, 98, 0.42);
+  border-radius: 6px;
+  color: #ffd8dd;
+  background: rgba(242, 85, 98, 0.12);
+  font-size: 12px;
+  font-weight: 900;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.slot-settings-reset:hover {
+  border-color: rgba(242, 85, 98, 0.82);
+  color: #fff;
+  background: rgba(242, 85, 98, 0.2);
+}
+
 .settings-field {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
