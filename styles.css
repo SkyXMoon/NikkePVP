@@ -954,8 +954,8 @@ input:focus {
 
 .slot-settings-toggle {
   position: absolute;
-  top: 7px;
-  right: 7px;
+  top: 4px;
+  right: 4px;
   z-index: 3;
   display: grid;
   place-items: center;
