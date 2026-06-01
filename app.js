@@ -448,6 +448,19 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1) {
   event.nextFrame = baseNextFrame;
 }
 
+function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline = []) {
+  if (event.character.weapon !== "RL" || event.projectileFlightFrames <= 0) return false;
+  const targetPositionIndex = getTargetPositionIndex(event.character, teamKey);
+  const flightStartFrame = Math.max(0, currentFrame - event.projectileFlightFrames);
+  return opponentReloadTimeline.some(
+    (reload) =>
+      reload.positionIndex === targetPositionIndex &&
+      reload.startFrame >= flightStartFrame &&
+      reload.startFrame < currentFrame &&
+      reload.endFrame > currentFrame,
+  );
+}
+
 function characterForSlot(character, positionIndex, teamKey = "attack") {
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
@@ -457,7 +470,7 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   };
 }
 
-function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
+function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], opponentReloadTimeline = []) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
     .filter((member) => member.character);
@@ -480,6 +493,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
       hitFrames: [],
       reloadEvents: [],
       flightEvents: [],
+      missedShotEvents: [],
     };
   });
 
@@ -548,21 +562,39 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
-      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey);
-      const chargeValue = event.chargeValue * shotCount;
-      totalCharge += chargeValue;
-      event.totalCharge += chargeValue;
+      const isMissedShot = isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline);
       event.hits += shotCount;
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
       if (event.character.weapon === "RL" && event.projectileFlightFrames > 0) {
-        event.flightEvents.push({
+        const flightEvent = {
           positionIndex: event.positionIndex,
           characterName: event.character.name,
           startFrame: Math.max(0, currentFrame - event.projectileFlightFrames),
           endFrame: currentFrame,
           flightFrames: event.projectileFlightFrames,
-        });
+          missed: isMissedShot,
+        };
+        event.flightEvents.push(flightEvent);
+        if (isMissedShot) {
+          event.missedShotEvents.push({
+            positionIndex: event.positionIndex,
+            characterName: event.character.name,
+            frame: currentFrame,
+            flightStartFrame: flightEvent.startFrame,
+            flightFrames: event.projectileFlightFrames,
+          });
+        }
       }
+
+      if (isMissedShot) {
+        advanceAttackEvent(event, currentFrame, shotCount);
+        return;
+      }
+
+      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey);
+      const chargeValue = event.chargeValue * shotCount;
+      totalCharge += chargeValue;
+      event.totalCharge += chargeValue;
       addContribution(event, chargeValue, shotCount > 1 ? `${shotCount}发命中` : "命中");
       const currentContribution = contributions.get(event.positionIndex);
       if (currentContribution) {
@@ -632,6 +664,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
     chartExtraTimeline,
     reloadTimeline: events.flatMap((event) => event.reloadEvents),
     flightTimeline: events.flatMap((event) => event.flightEvents),
+    missedTimeline: events.flatMap((event) => event.missedShotEvents),
     members: events,
   };
 }
@@ -1517,8 +1550,8 @@ function computeBattleResults() {
   for (let index = 0; index < 8; index += 1) {
     const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
     const defenseSpecials = getSpecialChargeEventsForTeam(defenseResult, attackResult);
-    const nextAttackResult = simulateBurst(state.team, "attack", attackSpecials);
-    const nextDefenseResult = simulateBurst(state.defenseTeam, "defense", defenseSpecials);
+    const nextAttackResult = simulateBurst(state.team, "attack", attackSpecials, defenseResult?.reloadTimeline || []);
+    const nextDefenseResult = simulateBurst(state.defenseTeam, "defense", defenseSpecials, attackResult?.reloadTimeline || []);
     const stable =
       getResultSignature(nextAttackResult) === getResultSignature(attackResult) &&
       getResultSignature(nextDefenseResult) === getResultSignature(defenseResult);
@@ -1616,6 +1649,11 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       .filter((flight) => flight.startFrame <= CHART_MAX_FRAME)
       .map((flight) => ({ ...flight, teamKey: item.teamKey })),
   );
+  const visibleMissedEvents = chartResults.flatMap((item) =>
+    (item.result.missedTimeline || [])
+      .filter((miss) => miss.frame <= CHART_MAX_FRAME)
+      .map((miss) => ({ ...miss, teamKey: item.teamKey })),
+  );
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, groupKey: group.groupKey, teamKey: group.teamKey, positionIndex: group.member.positionIndex, result: group.result })),
   );
@@ -1642,6 +1680,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     ...(item.result.chartExtraTimeline || []).map((entry) => entry.frame),
     ...(item.result.reloadTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME)),
     ...(item.result.flightTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME)),
+    ...(item.result.missedTimeline || []).map((entry) => Math.min(entry.frame, CHART_MAX_FRAME)),
   ]);
   const counterFrameCandidates = scarletCounterGroups.flatMap((group) => group.timeline.map((entry) => entry.frame));
   const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, ...counterFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
@@ -1815,6 +1854,13 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       return `<line class="chart-flight-track" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"><title>${tooltip}</title></line>`;
     })
     .join("");
+  const missedPoints = visibleMissedEvents
+    .map((miss) => {
+      const y = yForGroup(`${miss.teamKey}-${miss.positionIndex}`);
+      const tooltip = escapeHtml(`${miss.characterName}\n时间：${miss.frame} F\n结果：空枪，未命中\n飞行：${miss.flightStartFrame}F → ${miss.frame}F`);
+      return `<circle class="chart-missed-point" cx="${xForFrame(miss.frame)}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
+    })
+    .join("");
   const scarletCounterTracks = scarletCounterGroups
     .map((group) => {
       if (group.timeline.length < 2) return "";
@@ -1943,6 +1989,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${chargeTotalTrack}
       ${burstTotalTrack}
       ${pointMarks}
+      ${missedPoints}
       ${scarletCounterPoints}
       ${totalPoints}
       ${burstPoints}

@@ -784,6 +784,13 @@ input:focus {
   stroke-width: 1.8;
 }
 
+.chart-missed-point {
+  fill: #8a9099;
+  stroke: rgba(7, 9, 13, 0.95);
+  stroke-width: 1.6;
+  cursor: pointer;
+}
+
 .chart-total-point {
   stroke: rgba(7, 9, 13, 0.95);
   stroke-width: 1.8;
