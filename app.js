@@ -1266,8 +1266,10 @@ function showNearestChartTooltip(event) {
 
   tooltip.textContent = tooltipText;
   tooltip.classList.add("show");
-  tooltip.style.left = `${Math.min(event.clientX - chartBox.left + 14, chartBox.width - 260)}px`;
-  tooltip.style.top = `${Math.max(event.clientY - chartBox.top + 14, 8)}px`;
+  const tooltipWidth = 250;
+  const placeLeft = pointX + tooltipWidth + 18 > chartBox.width;
+  tooltip.style.left = `${placeLeft ? Math.max(pointX - tooltipWidth - 14, 8) : pointX + 14}px`;
+  tooltip.style.top = `${Math.min(Math.max(pointY - 18, 8), chartBox.height - 96)}px`;
 }
 
 function hideChartTooltip() {
