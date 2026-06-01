@@ -507,9 +507,9 @@ input:focus {
   flex-direction: column;
   gap: 12px;
   position: sticky;
-  top: calc(30vh + 26px);
+  top: calc(42vh + 26px);
   align-self: start;
-  max-height: calc(70vh - 40px);
+  max-height: calc(58vh - 40px);
   overflow: auto;
 }
 
@@ -520,7 +520,7 @@ input:focus {
 }
 
 .charge-chart-panel {
-  min-height: 30vh;
+  min-height: 42vh;
   border-top: 3px solid var(--accent);
 }
 
@@ -537,8 +537,8 @@ input:focus {
 }
 
 .charge-chart {
-  height: calc(30vh - 58px);
-  min-height: 208px;
+  height: calc(42vh - 58px);
+  min-height: 360px;
   overflow: hidden;
   border: 1px solid #222936;
   border-radius: 5px;
@@ -556,13 +556,13 @@ input:focus {
 }
 
 .chart-grid line {
-  stroke: rgba(116, 128, 147, 0.2);
-  stroke-dasharray: 4 5;
+  stroke: rgba(92, 109, 132, 0.38);
+  stroke-width: 1.2;
 }
 
 .chart-grid text {
-  fill: var(--quiet);
-  font-size: 11px;
+  fill: #d8dee9;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -575,8 +575,36 @@ input:focus {
   fill: #ff8e92;
 }
 
+.chart-standard line {
+  stroke: #f0c45c;
+  stroke-dasharray: 4 6;
+  stroke-width: 2;
+}
+
+.chart-standard text {
+  fill: #fff7d7;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.chart-standard.is-full line {
+  stroke: var(--accent);
+  stroke-dasharray: none;
+}
+
+.chart-standard.is-full text {
+  fill: #ffd9dc;
+}
+
 .chart-position-line {
-  stroke: rgba(255, 255, 255, 0.1);
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 1.2;
+}
+
+.chart-track {
+  stroke: var(--cyan);
+  stroke-linecap: round;
+  stroke-width: 3;
 }
 
 .chart-point {
@@ -592,8 +620,14 @@ input:focus {
 }
 
 .chart-name {
-  fill: var(--muted);
-  font-size: 11px;
+  fill: #f2f5fa;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.chart-axis-label {
+  fill: #f2f5fa;
+  font-size: 15px;
   font-weight: 900;
 }
 

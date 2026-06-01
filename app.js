@@ -658,26 +658,29 @@ function getChargeChartMarkup(result) {
     return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
   }
 
-  const width = 1180;
-  const height = 300;
-  const margin = { top: 24, right: 34, bottom: 42, left: 132 };
+  const width = 1800;
+  const height = 440;
+  const margin = { top: 54, right: 34, bottom: 56, left: 164 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
-  const points = result.members.flatMap((member) =>
-    member.hitFrames
+  const memberPointGroups = result.members.map((member) => ({
+    member,
+    frames: member.hitFrames
       .map((frame) => getHitFrameValue(frame))
-      .filter((frame) => Number.isFinite(frame) && frame <= result.fullFrame)
-      .map((frame) => ({ frame, positionIndex: member.positionIndex })),
+      .filter((frame) => Number.isFinite(frame) && frame <= result.fullFrame),
+  }));
+  const points = memberPointGroups.flatMap((group) =>
+    group.frames.map((frame) => ({ frame, positionIndex: group.member.positionIndex })),
   );
-  const frameValues = [...new Set([0, result.fullFrame, ...points.map((point) => point.frame)])].sort((a, b) => a - b);
-  const tickFrames =
-    frameValues.length <= 8
-      ? frameValues
-      : [...new Set([0, ...frameValues.filter((_, index) => index % Math.ceil(frameValues.length / 6) === 0), result.fullFrame])].sort(
-          (a, b) => a - b,
-        );
-  const maxFrame = Math.max(result.fullFrame, 1);
+  const visibleStandards = [
+    ...STANDARD_CHARGE_FRAMES.filter((standard) => standard.label.includes("RL") || standard.label === "5SG"),
+    { label: "完成", frame: result.fullFrame, isFullFrame: true },
+  ];
+  const maxFrame = Math.max(result.fullFrame, ...visibleStandards.map((standard) => standard.frame), 1);
+  const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
+  const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
+  if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
   const finishingPositions = new Set(result.finishingPositionIndices);
   const xForFrame = (frame) => margin.left + (frame / maxFrame) * chartWidth;
   const yForPosition = (index) => margin.top + (TEAM_SIZE === 1 ? chartHeight / 2 : (chartHeight / (TEAM_SIZE - 1)) * index);
@@ -695,17 +698,41 @@ function getChargeChartMarkup(result) {
     })
     .join("");
 
+  const standardLines = visibleStandards
+    .filter((standard, index, standards) => standards.findIndex((item) => item.label === standard.label && item.frame === standard.frame) === index)
+    .map((standard) => {
+      const x = xForFrame(standard.frame);
+      const isFullFrame = standard.isFullFrame;
+      return `
+        <g class="${isFullFrame ? "chart-standard is-full" : "chart-standard"}">
+          <line x1="${x}" y1="${margin.top - 24}" x2="${x}" y2="${height - margin.bottom}" />
+          <text x="${x}" y="${margin.top - 34}" text-anchor="middle">${escapeHtml(standard.label)}</text>
+        </g>
+      `;
+    })
+    .join("");
+
   const positionLines = Array.from({ length: TEAM_SIZE }, (_, index) => {
     const y = yForPosition(index);
     return `<line class="chart-position-line" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />`;
   }).join("");
+
+  const tracks = memberPointGroups
+    .map((group) => {
+      if (group.frames.length < 2) return "";
+      const y = yForPosition(group.member.positionIndex);
+      const firstFrame = Math.min(...group.frames);
+      const lastFrame = Math.max(...group.frames);
+      return `<line class="chart-track" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
+    })
+    .join("");
 
   const pointMarks = points
     .map((point) => {
       const x = xForFrame(point.frame);
       const y = yForPosition(point.positionIndex);
       const isFinisher = point.frame === result.fullFrame && finishingPositions.has(point.positionIndex);
-      return `<circle class="${isFinisher ? "chart-point is-finisher" : "chart-point"}" cx="${x}" cy="${y}" r="${isFinisher ? 5 : 3.5}" />`;
+      return `<circle class="${isFinisher ? "chart-point is-finisher" : "chart-point"}" cx="${x}" cy="${y}" r="${isFinisher ? 7 : 5}" />`;
     })
     .join("");
 
@@ -721,9 +748,12 @@ function getChargeChartMarkup(result) {
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="队伍充能关键帧图表">
       <rect class="chart-bg" x="0" y="0" width="${width}" height="${height}" rx="8" />
       ${gridLines}
+      ${standardLines}
       ${positionLines}
+      ${tracks}
       ${pointMarks}
       ${labels}
+      <text class="chart-axis-label" x="${margin.left + chartWidth / 2}" y="${height - 12}" text-anchor="middle">时间 (F)</text>
     </svg>
   `;
 }
