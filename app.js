@@ -38,6 +38,7 @@ const CHART_MAX_FRAME = 600;
 const CHART_WIDTH = 1800;
 const CHART_HEIGHT = 660;
 const CHART_MIN_WIDTH = 820;
+const SCARLET_COUNTER_PROBABILITY = 0.3;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 
@@ -962,6 +963,57 @@ function formatTooltipLines(lines) {
   return escapeHtml(lines.join("\n"));
 }
 
+function isScarlet(character) {
+  return character?.name === "红莲" || character?.slug === "红莲";
+}
+
+function getCounterTriggerCount(entry) {
+  const count = entry.contributions.reduce((sum, contribution) => {
+    const labelCount = contribution.labels.reduce((labelSum, label) => {
+      const match = String(label).match(/(\d+)\s*发|[x×]\s*(\d+)/i);
+      return labelSum + (match ? Number(match[1] || match[2]) || 1 : 1);
+    }, 0);
+    return sum + Math.max(labelCount, 1);
+  }, 0);
+  return Math.max(count, 1);
+}
+
+function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
+  return chartResults.flatMap((item) => {
+    const opponentTeamKey = item.teamKey === "defense" ? "attack" : "defense";
+    const opponentTimeline = visibleTimelineByTeam.get(opponentTeamKey) || [];
+    if (opponentTimeline.length === 0) return [];
+
+    return item.result.members
+      .filter((member) => isScarlet(member.character))
+      .map((member) => {
+        const chargePerCounter = getChargeValue(member.character) * SCARLET_COUNTER_PROBABILITY;
+        let cumulativeCharge = 0;
+        const timeline = opponentTimeline.map((entry) => {
+          const triggerCount = getCounterTriggerCount(entry);
+          const charge = chargePerCounter * triggerCount;
+          cumulativeCharge += charge;
+          return {
+            frame: entry.frame,
+            triggerCount,
+            charge,
+            cumulativeCharge,
+          };
+        });
+
+        return {
+          teamKey: item.teamKey,
+          groupKey: `${item.teamKey}-scarlet-counter-${member.positionIndex}`,
+          label: `${TEAM_LABELS[item.teamKey]}-红莲反击充能`,
+          member,
+          chargePerCounter,
+          timeline,
+        };
+      })
+      .filter((group) => group.timeline.length > 0);
+  });
+}
+
 function estimateChartLabelWidth(label) {
   return [...String(label)].reduce((width, char) => width + (char.charCodeAt(0) > 255 ? 15 : 8), 0);
 }
@@ -1036,6 +1088,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, groupKey: group.groupKey, teamKey: group.teamKey, positionIndex: group.member.positionIndex, result: group.result })),
   );
+  const scarletCounterGroups = getScarletCounterGroups(chartResults, visibleTimelineByTeam);
   const totalGroups = chartResults.map((item) => ({
     teamKey: item.teamKey,
     result: item.result,
@@ -1054,7 +1107,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     item.result.burst3Frame,
     ...(item.result.chartExtraTimeline || []).map((entry) => entry.frame),
   ]);
-  const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
+  const counterFrameCandidates = scarletCounterGroups.flatMap((group) => group.timeline.map((entry) => entry.frame));
+  const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, ...counterFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
   const rlStandards = Array.from({ length: Math.floor(maxFrame / 76) }, (_, index) => ({
     label: `${index + 1}RL`,
     frame: (index + 1) * 76,
@@ -1067,6 +1121,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const chartLabels = [
     "标准轴",
     ...totalGroups.map((group) => group.label),
+    ...scarletCounterGroups.map((group) => group.label),
     ...memberPointGroups.map((group) => {
       const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
       return `${finishingPositions.has(group.member.positionIndex) ? "*" : ""}${group.member.character.name}`;
@@ -1079,13 +1134,18 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const standardLaneIndex = 0;
   const defenseGroups = memberPointGroups.filter((group) => group.teamKey === "defense");
   const attackGroups = memberPointGroups.filter((group) => group.teamKey === "attack");
+  const defenseCounterGroups = scarletCounterGroups.filter((group) => group.teamKey === "defense");
+  const attackCounterGroups = scarletCounterGroups.filter((group) => group.teamKey === "attack");
   const hasTeamSeparator = defenseGroups.length > 0 && attackGroups.length > 0;
   const hasDefenseTotal = totalGroups.some((group) => group.teamKey === "defense");
   const firstMemberLaneIndex = 1;
-  const defenseTotalLaneIndex = hasDefenseTotal ? firstMemberLaneIndex + defenseGroups.length : null;
-  const separatorLaneIndex = hasTeamSeparator ? firstMemberLaneIndex + defenseGroups.length + (hasDefenseTotal ? 1 : 0) : null;
-  const firstAttackLaneIndex = firstMemberLaneIndex + defenseGroups.length + (hasDefenseTotal ? 1 : 0) + (hasTeamSeparator ? 1 : 0);
-  const attackTotalLaneIndex = firstAttackLaneIndex + attackGroups.length;
+  const firstDefenseCounterLaneIndex = firstMemberLaneIndex + defenseGroups.length;
+  const defenseTotalLaneIndex = hasDefenseTotal ? firstDefenseCounterLaneIndex + defenseCounterGroups.length : null;
+  const separatorLaneIndex = hasTeamSeparator ? firstDefenseCounterLaneIndex + defenseCounterGroups.length + (hasDefenseTotal ? 1 : 0) : null;
+  const firstAttackLaneIndex =
+    firstDefenseCounterLaneIndex + defenseCounterGroups.length + (hasDefenseTotal ? 1 : 0) + (hasTeamSeparator ? 1 : 0);
+  const firstAttackCounterLaneIndex = firstAttackLaneIndex + attackGroups.length;
+  const attackTotalLaneIndex = firstAttackCounterLaneIndex + attackCounterGroups.length;
   const laneCount = attackTotalLaneIndex + (totalGroups.some((group) => group.teamKey === "attack") ? 1 : 0);
   const height = chartSize.height;
   const chartHeight = height - margin.top - margin.bottom;
@@ -1093,11 +1153,16 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     ...defenseGroups.map((group, index) => [group.groupKey, firstMemberLaneIndex + index]),
     ...attackGroups.map((group, index) => [group.groupKey, firstAttackLaneIndex + index]),
   ]);
+  const laneByCounterGroupKey = new Map([
+    ...defenseCounterGroups.map((group, index) => [group.groupKey, firstDefenseCounterLaneIndex + index]),
+    ...attackCounterGroups.map((group, index) => [group.groupKey, firstAttackCounterLaneIndex + index]),
+  ]);
   const laneByTotalKey = new Map(
     totalGroups.map((group) => [group.teamKey, group.teamKey === "defense" ? defenseTotalLaneIndex : attackTotalLaneIndex]).filter(([, lane]) => lane !== null),
   );
   const yForLane = (index) => margin.top + (chartHeight / Math.max(laneCount, 1)) * index;
   const yForGroup = (groupKey) => yForLane(laneByGroupKey.get(groupKey) ?? attackTotalLaneIndex);
+  const yForCounterGroup = (groupKey) => yForLane(laneByCounterGroupKey.get(groupKey) ?? attackTotalLaneIndex);
   const yForTeamTotal = (teamKey) => yForLane(laneByTotalKey.get(teamKey) ?? attackTotalLaneIndex);
   const yForStandard = () => yForLane(standardLaneIndex);
 
@@ -1167,6 +1232,15 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       return `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
     })
     .join("");
+  const scarletCounterTracks = scarletCounterGroups
+    .map((group) => {
+      if (group.timeline.length < 2) return "";
+      const y = yForCounterGroup(group.groupKey);
+      const firstFrame = group.timeline[0].frame;
+      const lastFrame = group.timeline.at(-1).frame;
+      return `<line class="chart-track chart-scarlet-counter-track team-${group.teamKey}" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
+    })
+    .join("");
 
   const pointMarks = points
     .map((point) => {
@@ -1202,6 +1276,21 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           ...(cumulativeLines.length ? ["各角色累计贡献：", ...cumulativeLines] : []),
         ]);
         return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
+      }),
+    )
+    .join("");
+  const scarletCounterPoints = scarletCounterGroups
+    .flatMap((group) =>
+      group.timeline.map((entry) => {
+        const x = xForFrame(entry.frame);
+        const y = yForCounterGroup(group.groupKey);
+        const tooltip = formatTooltipLines([
+          group.label,
+          `时间：${entry.frame} F`,
+          `期望反击：${entry.triggerCount} × ${group.chargePerCounter.toFixed(2)}% = ${entry.charge.toFixed(2)}%`,
+          `累计充能：${entry.cumulativeCharge.toFixed(2)}%`,
+        ]);
+        return `<circle class="chart-scarlet-counter-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
       }),
     )
     .join("");
@@ -1249,6 +1338,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     const prefix = finishingPositions.has(group.member.positionIndex) ? "*" : "";
     return `<text class="chart-name" x="0" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + group.member.character.name)}</text>`;
   }).join("");
+  const scarletCounterLabels = scarletCounterGroups
+    .map((group) => `<text class="chart-name chart-scarlet-counter-name team-${group.teamKey}" x="0" y="${yForCounterGroup(group.groupKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
+    .join("");
   const standardLabel = `<text class="chart-name chart-standard-name" x="0" y="${yForStandard() + 4}" text-anchor="start">标准轴</text>`;
   const totalLabels = totalGroups
     .map((group) => `<text class="chart-name chart-total-name team-${group.teamKey}" x="0" y="${yForTeamTotal(group.teamKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
@@ -1265,13 +1357,16 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${standardTrack}
       ${standardPoints}
       ${tracks}
+      ${scarletCounterTracks}
       ${chargeTotalTrack}
       ${burstTotalTrack}
       ${pointMarks}
+      ${scarletCounterPoints}
       ${totalPoints}
       ${burstPoints}
       ${standardLabel}
       ${labels}
+      ${scarletCounterLabels}
       ${totalLabels}
     </svg>
   `;

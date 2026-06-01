@@ -701,6 +701,18 @@ input:focus {
   stroke: var(--accent);
 }
 
+.chart-scarlet-counter-track {
+  stroke-dasharray: 4 5;
+}
+
+.chart-scarlet-counter-track.team-defense {
+  stroke: #9dccff;
+}
+
+.chart-scarlet-counter-track.team-attack {
+  stroke: #ff9ba5;
+}
+
 .chart-standard-track {
   stroke: var(--gold);
 }
@@ -762,6 +774,19 @@ input:focus {
   fill: var(--accent);
 }
 
+.chart-scarlet-counter-point {
+  stroke: rgba(7, 9, 13, 0.95);
+  stroke-width: 1.5;
+}
+
+.chart-scarlet-counter-point.team-defense {
+  fill: #9dccff;
+}
+
+.chart-scarlet-counter-point.team-attack {
+  fill: #ff9ba5;
+}
+
 .chart-burst-point {
   stroke: rgba(7, 9, 13, 0.95);
   stroke-width: 1.7;
@@ -799,6 +824,14 @@ input:focus {
 
 .chart-total-name.team-attack,
 .chart-burst-label.team-attack {
+  fill: #ff9ba5;
+}
+
+.chart-scarlet-counter-name.team-defense {
+  fill: #9dccff;
+}
+
+.chart-scarlet-counter-name.team-attack {
   fill: #ff9ba5;
 }
 
