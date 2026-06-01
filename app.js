@@ -37,6 +37,7 @@ const MG_WARMUP_EVENTS = [
 const CHART_MAX_FRAME = 600;
 const CHART_WIDTH = 1800;
 const CHART_HEIGHT = 660;
+const CHART_MIN_WIDTH = 820;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 
@@ -75,6 +76,7 @@ const els = {
 
 let draggedTeamIndex = null;
 let draggedTeamKey = null;
+let resizeRenderId = null;
 
 const TEAM_LABELS = {
   defense: "防守队",
@@ -896,7 +898,15 @@ function getCumulativeContributionLines(result, frame) {
     .filter(Boolean);
 }
 
-function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult = null) {
+function getChargeChartSize() {
+  const rect = els.chargeChart?.getBoundingClientRect();
+  return {
+    width: Math.max(CHART_MIN_WIDTH, Math.round(rect?.width || CHART_WIDTH)),
+    height: Math.max(260, Math.round(rect?.height || CHART_HEIGHT)),
+  };
+}
+
+function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult = null, chartSize = getChargeChartSize()) {
   const attackResult = result && !result.error ? result : null;
   const defenseChartResult = defenseResult && !defenseResult.error ? defenseResult : null;
   const chartResults = [
@@ -909,7 +919,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
   }
 
-  const width = CHART_WIDTH;
+  const width = chartSize.width;
   const margin = { top: 30, right: 42, bottom: 42, left: 0 };
   const visibleTimelineByTeam = new Map(
     chartResults.map((item) => [
@@ -996,7 +1006,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const firstAttackLaneIndex = firstMemberLaneIndex + defenseGroups.length + (hasDefenseTotal ? 1 : 0) + (hasTeamSeparator ? 1 : 0);
   const attackTotalLaneIndex = firstAttackLaneIndex + attackGroups.length;
   const laneCount = attackTotalLaneIndex + (totalGroups.some((group) => group.teamKey === "attack") ? 1 : 0);
-  const height = CHART_HEIGHT;
+  const height = chartSize.height;
   const chartHeight = height - margin.top - margin.bottom;
   const laneByGroupKey = new Map([
     ...defenseGroups.map((group, index) => [group.groupKey, firstMemberLaneIndex + index]),
@@ -1161,7 +1171,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     .join("");
 
   return `
-    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" data-label-gap="${labelGap}" data-label-gutter="${labelGutter}" role="img" aria-label="队伍充能关键帧图表">
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMinYMin meet" data-label-gap="${labelGap}" data-label-gutter="${labelGutter}" role="img" aria-label="队伍充能关键帧图表">
       <rect class="chart-bg" x="0" y="0" width="${width}" height="${height}" rx="8" />
       ${gridLines}
       ${standardLines}
@@ -1600,6 +1610,13 @@ function bindEvents() {
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.chargeChart.addEventListener("mousemove", showNearestChartTooltip);
   els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
+  window.addEventListener("resize", () => {
+    if (resizeRenderId) cancelAnimationFrame(resizeRenderId);
+    resizeRenderId = requestAnimationFrame(() => {
+      resizeRenderId = null;
+      render();
+    });
+  });
   els.commonFilter.addEventListener("change", (event) => {
     state.filters.common = event.target.value;
     renderCharacters();
