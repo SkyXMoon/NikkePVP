@@ -497,7 +497,7 @@ input:focus {
 
 .charge-chart-panel {
   padding: 8px;
-  min-height: 42vh;
+  min-height: 60vh;
   border-top: 3px solid var(--accent);
 }
 
@@ -515,7 +515,7 @@ input:focus {
 
 .charge-chart {
   position: relative;
-  height: calc(42vh - 19px);
+  height: calc(60vh - 19px);
   min-height: 360px;
   overflow: hidden;
   border: 0;
