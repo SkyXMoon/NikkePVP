@@ -785,10 +785,11 @@ function getChargeChartMarkup(result) {
       const entry = pointDetail?.entry || timelineByFrame.get(point.frame);
       const tooltip = contribution
         ? formatTooltipLines([
-            `${contribution.characterName} · ${point.frame}F`,
-            `本次贡献：${contribution.charge.toFixed(2)}%`,
-            `组成：${contribution.labels.join(" + ")}`,
-            `累计总充能：${entry.totalCharge.toFixed(2)}%`,
+            contribution.characterName,
+            `时间：${point.frame} F`,
+            `充能：${contribution.charge.toFixed(2)}%`,
+            `累积充能：${entry.totalCharge.toFixed(2)}%`,
+            `充能组成：${contribution.labels.join(" + ")}`,
           ])
         : "";
       const isFinisher = point.frame === result.fullFrame && finishingPositions.has(point.positionIndex);
