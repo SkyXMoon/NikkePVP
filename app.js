@@ -896,14 +896,16 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, groupKey: group.groupKey, teamKey: group.teamKey, positionIndex: group.member.positionIndex, result: group.result })),
   );
-  const totalResult = attackResult || primaryResult;
-  const totalTimeline = visibleTimelineByTeam.get(attackResult ? "attack" : primaryResult === defenseChartResult ? "defense" : "attack") || [];
-  const visibleStandards = totalResult.fullFrame <= CHART_MAX_FRAME ? [{ label: "", frame: totalResult.fullFrame, isFullFrame: true }] : [];
-  const burstMarkers = [
-    { label: "爆裂1", frame: totalResult.burst1Frame },
-    { label: "爆裂2", frame: totalResult.burst2Frame },
-    { label: "爆裂3", frame: totalResult.burst3Frame },
-  ].filter((marker) => marker.frame <= CHART_MAX_FRAME);
+  const totalGroups = chartResults.map((item) => ({
+    teamKey: item.teamKey,
+    result: item.result,
+    timeline: visibleTimelineByTeam.get(item.teamKey) || [],
+    groupKey: `${item.teamKey}-total`,
+    label: `${TEAM_LABELS[item.teamKey]}-总充能`,
+  }));
+  const primaryTotalGroup = totalGroups.find((group) => group.teamKey === "attack") || totalGroups[0];
+  const visibleStandards =
+    primaryTotalGroup?.result.fullFrame <= CHART_MAX_FRAME ? [{ label: "", frame: primaryTotalGroup.result.fullFrame, isFullFrame: true }] : [];
   const maxFrame = Math.min(
     CHART_MAX_FRAME,
     Math.max(
@@ -911,7 +913,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       1,
     ),
   );
-  const maxBurstFrame = burstMarkers.length ? Math.max(...burstMarkers.map((marker) => marker.frame)) : maxFrame;
   const rlStandards = Array.from({ length: Math.floor(maxFrame / 76) }, (_, index) => ({
     label: `${index + 1}RL`,
     frame: (index + 1) * 76,
@@ -923,7 +924,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const labelGap = 10;
   const chartLabels = [
     "标准轴",
-    "总充能",
+    ...totalGroups.map((group) => group.label),
     ...memberPointGroups.map((group) => {
       const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
       return `${finishingPositions.has(group.member.positionIndex) ? "*" : ""}${group.member.character.name}`;
@@ -937,24 +938,29 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const defenseGroups = memberPointGroups.filter((group) => group.teamKey === "defense");
   const attackGroups = memberPointGroups.filter((group) => group.teamKey === "attack");
   const hasTeamSeparator = defenseGroups.length > 0 && attackGroups.length > 0;
+  const hasDefenseTotal = totalGroups.some((group) => group.teamKey === "defense");
   const firstMemberLaneIndex = 1;
-  const separatorLaneIndex = hasTeamSeparator ? firstMemberLaneIndex + defenseGroups.length : null;
-  const firstAttackLaneIndex = firstMemberLaneIndex + defenseGroups.length + (hasTeamSeparator ? 1 : 0);
-  const totalLaneIndex = firstAttackLaneIndex + attackGroups.length;
-  const laneCount = totalLaneIndex + 1;
+  const defenseTotalLaneIndex = hasDefenseTotal ? firstMemberLaneIndex + defenseGroups.length : null;
+  const separatorLaneIndex = hasTeamSeparator ? firstMemberLaneIndex + defenseGroups.length + (hasDefenseTotal ? 1 : 0) : null;
+  const firstAttackLaneIndex = firstMemberLaneIndex + defenseGroups.length + (hasDefenseTotal ? 1 : 0) + (hasTeamSeparator ? 1 : 0);
+  const attackTotalLaneIndex = firstAttackLaneIndex + attackGroups.length;
+  const laneCount = attackTotalLaneIndex + (totalGroups.some((group) => group.teamKey === "attack") ? 1 : 0);
   const laneByGroupKey = new Map([
     ...defenseGroups.map((group, index) => [group.groupKey, firstMemberLaneIndex + index]),
     ...attackGroups.map((group, index) => [group.groupKey, firstAttackLaneIndex + index]),
   ]);
+  const laneByTotalKey = new Map(
+    totalGroups.map((group) => [group.teamKey, group.teamKey === "defense" ? defenseTotalLaneIndex : attackTotalLaneIndex]).filter(([, lane]) => lane !== null),
+  );
   const yForLane = (index) => margin.top + (laneCount === 1 ? chartHeight / 2 : (chartHeight / laneCount) * index);
-  const yForGroup = (groupKey) => yForLane(laneByGroupKey.get(groupKey) ?? totalLaneIndex);
+  const yForGroup = (groupKey) => yForLane(laneByGroupKey.get(groupKey) ?? attackTotalLaneIndex);
+  const yForTeamTotal = (teamKey) => yForLane(laneByTotalKey.get(teamKey) ?? attackTotalLaneIndex);
   const yForStandard = () => yForLane(standardLaneIndex);
-  const yForTotal = () => yForLane(totalLaneIndex);
 
   const gridLines = tickFrames
     .map((frame) => {
       const x = xForFrame(frame);
-      const isFullFrame = frame === totalResult.fullFrame;
+      const isFullFrame = primaryTotalGroup && frame === primaryTotalGroup.result.fullFrame;
       return `
         <g class="${isFullFrame ? "chart-grid is-full" : "chart-grid"}">
           <line x1="${x}" y1="${margin.top}" x2="${x}" y2="${height - margin.bottom}" />
@@ -1009,7 +1015,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const y = yForGroup(group.groupKey);
       const firstFrame = Math.min(...group.frames);
       const lastFrame = Math.max(...group.frames);
-      return `<line class="chart-track" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
+      return `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
     })
     .join("");
 
@@ -1031,42 +1037,63 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         : "";
       const isFinisher =
         point.frame === point.result.fullFrame && (finishingPositionsByTeam.get(point.teamKey) || new Set()).has(point.positionIndex);
-      return `<circle class="${isFinisher ? "chart-point is-finisher" : "chart-point"}" cx="${x}" cy="${y}" r="${isFinisher ? 7 : 5}"><title>${tooltip}</title></circle>`;
+      return `<circle class="${isFinisher ? `chart-point team-${point.teamKey} is-finisher` : `chart-point team-${point.teamKey}`}" cx="${x}" cy="${y}" r="${isFinisher ? 7 : 5}"><title>${tooltip}</title></circle>`;
     })
     .join("");
 
-  const totalPoints = totalTimeline
-    .map((entry) => {
-      const x = xForFrame(entry.frame);
-      const y = yForTotal();
-      const tooltip = formatTooltipLines([
-        `总充能 · ${entry.frame}F`,
-        `累计总充能：${entry.totalCharge.toFixed(2)}%`,
-        ...entry.contributions.map(
-          (contribution) => `${contribution.characterName}：+${contribution.charge.toFixed(2)}%（${contribution.labels.join(" + ")}）`,
-        ),
-      ]);
-      const isFullFrame = entry.frame === totalResult.fullFrame;
-      return `<circle class="${isFullFrame ? "chart-total-point is-full" : "chart-total-point"}" cx="${x}" cy="${y}" r="${isFullFrame ? 7 : 5}"><title>${tooltip}</title></circle>`;
-    })
+  const totalPoints = totalGroups
+    .flatMap((group) =>
+      group.timeline.map((entry) => {
+        const x = xForFrame(entry.frame);
+        const y = yForTeamTotal(group.teamKey);
+        const tooltip = formatTooltipLines([
+          `${group.label} · ${entry.frame}F`,
+          `累计总充能：${entry.totalCharge.toFixed(2)}%`,
+          ...entry.contributions.map(
+            (contribution) => `${contribution.characterName}：+${contribution.charge.toFixed(2)}%（${contribution.labels.join(" + ")}）`,
+          ),
+        ]);
+        const isFullFrame = entry.frame === group.result.fullFrame;
+        return `<circle class="${isFullFrame ? `chart-total-point team-${group.teamKey} is-full` : `chart-total-point team-${group.teamKey}`}" cx="${x}" cy="${y}" r="${isFullFrame ? 7 : 5}"><title>${tooltip}</title></circle>`;
+      }),
+    )
     .join("");
 
-  const burstPoints = burstMarkers
-    .map((marker) => {
-      const x = xForFrame(marker.frame);
-      const y = yForTotal();
-      return `<circle class="chart-burst-point" cx="${x}" cy="${y}" r="6"><title>${marker.frame} F</title></circle><text class="chart-burst-label" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
-    })
+  const burstPoints = totalGroups
+    .flatMap((group) =>
+      [
+        { label: "爆裂1", frame: group.result.burst1Frame },
+        { label: "爆裂2", frame: group.result.burst2Frame },
+        { label: "爆裂3", frame: group.result.burst3Frame },
+      ]
+        .filter((marker) => marker.frame <= CHART_MAX_FRAME)
+        .map((marker) => {
+          const x = xForFrame(marker.frame);
+          const y = yForTeamTotal(group.teamKey);
+          return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="6"><title>${TEAM_LABELS[group.teamKey]} ${marker.frame} F</title></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
+        }),
+    )
     .join("");
 
-  const chargeTotalTrack =
-    totalTimeline.length > 1
-      ? `<line class="chart-track chart-total-track chart-total-charge-track" x1="${xForFrame(totalTimeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(Math.min(totalResult.fullFrame, CHART_MAX_FRAME))}" y2="${yForTotal()}" />`
-      : "";
-  const burstTotalTrack =
-    burstMarkers.length > 0
-      ? `<line class="chart-track chart-total-track chart-total-burst-track" x1="${xForFrame(burstMarkers[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(maxBurstFrame)}" y2="${yForTotal()}" />`
-      : "";
+  const chargeTotalTrack = totalGroups
+    .map((group) =>
+      group.timeline.length > 1
+        ? `<line class="chart-track chart-total-track chart-total-charge-track team-${group.teamKey}" x1="${xForFrame(group.timeline[0].frame)}" y1="${yForTeamTotal(group.teamKey)}" x2="${xForFrame(Math.min(group.result.fullFrame, CHART_MAX_FRAME))}" y2="${yForTeamTotal(group.teamKey)}" />`
+        : "",
+    )
+    .join("");
+  const burstTotalTrack = totalGroups
+    .map((group) => {
+      const markers = [
+        { label: "爆裂1", frame: group.result.burst1Frame },
+        { label: "爆裂2", frame: group.result.burst2Frame },
+        { label: "爆裂3", frame: group.result.burst3Frame },
+      ].filter((marker) => marker.frame <= CHART_MAX_FRAME);
+      if (markers.length === 0) return "";
+      const maxBurstFrame = Math.max(...markers.map((marker) => marker.frame));
+      return `<line class="chart-track chart-total-track chart-total-burst-track team-${group.teamKey}" x1="${xForFrame(markers[0].frame)}" y1="${yForTeamTotal(group.teamKey)}" x2="${xForFrame(maxBurstFrame)}" y2="${yForTeamTotal(group.teamKey)}" />`;
+    })
+    .join("");
 
   const labels = memberPointGroups.map((group) => {
     const y = yForGroup(group.groupKey);
@@ -1075,7 +1102,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     return `<text class="chart-name" x="0" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + group.member.character.name)}</text>`;
   }).join("");
   const standardLabel = `<text class="chart-name chart-standard-name" x="0" y="${yForStandard() + 4}" text-anchor="start">标准轴</text>`;
-  const totalLabel = `<text class="chart-name chart-total-name" x="0" y="${yForTotal() + 4}" text-anchor="start">总充能</text>`;
+  const totalLabels = totalGroups
+    .map((group) => `<text class="chart-name chart-total-name team-${group.teamKey}" x="0" y="${yForTeamTotal(group.teamKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
+    .join("");
 
   return `
     <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" data-label-gap="${labelGap}" data-label-gutter="${labelGutter}" role="img" aria-label="队伍充能关键帧图表">
@@ -1095,7 +1124,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${burstPoints}
       ${standardLabel}
       ${labels}
-      ${totalLabel}
+      ${totalLabels}
     </svg>
   `;
 }

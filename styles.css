@@ -590,6 +590,14 @@ input:focus {
   stroke-width: 3;
 }
 
+.chart-track.team-defense {
+  stroke: var(--blue);
+}
+
+.chart-track.team-attack {
+  stroke: var(--accent);
+}
+
 .chart-standard-track {
   stroke: var(--gold);
 }
@@ -614,7 +622,6 @@ input:focus {
 }
 
 .chart-total-track {
-  stroke: var(--accent-2);
   stroke-width: 3.5;
 }
 
@@ -622,6 +629,14 @@ input:focus {
   fill: var(--gold);
   stroke: rgba(7, 9, 13, 0.95);
   stroke-width: 1.5;
+}
+
+.chart-point.team-defense {
+  fill: var(--blue);
+}
+
+.chart-point.team-attack {
+  fill: var(--accent);
 }
 
 .chart-point,
@@ -636,22 +651,35 @@ input:focus {
 }
 
 .chart-total-point {
-  fill: var(--accent-2);
   stroke: rgba(7, 9, 13, 0.95);
   stroke-width: 1.8;
 }
 
-.chart-total-point.is-full {
+.chart-total-point.team-defense {
+  fill: var(--blue);
+}
+
+.chart-total-point.team-attack {
   fill: var(--accent);
+}
+
+.chart-total-point.is-full {
   stroke: #ffd9dc;
   stroke-width: 2.2;
 }
 
 .chart-burst-point {
-  fill: var(--blue);
   stroke: rgba(7, 9, 13, 0.95);
   stroke-width: 2;
   cursor: pointer;
+}
+
+.chart-burst-point.team-defense {
+  fill: var(--blue);
+}
+
+.chart-burst-point.team-attack {
+  fill: var(--accent);
 }
 
 .chart-burst-label {
@@ -667,7 +695,17 @@ input:focus {
 }
 
 .chart-total-name {
-  fill: var(--accent-2);
+  fill: var(--accent);
+}
+
+.chart-total-name.team-defense,
+.chart-burst-label.team-defense {
+  fill: #9dccff;
+}
+
+.chart-total-name.team-attack,
+.chart-burst-label.team-attack {
+  fill: #ff9ba5;
 }
 
 .chart-standard-name {
