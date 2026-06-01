@@ -960,7 +960,7 @@ function renderTeam() {
           ${
             isJackalOwner
               ? `
-                <button class="slot-link-toggle${isJackalConnecting ? " is-active" : ""}" type="button" aria-label="${isJackalConnecting ? "关闭" : "开启"}豺狼连接" title="豺狼连接">
+                <button class="slot-link-toggle${isJackalConnecting ? " is-active" : ""}" type="button" aria-label="${isJackalConnecting ? "关闭" : "开启"}豺狼链接" title="豺狼链接">
                   <img src="assets/icons/nikke-top/link.svg" alt="" aria-hidden="true" />
                 </button>
               `
@@ -969,7 +969,7 @@ function renderTeam() {
           ${
             canSelectJackalTarget
               ? `
-                <button class="slot-link-target${isJackalTarget ? " is-selected" : ""}" type="button" aria-label="${isJackalTarget ? "取消" : "选择"}豺狼连接目标 ${escapeHtml(character.name)}" title="${isJackalTarget ? "取消连接" : "连接目标"}">
+                <button class="slot-link-target${isJackalTarget ? " is-selected" : ""}" type="button" aria-label="${isJackalTarget ? "取消" : "选择"}豺狼链接目标 ${escapeHtml(character.name)}" title="${isJackalTarget ? "取消链接" : "链接目标"}">
                   ${isJackalTarget ? '<img src="assets/icons/nikke-top/link.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
                 </button>
               `
@@ -1303,7 +1303,7 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
         return {
           teamKey: item.teamKey,
           groupKey: `${item.teamKey}-jackal-link-${member.positionIndex}`,
-          label: `${TEAM_LABELS[item.teamKey]}-豺狼连接充能`,
+          label: `${TEAM_LABELS[item.teamKey]}-豺狼链接充能`,
           type: "jackalLink",
           member,
           chargePerLink,
@@ -1371,7 +1371,7 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
           frame: entry.frame,
           positionIndex: member.positionIndex,
           chargeValue: chargePerLink * triggerCount,
-          label: "豺狼连接",
+          label: "豺狼链接",
         });
       });
     }
