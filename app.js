@@ -695,16 +695,12 @@ function renderTeam() {
     const row = document.createElement("section");
     row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
     row.dataset.teamKey = teamKey;
-    row.innerHTML = `
-      <button class="team-row-title" type="button">
-        <strong>${TEAM_LABELS[teamKey]}</strong>
-        <span>${state.activeTeamKey === teamKey ? "正在编辑" : "点击编辑"}</span>
-      </button>
-      <div class="team-slots-row"></div>
-    `;
-    row.querySelector(".team-row-title").addEventListener("click", () => {
+    row.setAttribute("aria-label", TEAM_LABELS[teamKey]);
+    row.innerHTML = '<div class="team-slots-row"></div>';
+    row.addEventListener("click", () => {
+      const wasActive = state.activeTeamKey === teamKey;
       setActiveTeam(teamKey);
-      render();
+      if (!wasActive) render();
     });
 
     const slotsRow = row.querySelector(".team-slots-row");
@@ -718,7 +714,6 @@ function renderTeam() {
       slot.innerHTML = character
         ? `
           <button class="slot-remove" type="button" aria-label="移除 ${escapeHtml(character.name)}">
-            <span class="position">P${index + 1}</span>
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
             <span class="slot-copy" aria-hidden="true">
               ${isFinisher ? '<span class="finish-mark">✓</span>' : ""}
