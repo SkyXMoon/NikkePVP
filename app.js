@@ -63,8 +63,10 @@ const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const state = {
   defenseTeam: Array(TEAM_SIZE).fill(null),
   defenseChargeSpeeds: Array(TEAM_SIZE).fill(0),
+  defenseUniversalCharges: Array(TEAM_SIZE).fill(0),
   team: Array(TEAM_SIZE).fill(null),
   chargeSpeeds: Array(TEAM_SIZE).fill(0),
+  universalCharges: Array(TEAM_SIZE).fill(0),
   characterChargeSpeeds: {
     defense: {},
     attack: {},
@@ -158,9 +160,13 @@ function getTeamPositionText(finishingPositionIndices = [], teamKey = "attack") 
   const finishingPositions = new Set(finishingPositionIndices);
   const team = getTeamState(teamKey);
   const chargeSpeeds = getChargeSpeedState(teamKey);
+  const universalCharges = getUniversalChargeState(teamKey);
   return team
     .map((character, index) => {
-      if (!character) return "空位";
+      if (!character) {
+        const universalCharge = sanitizeUniversalCharge(universalCharges[index]);
+        return universalCharge > 0 ? `P${index + 1}万能(${universalCharge})` : "空位";
+      }
       const chargeSpeed = Number(chargeSpeeds[index]) || Number(character.chargeSpeedPercent) || 0;
       const isChargeWeapon = character.weapon === "RL" || character.weapon === "SR";
       const prefix = finishingPositions.has(index) && canShowFinishMarker(character) ? "*" : "";
@@ -221,10 +227,22 @@ function getChargeSpeedState(teamKey = state.activeTeamKey) {
   return normalizeTeamKey(teamKey) === "defense" ? state.defenseChargeSpeeds : state.chargeSpeeds;
 }
 
+function getUniversalChargeState(teamKey = state.activeTeamKey) {
+  return normalizeTeamKey(teamKey) === "defense" ? state.defenseUniversalCharges : state.universalCharges;
+}
+
+function sanitizeUniversalCharge(value) {
+  const charge = Number(value);
+  if (!Number.isFinite(charge) || charge <= 0) return 0;
+  return Math.min(100, Math.round(charge * 1000) / 1000);
+}
+
 function createEmptyLineupSlot() {
   return {
     defenseTeam: Array(TEAM_SIZE).fill(null),
+    defenseUniversalCharges: Array(TEAM_SIZE).fill(0),
     team: Array(TEAM_SIZE).fill(null),
+    universalCharges: Array(TEAM_SIZE).fill(0),
     jackalLinks: {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
@@ -235,7 +253,9 @@ function createEmptyLineupSlot() {
 function serializeLineupSlot() {
   return {
     defenseTeam: state.defenseTeam.map((character) => character?.id || null),
+    defenseUniversalCharges: [...state.defenseUniversalCharges],
     team: state.team.map((character) => character?.id || null),
+    universalCharges: [...state.universalCharges],
     jackalLinks: {
       defense: { ...normalizeJackalLink("defense"), targetIds: [...normalizeJackalLink("defense").targetIds] },
       attack: { ...normalizeJackalLink("attack"), targetIds: [...normalizeJackalLink("attack").targetIds] },
@@ -247,7 +267,9 @@ function normalizeLineupSlot(slot = {}) {
   const empty = createEmptyLineupSlot();
   return {
     defenseTeam: Array.from({ length: TEAM_SIZE }, (_, index) => slot.defenseTeam?.[index] ?? empty.defenseTeam[index]),
+    defenseUniversalCharges: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(slot.defenseUniversalCharges?.[index])),
     team: Array.from({ length: TEAM_SIZE }, (_, index) => slot.team?.[index] ?? empty.team[index]),
+    universalCharges: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(slot.universalCharges?.[index])),
     jackalLinks: {
       defense: {
         enabled: Boolean(slot.jackalLinks?.defense?.enabled),
@@ -274,7 +296,9 @@ function saveCurrentLineupSlot() {
 function loadLineupSlot(index) {
   const slot = normalizeLineupSlot(state.lineupSlots[index]);
   state.defenseTeam = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => getCharacterById(slot.defenseTeam[slotIndex]));
+  state.defenseUniversalCharges = [...slot.defenseUniversalCharges];
   state.team = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => getCharacterById(slot.team[slotIndex]));
+  state.universalCharges = [...slot.universalCharges];
   applySavedTeamChargeSpeeds("defense");
   applySavedTeamChargeSpeeds("attack");
   state.jackalLinks = {
@@ -740,7 +764,18 @@ function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTime
 }
 
 function characterForSlot(character, positionIndex, teamKey = "attack") {
-  if (!character) return null;
+  if (!character) {
+    const universalChargeValue = sanitizeUniversalCharge(getUniversalChargeState(teamKey)[positionIndex]);
+    if (universalChargeValue <= 0) return null;
+    return {
+      id: `universal-${teamKey}-${positionIndex}`,
+      name: `P${positionIndex + 1}万能`,
+      rarity: "CUSTOM",
+      weapon: "UNIVERSAL",
+      burstStage: "B0",
+      universalChargeValue,
+    };
+  }
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const savedMagazine = isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
   return {
@@ -751,6 +786,10 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   };
 }
 
+function isUniversalChargeCharacter(character) {
+  return character?.weapon === "UNIVERSAL";
+}
+
 function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], opponentReloadTimeline = [], stunWindows = []) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
@@ -758,7 +797,8 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
 
   if (members.length === 0) return null;
 
-  const events = members.map((member) => {
+  const universalMembers = members.filter((member) => isUniversalChargeCharacter(member.character));
+  const events = members.filter((member) => !isUniversalChargeCharacter(member.character)).map((member) => {
     const timing = getChargeFrames(member.character, member.positionIndex, teamKey);
     return {
       ...member,
@@ -783,10 +823,32 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
   let totalCharge = 0;
   let currentFrame = 0;
   let pendingExtraEvents = [];
-  let currentFrameContributors = new Set();
+  let currentFrameContributors = new Set(universalMembers.map((member) => member.positionIndex));
   const timeline = [];
+  if (universalMembers.length) {
+    const contributions = universalMembers.map((member) => {
+      const charge = member.character.universalChargeValue;
+      totalCharge += charge;
+      return {
+        positionIndex: member.positionIndex,
+        characterName: member.character.name,
+        charge,
+        cumulativeCharge: charge,
+        labels: ["万能充能"],
+        counterHits: 0,
+        positionHits: [],
+        showOnMember: true,
+      };
+    });
+    timeline.push({
+      frame: 0,
+      totalCharge,
+      contributions,
+    });
+  }
 
   while (totalCharge < 100 - BURST_EPSILON && currentFrame <= 10000) {
+    if (events.length === 0 && pendingExtraEvents.length === 0 && specialChargeEvents.length === 0) break;
     const nextAttackFrame = Math.min(...events.map((event) => event.nextFrame));
     const nextExtraFrame = pendingExtraEvents.length ? Math.min(...pendingExtraEvents.map((event) => event.frame)) : Infinity;
     const nextSpecialFrame = specialChargeEvents.length ? Math.min(...specialChargeEvents.map((event) => event.frame)) : Infinity;
@@ -1417,7 +1479,12 @@ function createSlotSettingsModal() {
 }
 
 function getLineupSlotCount(slot) {
-  return [...(slot.defenseTeam || []), ...(slot.team || [])].filter(Boolean).length;
+  return [
+    ...(slot.defenseTeam || []).filter(Boolean),
+    ...(slot.team || []).filter(Boolean),
+    ...(slot.defenseUniversalCharges || []).filter((charge) => sanitizeUniversalCharge(charge) > 0),
+    ...(slot.universalCharges || []).filter((charge) => sanitizeUniversalCharge(charge) > 0),
+  ].length;
 }
 
 function renderLineupSlots() {
@@ -1447,6 +1514,7 @@ function renderTeam() {
   ["defense", "attack"].forEach((teamKey) => {
     const team = getTeamState(teamKey);
     const chargeSpeeds = getChargeSpeedState(teamKey);
+    const universalCharges = getUniversalChargeState(teamKey);
     const row = document.createElement("section");
     row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
     row.dataset.teamKey = teamKey;
@@ -1470,6 +1538,7 @@ function renderTeam() {
       const isFinisher = finishingPositions.has(index) && canShowFinishMarker(character);
       const isSettingsOpen = character && isSlotSettingsOpen(teamKey, index);
       const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
+      const universalChargeValue = sanitizeUniversalCharge(universalCharges[index]);
       const savedMagazine = character && isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
@@ -1484,7 +1553,7 @@ function renderTeam() {
       const canSelectJackalTarget =
         character && character.id !== jackalLinkState.ownerId && isJackalConnecting && (isJackalTarget || jackalTargetIds.size < 2);
       const slot = document.createElement("div");
-      slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
+      slot.className = `team-slot${character ? " filled" : ""}${!character && universalChargeValue > 0 ? " has-universal" : ""}${isFinisher ? " is-finisher" : ""}`;
       slot.dataset.slotIndex = index;
       slot.dataset.teamKey = teamKey;
       slot.draggable = Boolean(character);
@@ -1523,7 +1592,10 @@ function renderTeam() {
         : `
           <div class="slot-empty">
             <span class="position">P${index + 1}</span>
-            <span class="team-avatar empty-avatar">+</span>
+            <label class="universal-charge-field" aria-label="P${index + 1}万能充能值">
+              <span>万能</span>
+              <input type="number" min="0" max="100" step="0.01" value="${universalChargeValue || ""}" placeholder="0" data-universal-index="${index}" />
+            </label>
           </div>
         `;
 
@@ -1630,6 +1702,20 @@ function renderTeam() {
             event.stopPropagation();
           });
         }
+      } else {
+        const universalInput = slot.querySelector("[data-universal-index]");
+        universalInput.addEventListener("click", (event) => event.stopPropagation());
+        universalInput.addEventListener("focus", (event) => event.target.select());
+        universalInput.addEventListener("input", (event) => {
+          setActiveTeam(teamKey);
+          const value = sanitizeUniversalCharge(event.target.value);
+          universalCharges[index] = value;
+          slot.classList.toggle("has-universal", value > 0);
+          saveTeam();
+          renderResults();
+          updateTeamFinishMarkers();
+          renderLineupSlots();
+        });
       }
       slotsRow.append(slot);
     });
@@ -2734,6 +2820,7 @@ function moveTeamSlotLegacy(fromIndex, toIndex) {
 function clearTeamLegacy() {
   state.team = Array(TEAM_SIZE).fill(null);
   state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
+  state.universalCharges = Array(TEAM_SIZE).fill(0);
   saveTeam();
   render();
 }
@@ -2741,12 +2828,13 @@ function clearTeamLegacy() {
 function addCharacter(character) {
   const team = getTeamState();
   const chargeSpeeds = getChargeSpeedState();
+  const universalCharges = getUniversalChargeState();
   if (team.some((member) => member && member.id === character.id)) {
     showToast(`${character.name} 已在${TEAM_LABELS[state.activeTeamKey]}中`);
     return;
   }
 
-  const emptyIndex = team.findIndex((member) => !member);
+  const emptyIndex = team.findIndex((member, index) => !member && sanitizeUniversalCharge(universalCharges[index]) <= 0);
   if (emptyIndex === -1) {
     showToast(`${TEAM_LABELS[state.activeTeamKey]}已满，请先移除一个槽位`);
     return;
@@ -2754,6 +2842,7 @@ function addCharacter(character) {
 
   team[emptyIndex] = character;
   chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, state.activeTeamKey);
+  universalCharges[emptyIndex] = 0;
   openSlotSettings = null;
   saveTeam();
   render();
@@ -2772,8 +2861,10 @@ function toggleCharacter(character) {
 function removeCharacter(teamKey, index) {
   const team = getTeamState(teamKey);
   const chargeSpeeds = getChargeSpeedState(teamKey);
+  const universalCharges = getUniversalChargeState(teamKey);
   team[index] = null;
   chargeSpeeds[index] = 0;
+  universalCharges[index] = 0;
   normalizeJackalLink(teamKey);
   openSlotSettings = null;
   saveTeam();
@@ -2785,6 +2876,8 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
   const toTeam = getTeamState(toTeamKey);
   const fromSpeeds = getChargeSpeedState(fromTeamKey);
   const toSpeeds = getChargeSpeedState(toTeamKey);
+  const fromUniversalCharges = getUniversalChargeState(fromTeamKey);
+  const toUniversalCharges = getUniversalChargeState(toTeamKey);
 
   if (
     (fromTeamKey === toTeamKey && fromIndex === toIndex) ||
@@ -2799,17 +2892,21 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
 
   const fromCharacter = fromTeam[fromIndex];
   const fromSpeed = fromSpeeds[fromIndex];
+  const fromUniversalCharge = fromUniversalCharges[fromIndex];
 
   if (toTeam[toIndex]) {
     [fromTeam[fromIndex], toTeam[toIndex]] = [toTeam[toIndex], fromTeam[fromIndex]];
     [fromSpeeds[fromIndex], toSpeeds[toIndex]] = [toSpeeds[toIndex], fromSpeeds[fromIndex]];
+    [fromUniversalCharges[fromIndex], toUniversalCharges[toIndex]] = [toUniversalCharges[toIndex], fromUniversalCharges[fromIndex]];
     rememberTeamSlotChargeSpeed(fromTeamKey, fromIndex);
     rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
   } else {
     toTeam[toIndex] = fromCharacter;
     toSpeeds[toIndex] = fromSpeed;
+    toUniversalCharges[toIndex] = fromUniversalCharge;
     fromTeam[fromIndex] = null;
     fromSpeeds[fromIndex] = 0;
+    fromUniversalCharges[fromIndex] = 0;
     rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
   }
 
@@ -2824,8 +2921,10 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
 function clearTeam() {
   state.defenseTeam = Array(TEAM_SIZE).fill(null);
   state.defenseChargeSpeeds = Array(TEAM_SIZE).fill(0);
+  state.defenseUniversalCharges = Array(TEAM_SIZE).fill(0);
   state.team = Array(TEAM_SIZE).fill(null);
   state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
+  state.universalCharges = Array(TEAM_SIZE).fill(0);
   normalizeJackalLinks();
   openSlotSettings = null;
   saveTeam();
@@ -2837,6 +2936,7 @@ function swapBattleTeams() {
   rememberTeamChargeSpeeds("attack");
 
   [state.defenseTeam, state.team] = [state.team, state.defenseTeam];
+  [state.defenseUniversalCharges, state.universalCharges] = [state.universalCharges, state.defenseUniversalCharges];
   [state.jackalLinks.defense, state.jackalLinks.attack] = [state.jackalLinks.attack, state.jackalLinks.defense];
 
   applySavedTeamChargeSpeeds("defense");
@@ -2898,8 +2998,10 @@ function saveTeam() {
     JSON.stringify({
       defenseTeam: state.defenseTeam.map((character) => character?.id || null),
       defenseChargeSpeeds: state.defenseChargeSpeeds,
+      defenseUniversalCharges: [...state.defenseUniversalCharges],
       team: state.team.map((character) => character?.id || null),
       chargeSpeeds: state.chargeSpeeds,
+      universalCharges: [...state.universalCharges],
       characterChargeSpeeds: state.characterChargeSpeeds,
       characterQuantumCubes: state.characterQuantumCubes,
       characterMagazines: state.characterMagazines,
@@ -2919,8 +3021,10 @@ function loadTeam() {
       const saved = JSON.parse(raw);
       state.defenseTeam = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(saved.defenseTeam?.[index]));
       state.defenseChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => Number(saved.defenseChargeSpeeds?.[index]) || 0);
+      state.defenseUniversalCharges = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(saved.defenseUniversalCharges?.[index]));
       state.team = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(saved.team?.[index]));
       state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => Number(saved.chargeSpeeds?.[index]) || 0);
+      state.universalCharges = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(saved.universalCharges?.[index]));
       state.characterChargeSpeeds = {
         defense: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.defense),
         attack: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.attack),
@@ -2968,8 +3072,10 @@ function loadTeam() {
   } catch {
     state.defenseTeam = Array(TEAM_SIZE).fill(null);
     state.defenseChargeSpeeds = Array(TEAM_SIZE).fill(0);
+    state.defenseUniversalCharges = Array(TEAM_SIZE).fill(0);
     state.team = Array(TEAM_SIZE).fill(null);
     state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
+    state.universalCharges = Array(TEAM_SIZE).fill(0);
     state.characterChargeSpeeds = { defense: {}, attack: {} };
     state.characterQuantumCubes = { defense: {}, attack: {} };
     state.characterMagazines = { defense: {}, attack: {} };
