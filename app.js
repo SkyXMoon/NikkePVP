@@ -1,6 +1,7 @@
 const FRAMES_PER_SECOND = 60;
 const TEAM_SIZE = 5;
 const ENEMY_TEAM_SIZE = 5;
+const LINEUP_SLOT_COUNT = 10;
 const DEFAULT_RL_TARGET_INDEX = 0;
 const BURST_EPSILON = 1e-6;
 const STORAGE_KEY = "nikke-arena-charge-team-v2";
@@ -69,6 +70,8 @@ const state = {
     defense: { enabled: false, ownerId: null, targetIds: [] },
     attack: { enabled: false, ownerId: null, targetIds: [] },
   },
+  activeLineupIndex: 0,
+  lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
   allowMissedShots: true,
   activeTeamKey: "attack",
   filters: {
@@ -86,6 +89,7 @@ const els = {
   teamSlots: document.querySelector("#teamSlots"),
   resultPanel: document.querySelector("#resultPanel"),
   chargeChart: document.querySelector("#chargeChart"),
+  lineupSlots: document.querySelector("#lineupSlots"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
   allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
@@ -173,6 +177,75 @@ function getTeamState(teamKey = state.activeTeamKey) {
 
 function getChargeSpeedState(teamKey = state.activeTeamKey) {
   return normalizeTeamKey(teamKey) === "defense" ? state.defenseChargeSpeeds : state.chargeSpeeds;
+}
+
+function createEmptyLineupSlot() {
+  return {
+    defenseTeam: Array(TEAM_SIZE).fill(null),
+    defenseChargeSpeeds: Array(TEAM_SIZE).fill(0),
+    team: Array(TEAM_SIZE).fill(null),
+    chargeSpeeds: Array(TEAM_SIZE).fill(0),
+    jackalLinks: {
+      defense: { enabled: false, ownerId: null, targetIds: [] },
+      attack: { enabled: false, ownerId: null, targetIds: [] },
+    },
+  };
+}
+
+function serializeLineupSlot() {
+  return {
+    defenseTeam: state.defenseTeam.map((character) => character?.id || null),
+    defenseChargeSpeeds: [...state.defenseChargeSpeeds],
+    team: state.team.map((character) => character?.id || null),
+    chargeSpeeds: [...state.chargeSpeeds],
+    jackalLinks: {
+      defense: { ...normalizeJackalLink("defense"), targetIds: [...normalizeJackalLink("defense").targetIds] },
+      attack: { ...normalizeJackalLink("attack"), targetIds: [...normalizeJackalLink("attack").targetIds] },
+    },
+  };
+}
+
+function normalizeLineupSlot(slot = {}) {
+  const empty = createEmptyLineupSlot();
+  return {
+    defenseTeam: Array.from({ length: TEAM_SIZE }, (_, index) => slot.defenseTeam?.[index] ?? empty.defenseTeam[index]),
+    defenseChargeSpeeds: Array.from({ length: TEAM_SIZE }, (_, index) => Number(slot.defenseChargeSpeeds?.[index]) || 0),
+    team: Array.from({ length: TEAM_SIZE }, (_, index) => slot.team?.[index] ?? empty.team[index]),
+    chargeSpeeds: Array.from({ length: TEAM_SIZE }, (_, index) => Number(slot.chargeSpeeds?.[index]) || 0),
+    jackalLinks: {
+      defense: {
+        enabled: Boolean(slot.jackalLinks?.defense?.enabled),
+        ownerId: slot.jackalLinks?.defense?.ownerId || null,
+        targetIds: Array.isArray(slot.jackalLinks?.defense?.targetIds) ? slot.jackalLinks.defense.targetIds : [],
+      },
+      attack: {
+        enabled: Boolean(slot.jackalLinks?.attack?.enabled),
+        ownerId: slot.jackalLinks?.attack?.ownerId || null,
+        targetIds: Array.isArray(slot.jackalLinks?.attack?.targetIds) ? slot.jackalLinks.attack.targetIds : [],
+      },
+    },
+  };
+}
+
+function normalizeLineupSlots(savedSlots = []) {
+  return Array.from({ length: LINEUP_SLOT_COUNT }, (_, index) => normalizeLineupSlot(savedSlots[index]));
+}
+
+function saveCurrentLineupSlot() {
+  state.lineupSlots[state.activeLineupIndex] = serializeLineupSlot();
+}
+
+function loadLineupSlot(index) {
+  const slot = normalizeLineupSlot(state.lineupSlots[index]);
+  state.defenseTeam = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => getCharacterById(slot.defenseTeam[slotIndex]));
+  state.defenseChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => Number(slot.defenseChargeSpeeds[slotIndex]) || 0);
+  state.team = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => getCharacterById(slot.team[slotIndex]));
+  state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => Number(slot.chargeSpeeds[slotIndex]) || 0);
+  state.jackalLinks = {
+    defense: { ...slot.jackalLinks.defense, targetIds: [...slot.jackalLinks.defense.targetIds] },
+    attack: { ...slot.jackalLinks.attack, targetIds: [...slot.jackalLinks.attack.targetIds] },
+  };
+  normalizeJackalLinks();
 }
 
 function getCharacterChargeSpeedMemory(teamKey = state.activeTeamKey) {
@@ -1204,6 +1277,26 @@ function createSlotSettingsModal() {
   });
 
   return backdrop;
+}
+
+function getLineupSlotCount(slot) {
+  return [...(slot.defenseTeam || []), ...(slot.team || [])].filter(Boolean).length;
+}
+
+function renderLineupSlots() {
+  if (!els.lineupSlots) return;
+  const fragment = document.createDocumentFragment();
+  state.lineupSlots.forEach((slot, index) => {
+    const count = getLineupSlotCount(slot);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `lineup-slot-button${index === state.activeLineupIndex ? " is-active" : ""}${count ? " has-lineup" : ""}`;
+    button.dataset.lineupIndex = index;
+    button.textContent = String(index + 1);
+    button.title = `方案 ${index + 1}${count ? ` · ${count}/10` : " · 空"}`;
+    fragment.append(button);
+  });
+  els.lineupSlots.replaceChildren(fragment);
 }
 
 function renderTeam() {
@@ -2356,6 +2449,7 @@ function renderResults() {
 function render() {
   renderCharacters();
   renderTeam();
+  renderLineupSlots();
   renderResults();
 }
 
@@ -2538,6 +2632,17 @@ function swapBattleTeams() {
   render();
 }
 
+function switchLineupSlot(index) {
+  const nextIndex = Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(index) || 0));
+  if (nextIndex === state.activeLineupIndex) return;
+  saveCurrentLineupSlot();
+  state.activeLineupIndex = nextIndex;
+  loadLineupSlot(nextIndex);
+  openSlotSettings = null;
+  saveTeam();
+  render();
+}
+
 function normalizeSavedCharacterChargeSpeeds(savedSpeeds = {}) {
   return Object.fromEntries(
     Object.entries(savedSpeeds || {})
@@ -2572,6 +2677,7 @@ function rememberLoadedTeamChargeSpeeds(teamKey) {
 
 function saveTeam() {
   normalizeJackalLinks();
+  saveCurrentLineupSlot();
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
@@ -2582,6 +2688,8 @@ function saveTeam() {
       characterChargeSpeeds: state.characterChargeSpeeds,
       characterQuantumCubes: state.characterQuantumCubes,
       characterMagazines: state.characterMagazines,
+      activeLineupIndex: state.activeLineupIndex,
+      lineupSlots: state.lineupSlots,
       jackalLinks: state.jackalLinks,
       allowMissedShots: state.allowMissedShots,
       activeTeamKey: state.activeTeamKey,
@@ -2622,6 +2730,13 @@ function loadTeam() {
           targetIds: Array.isArray(saved.jackalLinks?.attack?.targetIds) ? saved.jackalLinks.attack.targetIds : [],
         },
       };
+      state.activeLineupIndex = Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(saved.activeLineupIndex) || 0));
+      state.lineupSlots = normalizeLineupSlots(saved.lineupSlots);
+      if (Array.isArray(saved.lineupSlots)) {
+        loadLineupSlot(state.activeLineupIndex);
+      } else {
+        saveCurrentLineupSlot();
+      }
       state.allowMissedShots = saved.allowMissedShots !== false;
       rememberLoadedTeamChargeSpeeds("defense");
       rememberLoadedTeamChargeSpeeds("attack");
@@ -2633,6 +2748,7 @@ function loadTeam() {
     const legacyIds = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "[]");
     if (Array.isArray(legacyIds)) {
       state.team = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(legacyIds[index]));
+      saveCurrentLineupSlot();
     }
   } catch {
     state.defenseTeam = Array(TEAM_SIZE).fill(null);
@@ -2642,6 +2758,8 @@ function loadTeam() {
     state.characterChargeSpeeds = { defense: {}, attack: {} };
     state.characterQuantumCubes = { defense: {}, attack: {} };
     state.characterMagazines = { defense: {}, attack: {} };
+    state.activeLineupIndex = 0;
+    state.lineupSlots = Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot());
     state.jackalLinks = {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
@@ -2707,6 +2825,11 @@ function bindEvents() {
     state.allowMissedShots = event.target.checked;
     saveTeam();
     render();
+  });
+  els.lineupSlots.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-lineup-index]");
+    if (!button) return;
+    switchLineupSlot(Number(button.dataset.lineupIndex));
   });
   els.chargeChart.addEventListener("mousemove", showNearestChartTooltip);
   els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
