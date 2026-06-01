@@ -347,6 +347,11 @@ function getAttackShotCount(event) {
   return MG_WARMUP_EVENTS[event.mgWarmupIndex]?.shots ?? 1;
 }
 
+function getCounterHitCount(character, shotCount = 1) {
+  if (character.weapon === "SG") return shotCount * 10;
+  return shotCount;
+}
+
 function advanceAttackEvent(event) {
   if (event.character.weapon !== "MG") {
     event.nextFrame += event.interval;
@@ -406,7 +411,7 @@ function simulateBurst(team, teamKey = "attack") {
     currentFrame = Math.min(nextAttackFrame, nextExtraFrame);
     currentFrameContributors = new Set();
     const contributions = new Map();
-    const addContribution = (event, value, label) => {
+    const addContribution = (event, value, label, counterHits = 1) => {
       if (!event || !value) return;
       currentFrameContributors.add(event.positionIndex);
       const current = contributions.get(event.positionIndex) || {
@@ -415,10 +420,12 @@ function simulateBurst(team, teamKey = "attack") {
         charge: 0,
         cumulativeCharge: 0,
         labels: [],
+        counterHits: 0,
       };
       current.charge += value;
       current.cumulativeCharge = event.totalCharge;
       current.labels.push(label);
+      current.counterHits += Math.max(Number(counterHits) || 0, 1);
       contributions.set(event.positionIndex, current);
     };
 
@@ -442,6 +449,10 @@ function simulateBurst(team, teamKey = "attack") {
       event.hits += shotCount;
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
       addContribution(event, chargeValue, shotCount > 1 ? `${shotCount}发命中` : "命中");
+      const currentContribution = contributions.get(event.positionIndex);
+      if (currentContribution) {
+        currentContribution.counterHits += getCounterHitCount(event.character, shotCount) - 1;
+      }
       const hitCountExtraCharge = getHitCountExtraCharge(event);
       totalCharge += hitCountExtraCharge;
       event.totalCharge += hitCountExtraCharge;
@@ -460,6 +471,7 @@ function simulateBurst(team, teamKey = "attack") {
           charge: contribution.charge,
           cumulativeCharge: contribution.cumulativeCharge,
           labels: contribution.labels,
+          counterHits: contribution.counterHits,
         })),
       });
     }
@@ -969,6 +981,9 @@ function isScarlet(character) {
 
 function getCounterTriggerCount(entry) {
   const count = entry.contributions.reduce((sum, contribution) => {
+    if (Number.isFinite(contribution.counterHits)) {
+      return sum + Math.max(contribution.counterHits, 1);
+    }
     const labelCount = contribution.labels.reduce((labelSum, label) => {
       const match = String(label).match(/(\d+)\s*发|[x×]\s*(\d+)/i);
       return labelSum + (match ? Number(match[1] || match[2]) || 1 : 1);
