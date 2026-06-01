@@ -188,7 +188,7 @@ h2 {
 label {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   color: var(--quiet);
   font-size: 12px;
 }
