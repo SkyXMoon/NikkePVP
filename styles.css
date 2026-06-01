@@ -583,6 +583,23 @@ input:focus {
   stroke-width: 3;
 }
 
+.chart-standard-track {
+  stroke: var(--gold);
+}
+
+.chart-standard-point {
+  fill: var(--gold);
+  stroke: rgba(7, 9, 13, 0.95);
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.chart-standard-label {
+  fill: #fff7d7;
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .chart-total-track {
   stroke: var(--accent-2);
   stroke-width: 3.5;
@@ -638,6 +655,10 @@ input:focus {
 
 .chart-total-name {
   fill: var(--accent-2);
+}
+
+.chart-standard-name {
+  fill: var(--gold);
 }
 
 .chart-axis-label {

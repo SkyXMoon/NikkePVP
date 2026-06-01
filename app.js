@@ -712,25 +712,32 @@ function getChargeChartMarkup(result) {
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, positionIndex: group.member.positionIndex })),
   );
-  const visibleStandards = [
-    ...STANDARD_CHARGE_FRAMES.filter((standard) => standard.label.includes("RL") || standard.label === "5SG"),
-    { label: "", frame: result.fullFrame, isFullFrame: true },
-  ];
+  const rlStandards = STANDARD_CHARGE_FRAMES.filter((standard) => standard.label.includes("RL"));
+  const visibleStandards = [{ label: "", frame: result.fullFrame, isFullFrame: true }];
   const burstMarkers = [
     { label: "爆裂1", frame: result.burst1Frame },
     { label: "爆裂2", frame: result.burst2Frame },
     { label: "爆裂3", frame: result.burst3Frame },
   ];
-  const maxFrame = Math.max(result.fullFrame, ...visibleStandards.map((standard) => standard.frame), ...burstMarkers.map((marker) => marker.frame), 1);
+  const maxFrame = Math.max(
+    result.fullFrame,
+    ...visibleStandards.map((standard) => standard.frame),
+    ...rlStandards.map((standard) => standard.frame),
+    ...burstMarkers.map((marker) => marker.frame),
+    1,
+  );
   const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
   const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
   const finishingPositions = new Set(result.finishingPositionIndices);
   const xForFrame = (frame) => margin.left + (frame / maxFrame) * chartWidth;
-  const totalLaneIndex = result.members.length;
-  const laneCount = result.members.length + 1;
+  const standardLaneIndex = 0;
+  const firstMemberLaneIndex = 1;
+  const totalLaneIndex = result.members.length + 1;
+  const laneCount = result.members.length + 2;
   const yForLane = (index) => margin.top + (chartHeight / (laneCount + 1)) * (index + 1);
-  const yForPosition = (index) => yForLane(laneByPosition.get(index) ?? totalLaneIndex);
+  const yForPosition = (index) => yForLane((laneByPosition.get(index) ?? result.members.length) + firstMemberLaneIndex);
+  const yForStandard = () => yForLane(standardLaneIndex);
   const yForTotal = () => yForLane(totalLaneIndex);
 
   const gridLines = tickFrames
@@ -765,6 +772,15 @@ function getChargeChartMarkup(result) {
     const y = yForLane(index);
     return `<line class="chart-position-line" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />`;
   }).join("");
+
+  const standardTrack = `<line class="chart-track chart-standard-track" x1="${xForFrame(rlStandards[0]?.frame ?? 0)}" y1="${yForStandard()}" x2="${xForFrame(rlStandards.at(-1)?.frame ?? 0)}" y2="${yForStandard()}" />`;
+  const standardPoints = rlStandards
+    .map((standard) => {
+      const x = xForFrame(standard.frame);
+      const y = yForStandard();
+      return `<circle class="chart-standard-point" cx="${x}" cy="${y}" r="5"><title>${escapeHtml(`${standard.label} · ${standard.frame} F`)}</title></circle><text class="chart-standard-label" x="${x}" y="${y - 12}" text-anchor="middle">${escapeHtml(standard.label)}</text>`;
+    })
+    .join("");
 
   const tracks = memberPointGroups
     .map((group) => {
@@ -832,6 +848,7 @@ function getChargeChartMarkup(result) {
     const prefix = finishingPositions.has(member.positionIndex) ? "*" : "";
     return `<text class="chart-name" x="${margin.left - 14}" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + member.character.name)}</text>`;
   }).join("");
+  const standardLabel = `<text class="chart-name chart-standard-name" x="${margin.left - 14}" y="${yForStandard() + 4}" text-anchor="end">标准轴</text>`;
   const totalLabel = `<text class="chart-name chart-total-name" x="${margin.left - 14}" y="${yForTotal() + 4}" text-anchor="end">总充能</text>`;
 
   return `
@@ -840,12 +857,15 @@ function getChargeChartMarkup(result) {
       ${gridLines}
       ${standardLines}
       ${positionLines}
+      ${standardTrack}
+      ${standardPoints}
       ${tracks}
       ${chargeTotalTrack}
       ${burstTotalTrack}
       ${pointMarks}
       ${totalPoints}
       ${burstPoints}
+      ${standardLabel}
       ${labels}
       ${totalLabel}
     </svg>
