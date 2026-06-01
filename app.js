@@ -823,7 +823,7 @@ function getChargeChartMarkup(result) {
 
   const totalTrack =
     result.timeline.length > 1
-      ? `<line class="chart-track chart-total-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(result.fullFrame)}" y2="${yForTotal()}" />`
+      ? `<line class="chart-track chart-total-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(Math.max(result.timeline.at(-1).frame, ...burstMarkers.map((marker) => marker.frame)))}" y2="${yForTotal()}" />`
       : "";
 
   const labels = result.members.map((member) => {
@@ -846,7 +846,6 @@ function getChargeChartMarkup(result) {
       ${burstPoints}
       ${labels}
       ${totalLabel}
-      <text class="chart-axis-label" x="${margin.left + chartWidth / 2}" y="${height - 12}" text-anchor="middle">时间 (F)</text>
     </svg>
   `;
 }
