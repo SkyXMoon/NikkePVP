@@ -780,6 +780,7 @@ function renderTeam() {
       if (character) {
         slot.querySelector(".slot-remove").addEventListener("click", (event) => {
           event.stopPropagation();
+          setActiveTeam(teamKey);
           removeCharacter(teamKey, index);
         });
         const speedControl = slot.querySelector(".speed-control");
