@@ -1652,7 +1652,11 @@ function getCumulativeContributionLines(result, frame) {
     .filter((entry) => entry.frame <= frame)
     .forEach((entry) => {
       entry.contributions.forEach((contribution) => {
-        cumulativeByPosition.set(contribution.positionIndex, contribution.cumulativeCharge);
+        if (contribution.showOnMember === false) return;
+        cumulativeByPosition.set(
+          contribution.positionIndex,
+          (cumulativeByPosition.get(contribution.positionIndex) || 0) + contribution.charge,
+        );
       });
     });
 
@@ -1665,11 +1669,26 @@ function getCumulativeContributionLines(result, frame) {
     .filter(Boolean);
 }
 
-function getTotalEntryContributionLines(entry) {
-  return entry.contributions
-    .map((contribution) => {
-      const labels = contribution.labels.length ? `（${contribution.labels.join(" + ")}）` : "";
-      return `${contribution.characterName}：+${contribution.charge.toFixed(2)}%${labels}`;
+function getSpecialContributionLines(result, frame, labelText) {
+  const cumulativeByPosition = new Map();
+  result.timeline
+    .filter((entry) => entry.frame <= frame)
+    .forEach((entry) => {
+      entry.contributions.forEach((contribution) => {
+        if (contribution.showOnMember !== false) return;
+        if (!contribution.labels.some((label) => label.includes(labelText))) return;
+        cumulativeByPosition.set(
+          contribution.positionIndex,
+          (cumulativeByPosition.get(contribution.positionIndex) || 0) + contribution.charge,
+        );
+      });
+    });
+
+  return result.members
+    .map((member) => {
+      const cumulative = cumulativeByPosition.get(member.positionIndex) || 0;
+      if (cumulative <= BURST_EPSILON) return null;
+      return `${member.character.name}：${cumulative.toFixed(2)}%`;
     })
     .filter(Boolean);
 }
@@ -1987,13 +2006,15 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       group.timeline.map((entry) => {
         const x = xForFrame(entry.frame);
         const y = yForTeamTotal(group.teamKey);
-        const currentContributionLines = getTotalEntryContributionLines(entry);
-        const cumulativeLines = getCumulativeContributionLines(group.result, entry.frame);
+        const jackalLinkLines = getSpecialContributionLines(group.result, entry.frame, "豺狼链接");
+        const scarletCounterLines = getSpecialContributionLines(group.result, entry.frame, "红莲反击");
+        const characterChargeLines = getCumulativeContributionLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
           `累计总充能：${entry.totalCharge.toFixed(2)}%`,
-          ...(currentContributionLines.length ? ["当前帧充能：", ...currentContributionLines] : []),
-          ...(cumulativeLines.length ? ["各角色累计贡献：", ...cumulativeLines] : []),
+          ...(jackalLinkLines.length ? ["豺狼链接充能：", ...jackalLinkLines] : []),
+          ...(scarletCounterLines.length ? ["红莲反击充能：", ...scarletCounterLines] : []),
+          ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
         ]);
         return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
       }),
