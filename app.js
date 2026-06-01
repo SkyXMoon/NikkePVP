@@ -56,8 +56,8 @@ const state = {
     attack: {},
   },
   jackalLinks: {
-    defense: { enabled: false, targetIds: [] },
-    attack: { enabled: false, targetIds: [] },
+    defense: { enabled: false, ownerId: null, targetIds: [] },
+    attack: { enabled: false, ownerId: null, targetIds: [] },
   },
   activeTeamKey: "attack",
   filters: {
@@ -698,27 +698,42 @@ function toggleSlotSettings(teamKey, index) {
 function getJackalLinkState(teamKey = state.activeTeamKey) {
   const normalizedTeamKey = normalizeTeamKey(teamKey);
   if (!state.jackalLinks[normalizedTeamKey]) {
-    state.jackalLinks[normalizedTeamKey] = { enabled: false, targetIds: [] };
+    state.jackalLinks[normalizedTeamKey] = { enabled: false, ownerId: null, targetIds: [] };
   }
   return state.jackalLinks[normalizedTeamKey];
 }
 
-function getTeamJackal(teamKey = state.activeTeamKey) {
-  return getTeamState(teamKey).find((character) => character && isJackal(character)) || null;
+function isLinkProvider(character) {
+  return isJackal(character) || isPoli(character);
+}
+
+function getTeamLinkProvider(teamKey = state.activeTeamKey) {
+  const linkState = getJackalLinkState(teamKey);
+  const team = getTeamState(teamKey);
+  return team.find((character) => character && isLinkProvider(character) && character.id === linkState.ownerId) || null;
+}
+
+function getDefaultTeamLinkProvider(teamKey = state.activeTeamKey) {
+  return getTeamState(teamKey).find((character) => character && isLinkProvider(character)) || null;
 }
 
 function normalizeJackalLink(teamKey = state.activeTeamKey) {
   const linkState = getJackalLinkState(teamKey);
-  const jackal = getTeamJackal(teamKey);
-  if (!jackal) {
+  const team = getTeamState(teamKey);
+  if (linkState.enabled && !linkState.ownerId) {
+    linkState.ownerId = getDefaultTeamLinkProvider(teamKey)?.id || null;
+  }
+  const owner = getTeamLinkProvider(teamKey);
+  if (!owner) {
     linkState.enabled = false;
+    linkState.ownerId = null;
     linkState.targetIds = [];
     return linkState;
   }
 
   const availableTargetIds = new Set(
-    getTeamState(teamKey)
-      .filter((character) => character && character.id !== jackal.id)
+    team
+      .filter((character) => character && character.id !== owner.id)
       .map((character) => character.id),
   );
   linkState.targetIds = [...new Set(linkState.targetIds || [])].filter((id) => availableTargetIds.has(id)).slice(0, 2);
@@ -736,12 +751,15 @@ function getJackalLinkTargetIds(teamKey = state.activeTeamKey) {
 
 function isJackalLinkEnabled(teamKey = state.activeTeamKey) {
   const linkState = normalizeJackalLink(teamKey);
-  return Boolean(linkState.enabled && getTeamJackal(teamKey));
+  return Boolean(linkState.enabled && getTeamLinkProvider(teamKey));
 }
 
-function toggleJackalLink(teamKey) {
+function toggleJackalLink(teamKey, owner) {
   const linkState = normalizeJackalLink(teamKey);
-  linkState.enabled = !linkState.enabled;
+  if (!owner || !isLinkProvider(owner)) return;
+  const isSameOwner = linkState.enabled && linkState.ownerId === owner.id;
+  linkState.enabled = !isSameOwner;
+  linkState.ownerId = linkState.enabled ? owner.id : null;
   if (!linkState.enabled) linkState.targetIds = [];
   openSlotSettings = null;
   saveTeam();
@@ -750,7 +768,7 @@ function toggleJackalLink(teamKey) {
 
 function toggleJackalLinkTarget(teamKey, character) {
   const linkState = normalizeJackalLink(teamKey);
-  if (!linkState.enabled || !character || isJackal(character)) return;
+  if (!linkState.enabled || !character || character.id === linkState.ownerId) return;
   const targetSet = new Set(linkState.targetIds || []);
   if (targetSet.has(character.id)) {
     targetSet.delete(character.id);
@@ -933,16 +951,19 @@ function renderTeam() {
     const jackalLinkState = normalizeJackalLink(teamKey);
     const isJackalConnecting = isJackalLinkEnabled(teamKey);
     const jackalTargetIds = new Set(jackalLinkState.targetIds);
+    const linkOwner = getTeamLinkProvider(teamKey);
+    const linkOwnerName = linkOwner ? (isJackal(linkOwner) ? "豺狼链接" : "波莉链接") : "链接";
     team.forEach((character, index) => {
       const teamResult = resultsByTeam.get(teamKey);
       const finishingPositions = new Set(teamResult && !teamResult.error ? teamResult.finishingPositionIndices : []);
       const isFinisher = finishingPositions.has(index) && canShowFinishMarker(character);
       const isSettingsOpen = character && isSlotSettingsOpen(teamKey, index);
       const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
-      const isJackalOwner = character && isJackal(character);
+      const isJackalOwner = character && isLinkProvider(character);
+      const isActiveLinkOwner = character && isJackalConnecting && jackalLinkState.ownerId === character.id;
       const isJackalTarget = character && jackalTargetIds.has(character.id);
       const canSelectJackalTarget =
-        character && !isJackalOwner && isJackalConnecting && (isJackalTarget || jackalTargetIds.size < 2);
+        character && character.id !== jackalLinkState.ownerId && isJackalConnecting && (isJackalTarget || jackalTargetIds.size < 2);
       const slot = document.createElement("div");
       slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
       slot.dataset.slotIndex = index;
@@ -963,7 +984,7 @@ function renderTeam() {
           ${
             isJackalOwner
               ? `
-                <button class="slot-link-toggle${isJackalConnecting ? " is-active" : ""}" type="button" aria-label="${isJackalConnecting ? "关闭" : "开启"}豺狼链接" title="豺狼链接">
+                <button class="slot-link-toggle${isActiveLinkOwner ? " is-active" : ""}" type="button" aria-label="${isActiveLinkOwner ? "关闭" : "开启"}${isJackal(character) ? "豺狼链接" : "波莉链接"}" title="${isJackal(character) ? "豺狼链接" : "波莉链接"}">
                   <img src="assets/icons/nikke-top/link.svg" alt="" aria-hidden="true" />
                 </button>
               `
@@ -972,7 +993,7 @@ function renderTeam() {
           ${
             canSelectJackalTarget
               ? `
-                <button class="slot-link-target${isJackalTarget ? " is-selected" : ""}" type="button" aria-label="${isJackalTarget ? "取消" : "选择"}豺狼链接目标 ${escapeHtml(character.name)}" title="${isJackalTarget ? "取消链接" : "链接目标"}">
+                <button class="slot-link-target${isJackalTarget ? " is-selected" : ""}" type="button" aria-label="${isJackalTarget ? "取消" : "选择"}${linkOwnerName}目标 ${escapeHtml(character.name)}" title="${isJackalTarget ? "取消链接" : "链接目标"}">
                   ${isJackalTarget ? '<img src="assets/icons/nikke-top/link.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
                 </button>
               `
@@ -1080,7 +1101,7 @@ function renderTeam() {
             event.preventDefault();
             event.stopPropagation();
             setActiveTeam(teamKey);
-            toggleJackalLink(teamKey);
+            toggleJackalLink(teamKey, character);
           });
           linkToggle.addEventListener("pointerdown", (event) => event.stopPropagation());
           linkToggle.addEventListener("dragstart", (event) => {
@@ -1185,6 +1206,10 @@ function isJackal(character) {
   return character?.name === "豺狼" || character?.slug === "豺狼";
 }
 
+function isPoli(character) {
+  return character?.name === "波莉" || character?.slug === "波莉" || character?.name === "波莉 珍藏" || character?.slug === "波莉-珍藏";
+}
+
 function isRosanna(character) {
   return character?.name === "罗珊娜" || character?.slug === "罗珊娜";
 }
@@ -1205,9 +1230,11 @@ function getCounterTriggerCount(entry) {
 
 function getJackalLinkedPositionIndices(result) {
   if (!result || result.error) return [];
+  const linkState = normalizeJackalLink(result.teamKey);
+  if (!linkState.enabled || !linkState.ownerId) return [];
   const targetIds = new Set(getJackalLinkTargetIds(result.teamKey));
   const linkedPositions = result.members
-    .filter((member) => isJackal(member.character) || targetIds.has(member.character.id))
+    .filter((member) => member.character.id === linkState.ownerId || targetIds.has(member.character.id))
     .map((member) => member.positionIndex);
   return [...new Set(linkedPositions)].sort((a, b) => a - b);
 }
@@ -1276,11 +1303,12 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
   return chartResults.flatMap((item) => {
     const opponentTeamKey = item.teamKey === "defense" ? "attack" : "defense";
     const opponentTimeline = visibleTimelineByTeam.get(opponentTeamKey) || [];
+    const linkOwner = getTeamLinkProvider(item.teamKey);
     const linkedPositionIndices = getJackalLinkedPositionIndices(item.result);
-    if (!isJackalLinkEnabled(item.teamKey) || linkedPositionIndices.length === 0 || opponentTimeline.length === 0) return [];
+    if (!isJackal(linkOwner) || linkedPositionIndices.length === 0 || opponentTimeline.length === 0) return [];
 
     return item.result.members
-      .filter((member) => isJackal(member.character))
+      .filter((member) => member.character.id === linkOwner.id)
       .map((member) => {
         const chargePerLink = member.character.burstGen;
         let accumulatedHits = 0;
@@ -1361,7 +1389,8 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
       });
     }
 
-    if (isJackal(member.character) && isJackalLinkEnabled(targetResult.teamKey)) {
+    const linkOwner = getTeamLinkProvider(targetResult.teamKey);
+    if (isJackal(member.character) && linkOwner?.id === member.character.id) {
       const linkedPositionIndices = getJackalLinkedPositionIndices(targetResult);
       if (linkedPositionIndices.length === 0) return;
       const chargePerLink = member.character.burstGen;
@@ -2157,10 +2186,12 @@ function loadTeam() {
       state.jackalLinks = {
         defense: {
           enabled: Boolean(saved.jackalLinks?.defense?.enabled),
+          ownerId: saved.jackalLinks?.defense?.ownerId || null,
           targetIds: Array.isArray(saved.jackalLinks?.defense?.targetIds) ? saved.jackalLinks.defense.targetIds : [],
         },
         attack: {
           enabled: Boolean(saved.jackalLinks?.attack?.enabled),
+          ownerId: saved.jackalLinks?.attack?.ownerId || null,
           targetIds: Array.isArray(saved.jackalLinks?.attack?.targetIds) ? saved.jackalLinks.attack.targetIds : [],
         },
       };
@@ -2182,8 +2213,8 @@ function loadTeam() {
     state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
     state.characterChargeSpeeds = { defense: {}, attack: {} };
     state.jackalLinks = {
-      defense: { enabled: false, targetIds: [] },
-      attack: { enabled: false, targetIds: [] },
+      defense: { enabled: false, ownerId: null, targetIds: [] },
+      attack: { enabled: false, ownerId: null, targetIds: [] },
     };
   }
 }
