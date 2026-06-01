@@ -112,12 +112,14 @@ function getStandardChargeBand(frame) {
   return `快于${fasterThan[0].label}`;
 }
 
-function getTeamPositionText(finishingPositionIndices = []) {
+function getTeamPositionText(finishingPositionIndices = [], teamKey = "attack") {
   const finishingPositions = new Set(finishingPositionIndices);
-  return state.team
+  const team = getTeamState(teamKey);
+  const chargeSpeeds = getChargeSpeedState(teamKey);
+  return team
     .map((character, index) => {
       if (!character) return "空位";
-      const chargeSpeed = Number(state.chargeSpeeds[index]) || Number(character.chargeSpeedPercent) || 0;
+      const chargeSpeed = Number(chargeSpeeds[index]) || Number(character.chargeSpeedPercent) || 0;
       const isChargeWeapon = character.weapon === "RL" || character.weapon === "SR";
       const prefix = finishingPositions.has(index) ? "*" : "";
       const name = `${prefix}${character.name}`;
@@ -126,8 +128,8 @@ function getTeamPositionText(finishingPositionIndices = []) {
     .join("，");
 }
 
-function getResultCopyText(result) {
-  return `${getTeamPositionText(result.finishingPositionIndices)}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
+function getResultCopyText(result, teamKey = "attack") {
+  return `${getTeamPositionText(result.finishingPositionIndices, teamKey)}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
 }
 
 function getTeamState(teamKey = state.activeTeamKey) {
@@ -808,6 +810,16 @@ function renderTeam() {
           event.stopPropagation();
           setActiveTeam(teamKey);
           removeCharacter(teamKey, index);
+        });
+        slot.querySelector(".slot-remove").addEventListener("contextmenu", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const result = simulateBurst(getTeamState(teamKey), teamKey);
+          if (result && !result.error) {
+            copyResultSummary(result, teamKey);
+          } else {
+            showToast(result?.error || "队伍为空，无法复制结果");
+          }
         });
         const speedControl = slot.querySelector(".speed-control");
         speedControl.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -1557,9 +1569,9 @@ async function copyCharacterDetails(character) {
   }
 }
 
-async function copyResultSummary(result) {
+async function copyResultSummary(result, teamKey = "attack") {
   try {
-    await copyTextToClipboard(getResultCopyText(result));
+    await copyTextToClipboard(getResultCopyText(result, teamKey));
     showToast("已复制充能结果");
   } catch {
     showToast("复制失败，请检查浏览器剪切板权限");
