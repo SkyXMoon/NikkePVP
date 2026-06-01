@@ -357,6 +357,35 @@ function getCounterHitCount(character, shotCount = 1) {
   return shotCount;
 }
 
+function getAttackHitProfile(character, shotCount = 1) {
+  const shotHits = getCounterHitCount(character, shotCount);
+
+  if (character.weapon === "RL") {
+    const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
+    const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
+    const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
+    return {
+      totalHits: shotHits,
+      positionHits: Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]),
+    };
+  }
+
+  if (character.hasPenetration) {
+    return {
+      totalHits: shotHits,
+      positionHits: [
+        [DEFAULT_RL_TARGET_INDEX, shotCount],
+        [Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + 1), shotCount],
+      ],
+    };
+  }
+
+  return {
+    totalHits: shotHits,
+    positionHits: [[DEFAULT_RL_TARGET_INDEX, shotHits]],
+  };
+}
+
 function advanceAttackEvent(event) {
   if (event.character.weapon !== "MG") {
     event.nextFrame += event.interval;
@@ -427,6 +456,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
         cumulativeCharge: 0,
         labels: [],
         counterHits: 0,
+        positionHits: new Map(),
         showOnMember: false,
       };
       current.charge += value;
@@ -435,6 +465,13 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
       current.counterHits += Math.max(Number(counterHits) || 0, 0);
       current.showOnMember = current.showOnMember || showOnMember;
       contributions.set(event.positionIndex, current);
+    };
+    const addPositionHits = (event, positionHits) => {
+      const current = contributions.get(event.positionIndex);
+      if (!current) return;
+      positionHits.forEach(([positionIndex, hitCount]) => {
+        current.positionHits.set(positionIndex, (current.positionHits.get(positionIndex) || 0) + hitCount);
+      });
     };
 
     const activeSpecials = specialChargeEvents.filter((event) => event.frame === currentFrame);
@@ -461,6 +498,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
+      const hitProfile = getAttackHitProfile(event.character, shotCount);
       const chargeValue = event.chargeValue * shotCount;
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
@@ -469,8 +507,9 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
       addContribution(event, chargeValue, shotCount > 1 ? `${shotCount}发命中` : "命中");
       const currentContribution = contributions.get(event.positionIndex);
       if (currentContribution) {
-        currentContribution.counterHits += getCounterHitCount(event.character, shotCount) - 1;
+        currentContribution.counterHits += hitProfile.totalHits - 1;
       }
+      addPositionHits(event, hitProfile.positionHits);
       const hitCountExtraCharge = getHitCountExtraCharge(event);
       totalCharge += hitCountExtraCharge;
       event.totalCharge += hitCountExtraCharge;
@@ -490,6 +529,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
           cumulativeCharge: contribution.cumulativeCharge,
           labels: contribution.labels,
           counterHits: contribution.counterHits,
+          positionHits: [...contribution.positionHits.entries()].map(([positionIndex, hitCount]) => ({ positionIndex, hitCount })),
           showOnMember: contribution.showOnMember,
         })),
       });
@@ -1145,6 +1185,30 @@ function getCounterTriggerCount(entry) {
   return Math.max(count, 0);
 }
 
+function getJackalLinkedPositionIndices(result) {
+  if (!result || result.error) return [];
+  const targetIds = new Set(getJackalLinkTargetIds(result.teamKey));
+  const linkedPositions = result.members
+    .filter((member) => isJackal(member.character) || targetIds.has(member.character.id))
+    .map((member) => member.positionIndex);
+  return [...new Set(linkedPositions)].sort((a, b) => a - b);
+}
+
+function getJackalLinkedHitCount(entry, linkedPositionIndices) {
+  const linkedPositions = new Set(linkedPositionIndices);
+  if (linkedPositions.size === 0) return 0;
+  return entry.contributions.reduce((sum, contribution) => {
+    if (!Array.isArray(contribution.positionHits)) return sum;
+    return (
+      sum +
+      contribution.positionHits.reduce(
+        (positionSum, positionHit) => positionSum + (linkedPositions.has(positionHit.positionIndex) ? positionHit.hitCount : 0),
+        0,
+      )
+    );
+  }, 0);
+}
+
 function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
   return chartResults.flatMap((item) => {
     const opponentTeamKey = item.teamKey === "defense" ? "attack" : "defense";
@@ -1186,8 +1250,8 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
   return chartResults.flatMap((item) => {
     const opponentTeamKey = item.teamKey === "defense" ? "attack" : "defense";
     const opponentTimeline = visibleTimelineByTeam.get(opponentTeamKey) || [];
-    const targetIds = getJackalLinkTargetIds(item.teamKey);
-    if (!isJackalLinkEnabled(item.teamKey) || targetIds.length === 0 || opponentTimeline.length === 0) return [];
+    const linkedPositionIndices = getJackalLinkedPositionIndices(item.result);
+    if (!isJackalLinkEnabled(item.teamKey) || linkedPositionIndices.length <= 1 || opponentTimeline.length === 0) return [];
 
     return item.result.members
       .filter((member) => isJackal(member.character))
@@ -1198,7 +1262,7 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
         let cumulativeCharge = 0;
         const timeline = opponentTimeline
           .map((entry) => {
-            const hitCount = getCounterTriggerCount(entry);
+            const hitCount = getJackalLinkedHitCount(entry, linkedPositionIndices);
             accumulatedHits += hitCount;
             const nextTriggeredLinks = Math.floor(accumulatedHits / JACKAL_LINK_HIT_THRESHOLD);
             const triggerCount = nextTriggeredLinks - triggeredLinks;
@@ -1272,13 +1336,13 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
     }
 
     if (isJackal(member.character) && isJackalLinkEnabled(targetResult.teamKey)) {
-      const targetIds = getJackalLinkTargetIds(targetResult.teamKey);
-      if (targetIds.length === 0) return;
+      const linkedPositionIndices = getJackalLinkedPositionIndices(targetResult);
+      if (linkedPositionIndices.length <= 1) return;
       const chargePerLink = member.character.burstGen;
       let accumulatedHits = 0;
       let triggeredLinks = 0;
       opponentTimeline.forEach((entry) => {
-        const hitCount = getCounterTriggerCount(entry);
+        const hitCount = getJackalLinkedHitCount(entry, linkedPositionIndices);
         accumulatedHits += hitCount;
         const nextTriggeredLinks = Math.floor(accumulatedHits / JACKAL_LINK_HIT_THRESHOLD);
         const triggerCount = nextTriggeredLinks - triggeredLinks;
