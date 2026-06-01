@@ -1295,65 +1295,27 @@ function renderResults() {
 
   if (!result) {
     els.summaryStrip.textContent = "队伍为空，选择角色后开始计算";
-    els.resultPanel.innerHTML = '<p class="empty-result">当前队伍为空。按 P1 到 P5 的顺序加入角色，即可查看充满帧、爆裂开启帧和每名角色的充能明细。</p>';
+    els.summaryStrip.oncontextmenu = null;
+    els.resultPanel.innerHTML = "";
     renderChargeChart(null);
     return null;
   }
 
   if (result.error) {
     els.summaryStrip.textContent = result.error;
+    els.summaryStrip.oncontextmenu = null;
     els.resultPanel.innerHTML = `<p class="empty-result">${escapeHtml(result.error)}</p>`;
     renderChargeChart(result);
     return result;
   }
 
   renderChargeChart(result);
-  els.summaryStrip.textContent = `充满 ${result.fullFrame} 帧，爆裂1 ${result.burst1Frame} 帧`;
-  els.resultPanel.innerHTML = `
-    <div class="result-main">
-      <div class="metric primary result-copy-target" title="右键复制结果">
-        <span>充满时间</span>
-        <strong>${formatFrame(result.fullFrame)}</strong>
-        <em>${getStandardChargeBand(result.fullFrame)}</em>
-      </div>
-      <div class="metric">
-        <span>爆裂1开启</span>
-        <strong>${formatFrame(result.burst1Frame)}</strong>
-      </div>
-    </div>
-    <div class="sub-metrics">
-      <div>爆裂2：${formatFrame(result.burst2Frame)}</div>
-      <div>爆裂3：${formatFrame(result.burst3Frame)}</div>
-      <div>总充能速度：${result.chargePerSecond.toFixed(2)}%/s</div>
-      <div>溢出后总量：${result.totalCharge.toFixed(2)}%</div>
-    </div>
-    <details open>
-      <summary>每人充能明细</summary>
-      <div class="detail-list">
-        ${result.members
-          .map(
-            (event) => `
-              <div class="detail-item">
-                <span>
-                  P${event.positionIndex + 1} ${escapeHtml(event.character.name)} · ${event.hits} 发 · 单发 ${event.chargeValue.toFixed(2)}%
-                  ${event.character.weapon === "RL" ? ` · ${getRlHitSegments(event.character)} 段` : ""}
-                  ${event.character.chargeSpeedPercent ? ` · 蓄速 +${event.character.chargeSpeedPercent}%` : ""}
-                </span>
-                <strong>${event.totalCharge.toFixed(2)}%</strong>
-                <small>${event.hitFrames.join(" / ") || "-"}</small>
-              </div>
-            `,
-          )
-          .join("")}
-      </div>
-    </details>
-  `;
-
-  const resultCopyTarget = els.resultPanel.querySelector(".result-copy-target");
-  resultCopyTarget.addEventListener("contextmenu", (event) => {
+  els.summaryStrip.textContent = "结果已更新，详情见上方充能轴";
+  els.summaryStrip.oncontextmenu = (event) => {
     event.preventDefault();
     copyResultSummary(result);
-  });
+  };
+  els.resultPanel.innerHTML = "";
 
   return result;
 }
