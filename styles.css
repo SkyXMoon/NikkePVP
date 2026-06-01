@@ -585,7 +585,6 @@ input:focus {
 
 .chart-total-track {
   stroke: var(--accent-2);
-  stroke-dasharray: 8 6;
   stroke-width: 3.5;
 }
 

@@ -729,7 +729,7 @@ function getChargeChartMarkup(result) {
   const xForFrame = (frame) => margin.left + (frame / maxFrame) * chartWidth;
   const totalLaneIndex = result.members.length;
   const laneCount = result.members.length + 1;
-  const yForLane = (index) => margin.top + (laneCount === 1 ? chartHeight / 2 : (chartHeight / (laneCount - 1)) * index);
+  const yForLane = (index) => margin.top + (chartHeight / (laneCount + 1)) * (index + 1);
   const yForPosition = (index) => yForLane(laneByPosition.get(index) ?? totalLaneIndex);
   const yForTotal = () => yForLane(totalLaneIndex);
 
@@ -823,7 +823,7 @@ function getChargeChartMarkup(result) {
 
   const totalTrack =
     result.timeline.length > 1
-      ? `<line class="chart-track chart-total-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(Math.max(result.timeline.at(-1).frame, ...burstMarkers.map((marker) => marker.frame)))}" y2="${yForTotal()}" />`
+      ? `<line class="chart-track chart-total-track" x1="${xForFrame(result.timeline[0].frame)}" y1="${yForTotal()}" x2="${xForFrame(result.fullFrame)}" y2="${yForTotal()}" />`
       : "";
 
   const labels = result.members.map((member) => {
