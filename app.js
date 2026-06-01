@@ -886,7 +886,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null) {
   const totalLabel = `<text class="chart-name chart-total-name" x="0" y="${yForTotal() + 4}" text-anchor="start">总充能</text>`;
 
   return `
-    <svg viewBox="0 0 ${width} ${height}" data-label-gap="${labelGap}" data-label-gutter="${labelGutter}" role="img" aria-label="队伍充能关键帧图表">
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" data-label-gap="${labelGap}" data-label-gutter="${labelGutter}" role="img" aria-label="队伍充能关键帧图表">
       <rect class="chart-bg" x="0" y="0" width="${width}" height="${height}" rx="8" />
       ${gridLines}
       ${standardLines}
