@@ -249,7 +249,18 @@ function applyChargeSpeedTotalFrames(baseFrames, chargeSpeedPercent = 0) {
   return Math.floor(baseFrames / (1 + speed / 100) / 2) * 2;
 }
 
-function getChargeFrames(character, positionIndex) {
+function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
+  if (Number.isFinite(character.projectileFlightFrames)) return character.projectileFlightFrames;
+  if (normalizeTeamKey(teamKey) === "defense") {
+    if (positionIndex <= 1) return 16;
+    if (positionIndex <= 3) return 14;
+    return 12;
+  }
+  const positionKey = `P${positionIndex + 1}`;
+  return character.timing?.projectileFlightFramesByPosition?.[positionKey] ?? (positionIndex <= 1 ? 16 : 14);
+}
+
+function getChargeFrames(character, positionIndex, teamKey = "attack") {
   const speed = Number(character.chargeSpeedPercent) || 0;
 
   if (character.weapon === "MG") {
@@ -268,8 +279,7 @@ function getChargeFrames(character, positionIndex) {
     const intervalFrames = applyChargeSpeedTotalFrames(baseIntervalFrames, speed);
 
     if (character.weapon === "RL" && character.timing.projectileFlightFramesByPosition) {
-      const positionKey = `P${positionIndex + 1}`;
-      const flightFrames = character.timing.projectileFlightFramesByPosition[positionKey] ?? 0;
+      const flightFrames = getRlProjectileFlightFrames(character, positionIndex, teamKey);
       const baseFirstFrame = baseChargeFrames + flightFrames;
       return {
         firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseFirstFrame, speed),
@@ -311,7 +321,7 @@ function getChargeFrames(character, positionIndex) {
     };
   }
   if (character.weapon === "RL") {
-    const flightFrames = character.projectileFlightFrames ?? (positionIndex <= 1 ? 16 : 14);
+    const flightFrames = getRlProjectileFlightFrames(character, positionIndex, teamKey);
     const turnFrames = character.turnFrames ?? 16;
     const baseChargeFrames = sheetChargeFrames ?? 60;
     return {
@@ -526,7 +536,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
   if (members.length === 0) return null;
 
   const events = members.map((member) => {
-    const timing = getChargeFrames(member.character, member.positionIndex);
+    const timing = getChargeFrames(member.character, member.positionIndex, teamKey);
     return {
       ...member,
       nextFrame: timing.firstFrame,
