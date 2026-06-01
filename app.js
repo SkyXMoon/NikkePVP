@@ -792,6 +792,8 @@ function renderTeam() {
         });
         const speedInput = slot.querySelector("[data-speed-index]");
         speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
+        speedInput.addEventListener("focus", (event) => event.target.select());
+        speedInput.addEventListener("click", (event) => event.target.select());
         speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
         speedInput.addEventListener("input", (event) => {
           chargeSpeeds[index] = Math.max(0, Number(event.target.value) || 0);
