@@ -234,6 +234,7 @@ function getChargeFrames(character, positionIndex) {
         firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseFirstFrame, speed),
         interval: character.attackIntervalFrames || intervalFrames,
         chargeFrames,
+        projectileFlightFrames: flightFrames,
       };
     }
 
@@ -276,6 +277,7 @@ function getChargeFrames(character, positionIndex) {
       firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames + flightFrames, speed),
       interval: character.attackIntervalFrames || applyChargeSpeedTotalFrames(baseChargeFrames + turnFrames, speed),
       chargeFrames,
+      projectileFlightFrames: flightFrames,
     };
   }
 
@@ -469,6 +471,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
       nextFrame: timing.firstFrame,
       interval: timing.interval,
       chargeFrames: timing.chargeFrames,
+      projectileFlightFrames: timing.projectileFlightFrames || 0,
       chargeValue: getChargeValue(member.character),
       hits: 0,
       shotsInMagazine: 0,
@@ -476,6 +479,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
       totalCharge: 0,
       hitFrames: [],
       reloadEvents: [],
+      flightEvents: [],
     };
   });
 
@@ -550,6 +554,15 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
       event.totalCharge += chargeValue;
       event.hits += shotCount;
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
+      if (event.character.weapon === "RL" && event.projectileFlightFrames > 0) {
+        event.flightEvents.push({
+          positionIndex: event.positionIndex,
+          characterName: event.character.name,
+          startFrame: Math.max(0, currentFrame - event.projectileFlightFrames),
+          endFrame: currentFrame,
+          flightFrames: event.projectileFlightFrames,
+        });
+      }
       addContribution(event, chargeValue, shotCount > 1 ? `${shotCount}发命中` : "命中");
       const currentContribution = contributions.get(event.positionIndex);
       if (currentContribution) {
@@ -618,6 +631,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = []) {
     timeline,
     chartExtraTimeline,
     reloadTimeline: events.flatMap((event) => event.reloadEvents),
+    flightTimeline: events.flatMap((event) => event.flightEvents),
     members: events,
   };
 }
@@ -1597,6 +1611,11 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       .filter((reload) => reload.startFrame <= CHART_MAX_FRAME)
       .map((reload) => ({ ...reload, teamKey: item.teamKey })),
   );
+  const visibleFlightEvents = chartResults.flatMap((item) =>
+    (item.result.flightTimeline || [])
+      .filter((flight) => flight.startFrame <= CHART_MAX_FRAME)
+      .map((flight) => ({ ...flight, teamKey: item.teamKey })),
+  );
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, groupKey: group.groupKey, teamKey: group.teamKey, positionIndex: group.member.positionIndex, result: group.result })),
   );
@@ -1622,6 +1641,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     item.result.burst3Frame,
     ...(item.result.chartExtraTimeline || []).map((entry) => entry.frame),
     ...(item.result.reloadTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME)),
+    ...(item.result.flightTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME)),
   ]);
   const counterFrameCandidates = scarletCounterGroups.flatMap((group) => group.timeline.map((entry) => entry.frame));
   const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, ...counterFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
@@ -1785,6 +1805,16 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       return `<line class="chart-reload-track team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"><title>${tooltip}</title></line>`;
     })
     .join("");
+  const flightTracks = visibleFlightEvents
+    .map((flight) => {
+      const y = yForGroup(`${flight.teamKey}-${flight.positionIndex}`);
+      const startFrame = Math.min(flight.startFrame, maxFrame);
+      const endFrame = Math.min(flight.endFrame, maxFrame);
+      if (endFrame <= startFrame) return "";
+      const tooltip = escapeHtml(`${flight.characterName}\n飞行：${flight.startFrame}F → ${flight.endFrame}F\n耗时：${flight.flightFrames}F`);
+      return `<line class="chart-flight-track" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"><title>${tooltip}</title></line>`;
+    })
+    .join("");
   const scarletCounterTracks = scarletCounterGroups
     .map((group) => {
       if (group.timeline.length < 2) return "";
@@ -1908,6 +1938,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${standardPoints}
       ${tracks}
       ${reloadTracks}
+      ${flightTracks}
       ${scarletCounterTracks}
       ${chargeTotalTrack}
       ${burstTotalTrack}

@@ -717,6 +717,13 @@ input:focus {
   stroke: var(--accent);
 }
 
+.chart-flight-track {
+  stroke: rgba(255, 255, 255, 0.94);
+  stroke-linecap: round;
+  stroke-width: 2.8;
+  cursor: pointer;
+}
+
 .chart-scarlet-counter-track {
   stroke-dasharray: none;
 }
