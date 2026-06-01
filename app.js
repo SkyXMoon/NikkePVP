@@ -81,6 +81,7 @@ const els = {
 let draggedTeamIndex = null;
 let draggedTeamKey = null;
 let resizeRenderId = null;
+let openSlotSettings = null;
 
 const TEAM_LABELS = {
   defense: "防守队",
@@ -600,6 +601,14 @@ function getIconMarkup(src, label, className) {
   return `<span class="tile-icon ${className}"><img src="${escapeHtml(src)}" alt="${escapeHtml(label)}" loading="lazy" /></span>`;
 }
 
+function isSlotSettingsOpen(teamKey, index) {
+  return openSlotSettings?.teamKey === teamKey && openSlotSettings.index === index;
+}
+
+function toggleSlotSettings(teamKey, index) {
+  openSlotSettings = isSlotSettingsOpen(teamKey, index) ? null : { teamKey, index };
+}
+
 function getFilteredCharacters() {
   const keyword = state.filters.search.trim().toLowerCase();
   return CHARACTERS.filter((character) => {
@@ -770,6 +779,7 @@ function renderTeam() {
       const teamResult = resultsByTeam.get(teamKey);
       const finishingPositions = new Set(teamResult && !teamResult.error ? teamResult.finishingPositionIndices : []);
       const isFinisher = finishingPositions.has(index);
+      const isSettingsOpen = character && isSlotSettingsOpen(teamKey, index);
       const slot = document.createElement("div");
       slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
       slot.dataset.slotIndex = index;
@@ -783,11 +793,22 @@ function renderTeam() {
               ${isFinisher ? '<span class="finish-mark">✓</span>' : ""}
             </span>
           </button>
-          <label class="speed-control">
-            <span>蓄</span>
-            <input type="number" min="0" max="100" step="1" value="${Number(chargeSpeeds[index]) || 0}" data-speed-index="${index}" />
-            <span>%</span>
-          </label>
+          <button class="slot-settings-toggle" type="button" aria-label="设置 ${escapeHtml(character.name)}" title="设置">
+            <img src="assets/icons/nikke-top/settings.svg" alt="" aria-hidden="true" />
+          </button>
+          ${
+            isSettingsOpen
+              ? `
+                <div class="slot-settings-panel">
+                  <label class="settings-field">
+                    <span>蓄速</span>
+                    <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${Number(chargeSpeeds[index]) || 0}" data-speed-index="${index}" />
+                    <span>%</span>
+                  </label>
+                </div>
+              `
+              : ""
+          }
         `
         : `
           <div class="slot-empty">
@@ -804,7 +825,7 @@ function renderTeam() {
       });
 
       slot.addEventListener("dragstart", (event) => {
-        if (!character || event.target.closest(".speed-control")) {
+        if (!character || event.target.closest(".slot-settings-toggle, .slot-settings-panel")) {
           event.preventDefault();
           return;
         }
@@ -857,24 +878,39 @@ function renderTeam() {
             showToast(result?.error || "队伍为空，无法复制结果");
           }
         });
-        const speedControl = slot.querySelector(".speed-control");
-        speedControl.addEventListener("pointerdown", (event) => event.stopPropagation());
-        speedControl.addEventListener("mousedown", (event) => event.stopPropagation());
-        speedControl.addEventListener("dragstart", (event) => {
+        const settingsToggle = slot.querySelector(".slot-settings-toggle");
+        settingsToggle.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setActiveTeam(teamKey);
+          toggleSlotSettings(teamKey, index);
+          render();
+        });
+        settingsToggle.addEventListener("pointerdown", (event) => event.stopPropagation());
+        settingsToggle.addEventListener("dragstart", (event) => {
           event.preventDefault();
           event.stopPropagation();
         });
         const speedInput = slot.querySelector("[data-speed-index]");
-        speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
-        speedInput.addEventListener("focus", (event) => event.target.select());
-        speedInput.addEventListener("click", (event) => event.target.select());
-        speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
-        speedInput.addEventListener("input", (event) => {
-          chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
-          saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
-          saveTeam();
-          updateTeamFinishMarkers(renderResults());
-        });
+        if (speedInput) {
+          const settingsPanel = slot.querySelector(".slot-settings-panel");
+          settingsPanel.addEventListener("pointerdown", (event) => event.stopPropagation());
+          settingsPanel.addEventListener("mousedown", (event) => event.stopPropagation());
+          settingsPanel.addEventListener("dragstart", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          });
+          speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
+          speedInput.addEventListener("focus", (event) => event.target.select());
+          speedInput.addEventListener("click", (event) => event.target.select());
+          speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
+          speedInput.addEventListener("input", (event) => {
+            chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
+            saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
+            saveTeam();
+            updateTeamFinishMarkers(renderResults());
+          });
+        }
       }
       slotsRow.append(slot);
     });
@@ -1489,6 +1525,7 @@ function addCharacter(character) {
 
   team[emptyIndex] = character;
   chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, state.activeTeamKey);
+  openSlotSettings = null;
   saveTeam();
   render();
 }
@@ -1508,6 +1545,7 @@ function removeCharacter(teamKey, index) {
   const chargeSpeeds = getChargeSpeedState(teamKey);
   team[index] = null;
   chargeSpeeds[index] = 0;
+  openSlotSettings = null;
   saveTeam();
   render();
 }
@@ -1546,6 +1584,7 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
   }
 
   setActiveTeam(toTeamKey);
+  openSlotSettings = null;
   saveTeam();
   render();
 }
@@ -1558,6 +1597,7 @@ function clearTeam() {
     state.team = Array(TEAM_SIZE).fill(null);
     state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
   }
+  openSlotSettings = null;
   saveTeam();
   render();
 }

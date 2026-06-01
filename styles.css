@@ -851,6 +851,7 @@ input:focus {
 }
 
 .team-slot {
+  position: relative;
   border: 1px dashed var(--line);
   border-radius: 6px;
   padding: 7px;
@@ -949,6 +950,71 @@ input:focus {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+.slot-settings-toggle {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(71, 200, 212, 0.7);
+  border-radius: 5px;
+  padding: 0;
+  color: #d9fbff;
+  background: rgba(7, 9, 13, 0.82);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+}
+
+.slot-settings-toggle:hover {
+  border-color: var(--blue);
+  background: rgba(77, 163, 255, 0.22);
+}
+
+.slot-settings-toggle img {
+  width: 15px;
+  height: 15px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.slot-settings-panel {
+  position: absolute;
+  top: 36px;
+  right: 7px;
+  z-index: 5;
+  width: 132px;
+  padding: 8px;
+  border: 1px solid rgba(77, 163, 255, 0.62);
+  border-radius: 6px;
+  background: rgba(11, 14, 20, 0.97);
+  box-shadow: var(--shadow);
+}
+
+.settings-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.settings-field input {
+  min-height: 28px;
+  padding: 0 6px;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.settings-field input::-webkit-inner-spin-button,
+.settings-field input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
 }
 
 .speed-control {
