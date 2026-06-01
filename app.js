@@ -1209,6 +1209,14 @@ function getJackalLinkedHitCount(entry, linkedPositionIndices) {
   }, 0);
 }
 
+function getScarletCounterTriggerCount(result, member, entry) {
+  const linkedPositionIndices = getJackalLinkedPositionIndices(result);
+  if (linkedPositionIndices.includes(member.positionIndex)) {
+    return getJackalLinkedHitCount(entry, linkedPositionIndices);
+  }
+  return getCounterTriggerCount(entry);
+}
+
 function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
   return chartResults.flatMap((item) => {
     const opponentTeamKey = item.teamKey === "defense" ? "attack" : "defense";
@@ -1221,7 +1229,7 @@ function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
         const chargePerCounter = getChargeValue(member.character) * SCARLET_COUNTER_PROBABILITY;
         let cumulativeCharge = 0;
         const timeline = opponentTimeline.map((entry) => {
-          const triggerCount = getCounterTriggerCount(entry);
+          const triggerCount = getScarletCounterTriggerCount(item.result, member, entry);
           const charge = chargePerCounter * triggerCount;
           cumulativeCharge += charge;
           return {
@@ -1324,7 +1332,7 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
     if (isScarlet(member.character)) {
       const chargePerCounter = getChargeValue(member.character) * SCARLET_COUNTER_PROBABILITY;
       opponentTimeline.forEach((entry) => {
-        const triggerCount = getCounterTriggerCount(entry);
+        const triggerCount = getScarletCounterTriggerCount(targetResult, member, entry);
         if (triggerCount <= 0) return;
         events.push({
           frame: entry.frame,
