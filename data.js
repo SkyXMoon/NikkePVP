@@ -2756,9 +2756,9 @@ const CHARACTERS = [
     "projectileFlightFrames": null,
     "turnFrames": null,
     "timing": {
-      "chargeFrames": 60,
-      "firstFrame": 76,
-      "intervalFrames": 76,
+      "chargeFrames": 120,
+      "firstFrame": 136,
+      "intervalFrames": 136,
       "projectileFlightFrames": null,
       "projectileFlightFramesByPosition": {
         "P1": 16,
@@ -2786,7 +2786,7 @@ const CHARACTERS = [
       "weaponDamage": 67.65,
       "magazine": 6.0,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 1.0,
+      "chargeSeconds": 2.0,
       "maxCharge": 250.0
     },
     "scenario": {
