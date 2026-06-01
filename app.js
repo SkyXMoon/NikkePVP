@@ -34,6 +34,9 @@ const MG_WARMUP_EVENTS = [
   { frame: 152, shots: 22 },
   { frame: 180, shots: 14 },
 ];
+const STANDARD_TIMELINE_EVENTS = [
+  { label: "罗姗娜", tooltip: "罗姗娜（96F）消除BUFF", frame: 96 },
+];
 const CHART_MAX_FRAME = 600;
 const CHART_WIDTH = 1800;
 const CHART_HEIGHT = 660;
@@ -1510,8 +1513,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, ...counterFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
   const rlStandards = Array.from({ length: Math.floor(maxFrame / 76) }, (_, index) => ({
     label: `${index + 1}RL`,
+    tooltip: `${index + 1}RL · ${(index + 1) * 76} F`,
     frame: (index + 1) * 76,
   }));
+  const standardMarkers = [...rlStandards, ...STANDARD_TIMELINE_EVENTS.filter((event) => event.frame <= maxFrame)].sort((a, b) => a.frame - b.frame);
   const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
   const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
@@ -1602,7 +1607,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ? `<line class="chart-team-separator" x1="0" y1="${yForLane(separatorLaneIndex)}" x2="${width - margin.right}" y2="${yForLane(separatorLaneIndex)}" />`
       : "";
 
-  const standardReferenceLines = rlStandards
+  const standardReferenceLines = standardMarkers
     .map((standard) => {
       const x = xForFrame(standard.frame);
       return `<line class="chart-standard-reference" x1="${x}" y1="${yForStandard()}" x2="${x}" y2="${height - margin.bottom}" />`;
@@ -1613,11 +1618,11 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     firstStandardFrame === undefined
       ? ""
       : `<line class="chart-track chart-standard-track" x1="${xForFrame(firstStandardFrame)}" y1="${yForStandard()}" x2="${xForFrame(maxFrame)}" y2="${yForStandard()}" />`;
-  const standardPoints = rlStandards
+  const standardPoints = standardMarkers
     .map((standard) => {
       const x = xForFrame(standard.frame);
       const y = yForStandard();
-      const tooltip = escapeHtml(`${standard.label} · ${standard.frame} F`);
+      const tooltip = escapeHtml(standard.tooltip || `${standard.label} · ${standard.frame} F`);
       return `<circle class="chart-standard-point" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"><title>${tooltip}</title></circle><text class="chart-standard-label" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(standard.label)}</text>`;
     })
     .join("");
