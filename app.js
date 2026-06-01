@@ -2312,7 +2312,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       }
       return markers.map(
         (marker) =>
-          `<circle class="chart-stun-point team-${stun.teamKey}" cx="${xForFrame(marker.frame)}" cy="${y}" r="5" data-tooltip="${escapeHtml(marker.tooltip)}"></circle>`,
+          `<circle class="chart-stun-point team-${stun.teamKey}" cx="${xForFrame(marker.frame)}" cy="${y}" r="4" data-tooltip="${escapeHtml(marker.tooltip)}"></circle>`,
       );
     })
     .join("");
@@ -2392,7 +2392,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${scarletCounterTotal.toFixed(2)}%`] : []),
           ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
         ]);
-        return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle>`;
+        return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle>`;
       }),
     )
     .join("");
