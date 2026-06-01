@@ -638,8 +638,44 @@ input:focus {
   box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.16) inset;
 }
 
+.swap-team-button,
 .clear-team-button {
   cursor: pointer;
+}
+
+.swap-icon {
+  position: relative;
+  width: 18px;
+  height: 16px;
+}
+
+.swap-icon::before,
+.swap-icon::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  width: 16px;
+  height: 6px;
+  border-color: currentColor;
+  border-style: solid;
+}
+
+.swap-icon::before {
+  top: 1px;
+  border-width: 2px 2px 0 0;
+}
+
+.swap-icon::after {
+  bottom: 1px;
+  border-width: 0 0 2px 2px;
+}
+
+.swap-team-button:hover .swap-icon::before {
+  transform: translateX(1px);
+}
+
+.swap-team-button:hover .swap-icon::after {
+  transform: translateX(-1px);
 }
 
 .clear-icon {

@@ -78,6 +78,7 @@ const els = {
   resultPanel: document.querySelector("#resultPanel"),
   chargeChart: document.querySelector("#chargeChart"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
+  swapTeamButton: document.querySelector("#swapTeamButton"),
   allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
   commonFilter: document.querySelector("#commonFilter"),
   weaponFilter: document.querySelector("#weaponFilter"),
@@ -191,6 +192,20 @@ function rememberTeamSlotChargeSpeed(teamKey, index) {
   const character = getTeamState(teamKey)[index];
   if (!character) return;
   saveCharacterChargeSpeed(character, getChargeSpeedState(teamKey)[index], teamKey);
+}
+
+function rememberTeamChargeSpeeds(teamKey) {
+  for (let index = 0; index < TEAM_SIZE; index += 1) {
+    rememberTeamSlotChargeSpeed(teamKey, index);
+  }
+}
+
+function applySavedTeamChargeSpeeds(teamKey) {
+  const team = getTeamState(teamKey);
+  const chargeSpeeds = getChargeSpeedState(teamKey);
+  for (let index = 0; index < TEAM_SIZE; index += 1) {
+    chargeSpeeds[index] = team[index] ? getSavedCharacterChargeSpeed(team[index], teamKey) : 0;
+  }
 }
 
 function setActiveTeam(teamKey) {
@@ -2345,6 +2360,21 @@ function clearTeam() {
   render();
 }
 
+function swapBattleTeams() {
+  rememberTeamChargeSpeeds("defense");
+  rememberTeamChargeSpeeds("attack");
+
+  [state.defenseTeam, state.team] = [state.team, state.defenseTeam];
+  [state.jackalLinks.defense, state.jackalLinks.attack] = [state.jackalLinks.attack, state.jackalLinks.defense];
+
+  applySavedTeamChargeSpeeds("defense");
+  applySavedTeamChargeSpeeds("attack");
+  normalizeJackalLinks();
+  openSlotSettings = null;
+  saveTeam();
+  render();
+}
+
 function normalizeSavedCharacterChargeSpeeds(savedSpeeds = {}) {
   return Object.fromEntries(
     Object.entries(savedSpeeds || {})
@@ -2481,6 +2511,7 @@ async function copyResultSummary(result, teamKey = "attack") {
 
 function bindEvents() {
   els.clearTeamButton.addEventListener("click", clearTeam);
+  els.swapTeamButton.addEventListener("click", swapBattleTeams);
   els.allowMissedShotsToggle.addEventListener("change", (event) => {
     state.allowMissedShots = event.target.checked;
     saveTeam();
