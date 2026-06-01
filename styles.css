@@ -959,25 +959,22 @@ input:focus {
   z-index: 3;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  border: 1px solid rgba(71, 200, 212, 0.7);
-  border-radius: 5px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 0;
   padding: 0;
-  color: #d9fbff;
-  background: rgba(7, 9, 13, 0.82);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+  background: transparent;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.58));
 }
 
 .slot-settings-toggle:hover {
-  border-color: var(--blue);
-  background: rgba(77, 163, 255, 0.22);
+  filter: drop-shadow(0 0 5px rgba(71, 200, 212, 0.95));
 }
 
 .slot-settings-toggle img {
-  width: 15px;
-  height: 15px;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+  width: 22px;
+  height: 22px;
 }
 
 .slot-settings-panel {
