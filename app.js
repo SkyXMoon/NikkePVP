@@ -1742,14 +1742,38 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     })
     .join("");
 
+  const getTrackSegments = (startFrame, endFrame, reloads) => {
+    const segments = [];
+    let cursor = startFrame;
+    reloads
+      .map((reload) => ({
+        start: Math.max(startFrame, reload.startFrame),
+        end: Math.min(endFrame, reload.endFrame),
+      }))
+      .filter((reload) => reload.end > reload.start)
+      .sort((a, b) => a.start - b.start)
+      .forEach((reload) => {
+        if (reload.start > cursor) segments.push({ start: cursor, end: reload.start });
+        cursor = Math.max(cursor, reload.end);
+      });
+    if (cursor < endFrame) segments.push({ start: cursor, end: endFrame });
+    return segments;
+  };
   const tracks = memberPointGroups
-    .map((group) => {
+    .flatMap((group) => {
       if (group.frames.length < 2) return "";
       const y = yForGroup(group.groupKey);
       const firstFrame = Math.min(...group.frames);
       const lastFrame = Math.max(...group.frames);
-      return `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
+      const groupReloads = visibleReloadEvents.filter(
+        (reload) => reload.teamKey === group.teamKey && reload.positionIndex === group.member.positionIndex,
+      );
+      return getTrackSegments(firstFrame, lastFrame, groupReloads).map(
+        (segment) =>
+          `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(segment.start)}" y1="${y}" x2="${xForFrame(segment.end)}" y2="${y}" />`,
+      );
     })
+    .flat()
     .join("");
   const reloadTracks = visibleReloadEvents
     .map((reload) => {
