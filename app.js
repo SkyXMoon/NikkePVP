@@ -700,7 +700,9 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
 }
 
 function getCharacterById(id) {
-  return CHARACTERS.find((character) => character.id === id) || null;
+  if (id === null || id === undefined) return null;
+  const normalizedId = String(id);
+  return CHARACTERS.find((character) => String(character.id) === normalizedId) || null;
 }
 
 function createOption(value, label) {
