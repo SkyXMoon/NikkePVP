@@ -1394,12 +1394,22 @@ input:focus {
   color: var(--text);
   font-size: 12px;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .settings-check-field input {
+  flex: 0 0 auto;
   width: 15px;
   height: 15px;
   accent-color: var(--blue);
+}
+
+.settings-check-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .speed-control {

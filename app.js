@@ -1072,6 +1072,7 @@ function createSlotSettingsModal() {
       </label>
       <label class="settings-check-field">
         <input class="slot-settings-quantum-cube" type="checkbox"${quantumCubeEnabled ? " checked" : ""} />
+        <img class="settings-check-icon" src="assets/icons/nikke-top/cubes/quantum-24x24.webp" alt="" aria-hidden="true" />
         <span>启用量子遗迹魔方</span>
       </label>
     </section>
