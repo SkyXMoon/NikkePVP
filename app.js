@@ -553,6 +553,17 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
   };
 }
 
+function isReloadingAtFrame(positionIndex, frame, reloadTimeline = []) {
+  return reloadTimeline.some(
+    (reload) => reload.positionIndex === positionIndex && reload.startFrame < frame && reload.endFrame > frame,
+  );
+}
+
+function getReceivedPositionHits(character, hitProfile, frame, opponentReloadTimeline = []) {
+  if (character.weapon === "RL" || character.hasPenetration) return hitProfile.positionHits;
+  return hitProfile.positionHits.filter(([positionIndex]) => !isReloadingAtFrame(positionIndex, frame, opponentReloadTimeline));
+}
+
 function getMagazineSize(character) {
   const magazine = Math.floor(Number(character.stats?.magazine) || 0);
   return magazine > 0 ? magazine : Infinity;
@@ -753,6 +764,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       }
 
       const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey);
+      const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
       const chargeValue = event.chargeValue * shotCount;
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
@@ -762,7 +774,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       if (currentContribution) {
         currentContribution.counterHits += hitProfile.totalHits - 1;
       }
-      addPositionHits(event, hitProfile.positionHits);
+      addPositionHits(event, receivedPositionHits);
       const hitCountExtraCharge = getHitCountExtraCharge(event);
       totalCharge += hitCountExtraCharge;
       event.totalCharge += hitCountExtraCharge;
@@ -1630,7 +1642,7 @@ function getScarletCounterTriggerCount(result, member, entry, opponentResult = n
     }
     return getJackalLinkedHitCount(entry, linkedPositionIndices);
   }
-  return getCounterTriggerCount(entry);
+  return getPositionHitCount(entry, member.positionIndex);
 }
 
 function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
