@@ -1100,6 +1100,7 @@ function createSlotSettingsModal() {
 
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
+  const canEditChargeSpeed = canShowFinishMarker(character);
   const quantumCubeEnabled = getSavedCharacterQuantumCube(character, teamKey);
   const isScarletSettings = isScarlet(character);
   const magazineValue = getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
@@ -1115,11 +1116,17 @@ function createSlotSettingsModal() {
         </div>
         <button class="slot-settings-close" type="button" aria-label="关闭设置">X</button>
       </div>
-      <label class="settings-field">
+      ${
+        canEditChargeSpeed
+          ? `
+            <label class="settings-field">
         <span>蓄速</span>
         <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" />
         <span>%</span>
-      </label>
+            </label>
+          `
+          : ""
+      }
       ${
         isScarletSettings
           ? `
@@ -1161,16 +1168,18 @@ function createSlotSettingsModal() {
   });
 
   const speedInput = backdrop.querySelector(".slot-settings-input");
-  speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
-  speedInput.addEventListener("focus", (event) => event.target.select());
-  speedInput.addEventListener("click", (event) => event.target.select());
-  speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
-  speedInput.addEventListener("input", (event) => {
-    chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
-    saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
-    saveTeam();
-    updateTeamFinishMarkers(renderResults());
-  });
+  if (speedInput) {
+    speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
+    speedInput.addEventListener("focus", (event) => event.target.select());
+    speedInput.addEventListener("click", (event) => event.target.select());
+    speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
+    speedInput.addEventListener("input", (event) => {
+      chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
+      saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
+      saveTeam();
+      updateTeamFinishMarkers(renderResults());
+    });
+  }
 
   const magazineInput = backdrop.querySelector(".slot-settings-magazine");
   if (magazineInput) {
@@ -1231,6 +1240,13 @@ function renderTeam() {
       const isFinisher = finishingPositions.has(index) && canShowFinishMarker(character);
       const isSettingsOpen = character && isSlotSettingsOpen(teamKey, index);
       const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
+      const savedMagazine = character && isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
+      const sideBadgeText =
+        character && canShowFinishMarker(character) && chargeSpeedValue > 0
+          ? `${chargeSpeedValue}%`
+          : savedMagazine
+            ? String(savedMagazine)
+            : "";
       const hasQuantumCube = character && getSavedCharacterQuantumCube(character, teamKey);
       const isJackalOwner = character && isLinkProvider(character);
       const isActiveLinkOwner = character && isJackalConnecting && jackalLinkState.ownerId === character.id;
@@ -1249,7 +1265,7 @@ function renderTeam() {
             <span class="slot-copy" aria-hidden="true">
               ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
               ${hasQuantumCube ? '<span class="slot-cube-badge"><img src="assets/icons/nikke-top/cubes/quantum-24x24.webp" alt="" /></span>' : ""}
-              ${chargeSpeedValue > 0 ? `<span class="slot-speed-badge">${chargeSpeedValue}%</span>` : ""}
+              ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
             </span>
           </button>
           <button class="slot-settings-toggle${isSettingsOpen ? " is-open" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)}" title="设置">
