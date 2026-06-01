@@ -1152,6 +1152,7 @@ function renderTeam() {
       const isFinisher = finishingPositions.has(index) && canShowFinishMarker(character);
       const isSettingsOpen = character && isSlotSettingsOpen(teamKey, index);
       const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
+      const hasQuantumCube = character && getSavedCharacterQuantumCube(character, teamKey);
       const isJackalOwner = character && isLinkProvider(character);
       const isActiveLinkOwner = character && isJackalConnecting && jackalLinkState.ownerId === character.id;
       const isJackalTarget = character && jackalTargetIds.has(character.id);
@@ -1168,6 +1169,7 @@ function renderTeam() {
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
             <span class="slot-copy" aria-hidden="true">
               ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
+              ${hasQuantumCube ? '<span class="slot-cube-badge"><img src="assets/icons/nikke-top/cubes/quantum-24x24.webp" alt="" /></span>' : ""}
               ${chargeSpeedValue > 0 ? `<span class="slot-speed-badge">${chargeSpeedValue}%</span>` : ""}
             </span>
           </button>

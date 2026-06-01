@@ -1181,6 +1181,25 @@ input:focus {
   transform: translateY(-50%);
 }
 
+.slot-cube-badge {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  transform: translate(-28%, 28%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+
+.slot-cube-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .slot-settings-toggle {
   position: absolute;
   top: 4px;
