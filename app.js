@@ -703,6 +703,7 @@ function getChargeChartMarkup(result) {
 
   const width = 1800;
   const height = 440;
+  const labelGutter = 168;
   const margin = { top: 30, right: 0, bottom: 42, left: 0 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
@@ -868,14 +869,14 @@ function getChargeChartMarkup(result) {
   const labels = result.members.map((member) => {
     const y = yForPosition(member.positionIndex);
     const prefix = finishingPositions.has(member.positionIndex) ? "*" : "";
-    return `<text class="chart-name" x="8" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + member.character.name)}</text>`;
+    return `<text class="chart-name" x="-10" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + member.character.name)}</text>`;
   }).join("");
-  const standardLabel = `<text class="chart-name chart-standard-name" x="8" y="${yForStandard() + 4}" text-anchor="start">标准轴</text>`;
-  const totalLabel = `<text class="chart-name chart-total-name" x="8" y="${yForTotal() + 4}" text-anchor="start">总充能</text>`;
+  const standardLabel = `<text class="chart-name chart-standard-name" x="-10" y="${yForStandard() + 4}" text-anchor="end">标准轴</text>`;
+  const totalLabel = `<text class="chart-name chart-total-name" x="-10" y="${yForTotal() + 4}" text-anchor="end">总充能</text>`;
 
   return `
-    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="队伍充能关键帧图表">
-      <rect class="chart-bg" x="0" y="0" width="${width}" height="${height}" rx="8" />
+    <svg viewBox="${-labelGutter} 0 ${width + labelGutter} ${height}" role="img" aria-label="队伍充能关键帧图表">
+      <rect class="chart-bg" x="${-labelGutter}" y="0" width="${width + labelGutter}" height="${height}" rx="8" />
       ${gridLines}
       ${standardLines}
       ${positionLines}
