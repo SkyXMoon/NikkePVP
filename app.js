@@ -182,9 +182,7 @@ function getChargeSpeedState(teamKey = state.activeTeamKey) {
 function createEmptyLineupSlot() {
   return {
     defenseTeam: Array(TEAM_SIZE).fill(null),
-    defenseChargeSpeeds: Array(TEAM_SIZE).fill(0),
     team: Array(TEAM_SIZE).fill(null),
-    chargeSpeeds: Array(TEAM_SIZE).fill(0),
     jackalLinks: {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
@@ -195,9 +193,7 @@ function createEmptyLineupSlot() {
 function serializeLineupSlot() {
   return {
     defenseTeam: state.defenseTeam.map((character) => character?.id || null),
-    defenseChargeSpeeds: [...state.defenseChargeSpeeds],
     team: state.team.map((character) => character?.id || null),
-    chargeSpeeds: [...state.chargeSpeeds],
     jackalLinks: {
       defense: { ...normalizeJackalLink("defense"), targetIds: [...normalizeJackalLink("defense").targetIds] },
       attack: { ...normalizeJackalLink("attack"), targetIds: [...normalizeJackalLink("attack").targetIds] },
@@ -209,9 +205,7 @@ function normalizeLineupSlot(slot = {}) {
   const empty = createEmptyLineupSlot();
   return {
     defenseTeam: Array.from({ length: TEAM_SIZE }, (_, index) => slot.defenseTeam?.[index] ?? empty.defenseTeam[index]),
-    defenseChargeSpeeds: Array.from({ length: TEAM_SIZE }, (_, index) => Number(slot.defenseChargeSpeeds?.[index]) || 0),
     team: Array.from({ length: TEAM_SIZE }, (_, index) => slot.team?.[index] ?? empty.team[index]),
-    chargeSpeeds: Array.from({ length: TEAM_SIZE }, (_, index) => Number(slot.chargeSpeeds?.[index]) || 0),
     jackalLinks: {
       defense: {
         enabled: Boolean(slot.jackalLinks?.defense?.enabled),
@@ -238,9 +232,9 @@ function saveCurrentLineupSlot() {
 function loadLineupSlot(index) {
   const slot = normalizeLineupSlot(state.lineupSlots[index]);
   state.defenseTeam = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => getCharacterById(slot.defenseTeam[slotIndex]));
-  state.defenseChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => Number(slot.defenseChargeSpeeds[slotIndex]) || 0);
   state.team = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => getCharacterById(slot.team[slotIndex]));
-  state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => Number(slot.chargeSpeeds[slotIndex]) || 0);
+  applySavedTeamChargeSpeeds("defense");
+  applySavedTeamChargeSpeeds("attack");
   state.jackalLinks = {
     defense: { ...slot.jackalLinks.defense, targetIds: [...slot.jackalLinks.defense.targetIds] },
     attack: { ...slot.jackalLinks.attack, targetIds: [...slot.jackalLinks.attack.targetIds] },
