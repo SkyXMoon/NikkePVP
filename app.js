@@ -39,6 +39,14 @@ const STANDARD_TIMELINE_EVENTS = [
   { label: "罗姗娜", tooltip: "罗姗娜（96F）消除BUFF", frame: 96 },
 ];
 const ROSANNA_BUFF_REMOVE_FRAME = 96;
+const LITTLE_MERMAID_STUN_FRAME = 196;
+const LITTLE_MERMAID_STUN_DURATION_FRAMES = 180;
+const LITTLE_MERMAID_STUN_TARGET_INDEX = 0;
+const LITTLE_MERMAID_TIMELINE_EVENT = {
+  label: "小美人鱼",
+  tooltip: "小美人鱼（196F）晕眩P1，持续3秒",
+  frame: LITTLE_MERMAID_STUN_FRAME,
+};
 const CHART_MAX_FRAME = 600;
 const CHART_WIDTH = 1800;
 const CHART_HEIGHT = 660;
@@ -634,7 +642,23 @@ function getBaseNextAttackFrame(event, currentFrame) {
   return event.nextFrame < MG_SUSTAIN_START_FRAME ? MG_SUSTAIN_START_FRAME : event.nextFrame + MG_SUSTAIN_INTERVAL_FRAMES;
 }
 
-function advanceAttackEvent(event, currentFrame, shotCount = 1) {
+function getFrameAfterStun(frame, positionIndex, stunWindows = []) {
+  let adjustedFrame = frame;
+  let moved = true;
+  while (moved) {
+    moved = false;
+    stunWindows.forEach((window) => {
+      if (window.positionIndex !== positionIndex) return;
+      if (adjustedFrame >= window.startFrame && adjustedFrame < window.endFrame) {
+        adjustedFrame = window.endFrame;
+        moved = true;
+      }
+    });
+  }
+  return adjustedFrame;
+}
+
+function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []) {
   const baseNextFrame = getBaseNextAttackFrame(event, currentFrame);
   const magazine = getMagazineSize(event.character);
   const reloadFrames = getReloadFrames(event.character);
@@ -650,11 +674,11 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1) {
       reloadFrames,
     };
     event.reloadEvents.push(reloadEvent);
-    event.nextFrame = baseNextFrame + reloadFrames;
+    event.nextFrame = getFrameAfterStun(baseNextFrame + reloadFrames, event.positionIndex, stunWindows);
     return;
   }
 
-  event.nextFrame = baseNextFrame;
+  event.nextFrame = getFrameAfterStun(baseNextFrame, event.positionIndex, stunWindows);
 }
 
 function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline = []) {
@@ -683,7 +707,7 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   };
 }
 
-function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], opponentReloadTimeline = []) {
+function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], opponentReloadTimeline = [], stunWindows = []) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
     .filter((member) => member.character);
@@ -694,7 +718,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
     const timing = getChargeFrames(member.character, member.positionIndex, teamKey);
     return {
       ...member,
-      nextFrame: timing.firstFrame,
+      nextFrame: getFrameAfterStun(timing.firstFrame, member.positionIndex, stunWindows),
       interval: timing.interval,
       chargeFrames: timing.chargeFrames,
       projectileFlightFrames: timing.projectileFlightFrames || 0,
@@ -805,7 +829,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       }
 
       if (isMissedShot) {
-        advanceAttackEvent(event, currentFrame, shotCount);
+        advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
         return;
       }
 
@@ -827,7 +851,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       event.attackChargeTotal += hitCountExtraCharge;
       addContribution(event, hitCountExtraCharge, "额外触发");
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
-      advanceAttackEvent(event, currentFrame, shotCount);
+      advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
     });
 
     if (contributions.size) {
@@ -872,6 +896,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
     reloadTimeline: events.flatMap((event) => event.reloadEvents),
     flightTimeline: events.flatMap((event) => event.flightEvents),
     missedTimeline: events.flatMap((event) => event.missedShotEvents),
+    stunTimeline: stunWindows,
     members: events,
   };
 }
@@ -1638,6 +1663,32 @@ function resultHasRosanna(result) {
   return Boolean(result && !result.error && result.members.some((member) => isRosanna(member.character)));
 }
 
+function isLittleMermaid(character) {
+  return character?.name === "小美人鱼" || character?.slug === "小美人鱼";
+}
+
+function resultHasLittleMermaid(result) {
+  return Boolean(result && !result.error && result.members.some((member) => isLittleMermaid(member.character)));
+}
+
+function teamHasLittleMermaid(team = []) {
+  return team.some((character) => isLittleMermaid(character));
+}
+
+function getStunWindowsForTeam(teamKey = "attack") {
+  const opponentTeam = normalizeTeamKey(teamKey) === "attack" ? state.defenseTeam : state.team;
+  if (!teamHasLittleMermaid(opponentTeam)) return [];
+  return [
+    {
+      source: "小美人鱼",
+      label: "小美人鱼晕眩",
+      positionIndex: LITTLE_MERMAID_STUN_TARGET_INDEX,
+      startFrame: LITTLE_MERMAID_STUN_FRAME,
+      endFrame: LITTLE_MERMAID_STUN_FRAME + LITTLE_MERMAID_STUN_DURATION_FRAMES,
+    },
+  ];
+}
+
 function getCounterTriggerCount(entry) {
   const count = entry.contributions.reduce((sum, contribution) => {
     if (Number.isFinite(contribution.counterHits)) {
@@ -1878,14 +1929,16 @@ function getResultSignature(result) {
 }
 
 function computeBattleResults() {
-  let attackResult = simulateBurst(state.team, "attack");
-  let defenseResult = simulateBurst(state.defenseTeam, "defense");
+  const attackStunWindows = getStunWindowsForTeam("attack");
+  const defenseStunWindows = getStunWindowsForTeam("defense");
+  let attackResult = simulateBurst(state.team, "attack", [], [], attackStunWindows);
+  let defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], defenseStunWindows);
 
   for (let index = 0; index < 8; index += 1) {
     const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
     const defenseSpecials = getSpecialChargeEventsForTeam(defenseResult, attackResult);
-    const nextAttackResult = simulateBurst(state.team, "attack", attackSpecials, defenseResult?.reloadTimeline || []);
-    const nextDefenseResult = simulateBurst(state.defenseTeam, "defense", defenseSpecials, attackResult?.reloadTimeline || []);
+    const nextAttackResult = simulateBurst(state.team, "attack", attackSpecials, defenseResult?.reloadTimeline || [], attackStunWindows);
+    const nextDefenseResult = simulateBurst(state.defenseTeam, "defense", defenseSpecials, attackResult?.reloadTimeline || [], defenseStunWindows);
     const stable =
       getResultSignature(nextAttackResult) === getResultSignature(attackResult) &&
       getResultSignature(nextDefenseResult) === getResultSignature(defenseResult);
@@ -1955,6 +2008,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     { teamKey: "attack", result: attackResult },
   ].filter((item) => item.result);
   const hasRosanna = chartResults.some((item) => item.result.members.some((member) => isRosanna(member.character)));
+  const hasLittleMermaid = chartResults.some((item) => resultHasLittleMermaid(item.result));
   const width = chartSize.width;
   const margin = { top: 30, right: 42, bottom: 42, left: 0 };
   const visibleTimelineByTeam = new Map(
@@ -2010,6 +2064,12 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       .filter((miss) => miss.frame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
       .map((miss) => ({ ...miss, teamKey: item.teamKey, displayEndFrame }));
   });
+  const visibleStunEvents = chartResults.flatMap((item) => {
+    const displayEndFrame = getBurstDisplayEndFrame(item.result);
+    return (item.result.stunTimeline || [])
+      .filter((stun) => stun.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
+      .map((stun) => ({ ...stun, teamKey: item.teamKey, displayEndFrame }));
+  });
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, groupKey: group.groupKey, teamKey: group.teamKey, positionIndex: group.member.positionIndex, result: group.result })),
   );
@@ -2045,7 +2105,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     tooltip: `${index + 1}RL · ${(index + 1) * 76} F`,
     frame: (index + 1) * 76,
   }));
-  const standardEvents = hasRosanna ? STANDARD_TIMELINE_EVENTS.filter((event) => event.frame <= maxFrame) : [];
+  const standardEvents = [
+    ...(hasRosanna ? STANDARD_TIMELINE_EVENTS : []),
+    ...(hasLittleMermaid ? [LITTLE_MERMAID_TIMELINE_EVENT] : []),
+  ].filter((event) => event.frame <= maxFrame);
   const standardMarkers = [...rlStandards, ...standardEvents].sort((a, b) => a.frame - b.frame);
   const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
   const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
@@ -2157,19 +2220,19 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     })
     .join("");
 
-  const getTrackSegments = (startFrame, endFrame, reloads) => {
+  const getTrackSegments = (startFrame, endFrame, pauses) => {
     const segments = [];
     let cursor = startFrame;
-    reloads
-      .map((reload) => ({
-        start: Math.max(startFrame, reload.startFrame),
-        end: Math.min(endFrame, reload.endFrame),
+    pauses
+      .map((pause) => ({
+        start: Math.max(startFrame, pause.startFrame),
+        end: Math.min(endFrame, pause.endFrame),
       }))
-      .filter((reload) => reload.end > reload.start)
+      .filter((pause) => pause.end > pause.start)
       .sort((a, b) => a.start - b.start)
-      .forEach((reload) => {
-        if (reload.start > cursor) segments.push({ start: cursor, end: reload.start });
-        cursor = Math.max(cursor, reload.end);
+      .forEach((pause) => {
+        if (pause.start > cursor) segments.push({ start: cursor, end: pause.start });
+        cursor = Math.max(cursor, pause.end);
       });
     if (cursor < endFrame) segments.push({ start: cursor, end: endFrame });
     return segments;
@@ -2183,7 +2246,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const groupReloads = visibleReloadEvents.filter(
         (reload) => reload.teamKey === group.teamKey && reload.positionIndex === group.member.positionIndex,
       );
-      return getTrackSegments(firstFrame, lastFrame, groupReloads).map(
+      const groupStuns = visibleStunEvents.filter(
+        (stun) => stun.teamKey === group.teamKey && stun.positionIndex === group.member.positionIndex,
+      );
+      return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupStuns]).map(
         (segment) =>
           `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(segment.start)}" y1="${y}" x2="${xForFrame(segment.end)}" y2="${y}" />`,
       );
@@ -2353,7 +2419,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   `;
 }
 
-function renderChargeChart(result, defenseResult = simulateBurst(state.defenseTeam, "defense")) {
+function renderChargeChart(result, defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], getStunWindowsForTeam("defense"))) {
   els.chargeChart.innerHTML = getChargeChartMarkup(result, null, defenseResult);
   fitChargeChartLabels(result, defenseResult);
   requestAnimationFrame(() => fitChargeChartLabels(result, defenseResult));
