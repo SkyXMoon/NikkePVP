@@ -1287,8 +1287,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const tooltip = formatTooltipLines([
           group.label,
           `时间：${entry.frame} F`,
-          `期望反击：${entry.triggerCount} × ${group.chargePerCounter.toFixed(2)}% = ${entry.charge.toFixed(2)}%`,
-          `累计充能：${entry.cumulativeCharge.toFixed(2)}%`,
+          `期望反击：${entry.triggerCount} × ${group.chargePerCounter.toFixed(3)}% = ${entry.charge.toFixed(3)}%`,
+          `累计充能：${entry.cumulativeCharge.toFixed(3)}%`,
         ]);
         return `<circle class="chart-scarlet-counter-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
       }),
