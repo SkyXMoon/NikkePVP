@@ -793,7 +793,7 @@ function renderTeam() {
               ${isFinisher ? '<span class="finish-mark">✓</span>' : ""}
             </span>
           </button>
-          <button class="slot-settings-toggle" type="button" aria-label="设置 ${escapeHtml(character.name)}" title="设置">
+          <button class="slot-settings-toggle${isSettingsOpen ? " is-open" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)}" title="设置">
             <img src="assets/icons/nikke-top/settings.svg" alt="" aria-hidden="true" />
           </button>
           ${

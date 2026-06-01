@@ -954,40 +954,45 @@ input:focus {
 
 .slot-settings-toggle {
   position: absolute;
-  top: 9px;
-  right: 9px;
+  top: 7px;
+  right: 7px;
   z-index: 3;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border: 0;
   border-radius: 0;
   padding: 0;
   background: transparent;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.58));
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.62));
+  transition: filter 140ms ease, transform 140ms ease;
 }
 
-.slot-settings-toggle:hover {
-  filter: drop-shadow(0 0 5px rgba(71, 200, 212, 0.95));
+.slot-settings-toggle:hover,
+.slot-settings-toggle.is-open {
+  filter: drop-shadow(0 0 7px rgba(71, 200, 212, 0.95)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.62));
+  transform: translateY(-1px);
 }
 
 .slot-settings-toggle img {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
 }
 
 .slot-settings-panel {
   position: absolute;
-  top: 36px;
+  top: 38px;
   right: 7px;
   z-index: 5;
-  width: 132px;
-  padding: 8px;
-  border: 1px solid rgba(77, 163, 255, 0.62);
+  width: 140px;
+  padding: 9px;
+  border: 1px solid rgba(71, 200, 212, 0.78);
   border-radius: 6px;
-  background: rgba(11, 14, 20, 0.97);
-  box-shadow: var(--shadow);
+  background: linear-gradient(180deg, rgba(16, 34, 45, 0.98), rgba(7, 10, 16, 0.98));
+  box-shadow:
+    0 0 0 1px rgba(221, 251, 255, 0.08) inset,
+    var(--shadow);
 }
 
 .settings-field {
