@@ -39,6 +39,7 @@ const CHART_WIDTH = 1800;
 const CHART_HEIGHT = 660;
 const CHART_MIN_WIDTH = 820;
 const SCARLET_COUNTER_PROBABILITY = 0.3;
+const JACKAL_LINK_HIT_THRESHOLD = 10;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 
@@ -979,6 +980,10 @@ function isScarlet(character) {
   return character?.name === "红莲" || character?.slug === "红莲";
 }
 
+function isJackal(character) {
+  return character?.name === "豺狼" || character?.slug === "豺狼";
+}
+
 function getCounterTriggerCount(entry) {
   const count = entry.contributions.reduce((sum, contribution) => {
     if (Number.isFinite(contribution.counterHits)) {
@@ -1020,6 +1025,7 @@ function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
           teamKey: item.teamKey,
           groupKey: `${item.teamKey}-scarlet-counter-${member.positionIndex}`,
           label: `${TEAM_LABELS[item.teamKey]}-红莲反击充能`,
+          type: "scarletCounter",
           member,
           chargePerCounter,
           timeline,
@@ -1027,6 +1033,73 @@ function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
       })
       .filter((group) => group.timeline.length > 0);
   });
+}
+
+function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
+  return chartResults.flatMap((item) => {
+    const opponentTeamKey = item.teamKey === "defense" ? "attack" : "defense";
+    const opponentTimeline = visibleTimelineByTeam.get(opponentTeamKey) || [];
+    if (opponentTimeline.length === 0) return [];
+
+    return item.result.members
+      .filter((member) => isJackal(member.character))
+      .map((member) => {
+        const chargePerLink = getChargeValue(member.character);
+        let accumulatedHits = 0;
+        let triggeredLinks = 0;
+        let cumulativeCharge = 0;
+        const timeline = opponentTimeline
+          .map((entry) => {
+            const hitCount = getCounterTriggerCount(entry);
+            accumulatedHits += hitCount;
+            const nextTriggeredLinks = Math.floor(accumulatedHits / JACKAL_LINK_HIT_THRESHOLD);
+            const triggerCount = nextTriggeredLinks - triggeredLinks;
+            if (triggerCount <= 0) return null;
+            triggeredLinks = nextTriggeredLinks;
+            const charge = chargePerLink * triggerCount;
+            cumulativeCharge += charge;
+            return {
+              frame: entry.frame,
+              hitCount,
+              accumulatedHits,
+              triggerCount,
+              charge,
+              cumulativeCharge,
+            };
+          })
+          .filter(Boolean);
+
+        return {
+          teamKey: item.teamKey,
+          groupKey: `${item.teamKey}-jackal-link-${member.positionIndex}`,
+          label: `${TEAM_LABELS[item.teamKey]}-豺狼连接充能`,
+          type: "jackalLink",
+          member,
+          chargePerLink,
+          timeline,
+        };
+      })
+      .filter((group) => group.timeline.length > 0);
+  });
+}
+
+function getSpecialChargeTooltipLines(group, entry) {
+  if (group.type === "jackalLink") {
+    return [
+      group.label,
+      `时间：${entry.frame} F`,
+      `受击累计：${entry.accumulatedHits} hit`,
+      `连接触发：${entry.triggerCount} × ${group.chargePerLink.toFixed(2)}% = ${entry.charge.toFixed(2)}%`,
+      `累计充能：${entry.cumulativeCharge.toFixed(2)}%`,
+    ];
+  }
+
+  return [
+    group.label,
+    `时间：${entry.frame} F`,
+    `期望反击：${entry.triggerCount} × ${group.chargePerCounter.toFixed(3)}% = ${entry.charge.toFixed(3)}%`,
+    `累计充能：${entry.cumulativeCharge.toFixed(3)}%`,
+  ];
 }
 
 function estimateChartLabelWidth(label) {
@@ -1103,7 +1176,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const points = memberPointGroups.flatMap((group) =>
     group.frames.map((frame) => ({ frame, groupKey: group.groupKey, teamKey: group.teamKey, positionIndex: group.member.positionIndex, result: group.result })),
   );
-  const scarletCounterGroups = getScarletCounterGroups(chartResults, visibleTimelineByTeam);
+  const scarletCounterGroups = [
+    ...getScarletCounterGroups(chartResults, visibleTimelineByTeam),
+    ...getJackalLinkGroups(chartResults, visibleTimelineByTeam),
+  ];
   const totalGroups = chartResults.map((item) => ({
     teamKey: item.teamKey,
     result: item.result,
@@ -1299,12 +1375,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       group.timeline.map((entry) => {
         const x = xForFrame(entry.frame);
         const y = yForCounterGroup(group.groupKey);
-        const tooltip = formatTooltipLines([
-          group.label,
-          `时间：${entry.frame} F`,
-          `期望反击：${entry.triggerCount} × ${group.chargePerCounter.toFixed(3)}% = ${entry.charge.toFixed(3)}%`,
-          `累计充能：${entry.cumulativeCharge.toFixed(3)}%`,
-        ]);
+        const tooltip = formatTooltipLines(getSpecialChargeTooltipLines(group, entry));
         return `<circle class="chart-scarlet-counter-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
       }),
     )
