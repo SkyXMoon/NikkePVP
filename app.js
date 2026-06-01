@@ -696,7 +696,11 @@ function formatTooltipLines(lines) {
   return escapeHtml(lines.join("\n"));
 }
 
-function getChargeChartMarkup(result) {
+function estimateChartLabelWidth(label) {
+  return [...String(label)].reduce((width, char) => width + (char.charCodeAt(0) > 255 ? 15 : 8), 0);
+}
+
+function getChargeChartMarkup(result, measuredLabelGutter = null) {
   if (!result || result.error) {
     return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
   }
@@ -704,7 +708,6 @@ function getChargeChartMarkup(result) {
   const width = 1800;
   const height = 440;
   const margin = { top: 30, right: 0, bottom: 42, left: 0 };
-  const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
   const laneByPosition = new Map(result.members.map((member, index) => [member.positionIndex, index]));
@@ -744,7 +747,15 @@ function getChargeChartMarkup(result) {
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
   const finishingPositions = new Set(result.finishingPositionIndices);
   const labelGap = 10;
-  const xForFrame = (frame) => margin.left + (frame / maxFrame) * chartWidth;
+  const chartLabels = [
+    "标准轴",
+    "总充能",
+    ...result.members.map((member) => `${finishingPositions.has(member.positionIndex) ? "*" : ""}${member.character.name}`),
+  ];
+  const labelGutter =
+    measuredLabelGutter ?? Math.ceil(Math.max(...chartLabels.map(estimateChartLabelWidth), 0) + labelGap);
+  const chartWidth = width - labelGutter - margin.right;
+  const xForFrame = (frame) => labelGutter + (frame / maxFrame) * chartWidth;
   const standardLaneIndex = 0;
   const firstMemberLaneIndex = 1;
   const totalLaneIndex = result.members.length + 1;
@@ -784,7 +795,7 @@ function getChargeChartMarkup(result) {
 
   const positionLines = Array.from({ length: laneCount }, (_, index) => {
     const y = yForLane(index);
-    return `<line class="chart-position-line" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />`;
+    return `<line class="chart-position-line" x1="${labelGutter}" y1="${y}" x2="${width - margin.right}" y2="${y}" />`;
   }).join("");
 
   const standardReferenceLines = rlStandards
@@ -869,14 +880,14 @@ function getChargeChartMarkup(result) {
   const labels = result.members.map((member) => {
     const y = yForPosition(member.positionIndex);
     const prefix = finishingPositions.has(member.positionIndex) ? "*" : "";
-    return `<text class="chart-name" x="${-labelGap}" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + member.character.name)}</text>`;
+    return `<text class="chart-name" x="0" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + member.character.name)}</text>`;
   }).join("");
-  const standardLabel = `<text class="chart-name chart-standard-name" x="${-labelGap}" y="${yForStandard() + 4}" text-anchor="end">标准轴</text>`;
-  const totalLabel = `<text class="chart-name chart-total-name" x="${-labelGap}" y="${yForTotal() + 4}" text-anchor="end">总充能</text>`;
+  const standardLabel = `<text class="chart-name chart-standard-name" x="0" y="${yForStandard() + 4}" text-anchor="start">标准轴</text>`;
+  const totalLabel = `<text class="chart-name chart-total-name" x="0" y="${yForTotal() + 4}" text-anchor="start">总充能</text>`;
 
   return `
-    <svg viewBox="${-labelGap} 0 ${width + labelGap} ${height}" data-chart-width="${width}" data-chart-height="${height}" role="img" aria-label="队伍充能关键帧图表">
-      <rect class="chart-bg" x="${-labelGap}" y="0" width="${width + labelGap}" height="${height}" rx="8" />
+    <svg viewBox="0 0 ${width} ${height}" data-label-gap="${labelGap}" data-label-gutter="${labelGutter}" role="img" aria-label="队伍充能关键帧图表">
+      <rect class="chart-bg" x="0" y="0" width="${width}" height="${height}" rx="8" />
       ${gridLines}
       ${standardLines}
       ${positionLines}
@@ -898,31 +909,27 @@ function getChargeChartMarkup(result) {
 
 function renderChargeChart(result) {
   els.chargeChart.innerHTML = getChargeChartMarkup(result);
-  fitChargeChartLabels();
-  requestAnimationFrame(fitChargeChartLabels);
+  fitChargeChartLabels(result);
+  requestAnimationFrame(() => fitChargeChartLabels(result));
 }
 
-function fitChargeChartLabels() {
+function fitChargeChartLabels(result) {
   const svg = els.chargeChart.querySelector("svg");
-  if (!svg) return;
+  if (!svg || !result || result.error) return;
 
   const labels = [...svg.querySelectorAll(".chart-name")];
   if (labels.length === 0) return;
 
   try {
-    const chartWidth = Number(svg.dataset.chartWidth) || 1800;
-    const chartHeight = Number(svg.dataset.chartHeight) || 440;
-    const labelLeft = Math.floor(Math.min(...labels.map((label) => label.getBBox().x), 0));
-    const viewBoxWidth = chartWidth - labelLeft;
-    const bg = svg.querySelector(".chart-bg");
+    const labelGap = Number(svg.dataset.labelGap) || 10;
+    const currentGutter = Number(svg.dataset.labelGutter) || 0;
+    const measuredGutter = Math.ceil(Math.max(...labels.map((label) => label.getBBox().width), 0) + labelGap);
 
-    svg.setAttribute("viewBox", `${labelLeft} 0 ${viewBoxWidth} ${chartHeight}`);
-    if (bg) {
-      bg.setAttribute("x", labelLeft);
-      bg.setAttribute("width", viewBoxWidth);
+    if (Math.abs(measuredGutter - currentGutter) > 1) {
+      els.chargeChart.innerHTML = getChargeChartMarkup(result, measuredGutter);
     }
   } catch {
-    // getBBox can fail while the SVG is detached; the initial viewBox remains usable.
+    // getBBox can fail while the SVG is detached; the estimated layout remains usable.
   }
 }
 
