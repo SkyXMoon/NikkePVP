@@ -61,6 +61,10 @@ const state = {
     defense: {},
     attack: {},
   },
+  characterMagazines: {
+    defense: {},
+    attack: {},
+  },
   jackalLinks: {
     defense: { enabled: false, ownerId: null, targetIds: [] },
     attack: { enabled: false, ownerId: null, targetIds: [] },
@@ -187,8 +191,20 @@ function getCharacterQuantumCubeMemory(teamKey = state.activeTeamKey) {
   return state.characterQuantumCubes[normalizedTeamKey];
 }
 
+function getCharacterMagazineMemory(teamKey = state.activeTeamKey) {
+  const normalizedTeamKey = normalizeTeamKey(teamKey);
+  if (!state.characterMagazines[normalizedTeamKey]) {
+    state.characterMagazines[normalizedTeamKey] = {};
+  }
+  return state.characterMagazines[normalizedTeamKey];
+}
+
 function sanitizeChargeSpeed(value) {
   return Math.max(0, Number(value) || 0);
+}
+
+function sanitizeMagazine(value) {
+  return Math.max(1, Math.floor(Number(value) || 0));
 }
 
 function getSavedCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
@@ -209,6 +225,19 @@ function getSavedCharacterQuantumCube(character, teamKey = state.activeTeamKey) 
 function saveCharacterQuantumCube(character, enabled, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
   getCharacterQuantumCubeMemory(teamKey)[character.id] = Boolean(enabled);
+}
+
+function getSavedCharacterMagazine(character, teamKey = state.activeTeamKey) {
+  if (!character?.id) return null;
+  const memory = getCharacterMagazineMemory(teamKey);
+  if (!Object.prototype.hasOwnProperty.call(memory, character.id)) return null;
+  const magazine = sanitizeMagazine(memory[character.id]);
+  return magazine > 0 ? magazine : null;
+}
+
+function saveCharacterMagazine(character, value, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  getCharacterMagazineMemory(teamKey)[character.id] = sanitizeMagazine(value);
 }
 
 function rememberTeamSlotChargeSpeed(teamKey, index) {
@@ -521,8 +550,10 @@ function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTime
 function characterForSlot(character, positionIndex, teamKey = "attack") {
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
+  const savedMagazine = isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
   return {
     ...character,
+    stats: savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats,
     chargeSpeedPercent: Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
   };
@@ -1070,6 +1101,8 @@ function createSlotSettingsModal() {
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
   const quantumCubeEnabled = getSavedCharacterQuantumCube(character, teamKey);
+  const isScarletSettings = isScarlet(character);
+  const magazineValue = getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
   const backdrop = document.createElement("div");
   backdrop.className = "slot-settings-backdrop";
   backdrop.setAttribute("role", "presentation");
@@ -1087,6 +1120,17 @@ function createSlotSettingsModal() {
         <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" />
         <span>%</span>
       </label>
+      ${
+        isScarletSettings
+          ? `
+            <label class="settings-field">
+              <span>弹容</span>
+              <input class="slot-settings-magazine" type="number" min="1" max="999" step="1" value="${magazineValue}" />
+              <span>发</span>
+            </label>
+          `
+          : ""
+      }
       <label class="settings-check-field">
         <img class="settings-check-icon" src="assets/icons/nikke-top/cubes/quantum-24x24.webp" alt="" aria-hidden="true" />
         <span>启用量子遗迹魔方</span>
@@ -1127,6 +1171,21 @@ function createSlotSettingsModal() {
     saveTeam();
     updateTeamFinishMarkers(renderResults());
   });
+
+  const magazineInput = backdrop.querySelector(".slot-settings-magazine");
+  if (magazineInput) {
+    magazineInput.addEventListener("pointerdown", (event) => event.stopPropagation());
+    magazineInput.addEventListener("focus", (event) => event.target.select());
+    magazineInput.addEventListener("click", (event) => event.target.select());
+    magazineInput.addEventListener("dragstart", (event) => event.stopPropagation());
+    magazineInput.addEventListener("input", (event) => {
+      const magazine = sanitizeMagazine(event.target.value);
+      event.target.value = magazine;
+      saveCharacterMagazine(character, magazine, teamKey);
+      saveTeam();
+      updateTeamFinishMarkers(renderResults());
+    });
+  }
 
   const quantumCubeInput = backdrop.querySelector(".slot-settings-quantum-cube");
   quantumCubeInput.addEventListener("change", (event) => {
@@ -2479,6 +2538,14 @@ function normalizeSavedCharacterFlags(savedFlags = {}) {
   );
 }
 
+function normalizeSavedCharacterMagazines(savedMagazines = {}) {
+  return Object.fromEntries(
+    Object.entries(savedMagazines || {})
+      .map(([characterId, magazine]) => [characterId, sanitizeMagazine(magazine)])
+      .filter(([characterId, magazine]) => getCharacterById(characterId) && magazine > 0),
+  );
+}
+
 function rememberLoadedTeamChargeSpeeds(teamKey) {
   getTeamState(teamKey).forEach((character, index) => {
     if (character) {
@@ -2498,6 +2565,7 @@ function saveTeam() {
       chargeSpeeds: state.chargeSpeeds,
       characterChargeSpeeds: state.characterChargeSpeeds,
       characterQuantumCubes: state.characterQuantumCubes,
+      characterMagazines: state.characterMagazines,
       jackalLinks: state.jackalLinks,
       allowMissedShots: state.allowMissedShots,
       activeTeamKey: state.activeTeamKey,
@@ -2521,6 +2589,10 @@ function loadTeam() {
       state.characterQuantumCubes = {
         defense: normalizeSavedCharacterFlags(saved.characterQuantumCubes?.defense),
         attack: normalizeSavedCharacterFlags(saved.characterQuantumCubes?.attack),
+      };
+      state.characterMagazines = {
+        defense: normalizeSavedCharacterMagazines(saved.characterMagazines?.defense),
+        attack: normalizeSavedCharacterMagazines(saved.characterMagazines?.attack),
       };
       state.jackalLinks = {
         defense: {
@@ -2553,6 +2625,7 @@ function loadTeam() {
     state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
     state.characterChargeSpeeds = { defense: {}, attack: {} };
     state.characterQuantumCubes = { defense: {}, attack: {} };
+    state.characterMagazines = { defense: {}, attack: {} };
     state.jackalLinks = {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
