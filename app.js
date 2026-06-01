@@ -428,6 +428,23 @@ function simulateBurst(team, teamKey = "attack") {
     };
   }
 
+  const chartExtraTimeline = events
+    .filter((event) => ["RL", "SR"].includes(event.character.weapon) && event.nextFrame <= CHART_MAX_FRAME)
+    .map((event) => ({
+      frame: event.nextFrame,
+      totalCharge,
+      isExtraKeyFrame: true,
+      contributions: [
+        {
+          positionIndex: event.positionIndex,
+          characterName: event.character.name,
+          charge: event.chargeValue,
+          cumulativeCharge: event.totalCharge + event.chargeValue,
+          labels: ["下一发预览"],
+        },
+      ],
+    }));
+
   return {
     fullFrame: currentFrame,
     burst1Frame: currentFrame + 26,
@@ -437,6 +454,7 @@ function simulateBurst(team, teamKey = "attack") {
     chargePerSecond: currentFrame === 0 ? totalCharge * FRAMES_PER_SECOND : (totalCharge / currentFrame) * FRAMES_PER_SECOND,
     finishingPositionIndices: [...currentFrameContributors].sort((a, b) => a - b),
     timeline,
+    chartExtraTimeline,
     members: events,
   };
 }
@@ -686,8 +704,10 @@ function renderSingleTeamLegacy() {
 
 function renderTeam() {
   const fragment = document.createDocumentFragment();
-  const result = simulateBurst(state.team, "attack");
-  const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
+  const resultsByTeam = new Map([
+    ["defense", simulateBurst(state.defenseTeam, "defense")],
+    ["attack", simulateBurst(state.team, "attack")],
+  ]);
 
   ["defense", "attack"].forEach((teamKey) => {
     const team = getTeamState(teamKey);
@@ -705,7 +725,9 @@ function renderTeam() {
 
     const slotsRow = row.querySelector(".team-slots-row");
     team.forEach((character, index) => {
-      const isFinisher = teamKey === "attack" && finishingPositions.has(index);
+      const teamResult = resultsByTeam.get(teamKey);
+      const finishingPositions = new Set(teamResult && !teamResult.error ? teamResult.finishingPositionIndices : []);
+      const isFinisher = finishingPositions.has(index);
       const slot = document.createElement("div");
       slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
       slot.dataset.slotIndex = index;
@@ -798,7 +820,7 @@ function renderTeam() {
         speedInput.addEventListener("input", (event) => {
           chargeSpeeds[index] = Math.max(0, Number(event.target.value) || 0);
           saveTeam();
-          if (teamKey === "attack") updateTeamFinishMarkers(renderResults());
+          updateTeamFinishMarkers(renderResults());
         });
       }
       slotsRow.append(slot);
@@ -810,11 +832,16 @@ function renderTeam() {
   els.teamSlots.replaceChildren(fragment);
 }
 
-function updateTeamFinishMarkers(result = simulateBurst(state.team, "attack")) {
-  const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
+function updateTeamFinishMarkers(result = simulateBurst(state.team, "attack"), defenseResult = simulateBurst(state.defenseTeam, "defense")) {
+  const finishingPositionsByTeam = new Map([
+    ["defense", new Set(defenseResult && !defenseResult.error ? defenseResult.finishingPositionIndices : [])],
+    ["attack", new Set(result && !result.error ? result.finishingPositionIndices : [])],
+  ]);
 
-  els.teamSlots.querySelectorAll('.team-slot[data-team-key="attack"]').forEach((slot) => {
+  els.teamSlots.querySelectorAll(".team-slot").forEach((slot) => {
+    const teamKey = slot.dataset.teamKey || "attack";
     const index = Number(slot.dataset.slotIndex);
+    const finishingPositions = finishingPositionsByTeam.get(teamKey) || new Set();
     const isFinisher = finishingPositions.has(index);
     slot.classList.toggle("is-finisher", isFinisher);
 
@@ -866,7 +893,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const margin = { top: 30, right: 42, bottom: 42, left: 0 };
   const chartHeight = height - margin.top - margin.bottom;
   const visibleTimelineByTeam = new Map(
-    chartResults.map((item) => [item.teamKey, item.result.timeline.filter((entry) => entry.frame <= CHART_MAX_FRAME)]),
+    chartResults.map((item) => [
+      item.teamKey,
+      [...item.result.timeline, ...(item.result.chartExtraTimeline || [])].filter((entry) => entry.frame <= CHART_MAX_FRAME),
+    ]),
   );
   const timelineByFrame = new Map(
     chartResults.flatMap((item) => visibleTimelineByTeam.get(item.teamKey).map((entry) => [`${item.teamKey}-${entry.frame}`, entry])),
@@ -899,17 +929,19 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const totalGroups = chartResults.map((item) => ({
     teamKey: item.teamKey,
     result: item.result,
-    timeline: visibleTimelineByTeam.get(item.teamKey) || [],
+    timeline: item.result.timeline.filter((entry) => entry.frame <= CHART_MAX_FRAME),
     groupKey: `${item.teamKey}-total`,
     label: `${TEAM_LABELS[item.teamKey]}-总充能`,
   }));
   const primaryTotalGroup = totalGroups.find((group) => group.teamKey === "attack") || totalGroups[0];
-  const visibleStandards =
-    primaryTotalGroup?.result.fullFrame <= CHART_MAX_FRAME ? [{ label: "", frame: primaryTotalGroup.result.fullFrame, isFullFrame: true }] : [];
+  const visibleStandards = totalGroups
+    .filter((group) => group.result.fullFrame <= CHART_MAX_FRAME)
+    .map((group) => ({ label: "", frame: group.result.fullFrame, isFullFrame: true, teamKey: group.teamKey }));
   const maxFrame = Math.min(
     CHART_MAX_FRAME,
     Math.max(
       ...chartResults.flatMap((item) => [item.result.fullFrame, item.result.burst1Frame, item.result.burst2Frame, item.result.burst3Frame]),
+      ...chartResults.flatMap((item) => (item.result.chartExtraTimeline || []).map((entry) => entry.frame)),
       1,
     ),
   );
@@ -971,13 +1003,13 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     .join("");
 
   const standardLines = visibleStandards
-    .filter((standard, index, standards) => standards.findIndex((item) => item.label === standard.label && item.frame === standard.frame) === index)
+    .filter((standard, index, standards) => standards.findIndex((item) => item.teamKey === standard.teamKey && item.frame === standard.frame) === index)
     .map((standard) => {
       const x = xForFrame(standard.frame);
       const isFullFrame = standard.isFullFrame;
       const label = standard.label ? `<text x="${x}" y="${margin.top - 34}" text-anchor="middle">${escapeHtml(standard.label)}</text>` : "";
       return `
-        <g class="${isFullFrame ? "chart-standard is-full" : "chart-standard"}">
+        <g class="${isFullFrame ? `chart-standard is-full team-${standard.teamKey}` : `chart-standard team-${standard.teamKey}`}">
           <line x1="${x}" y1="${margin.top - 24}" x2="${x}" y2="${height - margin.bottom}" />
           ${label}
         </g>

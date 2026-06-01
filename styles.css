@@ -569,6 +569,14 @@ input:focus {
   stroke-dasharray: none;
 }
 
+.chart-standard.is-full.team-defense line {
+  stroke: var(--blue);
+}
+
+.chart-standard.is-full.team-attack line {
+  stroke: var(--accent);
+}
+
 .chart-standard.is-full text {
   fill: #ffd9dc;
 }
