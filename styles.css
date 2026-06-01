@@ -234,7 +234,11 @@ input:focus {
 
 .character-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  grid-template-columns: repeat(auto-fill, 68px);
+  grid-auto-rows: 68px;
+  align-content: start;
+  align-items: start;
+  justify-content: start;
   gap: 7px;
   flex: 1;
   min-height: 0;
@@ -1097,7 +1101,7 @@ summary {
   }
 
   .character-list {
-    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+    grid-template-columns: repeat(auto-fill, 68px);
   }
 }
 
@@ -1171,7 +1175,8 @@ summary {
   }
 
   .character-list {
-    grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+    grid-template-columns: repeat(auto-fill, 62px);
+    grid-auto-rows: 62px;
     gap: 7px;
   }
 }
