@@ -1656,18 +1656,21 @@ function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
       .map((member) => {
         const chargePerCounter = getChargeValue(member.character) * SCARLET_COUNTER_PROBABILITY;
         let cumulativeCharge = 0;
-        const timeline = opponentTimeline.map((entry) => {
-          const opponentResult = chartResults.find((resultItem) => resultItem.teamKey === opponentTeamKey)?.result || null;
-          const triggerCount = getScarletCounterTriggerCount(item.result, member, entry, opponentResult);
-          const charge = chargePerCounter * triggerCount;
-          cumulativeCharge += charge;
-          return {
-            frame: entry.frame,
-            triggerCount,
-            charge,
-            cumulativeCharge,
-          };
-        });
+        const timeline = opponentTimeline
+          .map((entry) => {
+            const opponentResult = chartResults.find((resultItem) => resultItem.teamKey === opponentTeamKey)?.result || null;
+            const triggerCount = getScarletCounterTriggerCount(item.result, member, entry, opponentResult);
+            const charge = chargePerCounter * triggerCount;
+            if (charge <= BURST_EPSILON) return null;
+            cumulativeCharge += charge;
+            return {
+              frame: entry.frame,
+              triggerCount,
+              charge,
+              cumulativeCharge,
+            };
+          })
+          .filter(Boolean);
 
         return {
           teamKey: item.teamKey,
