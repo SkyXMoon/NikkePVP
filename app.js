@@ -204,7 +204,7 @@ function sanitizeChargeSpeed(value) {
 }
 
 function sanitizeMagazine(value) {
-  return Math.max(1, Math.floor(Number(value) || 0));
+  return Math.max(20, Math.floor(Number(value) || 0));
 }
 
 function getSavedCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
@@ -1132,7 +1132,7 @@ function createSlotSettingsModal() {
           ? `
             <label class="settings-field">
               <span>弹容</span>
-              <input class="slot-settings-magazine" type="number" min="1" max="999" step="1" value="${magazineValue}" />
+              <input class="slot-settings-magazine" type="number" min="20" max="999" step="1" value="${magazineValue}" />
               <span>发</span>
             </label>
           `
