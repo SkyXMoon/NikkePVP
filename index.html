@@ -25,16 +25,22 @@
           <div class="charge-chart" id="chargeChart"></div>
         </section>
 
+        <section class="team-panel team-panel-horizontal">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Team</p>
+              <h2>队伍槽位</h2>
+            </div>
+            <div class="team-actions">
+              <div class="summary-strip" id="summaryStrip">选择角色后实时计算首轮爆裂</div>
+              <button class="ghost-button" id="clearTeamButton" type="button">清空</button>
+            </div>
+          </div>
+          <div class="team-slots" id="teamSlots"></div>
+        </section>
+
         <section class="content-grid">
           <section class="workspace" aria-label="角色数据">
-            <header class="topbar">
-              <div>
-                <p class="eyebrow">NIKKE Arena Tools</p>
-                <h1>竞技场充能计算器</h1>
-              </div>
-              <div class="summary-strip" id="summaryStrip">选择角色后实时计算首轮爆裂</div>
-            </header>
-
             <section class="filters" aria-label="筛选角色">
               <label class="search-field">
                 <span>搜索</span>
@@ -85,17 +91,6 @@
           </section>
 
           <aside class="side-panel" aria-label="队伍与结果">
-            <section class="team-panel">
-              <div class="panel-heading">
-                <div>
-                  <p class="eyebrow">Team</p>
-                  <h2>队伍槽位</h2>
-                </div>
-                <button class="ghost-button" id="clearTeamButton" type="button">清空</button>
-              </div>
-              <div class="team-slots" id="teamSlots"></div>
-            </section>
-
             <section class="result-panel" id="resultPanel" aria-live="polite"></section>
           </aside>
         </section>
