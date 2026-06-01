@@ -658,9 +658,9 @@ function getChargeChartMarkup(result) {
     return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
   }
 
-  const width = 520;
-  const height = 220;
-  const margin = { top: 16, right: 22, bottom: 42, left: 52 };
+  const width = 1180;
+  const height = 300;
+  const margin = { top: 24, right: 34, bottom: 42, left: 132 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
@@ -679,31 +679,31 @@ function getChargeChartMarkup(result) {
         );
   const maxFrame = Math.max(result.fullFrame, 1);
   const finishingPositions = new Set(result.finishingPositionIndices);
-  const xForPosition = (index) => margin.left + (TEAM_SIZE === 1 ? chartWidth / 2 : (chartWidth / (TEAM_SIZE - 1)) * index);
-  const yForFrame = (frame) => margin.top + (frame / maxFrame) * chartHeight;
+  const xForFrame = (frame) => margin.left + (frame / maxFrame) * chartWidth;
+  const yForPosition = (index) => margin.top + (TEAM_SIZE === 1 ? chartHeight / 2 : (chartHeight / (TEAM_SIZE - 1)) * index);
 
   const gridLines = tickFrames
     .map((frame) => {
-      const y = yForFrame(frame);
+      const x = xForFrame(frame);
       const isFullFrame = frame === result.fullFrame;
       return `
         <g class="${isFullFrame ? "chart-grid is-full" : "chart-grid"}">
-          <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />
-          <text x="${margin.left - 10}" y="${y + 4}" text-anchor="end">${frame}F</text>
+          <line x1="${x}" y1="${margin.top}" x2="${x}" y2="${height - margin.bottom}" />
+          <text x="${x}" y="${height - 14}" text-anchor="middle">${frame}F</text>
         </g>
       `;
     })
     .join("");
 
   const positionLines = Array.from({ length: TEAM_SIZE }, (_, index) => {
-    const x = xForPosition(index);
-    return `<line class="chart-position-line" x1="${x}" y1="${margin.top}" x2="${x}" y2="${height - margin.bottom}" />`;
+    const y = yForPosition(index);
+    return `<line class="chart-position-line" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />`;
   }).join("");
 
   const pointMarks = points
     .map((point) => {
-      const x = xForPosition(point.positionIndex);
-      const y = yForFrame(point.frame);
+      const x = xForFrame(point.frame);
+      const y = yForPosition(point.positionIndex);
       const isFinisher = point.frame === result.fullFrame && finishingPositions.has(point.positionIndex);
       return `<circle class="${isFinisher ? "chart-point is-finisher" : "chart-point"}" cx="${x}" cy="${y}" r="${isFinisher ? 5 : 3.5}" />`;
     })
@@ -712,9 +712,9 @@ function getChargeChartMarkup(result) {
   const labels = Array.from({ length: TEAM_SIZE }, (_, index) => {
     const member = memberByPosition.get(index);
     const name = member?.character.name || "空位";
-    const x = xForPosition(index);
+    const y = yForPosition(index);
     const prefix = finishingPositions.has(index) ? "*" : "";
-    return `<text class="chart-name" x="${x}" y="${height - 14}" text-anchor="middle">${escapeHtml(prefix + name)}</text>`;
+    return `<text class="chart-name" x="${margin.left - 14}" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + name)}</text>`;
   }).join("");
 
   return `

@@ -44,7 +44,7 @@ button {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) 390px;
+  grid-template-columns: 72px minmax(0, 1fr);
   gap: 14px;
   min-height: 100vh;
   padding: 14px;
@@ -91,8 +91,22 @@ button {
   background: rgba(53, 199, 191, 0.1);
 }
 
+.main-stage,
 .workspace,
 .side-panel {
+  min-width: 0;
+}
+
+.main-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -480,9 +494,9 @@ input:focus {
   flex-direction: column;
   gap: 12px;
   position: sticky;
-  top: 14px;
+  top: calc(32vh + 28px);
   align-self: start;
-  max-height: calc(100vh - 28px);
+  max-height: calc(68vh - 42px);
   overflow: auto;
 }
 
@@ -490,6 +504,10 @@ input:focus {
 .team-panel,
 .result-panel {
   padding: 14px;
+}
+
+.charge-chart-panel {
+  min-height: 32vh;
 }
 
 .panel-heading {
@@ -505,7 +523,8 @@ input:focus {
 }
 
 .charge-chart {
-  min-height: 190px;
+  height: calc(32vh - 70px);
+  min-height: 220px;
   overflow: hidden;
 }
 
@@ -792,8 +811,11 @@ summary {
     grid-template-columns: 56px minmax(0, 1fr);
   }
 
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
   .side-panel {
-    grid-column: 2;
     position: static;
     max-height: none;
   }
@@ -814,8 +836,23 @@ summary {
   }
 
   .workspace,
-  .side-panel {
+  .side-panel,
+  .charge-chart-panel {
     margin-bottom: 12px;
+  }
+
+  .charge-chart-panel {
+    min-height: 260px;
+  }
+
+  .charge-chart {
+    height: 210px;
+    min-height: 210px;
+    overflow-x: auto;
+  }
+
+  .charge-chart svg {
+    min-width: 820px;
   }
 
   .topbar,
