@@ -692,7 +692,7 @@ function getChargeChartMarkup(result) {
 
   const width = 1800;
   const height = 440;
-  const margin = { top: 30, right: 34, bottom: 56, left: 164 };
+  const margin = { top: 30, right: 8, bottom: 42, left: 96 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   const memberByPosition = new Map(result.members.map((member) => [member.positionIndex, member]));
@@ -782,7 +782,7 @@ function getChargeChartMarkup(result) {
       return `<line class="chart-standard-reference" x1="${x}" y1="${yForStandard()}" x2="${x}" y2="${height - margin.bottom}" />`;
     })
     .join("");
-  const standardTrack = `<line class="chart-track chart-standard-track" x1="${xForFrame(rlStandards[0]?.frame ?? 0)}" y1="${yForStandard()}" x2="${xForFrame(rlStandards.at(-1)?.frame ?? 0)}" y2="${yForStandard()}" />`;
+  const standardTrack = `<line class="chart-track chart-standard-track" x1="${xForFrame(0)}" y1="${yForStandard()}" x2="${xForFrame(Math.max(...burstMarkers.map((marker) => marker.frame)))}" y2="${yForStandard()}" />`;
   const standardPoints = rlStandards
     .map((standard) => {
       const x = xForFrame(standard.frame);
