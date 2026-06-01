@@ -196,12 +196,6 @@ h2 {
   font-size: 16px;
 }
 
-.summary-team em {
-  color: var(--muted);
-  font-style: normal;
-  font-size: 12px;
-}
-
 .summary-defense {
   color: var(--blue);
 }

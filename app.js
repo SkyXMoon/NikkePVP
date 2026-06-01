@@ -1318,8 +1318,7 @@ function renderSummaryStrip(attackResult, defenseResult) {
         ${index > 0 ? '<span class="summary-vs">VS</span>' : ""}
         <span class="summary-team summary-${entry.teamKey}">
           <span>${TEAM_LABELS[entry.teamKey]}</span>
-          <strong>${formatFrame(entry.result.fullFrame)}</strong>
-          <em>${getStandardChargeBand(entry.result.fullFrame)}</em>
+          <strong>${entry.result.fullFrame}F</strong>
         </span>
       `,
     )
