@@ -996,8 +996,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const firstAttackLaneIndex = firstMemberLaneIndex + defenseGroups.length + (hasDefenseTotal ? 1 : 0) + (hasTeamSeparator ? 1 : 0);
   const attackTotalLaneIndex = firstAttackLaneIndex + attackGroups.length;
   const laneCount = attackTotalLaneIndex + (totalGroups.some((group) => group.teamKey === "attack") ? 1 : 0);
-  const laneGap = 46;
-  const height = Math.max(CHART_HEIGHT, margin.top + margin.bottom + laneCount * laneGap);
+  const height = CHART_HEIGHT;
   const chartHeight = height - margin.top - margin.bottom;
   const laneByGroupKey = new Map([
     ...defenseGroups.map((group, index) => [group.groupKey, firstMemberLaneIndex + index]),
