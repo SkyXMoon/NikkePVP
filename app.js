@@ -1665,6 +1665,15 @@ function getCumulativeContributionLines(result, frame) {
     .filter(Boolean);
 }
 
+function getTotalEntryContributionLines(entry) {
+  return entry.contributions
+    .map((contribution) => {
+      const labels = contribution.labels.length ? `（${contribution.labels.join(" + ")}）` : "";
+      return `${contribution.characterName}：+${contribution.charge.toFixed(2)}%${labels}`;
+    })
+    .filter(Boolean);
+}
+
 function getChargeChartSize() {
   const rect = els.chargeChart?.getBoundingClientRect();
   return {
@@ -1978,10 +1987,12 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       group.timeline.map((entry) => {
         const x = xForFrame(entry.frame);
         const y = yForTeamTotal(group.teamKey);
+        const currentContributionLines = getTotalEntryContributionLines(entry);
         const cumulativeLines = getCumulativeContributionLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
           `累计总充能：${entry.totalCharge.toFixed(2)}%`,
+          ...(currentContributionLines.length ? ["当前帧充能：", ...currentContributionLines] : []),
           ...(cumulativeLines.length ? ["各角色累计贡献：", ...cumulativeLines] : []),
         ]);
         return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"><title>${tooltip}</title></circle>`;
