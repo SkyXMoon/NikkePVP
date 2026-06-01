@@ -696,6 +696,10 @@ function formatTooltipLines(lines) {
   return escapeHtml(lines.join("\n"));
 }
 
+function estimateChartLabelWidth(label) {
+  return [...String(label)].reduce((width, char) => width + (char.charCodeAt(0) > 255 ? 15 : 8), 0);
+}
+
 function getChargeChartMarkup(result) {
   if (!result || result.error) {
     return '<p class="empty-result">选择队伍后显示关键充能帧。</p>';
@@ -703,7 +707,6 @@ function getChargeChartMarkup(result) {
 
   const width = 1800;
   const height = 440;
-  const labelGutter = 168;
   const margin = { top: 30, right: 0, bottom: 42, left: 0 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
@@ -744,6 +747,13 @@ function getChargeChartMarkup(result) {
   const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
   if (!tickFrames.includes(maxFrame)) tickFrames.push(maxFrame);
   const finishingPositions = new Set(result.finishingPositionIndices);
+  const chartLabels = [
+    "标准轴",
+    "总充能",
+    ...result.members.map((member) => `${finishingPositions.has(member.positionIndex) ? "*" : ""}${member.character.name}`),
+  ];
+  const labelGap = 10;
+  const labelGutter = Math.ceil(Math.max(...chartLabels.map(estimateChartLabelWidth), 0) + labelGap);
   const xForFrame = (frame) => margin.left + (frame / maxFrame) * chartWidth;
   const standardLaneIndex = 0;
   const firstMemberLaneIndex = 1;
@@ -869,10 +879,10 @@ function getChargeChartMarkup(result) {
   const labels = result.members.map((member) => {
     const y = yForPosition(member.positionIndex);
     const prefix = finishingPositions.has(member.positionIndex) ? "*" : "";
-    return `<text class="chart-name" x="-10" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + member.character.name)}</text>`;
+    return `<text class="chart-name" x="${-labelGap}" y="${y + 4}" text-anchor="end">${escapeHtml(prefix + member.character.name)}</text>`;
   }).join("");
-  const standardLabel = `<text class="chart-name chart-standard-name" x="-10" y="${yForStandard() + 4}" text-anchor="end">标准轴</text>`;
-  const totalLabel = `<text class="chart-name chart-total-name" x="-10" y="${yForTotal() + 4}" text-anchor="end">总充能</text>`;
+  const standardLabel = `<text class="chart-name chart-standard-name" x="${-labelGap}" y="${yForStandard() + 4}" text-anchor="end">标准轴</text>`;
+  const totalLabel = `<text class="chart-name chart-total-name" x="${-labelGap}" y="${yForTotal() + 4}" text-anchor="end">总充能</text>`;
 
   return `
     <svg viewBox="${-labelGutter} 0 ${width + labelGutter} ${height}" role="img" aria-label="队伍充能关键帧图表">
