@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="app-version" aria-label="当前版本">V1.1.8</div>
+    <div class="app-version" aria-label="当前版本">V1.1.9</div>
     <main class="app-shell">
       <section class="main-stage" aria-label="竞技场充能工具">
         <section class="charge-chart-panel" aria-label="充能关键点图表">
@@ -50,6 +50,9 @@
               <label class="search-field">
                 <input id="searchInput" type="search" placeholder="角色名 / 英文名" />
               </label>
+              <button class="filter-switch filter-stage-button" type="button" data-stage-filter="B1" aria-pressed="false">1</button>
+              <button class="filter-switch filter-stage-button" type="button" data-stage-filter="B2" aria-pressed="false">2</button>
+              <button class="filter-switch filter-stage-button" type="button" data-stage-filter="B3" aria-pressed="false">3</button>
               <label class="filter-switch">
                 <input id="commonToggle" type="checkbox" checked />
                 <span>常</span>
@@ -62,9 +65,6 @@
                 <input id="compactAvatarToggle" type="checkbox" checked />
                 <span>简</span>
               </label>
-              <button class="filter-switch filter-stage-button" type="button" data-stage-filter="B1" aria-pressed="false">1</button>
-              <button class="filter-switch filter-stage-button" type="button" data-stage-filter="B2" aria-pressed="false">2</button>
-              <button class="filter-switch filter-stage-button" type="button" data-stage-filter="B3" aria-pressed="false">3</button>
             </section>
 
             <section class="list-header">
