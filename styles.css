@@ -1272,15 +1272,18 @@ input:focus {
 .universal-charge-field input {
   position: absolute;
   left: 50%;
-  bottom: 7px;
+  bottom: 5px;
   transform: translateX(-50%);
-  width: min(64px, 82%);
+  width: min(48px, 72%);
+  min-height: 18px;
   border: 1px solid rgba(77, 163, 255, 0.42);
-  border-radius: 4px;
-  padding: 3px 4px;
+  border-radius: 3px;
+  padding: 1px 3px;
   color: var(--text);
   background: rgba(7, 9, 13, 0.8);
-  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
   text-align: center;
   outline: none;
 }
