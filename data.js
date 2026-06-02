@@ -1303,7 +1303,7 @@ const CHARACTERS = [
     "hitCountExtraEvents": [
       {
         "every": 5,
-        "segments": 0.1
+        "segments": 1
       }
     ],
     "flatBurstBonus": 0,

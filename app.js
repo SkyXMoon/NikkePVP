@@ -597,10 +597,29 @@ function getEffectiveBurstGen(character) {
   return character.quantumRelicCubeEnabled ? baseBurstGen * QUANTUM_RELIC_CUBE_MULTIPLIER : baseBurstGen;
 }
 
+function getBaseChargeUnit(character) {
+  const baseCharge = getEffectiveBurstGen(character);
+  return character.weapon === "SG" ? baseCharge / 10 : baseCharge;
+}
+
+function getChargeHitMultiplier(character) {
+  if (character.weapon === "RL") return getRlHitSegments(character);
+  if (character.weapon === "SG") return 10;
+  if (character.hasPenetration) return 2;
+  return 1;
+}
+
+function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
+  if (character.weapon === "RL") return `RL命中 ${hitMultiplier} 段`;
+  if (character.weapon === "SG") return "命中 10 段";
+  if (character.hasPenetration) return "穿透 2 段";
+  return "命中 1 段";
+}
+
 function getChargeValue(character) {
-  const coverMultiplier = character.weapon === "RL" ? getRlHitSegments(character) : character.hasPenetration ? 2 : 1;
+  const coverMultiplier = getChargeHitMultiplier(character);
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
-  return getEffectiveBurstGen(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
+  return getBaseChargeUnit(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
 function getDelayedExtraLabel(character) {
@@ -608,14 +627,15 @@ function getDelayedExtraLabel(character) {
 }
 
 function getChargeBreakdown(character) {
-  const hitMultiplier = character.weapon === "RL" ? getRlHitSegments(character) : character.hasPenetration ? 2 : 1;
+  const hitMultiplier = getChargeHitMultiplier(character);
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
-  const hitLabel = character.weapon === "RL" ? `RL命中 ${hitMultiplier} 段` : character.hasPenetration ? "穿透 2 段" : "命中 1 段";
+  const hitLabel = getChargeHitLabel(character, hitMultiplier);
+  const baseChargeUnit = getBaseChargeUnit(character);
   const effectiveBurstGen = getEffectiveBurstGen(character);
   const flatBonus = character.flatBurstBonus || 0;
   const lines = [
-    `充能组成：${formatNumber(effectiveBurstGen, 5)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${formatNumber(flatBonus, 2)}` : ""} = ${formatNumber(getChargeValue(character), 2)}%`,
-    `基础 ${formatNumber(effectiveBurstGen, 5)}%${character.quantumRelicCubeEnabled ? `（量子遗迹魔方 ${formatNumber(character.burstGen, 2)} × 1.0466）` : ""}`,
+    `充能组成：${formatNumber(baseChargeUnit, 5)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${formatNumber(flatBonus, 2)}` : ""} = ${formatNumber(getChargeValue(character), 2)}%`,
+    `基础 ${formatNumber(baseChargeUnit, 5)}%${character.weapon === "SG" ? `（SG单hit，${formatNumber(effectiveBurstGen, 5)} ÷ 10）` : ""}${character.quantumRelicCubeEnabled ? `（量子遗迹魔方 ${formatNumber(character.burstGen, 2)} × 1.0466）` : ""}`,
     hitLabel,
   ];
 
@@ -626,7 +646,7 @@ function getChargeBreakdown(character) {
       `攻击次数追加：${character.hitCountExtraEvents
         .map((event) => {
           const triggerText = event.every ? `每${event.every}发` : `第${event.hit}次`;
-          return `${triggerText} +${formatNumber(effectiveBurstGen * event.segments * extraMultiplier, 2)}%`;
+          return `${triggerText} +${formatNumber(baseChargeUnit * event.segments * extraMultiplier, 2)}%`;
         })
         .join("，")}`,
     );
@@ -635,7 +655,7 @@ function getChargeBreakdown(character) {
     const delayedLabel = getDelayedExtraLabel(character);
     lines.push(
       `${delayedLabel}：${character.delayedExtraHits
-        .map((event) => `${event.delayFrames}帧后 +${formatNumber(effectiveBurstGen * event.segments * extraMultiplier, 2)}%`)
+        .map((event) => `${event.delayFrames}帧后 +${formatNumber(baseChargeUnit * event.segments * extraMultiplier, 2)}%`)
         .join("，")}`,
     );
   }
@@ -705,7 +725,7 @@ function getDelayedExtraEvents(event, currentFrame) {
     character: event.character,
     positionIndex: event.positionIndex,
     frame: currentFrame + extra.delayFrames,
-    chargeValue: getEffectiveBurstGen(event.character) * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
+    chargeValue: getBaseChargeUnit(event.character) * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
     source: "delayed",
   }));
 }
@@ -715,7 +735,7 @@ function getHitCountExtraCharge(event) {
     .filter((extra) => extra.hit === event.hits || (extra.every && event.hits > 0 && event.hits % extra.every === 0))
     .reduce((sum, extra) => {
       const extraMultiplier = event.character.hasExtraDamage ? 2 : 1;
-      return sum + getEffectiveBurstGen(event.character) * extra.segments * extraMultiplier;
+      return sum + getBaseChargeUnit(event.character) * extra.segments * extraMultiplier;
     }, 0);
 }
 
@@ -762,6 +782,11 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
     totalHits: shotHits,
     positionHits: [[targetPositionIndex, shotHits]],
   };
+}
+
+function getAttackContributionLabel(character, shotCount = 1) {
+  if (character.weapon === "MG" && shotCount > 1) return `${shotCount}发命中`;
+  return getChargeHitLabel(character);
 }
 
 function isReloadingAtFrame(positionIndex, frame, reloadTimeline = []) {
@@ -1063,7 +1088,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
       event.attackChargeTotal += chargeValue;
-      addContribution(event, chargeValue, shotCount > 1 ? `${shotCount}发命中` : "命中");
+      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount));
       const currentContribution = contributions.get(getContributionKey(event, true));
       if (currentContribution) {
         currentContribution.counterHits += hitProfile.totalHits - 1;
