@@ -121,11 +121,8 @@ const els = {
   clearTeamButton: document.querySelector("#clearTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
   allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
-  commonFilter: document.querySelector("#commonFilter"),
-  weaponFilter: document.querySelector("#weaponFilter"),
-  companyFilter: document.querySelector("#companyFilter"),
-  stageFilter: document.querySelector("#stageFilter"),
-  regionFilter: document.querySelector("#regionFilter"),
+  commonToggle: document.querySelector("#commonToggle"),
+  regionToggle: document.querySelector("#regionToggle"),
   searchInput: document.querySelector("#searchInput"),
   toast: document.querySelector("#toast"),
   summaryStrip: document.querySelector("#summaryStrip"),
@@ -1020,23 +1017,6 @@ function getCharacterById(id) {
   return CHARACTERS.find((character) => String(character.id) === normalizedId) || null;
 }
 
-function createOption(value, label) {
-  const option = document.createElement("option");
-  option.value = value;
-  option.textContent = label;
-  return option;
-}
-
-function initFilters() {
-  WEAPON_ORDER.forEach((weapon) => els.weaponFilter.append(createOption(weapon, WEAPON_LABELS[weapon] || weapon)));
-
-  [...new Set(CHARACTERS.map((character) => character.company))]
-    .sort((a, b) => a.localeCompare(b, "zh-CN"))
-    .forEach((company) => els.companyFilter.append(createOption(company, company)));
-
-  ["B1", "B2", "B3"].forEach((stage) => els.stageFilter.append(createOption(stage, STAGE_LABELS[stage] || stage)));
-}
-
 function getRegionLabel(character) {
   return character.regions.includes("cn") ? "国际 / 国服" : "国际服";
 }
@@ -1213,15 +1193,12 @@ function getFilteredCharacters() {
   const keyword = state.filters.search.trim().toLowerCase();
   return CHARACTERS.filter((character) => {
     const matchesCommon = Boolean(keyword) || state.filters.common === "all" || character.isCommon;
-    const matchesWeapon = state.filters.weapon === "all" || character.weapon === state.filters.weapon;
-    const matchesCompany = state.filters.company === "all" || character.company === state.filters.company;
-    const matchesStage = state.filters.stage === "all" || character.burstStage.split("/").includes(state.filters.stage);
-    const matchesRegion = state.filters.region === "all" || character.regions.includes(state.filters.region);
+    const matchesRegion = character.regions.includes(state.filters.region);
     const matchesSearch =
       !keyword ||
       character.name.toLowerCase().includes(keyword) ||
       character.enName.toLowerCase().includes(keyword);
-    return matchesCommon && matchesWeapon && matchesCompany && matchesStage && matchesRegion && matchesSearch;
+    return matchesCommon && matchesRegion && matchesSearch;
   }).sort((a, b) => {
     const chargeDiff = getChargeValue(b) - getChargeValue(a);
     const weaponDiff = WEAPON_ORDER.indexOf(a.weapon) - WEAPON_ORDER.indexOf(b.weapon);
@@ -3301,24 +3278,12 @@ function bindEvents() {
       render();
     });
   });
-  els.commonFilter.addEventListener("change", (event) => {
-    state.filters.common = event.target.value;
+  els.commonToggle.addEventListener("change", (event) => {
+    state.filters.common = event.target.checked ? "common" : "all";
     renderCharacters();
   });
-  els.weaponFilter.addEventListener("change", (event) => {
-    state.filters.weapon = event.target.value;
-    renderCharacters();
-  });
-  els.companyFilter.addEventListener("change", (event) => {
-    state.filters.company = event.target.value;
-    renderCharacters();
-  });
-  els.stageFilter.addEventListener("change", (event) => {
-    state.filters.stage = event.target.value;
-    renderCharacters();
-  });
-  els.regionFilter.addEventListener("change", (event) => {
-    state.filters.region = event.target.value;
+  els.regionToggle.addEventListener("change", (event) => {
+    state.filters.region = event.target.checked ? "cn" : "global";
     renderCharacters();
   });
   els.searchInput.addEventListener("input", (event) => {
@@ -3329,10 +3294,11 @@ function bindEvents() {
 
 async function bootstrap() {
   await loadCharacterData();
-  initFilters();
   bindEvents();
   loadTeam();
   els.allowMissedShotsToggle.checked = state.allowMissedShots;
+  els.commonToggle.checked = state.filters.common === "common";
+  els.regionToggle.checked = state.filters.region === "cn";
   render();
 }
 
