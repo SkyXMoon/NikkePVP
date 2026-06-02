@@ -2639,10 +2639,12 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const y = yForTeamTotal(group.teamKey);
         const jackalLinkTotal = getSpecialContributionTotal(group.result, entry.frame, "豺狼链接");
         const scarletCounterTotal = getSpecialContributionTotal(group.result, entry.frame, "红莲反击");
+        const universalChargeTotal = getSpecialContributionTotal(group.result, entry.frame, "万能充能");
         const characterChargeLines = getCumulativeContributionLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
           `累计总充能：${entry.totalCharge.toFixed(2)}%`,
+          ...(universalChargeTotal > BURST_EPSILON ? [`万能充能：${universalChargeTotal.toFixed(2)}%`] : []),
           ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${jackalLinkTotal.toFixed(2)}%`] : []),
           ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${scarletCounterTotal.toFixed(2)}%`] : []),
           ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
