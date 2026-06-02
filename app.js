@@ -3389,13 +3389,46 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   };
   const tracks = memberPointGroups
     .flatMap((group) => {
-      if (group.frames.length < 2) return "";
       const y = yForGroup(group.groupKey);
-      const firstFrame = Math.min(...group.frames);
-      const lastFrame = Math.max(...group.frames);
       const groupReloads = visibleReloadEvents.filter(
         (reload) => reload.teamKey === group.teamKey && reload.positionIndex === group.member.positionIndex,
       ).map((reload) => ({ ...reload, suppressTrackAfter: true }));
+      const groupStuns = getStunTrackPauses(group);
+
+      if (isChargeWeapon(group.member.character)) {
+        const chargeFrames = Number(group.member.chargeFrames) || 0;
+        const chargeSegments =
+          group.member.character.weapon === "RL"
+            ? (group.result.flightTimeline || [])
+                .filter(
+                  (flight) =>
+                    !flight.missed &&
+                    flight.positionIndex === group.member.positionIndex &&
+                    flight.startFrame <= CHART_MAX_FRAME &&
+                    flight.startFrame <= getBurstDisplayEndFrame(group.result),
+                )
+                .map((flight) => ({
+                  start: Math.max(0, flight.startFrame - chargeFrames),
+                  end: Math.min(flight.startFrame, CHART_MAX_FRAME, getBurstDisplayEndFrame(group.result)),
+                }))
+            : group.frames.map((frame) => ({
+                start: Math.max(0, frame - chargeFrames),
+                end: Math.min(frame, CHART_MAX_FRAME, getBurstDisplayEndFrame(group.result)),
+              }));
+
+        return chargeSegments
+          .filter((segment) => segment.end > segment.start)
+          .flatMap((segment) =>
+            getTrackSegments(segment.start, segment.end, groupStuns).map(
+              (visibleSegment) =>
+                `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(visibleSegment.start)}" y1="${y}" x2="${xForFrame(visibleSegment.end)}" y2="${y}" />`,
+            ),
+          );
+      }
+
+      if (group.frames.length < 2) return "";
+      const firstFrame = Math.min(...group.frames);
+      const lastFrame = Math.max(...group.frames);
       const groupMisses = visibleMissedEvents
         .filter((miss) => miss.teamKey === group.teamKey && miss.positionIndex === group.member.positionIndex)
         .map((miss) => {
@@ -3408,7 +3441,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
               };
         })
         .filter(Boolean);
-      const groupStuns = getStunTrackPauses(group);
       return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupMisses, ...groupStuns]).map(
         (segment) =>
           `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(segment.start)}" y1="${y}" x2="${xForFrame(segment.end)}" y2="${y}" />`,
