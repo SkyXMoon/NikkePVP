@@ -222,7 +222,12 @@ function getChargeWeaponDetailLines(character) {
   return [`蓄力时间：${formatSeconds(seconds)}s（${frames}F）`];
 }
 
+function isAnyBurstStageCharacter(character) {
+  return character?.name === "小红帽" || character?.slug === "小红帽" || String(character?.burstStage || "").trim() === "Λ";
+}
+
 function getCharacterBurstStages(character) {
+  if (isAnyBurstStageCharacter(character)) return ["B1", "B2", "B3"];
   return String(character?.burstStage || "")
     .split("/")
     .map((stage) => stage.trim())
@@ -1206,7 +1211,7 @@ function getWeaponIcon(character) {
 }
 
 function getBurstIcon(character) {
-  const firstStage = String(character.burstStage || "B0").split("/")[0];
+  const firstStage = isAnyBurstStageCharacter(character) ? "B1" : String(character.burstStage || "B0").split("/")[0];
   const burstIconMap = {
     B0: "0",
     B1: "1",
