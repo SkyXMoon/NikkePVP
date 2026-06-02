@@ -126,6 +126,7 @@ const els = {
   commonToggle: document.querySelector("#commonToggle"),
   regionToggle: document.querySelector("#regionToggle"),
   compactAvatarToggle: document.querySelector("#compactAvatarToggle"),
+  stageFilterButtons: document.querySelectorAll("[data-stage-filter]"),
   searchInput: document.querySelector("#searchInput"),
   helpButton: document.querySelector("#helpButton"),
   toast: document.querySelector("#toast"),
@@ -234,6 +235,10 @@ function getCharacterBurstStages(character) {
     .split("/")
     .map((stage) => stage.trim())
     .filter((stage) => ["B1", "B2", "B3"].includes(stage));
+}
+
+function normalizeStageFilter(stage = "all") {
+  return ["B1", "B2", "B3"].includes(stage) ? stage : "all";
 }
 
 function getAvailableBurstLevel(members = []) {
@@ -1445,11 +1450,13 @@ function getFilteredCharacters() {
   return CHARACTERS.filter((character) => {
     const matchesCommon = Boolean(keyword) || state.filters.common === "all" || character.isCommon;
     const matchesRegion = character.regions.includes(state.filters.region);
+    const stageFilter = normalizeStageFilter(state.filters.stage);
+    const matchesStage = stageFilter === "all" || getCharacterBurstStages(character).includes(stageFilter);
     const matchesSearch =
       !keyword ||
       character.name.toLowerCase().includes(keyword) ||
       character.enName.toLowerCase().includes(keyword);
-    return matchesCommon && matchesRegion && matchesSearch;
+    return matchesCommon && matchesRegion && matchesStage && matchesSearch;
   }).sort((a, b) => {
     const chargeDiff = getChargeValue(b) - getChargeValue(a);
     const weaponDiff = WEAPON_ORDER.indexOf(a.weapon) - WEAPON_ORDER.indexOf(b.weapon);
@@ -3585,6 +3592,7 @@ function loadTeam() {
         ...(saved.filters && typeof saved.filters === "object" ? saved.filters : {}),
         common: saved.filters?.common === "all" ? "all" : "common",
         region: saved.filters?.region === "global" ? "global" : "cn",
+        stage: normalizeStageFilter(saved.filters?.stage),
         search: typeof saved.filters?.search === "string" ? saved.filters.search : "",
       };
       rememberLoadedTeamChargeSpeeds("defense");
@@ -3716,6 +3724,15 @@ function bindEvents() {
     saveTeam();
     renderCharacters();
   });
+  els.stageFilterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const stage = normalizeStageFilter(button.dataset.stageFilter);
+      state.filters.stage = state.filters.stage === stage ? "all" : stage;
+      saveTeam();
+      renderCharacters();
+      syncFilterControls();
+    });
+  });
   els.searchInput.addEventListener("input", (event) => {
     state.filters.search = event.target.value;
     saveTeam();
@@ -3723,15 +3740,23 @@ function bindEvents() {
   });
 }
 
+function syncFilterControls() {
+  els.commonToggle.checked = state.filters.common === "common";
+  els.regionToggle.checked = state.filters.region === "cn";
+  els.compactAvatarToggle.checked = state.compactAvatarIcons;
+  els.stageFilterButtons.forEach((button) => {
+    const isActive = normalizeStageFilter(state.filters.stage) === button.dataset.stageFilter;
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+  els.searchInput.value = state.filters.search;
+}
+
 async function bootstrap() {
   await loadCharacterData();
   bindEvents();
   loadTeam();
   els.allowMissedShotsToggle.checked = state.allowMissedShots;
-  els.commonToggle.checked = state.filters.common === "common";
-  els.regionToggle.checked = state.filters.region === "cn";
-  els.compactAvatarToggle.checked = state.compactAvatarIcons;
-  els.searchInput.value = state.filters.search;
+  syncFilterControls();
   render();
 }
 
