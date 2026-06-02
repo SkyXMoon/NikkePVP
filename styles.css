@@ -455,6 +455,80 @@ input:focus {
   text-align: center;
 }
 
+.character-hover-tooltip {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  padding: 10px;
+  border: 1px solid rgba(242, 245, 250, 0.28);
+  border-radius: 6px;
+  color: var(--text);
+  background: rgba(10, 13, 19, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(71, 200, 212, 0.1) inset,
+    var(--shadow);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.character-hover-tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.character-tooltip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  margin-bottom: 5px;
+}
+
+.character-tooltip-head strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.character-tooltip-head span {
+  flex: 0 0 auto;
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.character-tooltip-meta {
+  margin-bottom: 7px;
+  color: var(--quiet);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.character-tooltip-main {
+  margin-bottom: 6px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.character-tooltip-lines {
+  display: grid;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 .avatar {
   display: grid;
   place-items: center;

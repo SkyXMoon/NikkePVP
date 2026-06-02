@@ -622,6 +622,54 @@ function getCharacterDetailText(character) {
   ].join("\n");
 }
 
+function getCharacterTooltip() {
+  let tooltip = document.querySelector(".character-hover-tooltip");
+  if (!tooltip) {
+    tooltip = document.createElement("div");
+    tooltip.className = "character-hover-tooltip";
+    document.body.append(tooltip);
+  }
+  return tooltip;
+}
+
+function positionCharacterTooltip(tile) {
+  const tooltip = getCharacterTooltip();
+  const rect = tile.getBoundingClientRect();
+  const gap = 8;
+  const width = Math.min(340, Math.max(260, window.innerWidth - 24));
+  tooltip.style.width = `${width}px`;
+  const tooltipHeight = tooltip.offsetHeight || 180;
+  const placeAbove = rect.bottom + gap + tooltipHeight > window.innerHeight && rect.top > tooltipHeight + gap;
+  const left = Math.min(Math.max(rect.left, 12), Math.max(window.innerWidth - width - 12, 12));
+  const top = placeAbove ? rect.top - tooltipHeight - gap : rect.bottom + gap;
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${Math.min(Math.max(top, 12), Math.max(window.innerHeight - tooltipHeight - 12, 12))}px`;
+}
+
+function showCharacterTooltip(character, index, tile) {
+  const tooltip = getCharacterTooltip();
+  const breakdownLines = getChargeBreakdown(character).split("\n");
+  tooltip.innerHTML = `
+    <div class="character-tooltip-head">
+      <strong>${escapeHtml(character.name)}</strong>
+      <span>可右键复制</span>
+    </div>
+    <div class="character-tooltip-meta">
+      #${index + 1} · ${escapeHtml(character.rarity || "SSR")} · ${escapeHtml(character.weapon)} · ${escapeHtml(character.burstStage)} · ${escapeHtml(getRegionLabel(character))}
+    </div>
+    <div class="character-tooltip-main">最终单发 ${getChargeValue(character).toFixed(2)}%</div>
+    <div class="character-tooltip-lines">
+      ${breakdownLines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}
+    </div>
+  `;
+  tooltip.classList.add("show");
+  positionCharacterTooltip(tile);
+}
+
+function hideCharacterTooltip() {
+  document.querySelector(".character-hover-tooltip")?.classList.remove("show");
+}
+
 function getDelayedExtraEvents(event, currentFrame) {
   return (event.character.delayedExtraHits || []).map((extra) => ({
     character: event.character,
@@ -1253,7 +1301,6 @@ function renderCharacters() {
     tile.type = "button";
     tile.className = `character-tile rarity-${getRarityClass(character)}${pickedIds.has(character.id) ? " is-picked" : ""}`;
     tile.setAttribute("aria-label", `加入 ${character.name}，${character.weapon}，单发 ${getChargeValue(character).toFixed(2)}%`);
-    tile.title = `#${index + 1} ${character.name}\n${character.rarity || "SSR"} · ${character.weapon} · ${character.burstStage} · ${getRegionLabel(character)}\n最终单发 ${getChargeValue(character).toFixed(2)}%\n${getChargeBreakdown(character)}`;
     tile.innerHTML = `
       <span class="tile-avatar">${getAvatarMarkup(character)}</span>
       ${
@@ -1268,10 +1315,16 @@ function renderCharacters() {
       <span class="tile-charge">${getChargeValue(character).toFixed(1)}</span>
       <span class="tile-check" aria-hidden="true">✓</span>
     `;
+    tile.addEventListener("mouseenter", () => showCharacterTooltip(character, index, tile));
+    tile.addEventListener("mousemove", () => positionCharacterTooltip(tile));
+    tile.addEventListener("mouseleave", hideCharacterTooltip);
+    tile.addEventListener("focus", () => showCharacterTooltip(character, index, tile));
+    tile.addEventListener("blur", hideCharacterTooltip);
     tile.addEventListener("click", () => toggleCharacter(character));
     tile.addEventListener("contextmenu", (event) => {
       event.preventDefault();
       copyCharacterDetails(character);
+      hideCharacterTooltip();
     });
     fragment.append(tile);
   });
