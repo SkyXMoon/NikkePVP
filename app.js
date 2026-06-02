@@ -1221,7 +1221,7 @@ function renderCharacters() {
   const pickedIds = new Set(getTeamState().filter(Boolean).map((character) => character.id));
   const fragment = document.createDocumentFragment();
   const characters = getFilteredCharacters();
-  els.listCount.textContent = `${characters.length} / ${CHARACTERS.length} 名角色`;
+  els.listCount.textContent = `${characters.length}/${CHARACTERS.length} 名角色`;
 
   characters.forEach((character, index) => {
     const tile = document.createElement("button");

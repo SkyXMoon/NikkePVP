@@ -254,10 +254,9 @@ input:focus {
 }
 
 .list-header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-height: 38px;
   padding: 0 14px;
   color: var(--quiet);
@@ -267,6 +266,11 @@ input:focus {
 
 .list-header strong {
   color: var(--text);
+}
+
+.list-divider {
+  color: var(--line);
+  font-weight: 900;
 }
 
 .character-list {
