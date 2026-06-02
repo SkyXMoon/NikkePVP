@@ -209,14 +209,10 @@ function getCharacterChargeFrameInfo(character) {
   return { seconds, frames };
 }
 
-function getCharacterChargeSpeedDisplay(character, teamKey = state.activeTeamKey) {
-  return sanitizeChargeSpeed(getSavedCharacterChargeSpeed(character, teamKey) || character?.chargeSpeedPercent || 0);
-}
-
-function getChargeWeaponDetailLines(character, teamKey = state.activeTeamKey) {
+function getChargeWeaponDetailLines(character) {
   if (!isChargeWeapon(character)) return [];
   const { seconds, frames } = getCharacterChargeFrameInfo(character);
-  return [`蓄力时间：${formatSeconds(seconds)}s（${frames}F）`, `蓄力速度：${getCharacterChargeSpeedDisplay(character, teamKey)}%`];
+  return [`蓄力时间：${formatSeconds(seconds)}s（${frames}F）`];
 }
 
 function getCharacterBurstStages(character) {
