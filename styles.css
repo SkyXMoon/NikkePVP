@@ -390,7 +390,7 @@ input:focus {
   height: 100%;
   color: var(--text);
   background: linear-gradient(145deg, #303541, #151820);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 900;
 }
 
@@ -399,16 +399,16 @@ input:focus {
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 21px;
-  height: 21px;
+  width: 18px;
+  height: 18px;
   border: 1px solid rgba(255, 255, 255, 0.54);
   border-radius: 4px;
   background: rgba(7, 9, 13, 0.82);
 }
 
 .tile-icon img {
-  width: 17px;
-  height: 17px;
+  width: 14px;
+  height: 14px;
   object-fit: contain;
 }
 
@@ -433,16 +433,16 @@ input:focus {
   left: 2px;
   bottom: 2px;
   z-index: 1;
-  min-width: 28px;
-  min-height: 18px;
-  padding: 1px 5px;
+  min-width: 24px;
+  min-height: 15px;
+  padding: 1px 4px;
   border: 1px solid rgba(255, 255, 255, 0.46);
   border-radius: 4px;
   color: var(--green);
   background: rgba(7, 9, 13, 0.86);
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 900;
-  line-height: 16px;
+  line-height: 13px;
   text-align: center;
 }
 
