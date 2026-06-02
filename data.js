@@ -1303,7 +1303,9 @@ const CHARACTERS = [
     "hitCountExtraEvents": [
       {
         "every": 5,
-        "segments": 1
+        "segments": 1,
+        "delayFrames": 12,
+        "label": "尾弹追加"
       }
     ],
     "flatBurstBonus": 0,

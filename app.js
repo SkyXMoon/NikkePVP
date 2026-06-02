@@ -695,7 +695,8 @@ function getChargeBreakdown(character) {
       `攻击追加：${character.hitCountExtraEvents
         .map((event) => {
           const triggerText = event.every ? `每${event.every}发` : `第${event.hit}次`;
-          return `${triggerText} +${formatNumber(baseChargeUnit * event.segments * extraMultiplier, 2)}%`;
+          const delayText = event.delayFrames ? `${event.delayFrames}帧后 ` : "";
+          return `${triggerText}${delayText} +${formatNumber(baseChargeUnit * event.segments * extraMultiplier, 2)}%`;
         })
         .join("，")}`,
     );
@@ -797,13 +798,34 @@ function getMagazineEmptyExtraEvent(event, reloadEvent) {
   };
 }
 
+function getTriggeredHitCountExtraEvents(event) {
+  return (event.character.hitCountExtraEvents || []).filter(
+    (extra) => extra.hit === event.hits || (extra.every && event.hits > 0 && event.hits % extra.every === 0),
+  );
+}
+
+function getHitCountExtraChargeValue(event, extra) {
+  const extraMultiplier = event.character.hasExtraDamage ? 2 : 1;
+  return getBaseChargeUnit(event.character) * extra.segments * extraMultiplier;
+}
+
 function getHitCountExtraCharge(event) {
-  return (event.character.hitCountExtraEvents || [])
-    .filter((extra) => extra.hit === event.hits || (extra.every && event.hits > 0 && event.hits % extra.every === 0))
-    .reduce((sum, extra) => {
-      const extraMultiplier = event.character.hasExtraDamage ? 2 : 1;
-      return sum + getBaseChargeUnit(event.character) * extra.segments * extraMultiplier;
-    }, 0);
+  return getTriggeredHitCountExtraEvents(event)
+    .filter((extra) => !extra.delayFrames)
+    .reduce((sum, extra) => sum + getHitCountExtraChargeValue(event, extra), 0);
+}
+
+function getDelayedHitCountExtraEvents(event, currentFrame) {
+  return getTriggeredHitCountExtraEvents(event)
+    .filter((extra) => Number(extra.delayFrames) > 0)
+    .map((extra) => ({
+      character: event.character,
+      positionIndex: event.positionIndex,
+      frame: currentFrame + Number(extra.delayFrames),
+      chargeValue: getHitCountExtraChargeValue(event, extra),
+      source: "hit-count-delayed",
+      label: extra.label || "尾弹追加",
+    }));
 }
 
 function getAttackShotCount(event) {
@@ -1199,6 +1221,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       event.totalCharge += hitCountExtraCharge;
       event.attackChargeTotal += hitCountExtraCharge;
       addContribution(event, hitCountExtraCharge, "额外触发");
+      pendingExtraEvents.push(...getDelayedHitCountExtraEvents(event, currentFrame));
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
       const reloadEvent = advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
       const magazineEmptyExtra = getMagazineEmptyExtraEvent(event, reloadEvent);
