@@ -135,6 +135,7 @@ const els = {
   helpButton: document.querySelector("#helpButton"),
   toast: document.querySelector("#toast"),
   summaryStrip: document.querySelector("#summaryStrip"),
+  sortSummary: document.querySelector("#sortSummary"),
   listCount: document.querySelector("#listCount"),
 };
 
@@ -1588,6 +1589,7 @@ function renderCharacters() {
   const pickedIds = new Set(getTeamState().filter(Boolean).map((character) => character.id));
   const fragment = document.createDocumentFragment();
   const characters = getFilteredCharacters();
+  updateSortSummary();
   els.listCount.textContent = `${characters.length}/${CHARACTERS.length} 名角色`;
 
   characters.forEach((character, index) => {
@@ -3974,6 +3976,15 @@ function bindEvents() {
   });
 }
 
+function updateSortSummary() {
+  const parts = ["排序：充能从高到低"];
+  if (normalizeStageFilter(state.filters.stage) !== "all") parts.push("爆裂");
+  if (state.filters.common === "common") parts.push("常用");
+  if (state.filters.region === "cn") parts.push("国服");
+  if (state.compactAvatarIcons) parts.push("简化图标");
+  els.sortSummary.textContent = parts.join("·");
+}
+
 function syncFilterControls() {
   els.commonToggle.checked = state.filters.common === "common";
   els.regionToggle.checked = state.filters.region === "cn";
@@ -3983,6 +3994,7 @@ function syncFilterControls() {
     button.setAttribute("aria-pressed", String(isActive));
   });
   els.searchInput.value = state.filters.search;
+  updateSortSummary();
 }
 
 async function bootstrap() {
