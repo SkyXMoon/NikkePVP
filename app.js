@@ -236,6 +236,10 @@ function formatFrame(frame) {
   return `${frame} 帧 / ${frameToSeconds(frame)} 秒`;
 }
 
+function formatFrameCount(frame) {
+  return String(Math.round(Number(frame) || 0));
+}
+
 function getStandardChargeBand(frame) {
   const rlValue = frame / 76;
   const formattedRlValue = Number.isInteger(rlValue)
@@ -1952,7 +1956,7 @@ function createSlotSettingsModal() {
         <span>蓄速</span>
         <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" />
         <span>%</span>
-        <span class="slot-settings-frame-preview">${formatNumber(chargeSpeedPreviewFrame, 0)}F</span>
+        <span class="slot-settings-frame-preview">${formatFrameCount(chargeSpeedPreviewFrame)}F</span>
             </label>
           `
           : ""
@@ -2004,7 +2008,7 @@ function createSlotSettingsModal() {
     const updateSpeedFramePreview = () => {
       if (!speedFramePreview) return;
       const frame = getChargeSpeedPreviewFrame(character, index, teamKey, speedInput.value);
-      speedFramePreview.textContent = `${formatNumber(frame, 0)}F`;
+      speedFramePreview.textContent = `${formatFrameCount(frame)}F`;
     };
     speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
     speedInput.addEventListener("focus", (event) => event.target.select());
