@@ -2170,8 +2170,9 @@ summary {
   }
 
   .summary-strip {
-    justify-content: flex-start;
-    text-align: left;
+    justify-content: center;
+    flex-wrap: wrap;
+    text-align: center;
   }
 
   .team-slots-row {
