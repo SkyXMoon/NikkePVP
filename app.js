@@ -2016,6 +2016,30 @@ function formatTooltipLines(lines) {
   return escapeHtml(lines.join("\n"));
 }
 
+function formatContributionSourceLabels(labels = []) {
+  const normalizedLabels = labels.map((label) => (String(label).startsWith("命中：") ? "命中" : label)).filter(Boolean);
+  return [...new Set(normalizedLabels)].join(" + ");
+}
+
+function getContributionLabelHitCount(labels = []) {
+  const hitLabel = labels.find((label) => String(label).startsWith("命中："));
+  const match = String(hitLabel || "").match(/命中：([\d.]+)\s*hit/);
+  return match ? Number(match[1]) : null;
+}
+
+function formatContributionTargetHits(positionHits = [], labels = []) {
+  if (!Array.isArray(positionHits) || positionHits.length === 0) return null;
+  const visiblePositionHits = positionHits.filter((positionHit) => Number(positionHit.hitCount) > 0);
+  const rawHitTotal = visiblePositionHits.reduce((sum, positionHit) => sum + Number(positionHit.hitCount), 0);
+  const labelHitTotal = getContributionLabelHitCount(labels);
+  const displayMultiplier =
+    Number.isFinite(labelHitTotal) && rawHitTotal > 0 && labelHitTotal > rawHitTotal ? labelHitTotal / rawHitTotal : 1;
+  const targets = visiblePositionHits
+    .sort((a, b) => a.positionIndex - b.positionIndex)
+    .map((positionHit) => `P${positionHit.positionIndex + 1}（${formatNumber(Number(positionHit.hitCount) * displayMultiplier, 2)} hit）`);
+  return targets.length ? `命中目标：${targets.join("，")}` : null;
+}
+
 function isScarlet(character) {
   return character?.name === "红莲" || character?.slug === "红莲";
 }
@@ -2834,8 +2858,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
             `时间：${point.frame} F`,
             `充能：${formatNumber(contribution.charge, 2)}%`,
             `累积充能：${formatNumber(contribution.cumulativeCharge, 2)}%`,
-            `充能组成：${contribution.labels.join(" + ")}`,
-          ])
+            `充能组成：${formatContributionSourceLabels(contribution.labels)}`,
+            formatContributionTargetHits(contribution.positionHits, contribution.labels),
+          ].filter(Boolean))
         : "";
       const isFinisher =
         point.frame === point.result.fullFrame &&
