@@ -1053,6 +1053,7 @@ function getReceivedPositionHits(character, hitProfile, frame, opponentReloadTim
 }
 
 function getMagazineSize(character) {
+  if (isChargeWeapon(character)) return Infinity;
   const magazine = Math.floor(Number(character.stats?.magazine) || 0);
   return magazine > 0 ? magazine : Infinity;
 }
