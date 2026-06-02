@@ -1058,7 +1058,7 @@ input:focus {
 }
 
 .chart-dodge-track {
-  stroke: var(--cyan);
+  stroke: rgba(176, 182, 194, 0.82);
   stroke-dasharray: 5 6;
   stroke-linecap: round;
   stroke-width: 2.2;
@@ -1066,18 +1066,18 @@ input:focus {
 }
 
 .chart-dodge-track.team-defense {
-  stroke: var(--blue);
+  stroke: rgba(176, 182, 194, 0.82);
 }
 
 .chart-dodge-track.team-attack {
-  stroke: var(--accent);
+  stroke: rgba(176, 182, 194, 0.82);
 }
 
 .chart-dodge-turn {
-  stroke: rgba(255, 255, 255, 0.94);
+  stroke: rgba(176, 182, 194, 0.82);
   stroke-linecap: round;
   stroke-width: 2.2;
-  stroke-dasharray: 2 4;
+  stroke-dasharray: 5 6;
 }
 
 .chart-scarlet-counter-track {

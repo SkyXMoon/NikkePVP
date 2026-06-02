@@ -3428,7 +3428,21 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       );
     })
     .join("");
+  const reloadDurationTracks = visibleReloadEvents
+    .map((reload) => {
+      const y = yForGroup(`${reload.teamKey}-${reload.positionIndex}`);
+      const startFrame = Math.min(reload.startFrame, maxFrame);
+      const endFrame = Math.min(reload.endFrame, maxFrame, reload.displayEndFrame);
+      if (endFrame <= startFrame) return "";
+      const dodgeEndFrame = Math.min(reload.endFrame, reload.startFrame + MISS_DODGE_WINDOW_FRAMES);
+      const tooltip = escapeHtml(
+        `${reload.characterName}\n换弹：${reload.startFrame}F → ${reload.endFrame}F\n可空判定：${reload.startFrame}F → ${dodgeEndFrame}F`,
+      );
+      return `<line class="chart-dodge-track chart-dodge-reload-duration team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
+    })
+    .join("");
   const dodgeTracks = visibleDodgeEvents
+    .filter((window) => window.type !== "reload")
     .map((window) => {
       const y = yForGroup(`${window.teamKey}-${window.positionIndex}`);
       const startFrame = Math.min(window.startFrame, maxFrame);
@@ -3589,6 +3603,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${standardTrack}
       ${standardPoints}
       ${tracks}
+      ${reloadDurationTracks}
       ${dodgeTracks}
       ${scarletCounterTracks}
       ${chargeTotalTrack}
