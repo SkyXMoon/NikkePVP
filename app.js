@@ -779,11 +779,8 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
 
   if (character.hasPenetration) {
     return {
-      totalHits: shotHits,
-      positionHits: [
-        [targetPositionIndex, shotCount],
-        [targetPositionIndex === ENEMY_TEAM_SIZE - 1 ? targetPositionIndex - 1 : targetPositionIndex + 1, shotCount],
-      ],
+      totalHits: shotHits * 2,
+      positionHits: [[targetPositionIndex, shotCount * 2]],
     };
   }
 
