@@ -196,6 +196,29 @@ function canShowFinishMarker(character) {
   return character && ["RL", "SR"].includes(character.weapon);
 }
 
+function formatSeconds(value) {
+  const seconds = Number(value) || 0;
+  return Number.isInteger(seconds) ? String(seconds) : seconds.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+function getCharacterChargeFrameInfo(character) {
+  const statSeconds = Number(character?.stats?.chargeSeconds);
+  const timingFrames = Number(character?.timing?.chargeFrames);
+  const frames = Number.isFinite(timingFrames) && timingFrames > 0 ? timingFrames : Math.round((Number.isFinite(statSeconds) ? statSeconds : 0) * FRAMES_PER_SECOND);
+  const seconds = Number.isFinite(statSeconds) && statSeconds > 0 ? statSeconds : frames / FRAMES_PER_SECOND;
+  return { seconds, frames };
+}
+
+function getCharacterChargeSpeedDisplay(character, teamKey = state.activeTeamKey) {
+  return sanitizeChargeSpeed(getSavedCharacterChargeSpeed(character, teamKey) || character?.chargeSpeedPercent || 0);
+}
+
+function getChargeWeaponDetailLines(character, teamKey = state.activeTeamKey) {
+  if (!isChargeWeapon(character)) return [];
+  const { seconds, frames } = getCharacterChargeFrameInfo(character);
+  return [`蓄力时间：${formatSeconds(seconds)}s（${frames}F）`, `蓄力速度：${getCharacterChargeSpeedDisplay(character, teamKey)}%`];
+}
+
 function getCharacterBurstStages(character) {
   return String(character?.burstStage || "")
     .split("/")
@@ -618,6 +641,7 @@ function getCharacterDetailText(character) {
   return [
     `${character.name}（${character.rarity || "SSR"}）`,
     `最终单发充能：${getChargeValue(character).toFixed(2)}%`,
+    ...getChargeWeaponDetailLines(character),
     getChargeBreakdown(character),
   ].join("\n");
 }
@@ -648,7 +672,7 @@ function positionCharacterTooltip(tile) {
 
 function showCharacterTooltip(character, index, tile) {
   const tooltip = getCharacterTooltip();
-  const breakdownLines = getChargeBreakdown(character).split("\n");
+  const detailLines = [...getChargeWeaponDetailLines(character), ...getChargeBreakdown(character).split("\n")];
   tooltip.innerHTML = `
     <div class="character-tooltip-head">
       <strong>${escapeHtml(character.name)}</strong>
@@ -659,7 +683,7 @@ function showCharacterTooltip(character, index, tile) {
     </div>
     <div class="character-tooltip-main">最终单发 ${getChargeValue(character).toFixed(2)}%</div>
     <div class="character-tooltip-lines">
-      ${breakdownLines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}
+      ${detailLines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}
     </div>
   `;
   tooltip.classList.add("show");
