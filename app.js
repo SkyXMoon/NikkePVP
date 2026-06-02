@@ -49,8 +49,8 @@ const LITTLE_MERMAID_TIMELINE_EVENT = {
 };
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 10;
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 12;
-const CINDERELLA_INITIAL_HIT_SEQUENCE = [3, 2, 2, 2, 3, 3];
-const CINDERELLA_LOOP_HIT_SEQUENCE = [2, 2, 2, 2, 3, 3];
+const CINDERELLA_INITIAL_HIT_SEQUENCE = [4, 2, 2, 2, 4, 4];
+const CINDERELLA_LOOP_HIT_SEQUENCE = [2, 2, 2, 2, 4, 4];
 const DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES = 60;
 const CHART_MAX_FRAME = 600;
 const CHART_WIDTH = 1800;
@@ -730,7 +730,7 @@ function getChargeHitMultiplier(character, shotNumber = null) {
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
-  if (isCinderella(character)) return "命中：3/2/2/2/3/3 hit，之后 2/2/2/2/3/3 hit 循环";
+  if (isCinderella(character)) return "命中：4/2/2/2/4/4 hit，之后 2/2/2/2/4/4 hit 循环";
   return `命中：${hitMultiplier} hit`;
 }
 
