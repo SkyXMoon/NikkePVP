@@ -3409,7 +3409,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
                 )
                 .map((flight) => ({
                   start: Math.max(0, flight.startFrame - chargeFrames),
-                  end: Math.min(flight.startFrame, CHART_MAX_FRAME, getBurstDisplayEndFrame(group.result)),
+                  end: Math.min(flight.endFrame, CHART_MAX_FRAME, getBurstDisplayEndFrame(group.result)),
                 }))
             : group.frames.map((frame) => ({
                 start: Math.max(0, frame - chargeFrames),
