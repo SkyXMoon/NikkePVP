@@ -610,10 +610,10 @@ function getChargeHitMultiplier(character) {
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
-  if (character.weapon === "RL") return `RL命中 ${hitMultiplier} 段`;
-  if (character.weapon === "SG") return "命中 10 段";
-  if (character.hasPenetration) return "穿透 2 段";
-  return "命中 1 段";
+  if (character.weapon === "RL") return `RL命中：${hitMultiplier}段`;
+  if (character.weapon === "SG") return "命中：10段";
+  if (character.hasPenetration) return "穿透：2段";
+  return "命中：1段";
 }
 
 function getChargeValue(character) {
@@ -635,7 +635,7 @@ function getChargeBreakdown(character) {
   const flatBonus = character.flatBurstBonus || 0;
   const lines = [
     `充能组成：${formatNumber(baseChargeUnit, 5)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${formatNumber(flatBonus, 2)}` : ""} = ${formatNumber(getChargeValue(character), 2)}%`,
-    `基础 ${formatNumber(baseChargeUnit, 5)}%${character.weapon === "SG" ? `（SG单hit，${formatNumber(effectiveBurstGen, 5)} ÷ 10）` : ""}${character.quantumRelicCubeEnabled ? `（量子遗迹魔方 ${formatNumber(character.burstGen, 2)} × 1.0466）` : ""}`,
+    `基础：${formatNumber(baseChargeUnit, 5)}%${character.quantumRelicCubeEnabled ? `（量子遗迹魔方 ${formatNumber(character.burstGen, 2)} × 1.0466）` : ""}`,
     hitLabel,
   ];
 
@@ -643,7 +643,7 @@ function getChargeBreakdown(character) {
   if (flatBonus) lines.push(`固定补充 +${formatNumber(flatBonus, 2)}%`);
   if (character.hitCountExtraEvents?.length) {
     lines.push(
-      `攻击次数追加：${character.hitCountExtraEvents
+      `攻击追加：${character.hitCountExtraEvents
         .map((event) => {
           const triggerText = event.every ? `每${event.every}发` : `第${event.hit}次`;
           return `${triggerText} +${formatNumber(baseChargeUnit * event.segments * extraMultiplier, 2)}%`;
