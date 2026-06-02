@@ -1304,21 +1304,6 @@ input:focus {
   cursor: grab;
 }
 
-.team-slot.filled.rarity-ssr {
-  border-color: #d9a441;
-  box-shadow: 0 0 0 1px rgba(217, 164, 65, 0.18) inset;
-}
-
-.team-slot.filled.rarity-sr {
-  border-color: #9b66ff;
-  box-shadow: 0 0 0 1px rgba(155, 102, 255, 0.18) inset;
-}
-
-.team-slot.filled.rarity-r {
-  border-color: #7f8794;
-  box-shadow: 0 0 0 1px rgba(127, 135, 148, 0.18) inset;
-}
-
 .team-slot.has-universal {
   border-style: solid;
   border-color: rgba(77, 163, 255, 0.55);
@@ -1392,8 +1377,24 @@ input:focus {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  border: 2px solid rgba(127, 135, 148, 0.72);
   border-radius: 5px;
   background: #0b0e14;
+}
+
+.team-slot.rarity-ssr .team-avatar {
+  border-color: #d9a441;
+  box-shadow: 0 0 0 1px rgba(217, 164, 65, 0.2) inset;
+}
+
+.team-slot.rarity-sr .team-avatar {
+  border-color: #9b66ff;
+  box-shadow: 0 0 0 1px rgba(155, 102, 255, 0.22) inset;
+}
+
+.team-slot.rarity-r .team-avatar {
+  border-color: #7f8794;
+  box-shadow: 0 0 0 1px rgba(127, 135, 148, 0.18) inset;
 }
 
 .team-avatar img {
