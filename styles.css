@@ -1640,7 +1640,8 @@ input:focus {
   height: 16px;
 }
 
-.slot-pierce-count {
+.slot-pierce-count,
+.slot-counter-toggle {
   position: absolute;
   left: 50%;
   bottom: 2px;
@@ -1661,9 +1662,26 @@ input:focus {
   transition: background 140ms ease, border-color 140ms ease, filter 140ms ease, transform 140ms ease;
 }
 
-.slot-pierce-count:hover {
+.slot-counter-toggle {
+  left: auto;
+  right: 2px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0;
+  transform: none;
+}
+
+.slot-pierce-count:hover,
+.slot-counter-toggle:hover {
   filter: brightness(1.12);
+}
+
+.slot-pierce-count:hover {
   transform: translateX(-50%) translateY(-1px);
+}
+
+.slot-counter-toggle:hover {
+  transform: translateY(-1px);
 }
 
 .slot-pierce-count.is-active {
@@ -1672,9 +1690,20 @@ input:focus {
   color: #fff;
 }
 
+.slot-counter-toggle.is-active {
+  border-color: rgba(127, 211, 255, 0.9);
+  background: rgba(34, 137, 223, 0.94);
+}
+
 .slot-pierce-icon {
   width: 12px;
   height: 12px;
+  object-fit: contain;
+}
+
+.slot-counter-toggle img {
+  width: 13px;
+  height: 13px;
   object-fit: contain;
 }
 
@@ -2295,12 +2324,20 @@ summary {
     font-size: 13px;
   }
 
-  .slot-pierce-count {
+  .slot-pierce-count,
+  .slot-counter-toggle {
     bottom: 2px;
     min-width: 28px;
     height: 17px;
     border-radius: 4px;
     padding: 0 3px;
+  }
+
+  .slot-counter-toggle {
+    right: 1px;
+    min-width: 18px;
+    width: 18px;
+    padding: 0;
   }
 
   .slot-pierce-icon {
@@ -2310,6 +2347,11 @@ summary {
 
   .slot-pierce-value {
     font-size: 9px;
+  }
+
+  .slot-counter-toggle img {
+    width: 10px;
+    height: 10px;
   }
 
   .slot-copy .finish-mark {
