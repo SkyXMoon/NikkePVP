@@ -1649,7 +1649,6 @@ input:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   min-width: 34px;
   height: 20px;
   border: 1px solid rgba(235, 241, 248, 0.38);
@@ -1685,8 +1684,8 @@ input:focus {
 }
 
 .slot-pierce-count.is-active {
-  border-color: rgba(255, 184, 193, 0.9);
-  background: rgba(196, 40, 54, 0.94);
+  border-color: rgba(127, 211, 255, 0.9);
+  background: rgba(34, 137, 223, 0.94);
   color: #fff;
 }
 
@@ -1708,10 +1707,16 @@ input:focus {
 }
 
 .slot-pierce-value {
+  position: absolute;
+  left: 50%;
+  top: 0;
   min-width: 8px;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 900;
   line-height: 1;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  transform: translate(-50%, -35%);
 }
 
 .slot-settings-backdrop {
@@ -2347,7 +2352,7 @@ summary {
   }
 
   .slot-pierce-value {
-    font-size: 9px;
+    font-size: 8px;
   }
 
   .slot-counter-toggle img {
