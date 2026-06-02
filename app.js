@@ -771,22 +771,26 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
     const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
     const start = Math.max(0, targetPositionIndex - range);
     const end = Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndex + range);
+    const bodyHits = Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]);
     return {
       totalHits: shotHits,
-      positionHits: Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]),
+      bodyHits,
+      targetHits: bodyHits.map(([positionIndex, hitCount]) => [positionIndex, hitCount * 2]),
     };
   }
 
   if (character.hasPenetration) {
     return {
       totalHits: shotHits * 2,
-      positionHits: [[targetPositionIndex, shotCount * 2]],
+      bodyHits: [[targetPositionIndex, shotCount]],
+      targetHits: [[targetPositionIndex, shotCount * 2]],
     };
   }
 
   return {
     totalHits: shotHits,
-    positionHits: [[targetPositionIndex, shotHits]],
+    bodyHits: [[targetPositionIndex, shotHits]],
+    targetHits: [[targetPositionIndex, shotHits]],
   };
 }
 
@@ -802,8 +806,8 @@ function isReloadingAtFrame(positionIndex, frame, reloadTimeline = []) {
 }
 
 function getReceivedPositionHits(character, hitProfile, frame, opponentReloadTimeline = []) {
-  if (character.weapon === "RL" || character.hasPenetration) return hitProfile.positionHits;
-  return hitProfile.positionHits.filter(([positionIndex]) => !isReloadingAtFrame(positionIndex, frame, opponentReloadTimeline));
+  if (character.weapon === "RL" || character.hasPenetration) return hitProfile.bodyHits;
+  return hitProfile.bodyHits.filter(([positionIndex]) => !isReloadingAtFrame(positionIndex, frame, opponentReloadTimeline));
 }
 
 function getMagazineSize(character) {
@@ -985,6 +989,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
         labels: ["万能充能"],
         counterHits: 0,
         positionHits: [],
+        targetHits: [],
         showOnMember: false,
       };
     });
@@ -1017,6 +1022,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
         labels: [],
         counterHits: 0,
         positionHits: new Map(),
+        targetHits: new Map(),
         showOnMember: false,
       };
       current.charge += value;
@@ -1031,6 +1037,13 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       if (!current) return;
       positionHits.forEach(([positionIndex, hitCount]) => {
         current.positionHits.set(positionIndex, (current.positionHits.get(positionIndex) || 0) + hitCount);
+      });
+    };
+    const addTargetHits = (event, targetHits) => {
+      const current = contributions.get(getContributionKey(event, true));
+      if (!current) return;
+      targetHits.forEach(([positionIndex, hitCount]) => {
+        current.targetHits.set(positionIndex, (current.targetHits.get(positionIndex) || 0) + hitCount);
       });
     };
 
@@ -1097,9 +1110,11 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount));
       const currentContribution = contributions.get(getContributionKey(event, true));
       if (currentContribution) {
-        currentContribution.counterHits += hitProfile.totalHits - 1;
+        const receivedHitTotal = receivedPositionHits.reduce((sum, [, hitCount]) => sum + hitCount, 0);
+        currentContribution.counterHits += Math.max(receivedHitTotal - 1, 0);
       }
       addPositionHits(event, receivedPositionHits);
+      addTargetHits(event, hitProfile.targetHits);
       const hitCountExtraCharge = getHitCountExtraCharge(event);
       totalCharge += hitCountExtraCharge;
       event.totalCharge += hitCountExtraCharge;
@@ -1121,6 +1136,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
           labels: contribution.labels,
           counterHits: contribution.counterHits,
           positionHits: [...contribution.positionHits.entries()].map(([positionIndex, hitCount]) => ({ positionIndex, hitCount })),
+          targetHits: [...contribution.targetHits.entries()].map(([positionIndex, hitCount]) => ({ positionIndex, hitCount })),
           showOnMember: contribution.showOnMember,
         })),
       });
@@ -2989,7 +3005,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
             `充能：${formatNumber(contribution.charge, 2)}%`,
             `累积充能：${formatNumber(contribution.cumulativeCharge, 2)}%`,
             `充能组成：${formatContributionSourceLabels(contribution.labels)}`,
-            formatContributionTargetHits(contribution.positionHits, contribution.labels),
+            formatContributionTargetHits(contribution.targetHits, contribution.labels),
           ].filter(Boolean))
         : "";
       const isFinisher =
