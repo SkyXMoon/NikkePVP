@@ -3396,8 +3396,20 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const groupReloads = visibleReloadEvents.filter(
         (reload) => reload.teamKey === group.teamKey && reload.positionIndex === group.member.positionIndex,
       ).map((reload) => ({ ...reload, suppressTrackAfter: true }));
+      const groupMisses = visibleMissedEvents
+        .filter((miss) => miss.teamKey === group.teamKey && miss.positionIndex === group.member.positionIndex)
+        .map((miss) => {
+          const previousFrame = group.frames.filter((frame) => frame < miss.frame).at(-1);
+          return previousFrame === undefined
+            ? null
+            : {
+                startFrame: previousFrame,
+                endFrame: miss.frame,
+              };
+        })
+        .filter(Boolean);
       const groupStuns = getStunTrackPauses(group);
-      return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupStuns]).map(
+      return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupMisses, ...groupStuns]).map(
         (segment) =>
           `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(segment.start)}" y1="${y}" x2="${xForFrame(segment.end)}" y2="${y}" />`,
       );
