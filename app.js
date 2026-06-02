@@ -1227,7 +1227,7 @@ function getWeaponIcon(character) {
     SMG: "5",
     MG: "6",
   };
-  return `assets/icons/nikke-top/weapons/${weaponIconMap[character.weapon] || "1"}.png`;
+  return `assets/icons/ui/weapons/${weaponIconMap[character.weapon] || "1"}.png`;
 }
 
 function getBurstIcon(character) {
@@ -1238,7 +1238,7 @@ function getBurstIcon(character) {
     B2: "2",
     B3: "3",
   };
-  return `assets/icons/nikke-top/bursts/${burstIconMap[firstStage] || "0"}.png`;
+  return `assets/icons/ui/bursts/${burstIconMap[firstStage] || "0"}.png`;
 }
 
 function getElementIcon(character) {
@@ -1249,7 +1249,7 @@ function getElementIcon(character) {
     电击: "4",
     水冷: "5",
   };
-  return `assets/icons/nikke-top/elements/${elementIconMap[character.element] || "1"}.png`;
+  return `assets/icons/ui/elements/${elementIconMap[character.element] || "1"}.png`;
 }
 
 function getIconMarkup(src, label, className) {
@@ -1558,7 +1558,7 @@ function createSlotSettingsModal() {
           : ""
       }
       <label class="settings-check-field">
-        <img class="settings-check-icon" src="assets/icons/nikke-top/cubes/quantum-24x24.webp" alt="" aria-hidden="true" />
+        <img class="settings-check-icon" src="assets/icons/ui/cubes/quantum-24x24.webp" alt="" aria-hidden="true" />
         <span>启用量子遗迹魔方</span>
         <input class="slot-settings-quantum-cube" type="checkbox"${quantumCubeEnabled ? " checked" : ""} />
       </label>
@@ -1835,18 +1835,18 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
             <span class="slot-copy" aria-hidden="true">
               ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
-              ${hasQuantumCube ? '<span class="slot-cube-badge"><img src="assets/icons/nikke-top/cubes/quantum-24x24.webp" alt="" /></span>' : ""}
+              ${hasQuantumCube ? '<span class="slot-cube-badge"><img src="assets/icons/ui/cubes/quantum-24x24.webp" alt="" /></span>' : ""}
               ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
             </span>
           </button>
           <button class="slot-settings-toggle${isSettingsOpen ? " is-open" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)}" title="设置">
-            <img src="assets/icons/nikke-top/settings.svg" alt="" aria-hidden="true" />
+            <img src="assets/icons/ui/settings.svg" alt="" aria-hidden="true" />
           </button>
           ${
             isJackalOwner
               ? `
                 <button class="slot-link-toggle${isActiveLinkOwner ? " is-active" : ""}" type="button" aria-label="${isActiveLinkOwner ? "关闭" : "开启"}${isJackal(character) ? "豺狼链接" : "波莉链接"}" title="${isJackal(character) ? "豺狼链接" : "波莉链接"}">
-                  <img src="assets/icons/nikke-top/link.svg" alt="" aria-hidden="true" />
+                  <img src="assets/icons/ui/link.svg" alt="" aria-hidden="true" />
                 </button>
               `
               : ""
@@ -1855,7 +1855,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             canSelectJackalTarget
               ? `
                 <button class="slot-link-target${isJackalTarget ? " is-selected" : ""}" type="button" aria-label="${isJackalTarget ? "取消" : "选择"}${linkOwnerName}目标 ${escapeHtml(character.name)}" title="${isJackalTarget ? "取消链接" : "链接目标"}">
-                  ${isJackalTarget ? '<img src="assets/icons/nikke-top/link.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
+                  ${isJackalTarget ? '<img src="assets/icons/ui/link.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
                 </button>
               `
               : ""
