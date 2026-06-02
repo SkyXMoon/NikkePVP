@@ -1320,6 +1320,10 @@ input:focus {
   cursor: grabbing;
 }
 
+.team-slot.filled {
+  touch-action: none;
+}
+
 .team-slot.is-dragging {
   opacity: 0.55;
   transform: scale(0.98);

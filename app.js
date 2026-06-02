@@ -135,6 +135,8 @@ const els = {
 
 let draggedTeamIndex = null;
 let draggedTeamKey = null;
+let pointerTeamDrag = null;
+let suppressTeamSlotClick = false;
 let resizeRenderId = null;
 let openSlotSettings = null;
 let isHelpModalOpen = false;
@@ -1218,6 +1220,94 @@ function setTeamSlotDragImage(event, slot) {
   requestAnimationFrame(() => clone.remove());
 }
 
+function isTeamSlotDragControl(target) {
+  return Boolean(target?.closest?.(".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .universal-charge-field"));
+}
+
+function clearPointerTeamDragClasses() {
+  els.teamSlots.querySelectorAll(".team-slot").forEach((teamSlot) => {
+    teamSlot.classList.remove("is-dragging", "is-drop-target");
+  });
+}
+
+function getTeamSlotAtPoint(x, y) {
+  const element = document.elementFromPoint(x, y);
+  return element?.closest?.(".team-slot") || null;
+}
+
+function updatePointerTeamDragTarget(clientX, clientY) {
+  if (!pointerTeamDrag?.active) return;
+  const targetSlot = getTeamSlotAtPoint(clientX, clientY);
+  els.teamSlots.querySelectorAll(".team-slot.is-drop-target").forEach((slot) => {
+    if (slot !== targetSlot) slot.classList.remove("is-drop-target");
+  });
+
+  if (
+    !targetSlot ||
+    (targetSlot.dataset.teamKey === pointerTeamDrag.teamKey && Number(targetSlot.dataset.slotIndex) === pointerTeamDrag.index)
+  ) {
+    pointerTeamDrag.target = null;
+    return;
+  }
+
+  targetSlot.classList.add("is-drop-target");
+  pointerTeamDrag.target = targetSlot;
+}
+
+function startPointerTeamDrag(event, slot, teamKey, index) {
+  if (!pointerTeamDrag || pointerTeamDrag.active) return;
+  pointerTeamDrag.active = true;
+  pointerTeamDrag.slot = slot;
+  draggedTeamIndex = index;
+  draggedTeamKey = teamKey;
+  slot.classList.add("is-dragging");
+  updatePointerTeamDragTarget(event.clientX, event.clientY);
+}
+
+function handleTeamSlotPointerDown(event, slot, character, teamKey, index) {
+  if (!character || event.pointerType === "mouse" || isTeamSlotDragControl(event.target)) return;
+  pointerTeamDrag = {
+    pointerId: event.pointerId,
+    teamKey,
+    index,
+    slot,
+    startX: event.clientX,
+    startY: event.clientY,
+    active: false,
+    target: null,
+  };
+  slot.setPointerCapture?.(event.pointerId);
+}
+
+function handleTeamSlotPointerMove(event) {
+  if (!pointerTeamDrag || event.pointerId !== pointerTeamDrag.pointerId) return;
+  const distance = Math.hypot(event.clientX - pointerTeamDrag.startX, event.clientY - pointerTeamDrag.startY);
+  if (!pointerTeamDrag.active && distance >= 8) {
+    startPointerTeamDrag(event, pointerTeamDrag.slot, pointerTeamDrag.teamKey, pointerTeamDrag.index);
+  }
+  if (!pointerTeamDrag.active) return;
+  event.preventDefault();
+  updatePointerTeamDragTarget(event.clientX, event.clientY);
+}
+
+function finishPointerTeamDrag(event) {
+  if (!pointerTeamDrag || event.pointerId !== pointerTeamDrag.pointerId) return;
+  const drag = pointerTeamDrag;
+  pointerTeamDrag = null;
+  drag.slot?.releasePointerCapture?.(event.pointerId);
+  clearPointerTeamDragClasses();
+  draggedTeamIndex = null;
+  draggedTeamKey = null;
+
+  if (!drag.active) return;
+  suppressTeamSlotClick = true;
+  setTimeout(() => {
+    suppressTeamSlotClick = false;
+  }, 0);
+  if (!drag.target) return;
+  moveTeamSlot(drag.teamKey, drag.index, drag.target.dataset.teamKey, Number(drag.target.dataset.slotIndex));
+}
+
 function getWeaponIcon(character) {
   const weaponIconMap = {
     SG: "1",
@@ -1917,9 +2007,18 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
         moveTeamSlot(sourceTeamKey, Number(sourceIndexText), teamKey, index);
       });
 
+      slot.addEventListener("pointerdown", (event) => handleTeamSlotPointerDown(event, slot, character, teamKey, index));
+      slot.addEventListener("pointermove", handleTeamSlotPointerMove);
+      slot.addEventListener("pointerup", finishPointerTeamDrag);
+      slot.addEventListener("pointercancel", finishPointerTeamDrag);
+
       if (character) {
         slot.querySelector(".slot-remove").addEventListener("click", (event) => {
           event.stopPropagation();
+          if (suppressTeamSlotClick) {
+            event.preventDefault();
+            return;
+          }
           setActiveTeam(teamKey);
           removeCharacter(teamKey, index);
         });
