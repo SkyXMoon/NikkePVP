@@ -1817,7 +1817,7 @@ summary {
 
   .team-slots-row {
     grid-template-columns: repeat(5, minmax(56px, 64px));
-    justify-content: start;
+    justify-content: center;
     gap: 6px;
   }
 
