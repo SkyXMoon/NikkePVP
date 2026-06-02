@@ -273,6 +273,10 @@ input:focus {
   font-weight: 900;
 }
 
+#listCount {
+  margin-left: auto;
+}
+
 .character-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, 68px);
