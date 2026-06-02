@@ -2912,12 +2912,14 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       .filter((reload) => reload.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
       .map((reload) => ({ ...reload, teamKey: item.teamKey, displayEndFrame }));
   });
-  const visibleFlightEvents = chartResults.flatMap((item) => {
-    const displayEndFrame = getBurstDisplayEndFrame(item.result);
-    return (item.result.flightTimeline || [])
-      .filter((flight) => flight.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
-      .map((flight) => ({ ...flight, teamKey: item.teamKey, displayEndFrame }));
-  });
+  const visibleFlightEvents = state.allowMissedShots
+    ? chartResults.flatMap((item) => {
+        const displayEndFrame = getBurstDisplayEndFrame(item.result);
+        return (item.result.flightTimeline || [])
+          .filter((flight) => flight.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
+          .map((flight) => ({ ...flight, teamKey: item.teamKey, displayEndFrame }));
+      })
+    : [];
   const visibleMissedEvents = chartResults.flatMap((item) => {
     const displayEndFrame = getBurstDisplayEndFrame(item.result);
     return (item.result.missedTimeline || [])
