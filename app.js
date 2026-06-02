@@ -577,6 +577,10 @@ function getChargeValue(character) {
   return getEffectiveBurstGen(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
+function getDelayedExtraLabel(character) {
+  return character?.id === 57 || character?.slug === "哈兰" || character?.name === "哈兰" ? "中毒充能" : "延迟额外";
+}
+
 function getChargeBreakdown(character) {
   const hitMultiplier = character.weapon === "RL" ? getRlHitSegments(character) : character.hasPenetration ? 2 : 1;
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
@@ -599,8 +603,9 @@ function getChargeBreakdown(character) {
     );
   }
   if (character.delayedExtraHits?.length) {
+    const delayedLabel = getDelayedExtraLabel(character);
     lines.push(
-      `延迟追加：${character.delayedExtraHits
+      `${delayedLabel}：${character.delayedExtraHits
         .map((event) => `${event.delayFrames}帧后 +${(effectiveBurstGen * event.segments * extraMultiplier).toFixed(2)}%`)
         .join("，")}`,
     );
@@ -938,7 +943,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       if (owner) {
         owner.totalCharge += extra.chargeValue;
         owner.attackChargeTotal += extra.chargeValue;
-        addContribution(owner, extra.chargeValue, "延迟额外");
+        addContribution(owner, extra.chargeValue, getDelayedExtraLabel(owner.character));
       }
     });
 
