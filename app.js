@@ -98,7 +98,7 @@ const state = {
   },
   activeLineupIndex: 0,
   lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
-  allowMissedShots: false,
+  allowMissedShots: true,
   compactAvatarIcons: true,
   activeTeamKey: "attack",
   filters: {
@@ -3479,7 +3479,7 @@ function loadTeam() {
       } else {
         saveCurrentLineupSlot();
       }
-      state.allowMissedShots = saved.allowMissedShots === true;
+      state.allowMissedShots = typeof saved.allowMissedShots === "boolean" ? saved.allowMissedShots : true;
       state.compactAvatarIcons = saved.compactAvatarIcons !== false;
       state.filters = {
         ...state.filters,
@@ -3516,7 +3516,7 @@ function loadTeam() {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
     };
-    state.allowMissedShots = false;
+    state.allowMissedShots = true;
   }
 }
 
