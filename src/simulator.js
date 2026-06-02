@@ -5,6 +5,8 @@ const DEFAULT_RL_TARGET_INDEX = 0;
 const BURST_EPSILON = 1e-6;
 const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
+const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
+const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
 const MG_WARMUP_EVENTS = [
   { frame: 96, shots: 12 },
   { frame: 152, shots: 22 },
@@ -67,6 +69,10 @@ function getSavedCharacterMagazine(character, teamKey = "attack") {
 
 function isScarlet(character) {
   return character?.name === "红莲" || character?.slug === "红莲";
+}
+
+function isRedHood(character) {
+  return character?.id === 111 || character?.name === "小红帽" || character?.slug === "小红帽";
 }
 
 function isJackal(character) {
@@ -177,6 +183,8 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
         interval: isCinderella(character) ? CINDERELLA_ATTACK_INTERVAL_FRAMES : character.attackIntervalFrames || intervalFrames,
         reloadInterval: isCinderella(character) ? firstFrame : null,
         chargeFrames,
+        baseChargeFrames,
+        baseIntervalFrames,
         projectileFlightFrames: flightFrames,
       };
     }
@@ -186,6 +194,8 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
         firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames, speed),
         interval: character.attackIntervalFrames || intervalFrames,
         chargeFrames,
+        baseChargeFrames,
+        baseIntervalFrames,
       };
     }
 
@@ -209,6 +219,8 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
       firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames, speed),
       interval: character.attackIntervalFrames || applyChargeSpeedTotalFrames(baseChargeFrames + turnFrames, speed),
       chargeFrames,
+      baseChargeFrames,
+      baseIntervalFrames: baseChargeFrames + turnFrames,
     };
   }
   if (character.weapon === "RL") {
@@ -219,6 +231,8 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
       firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames + flightFrames, speed),
       interval: character.attackIntervalFrames || applyChargeSpeedTotalFrames(baseChargeFrames + turnFrames, speed),
       chargeFrames,
+      baseChargeFrames,
+      baseIntervalFrames: baseChargeFrames + turnFrames,
       projectileFlightFrames: flightFrames,
     };
   }
@@ -346,8 +360,26 @@ function getReloadFrames(character) {
   return reloadSeconds > 0 ? Math.round(reloadSeconds * FRAMES_PER_SECOND) : 0;
 }
 
-function getBaseNextAttackFrame(event, currentFrame) {
+function getRedHoodChargeSpeedStacksAfterAttack(event, shotCount = 1) {
+  if (!isRedHood(event.character)) return 0;
+  return Math.min(RED_HOOD_MAX_CHARGE_SPEED_STACKS, (Number(event.redHoodChargeSpeedStacks) || 0) + shotCount);
+}
+
+function getRedHoodStackedChargeSpeed(character, stacks = 0) {
+  const baseSpeed = Number(character.chargeSpeedPercent) || 0;
+  return baseSpeed + Math.min(RED_HOOD_MAX_CHARGE_SPEED_STACKS, Math.max(0, Number(stacks) || 0)) * RED_HOOD_CHARGE_SPEED_PER_ATTACK;
+}
+
+function getRedHoodStackedInterval(event, stacks = event.redHoodChargeSpeedStacks) {
+  const baseIntervalFrames = event.baseIntervalFrames || event.interval;
+  return applyChargeSpeedTotalFrames(baseIntervalFrames, getRedHoodStackedChargeSpeed(event.character, stacks));
+}
+
+function getBaseNextAttackFrame(event, currentFrame, shotCount = 1) {
   if (event.character.weapon !== "MG") {
+    if (isRedHood(event.character)) {
+      return currentFrame + getRedHoodStackedInterval(event, getRedHoodChargeSpeedStacksAfterAttack(event, shotCount));
+    }
     return currentFrame + event.interval;
   }
 
@@ -394,24 +426,28 @@ function getInitialAttackFrameAfterStun(character, positionIndex, firstFrame, st
 
 function getNextAttackFrameAfterStun(event, currentFrame, baseNextFrame, stunWindows = []) {
   return (
-    getChargeInterruptedFrame(event.character, event.positionIndex, currentFrame, baseNextFrame, event.interval, stunWindows) ??
+    getChargeInterruptedFrame(event.character, event.positionIndex, currentFrame, baseNextFrame, baseNextFrame - currentFrame, stunWindows) ??
     getFrameAfterStun(baseNextFrame, event.positionIndex, stunWindows)
   );
 }
 
 function getReloadAttackFrameAfterStun(event, reloadEndFrame, defaultNextFrame, stunWindows = []) {
-  const nextFrame = isCinderella(event.character) ? reloadEndFrame + event.reloadInterval : defaultNextFrame;
+  const nextFrame = isRedHood(event.character) ? defaultNextFrame : isCinderella(event.character) ? reloadEndFrame + event.reloadInterval : defaultNextFrame;
   return (
-    getChargeInterruptedFrame(event.character, event.positionIndex, reloadEndFrame, nextFrame, event.reloadInterval, stunWindows) ??
+    getChargeInterruptedFrame(event.character, event.positionIndex, reloadEndFrame, nextFrame, nextFrame - reloadEndFrame, stunWindows) ??
     getFrameAfterStun(nextFrame, event.positionIndex, stunWindows)
   );
 }
 
 function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []) {
-  const baseNextFrame = getBaseNextAttackFrame(event, currentFrame);
+  const nextRedHoodStacks = getRedHoodChargeSpeedStacksAfterAttack(event, shotCount);
+  const baseNextFrame = getBaseNextAttackFrame(event, currentFrame, shotCount);
   const magazine = getMagazineSize(event.character);
   const reloadFrames = getReloadFrames(event.character);
   event.shotsInMagazine += shotCount;
+  if (isRedHood(event.character)) {
+    event.redHoodChargeSpeedStacks = nextRedHoodStacks;
+  }
 
   if (Number.isFinite(magazine) && reloadFrames > 0 && event.shotsInMagazine >= magazine) {
     event.shotsInMagazine %= magazine;
@@ -493,10 +529,13 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       interval: timing.interval,
       reloadInterval: timing.reloadInterval || timing.interval,
       chargeFrames: timing.chargeFrames,
+      baseChargeFrames: timing.baseChargeFrames || timing.chargeFrames,
+      baseIntervalFrames: timing.baseIntervalFrames || timing.interval,
       projectileFlightFrames: timing.projectileFlightFrames || 0,
       chargeValue: getChargeValue(member.character),
       hits: 0,
       shotsInMagazine: 0,
+      redHoodChargeSpeedStacks: 0,
       mgWarmupIndex: member.character.weapon === "MG" ? 0 : null,
       totalCharge: 0,
       attackChargeTotal: 0,
