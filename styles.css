@@ -1870,6 +1870,18 @@ summary {
     font-size: 10px;
   }
 
+  .slot-settings-toggle {
+    top: 1px;
+    right: 1px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .slot-settings-toggle img {
+    width: 22px;
+    height: 22px;
+  }
+
   .speed-control {
     grid-template-columns: 1fr;
   }
