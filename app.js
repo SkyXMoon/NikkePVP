@@ -1198,6 +1198,26 @@ function getRarityClass(character) {
   return ["ssr", "sr", "r"].includes(rarity) ? rarity : "ssr";
 }
 
+function getTeamSlotRarityClass(character) {
+  return character ? ` rarity-${getRarityClass(character)}` : "";
+}
+
+function setTeamSlotDragImage(event, slot) {
+  if (!event.dataTransfer || !slot) return;
+  const clone = slot.cloneNode(true);
+  const rect = slot.getBoundingClientRect();
+  clone.classList.add("drag-image");
+  clone.style.width = `${rect.width}px`;
+  clone.style.height = `${rect.height}px`;
+  clone.style.position = "fixed";
+  clone.style.left = "-1000px";
+  clone.style.top = "-1000px";
+  clone.style.pointerEvents = "none";
+  document.body.append(clone);
+  event.dataTransfer.setDragImage(clone, rect.width / 2, rect.height / 2);
+  requestAnimationFrame(() => clone.remove());
+}
+
 function getWeaponIcon(character) {
   const weaponIconMap = {
     SG: "1",
@@ -1397,7 +1417,7 @@ function renderSingleTeamLegacy() {
   state.team.forEach((character, index) => {
     const isFinisher = finishingPositions.has(index) && canShowFinishMarker(character);
     const slot = document.createElement("div");
-    slot.className = `team-slot${character ? " filled" : ""}${isFinisher ? " is-finisher" : ""}`;
+    slot.className = `team-slot${character ? " filled" : ""}${getTeamSlotRarityClass(character)}${isFinisher ? " is-finisher" : ""}`;
     slot.dataset.slotIndex = index;
     slot.draggable = Boolean(character);
     slot.innerHTML = character
@@ -1431,6 +1451,7 @@ function renderSingleTeamLegacy() {
       slot.classList.add("is-dragging");
       event.dataTransfer.effectAllowed = "move";
       event.dataTransfer.setData("text/plain", String(index));
+      setTeamSlotDragImage(event, slot);
     });
 
     slot.addEventListener("dragend", () => {
@@ -1804,7 +1825,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const canSelectJackalTarget =
         character && character.id !== jackalLinkState.ownerId && isJackalConnecting && (isJackalTarget || jackalTargetIds.size < 2);
       const slot = document.createElement("div");
-      slot.className = `team-slot${character ? " filled" : ""}${!character && universalChargeValue > 0 ? " has-universal" : ""}${isFinisher ? " is-finisher" : ""}`;
+      slot.className = `team-slot${character ? " filled" : ""}${getTeamSlotRarityClass(character)}${!character && universalChargeValue > 0 ? " has-universal" : ""}${isFinisher ? " is-finisher" : ""}`;
       slot.dataset.slotIndex = index;
       slot.dataset.teamKey = teamKey;
       slot.draggable = Boolean(character);
@@ -1867,6 +1888,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
         slot.classList.add("is-dragging");
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", `${teamKey}:${index}`);
+        setTeamSlotDragImage(event, slot);
       });
 
       slot.addEventListener("dragend", () => {

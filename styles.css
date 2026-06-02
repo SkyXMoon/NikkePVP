@@ -1304,6 +1304,21 @@ input:focus {
   cursor: grab;
 }
 
+.team-slot.filled.rarity-ssr {
+  border-color: #d9a441;
+  box-shadow: 0 0 0 1px rgba(217, 164, 65, 0.18) inset;
+}
+
+.team-slot.filled.rarity-sr {
+  border-color: #9b66ff;
+  box-shadow: 0 0 0 1px rgba(155, 102, 255, 0.18) inset;
+}
+
+.team-slot.filled.rarity-r {
+  border-color: #7f8794;
+  box-shadow: 0 0 0 1px rgba(127, 135, 148, 0.18) inset;
+}
+
 .team-slot.has-universal {
   border-style: solid;
   border-color: rgba(77, 163, 255, 0.55);
@@ -1324,6 +1339,13 @@ input:focus {
   opacity: 0.55;
   transform: scale(0.98);
   border-color: var(--blue);
+}
+
+.team-slot.drag-image {
+  z-index: 9999;
+  opacity: 0.96;
+  transform: none;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
 
 .team-slot.is-drop-target {
