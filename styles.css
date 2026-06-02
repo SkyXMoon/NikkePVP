@@ -1769,7 +1769,7 @@ summary {
   }
 
   .charge-chart-panel {
-    min-height: 260px;
+    min-height: 50svh;
   }
 
   .content-grid {
@@ -1778,8 +1778,9 @@ summary {
   }
 
   .charge-chart {
-    height: 210px;
-    min-height: 210px;
+    height: calc(50svh - 19px);
+    min-height: 330px;
+    max-height: 460px;
     overflow-x: auto;
   }
 
@@ -1815,7 +1816,8 @@ summary {
   }
 
   .team-slots-row {
-    grid-template-columns: repeat(5, minmax(56px, 1fr));
+    grid-template-columns: repeat(5, minmax(56px, 64px));
+    justify-content: start;
     gap: 6px;
   }
 
