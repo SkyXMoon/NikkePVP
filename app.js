@@ -119,6 +119,7 @@ const els = {
   chargeChart: document.querySelector("#chargeChart"),
   lineupSlots: document.querySelector("#lineupSlots"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
+  copyTeamButton: document.querySelector("#copyTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
   allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
   commonToggle: document.querySelector("#commonToggle"),
@@ -225,6 +226,17 @@ function getBurstDisplayEndFrame(result) {
 
 function getResultCopyText(result, teamKey = "attack") {
   return `${getTeamPositionText(result.finishingPositionIndices, teamKey)}\n${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
+}
+
+function getBattleResultsCopyText(battleResults = getBattleResultsSnapshot()) {
+  const entries = [
+    { teamKey: "defense", result: battleResults.defenseResult },
+    { teamKey: "attack", result: battleResults.attackResult },
+  ].filter((entry) => entry.result && !entry.result.error);
+
+  return entries
+    .map((entry) => `${TEAM_LABELS[entry.teamKey]}\n${getResultCopyText(entry.result, entry.teamKey)}`)
+    .join("\n\n");
 }
 
 function normalizeTeamKey(teamKey = state.activeTeamKey) {
@@ -1642,13 +1654,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
         slot.querySelector(".slot-remove").addEventListener("contextmenu", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          const { attackResult: currentAttackResult, defenseResult: currentDefenseResult } = getBattleResultsSnapshot();
-          const result = teamKey === "defense" ? currentDefenseResult : currentAttackResult;
-          if (result && !result.error) {
-            copyResultSummary(result, teamKey);
-          } else {
-            showToast(result?.error || "队伍为空，无法复制结果");
-          }
+          copyBattleResultsSummary();
         });
         const settingsToggle = slot.querySelector(".slot-settings-toggle");
         settingsToggle.addEventListener("click", (event) => {
@@ -2834,8 +2840,7 @@ function renderSummaryStrip(attackResult, defenseResult) {
 
   els.summaryStrip.oncontextmenu = (event) => {
     event.preventDefault();
-    const copyEntry = entries.find((entry) => entry.teamKey === "attack") || entries[0];
-    copyResultSummary(copyEntry.result, copyEntry.teamKey);
+    copyBattleResultsSummary();
   };
 }
 
@@ -3247,10 +3252,15 @@ async function copyCharacterDetails(character) {
   }
 }
 
-async function copyResultSummary(result, teamKey = "attack") {
+async function copyBattleResultsSummary() {
+  const text = getBattleResultsCopyText();
+  if (!text) {
+    showToast("队伍为空，无法复制结果");
+    return;
+  }
   try {
-    await copyTextToClipboard(getResultCopyText(result, teamKey));
-    showToast("已复制充能结果");
+    await copyTextToClipboard(text);
+    showToast("已复制双方队伍信息");
   } catch {
     showToast("复制失败，请检查浏览器剪切板权限");
   }
@@ -3258,6 +3268,7 @@ async function copyResultSummary(result, teamKey = "attack") {
 
 function bindEvents() {
   els.clearTeamButton.addEventListener("click", clearTeam);
+  els.copyTeamButton.addEventListener("click", copyBattleResultsSummary);
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
   els.allowMissedShotsToggle.addEventListener("change", (event) => {
     state.allowMissedShots = event.target.checked;
