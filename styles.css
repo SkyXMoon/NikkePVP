@@ -673,6 +673,40 @@ input:focus {
   cursor: pointer;
 }
 
+.app-help-button {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(71, 200, 212, 0.64);
+  border-radius: 999px;
+  padding: 0;
+  color: #dffbff;
+  background:
+    linear-gradient(180deg, rgba(20, 49, 63, 0.94), rgba(7, 11, 17, 0.94)),
+    var(--panel);
+  box-shadow:
+    0 0 0 1px rgba(221, 251, 255, 0.08) inset,
+    0 8px 22px rgba(0, 0, 0, 0.32);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.app-help-button:hover {
+  border-color: rgba(71, 200, 212, 0.95);
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(30, 74, 92, 0.98), rgba(11, 18, 28, 0.98)),
+    var(--panel);
+  transform: translateY(-1px);
+}
+
 .copy-icon {
   position: relative;
   width: 17px;
@@ -1616,6 +1650,121 @@ input:focus {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
+.help-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+.help-modal {
+  width: min(760px, calc(100vw - 44px));
+  max-height: min(82vh, 720px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(71, 200, 212, 0.82);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(19, 37, 49, 0.98), rgba(8, 12, 18, 0.98)),
+    var(--panel);
+  box-shadow:
+    0 0 0 1px rgba(221, 251, 255, 0.1) inset,
+    0 18px 46px rgba(0, 0, 0, 0.52),
+    0 0 32px rgba(71, 200, 212, 0.18);
+}
+
+.help-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 16px 13px;
+  border-bottom: 1px solid rgba(242, 245, 250, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.help-modal-head div {
+  display: grid;
+  gap: 3px;
+}
+
+.help-modal-head strong {
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.help-modal-kicker {
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.help-modal-close {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(235, 241, 248, 0.34);
+  border-radius: 6px;
+  padding: 0;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.help-modal-close:hover {
+  border-color: rgba(71, 200, 212, 0.9);
+  color: #fff;
+  background: rgba(71, 200, 212, 0.16);
+}
+
+.help-modal-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+  overflow: auto;
+}
+
+.help-section {
+  min-width: 0;
+  border: 1px solid rgba(242, 245, 250, 0.1);
+  border-radius: 6px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.help-section h2 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.help-section ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 17px;
+}
+
+.help-section li {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .speed-control {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -1796,6 +1945,14 @@ summary {
     padding: 10px;
   }
 
+  .app-help-button {
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+
   .workspace,
   .team-workbench,
   .team-panel,
@@ -1833,6 +1990,25 @@ summary {
 
   .filters {
     grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+
+  .help-modal-backdrop {
+    padding: 12px;
+  }
+
+  .help-modal {
+    width: calc(100vw - 24px);
+    max-height: calc(100svh - 24px);
+  }
+
+  .help-modal-content {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .help-modal-head {
+    padding: 13px 12px 11px;
   }
 
   .panel-heading {

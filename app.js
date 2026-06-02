@@ -127,6 +127,7 @@ const els = {
   regionToggle: document.querySelector("#regionToggle"),
   compactAvatarToggle: document.querySelector("#compactAvatarToggle"),
   searchInput: document.querySelector("#searchInput"),
+  helpButton: document.querySelector("#helpButton"),
   toast: document.querySelector("#toast"),
   summaryStrip: document.querySelector("#summaryStrip"),
   listCount: document.querySelector("#listCount"),
@@ -136,6 +137,7 @@ let draggedTeamIndex = null;
 let draggedTeamKey = null;
 let resizeRenderId = null;
 let openSlotSettings = null;
+let isHelpModalOpen = false;
 
 const TEAM_LABELS = {
   defense: "防守队",
@@ -1509,6 +1511,107 @@ function createSlotSettingsModal() {
   });
 
   return backdrop;
+}
+
+function closeHelpModal() {
+  isHelpModalOpen = false;
+  document.querySelector(".help-modal-backdrop")?.remove();
+}
+
+function createHelpModal() {
+  if (!isHelpModalOpen) return null;
+  const sections = [
+    {
+      title: "充能轴",
+      items: [
+        "上方图表展示双方队伍的关键充能帧、标准 RL 轴、爆裂节点、换弹、空枪、晕眩等时间点。",
+        "鼠标在图表内移动时，会自动显示距离最近的关键帧详情，并用辅助线标记对应角色和帧数。",
+        "总充能轴会汇总角色攻击、万能充能、红莲反击、豺狼链接等有效贡献。",
+      ],
+    },
+    {
+      title: "队伍槽位",
+      items: [
+        "上排为防守队，下排为进攻队；点击任意队伍会切换当前操作队伍。",
+        "空槽可填写“充”作为万能充能值；再次选择角色会直接覆盖该槽位并清零万能充能。",
+        "角色头像可拖拽换位；右键任意队伍头像可复制双方队伍的充能完成信息。",
+      ],
+    },
+    {
+      title: "角色设置",
+      items: [
+        "点击头像右上角齿轮，可设置蓄力速度、量子遗迹魔方、红莲弹容等角色专属参数。",
+        "蓄速、量子魔方、弹容按进攻/防守分别保存；切换方案时会沿用该角色在对应队伍侧的保存值。",
+        "红莲弹容只在开启“计算空枪”时参与计算；未开启时按不缺弹处理。",
+      ],
+    },
+    {
+      title: "链接与特殊轴",
+      items: [
+        "豺狼、波莉可开启链接；豺狼链接会产生充能，波莉链接只影响共同受击与红莲反击。",
+        "红莲在可被攻击时会显示反击充能轴；罗珊娜、小美人鱼等特殊时间点会显示在标准轴上。",
+        "被罗珊娜消除链接后，后续共同受击效果不再生效。",
+      ],
+    },
+    {
+      title: "角色选择",
+      items: [
+        "搜索会在当前服务器和常用筛选范围内查找角色；常用、国服、简洁开关会本地保存。",
+        "角色默认按最终单发充能效率从高到低排序；再次点击已选角色会从当前队伍中移除。",
+        "右键角色卡可复制该角色当前显示的详细充能信息。",
+      ],
+    },
+    {
+      title: "方案与操作",
+      items: [
+        "下方 1-10 按钮用于保存不同攻防队伍方案。",
+        "复制按钮会复制当前防守与进攻队的完成帧信息；切换按钮会互换攻防角色，但蓄速等参数使用角色在对应队伍侧保存的数据。",
+        "清空按钮会同时清空防守队和进攻队。",
+      ],
+    },
+  ];
+  const backdrop = document.createElement("div");
+  backdrop.className = "help-modal-backdrop";
+  backdrop.innerHTML = `
+    <section class="help-modal" role="dialog" aria-modal="true" aria-label="页面说明">
+      <div class="help-modal-head">
+        <div>
+          <span class="help-modal-kicker">Help</span>
+          <strong>页面说明</strong>
+        </div>
+        <button class="help-modal-close" type="button" aria-label="关闭说明">X</button>
+      </div>
+      <div class="help-modal-content">
+        ${sections
+          .map(
+            (section) => `
+              <article class="help-section">
+                <h2>${escapeHtml(section.title)}</h2>
+                <ul>
+                  ${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                </ul>
+              </article>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+  const modal = backdrop.querySelector(".help-modal");
+  modal.addEventListener("click", (event) => event.stopPropagation());
+  backdrop.addEventListener("click", closeHelpModal);
+  backdrop.querySelector(".help-modal-close").addEventListener("click", (event) => {
+    event.preventDefault();
+    closeHelpModal();
+  });
+  return backdrop;
+}
+
+function openHelpModal() {
+  isHelpModalOpen = true;
+  document.querySelector(".help-modal-backdrop")?.remove();
+  const modal = createHelpModal();
+  if (modal) document.body.append(modal);
 }
 
 function getLineupSlotCount(slot) {
@@ -3311,6 +3414,7 @@ async function copyBattleResultsSummary() {
 }
 
 function bindEvents() {
+  els.helpButton.addEventListener("click", openHelpModal);
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.copyTeamButton.addEventListener("click", copyBattleResultsSummary);
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
@@ -3332,6 +3436,9 @@ function bindEvents() {
       resizeRenderId = null;
       render();
     });
+  });
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && isHelpModalOpen) closeHelpModal();
   });
   els.commonToggle.addEventListener("change", (event) => {
     state.filters.common = event.target.checked ? "common" : "all";
