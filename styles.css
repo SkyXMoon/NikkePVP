@@ -1881,6 +1881,30 @@ summary {
     height: 22px;
   }
 
+  .slot-link-toggle,
+  .slot-link-target {
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+  }
+
+  .slot-link-toggle img,
+  .slot-link-target img {
+    width: 12px;
+    height: 12px;
+  }
+
+  .slot-link-target span {
+    font-size: 13px;
+  }
+
+  .slot-copy .finish-mark {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+  }
+
   .speed-control {
     grid-template-columns: 1fr;
   }
