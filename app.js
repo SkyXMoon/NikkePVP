@@ -3391,23 +3391,32 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     .flatMap((group) => {
       const y = yForGroup(group.groupKey);
       if (isChargeWeapon(group.member.character)) {
-        const successfulFrames =
-          group.member.character.weapon === "RL"
-            ? (group.result.flightTimeline || [])
-                .filter(
-                  (flight) =>
-                    !flight.missed &&
-                    flight.positionIndex === group.member.positionIndex &&
-                    flight.endFrame <= CHART_MAX_FRAME &&
-                    flight.endFrame <= getBurstDisplayEndFrame(group.result),
-                )
-                .map((flight) => flight.endFrame)
-            : group.frames;
+        if (group.member.character.weapon === "RL") {
+          const shotFrames = (group.result.flightTimeline || [])
+            .filter(
+              (flight) =>
+                flight.positionIndex === group.member.positionIndex &&
+                flight.endFrame <= CHART_MAX_FRAME &&
+                flight.endFrame <= getBurstDisplayEndFrame(group.result),
+            )
+            .map((flight) => ({ frame: flight.endFrame, missed: flight.missed }));
 
-        return successfulFrames
+          return shotFrames
+            .slice(1)
+            .map((shot, index) => {
+              if (shot.missed) return "";
+              const previousFrame = shotFrames[index].frame;
+              return shot.frame > previousFrame
+                ? `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(previousFrame)}" y1="${y}" x2="${xForFrame(shot.frame)}" y2="${y}" />`
+                : "";
+            })
+            .filter(Boolean);
+        }
+
+        return group.frames
           .slice(1)
           .map((frame, index) => {
-            const previousFrame = successfulFrames[index];
+            const previousFrame = group.frames[index];
             return frame > previousFrame
               ? `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(previousFrame)}" y1="${y}" x2="${xForFrame(frame)}" y2="${y}" />`
               : "";
