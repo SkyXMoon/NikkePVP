@@ -1330,7 +1330,7 @@ input:focus {
 .slot-speed-badge {
   position: absolute;
   right: 0;
-  top: 50%;
+  bottom: 0;
   z-index: 2;
   min-width: 22px;
   padding: 1px 4px;
@@ -1343,7 +1343,6 @@ input:focus {
   font-weight: 900;
   line-height: 1.15;
   text-align: center;
-  transform: translateY(-50%);
 }
 
 .slot-cube-badge {
