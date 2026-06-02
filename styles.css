@@ -1663,12 +1663,12 @@ input:focus {
 }
 
 .slot-counter-toggle {
-  left: auto;
-  right: 2px;
+  left: 50%;
+  right: auto;
   min-width: 24px;
   width: 24px;
   padding: 0;
-  transform: none;
+  transform: translateX(-50%);
 }
 
 .slot-pierce-count:hover,
@@ -1681,7 +1681,7 @@ input:focus {
 }
 
 .slot-counter-toggle:hover {
-  transform: translateY(-1px);
+  transform: translateX(-50%) translateY(-1px);
 }
 
 .slot-pierce-count.is-active {
@@ -2334,7 +2334,8 @@ summary {
   }
 
   .slot-counter-toggle {
-    right: 1px;
+    left: 50%;
+    right: auto;
     min-width: 18px;
     width: 18px;
     padding: 0;
