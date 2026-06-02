@@ -3038,6 +3038,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       .sort((a, b) => a.start - b.start)
       .forEach((pause) => {
         if (pause.start > cursor) segments.push({ start: cursor, end: pause.start });
+        if (pause.suppressTrackAfter) {
+          cursor = endFrame;
+          return;
+        }
         cursor = Math.max(cursor, pause.end);
       });
     if (cursor < endFrame) segments.push({ start: cursor, end: endFrame });
@@ -3066,7 +3070,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const lastFrame = Math.max(...group.frames);
       const groupReloads = visibleReloadEvents.filter(
         (reload) => reload.teamKey === group.teamKey && reload.positionIndex === group.member.positionIndex,
-      );
+      ).map((reload) => ({ ...reload, suppressTrackAfter: true }));
       const groupStuns = getStunTrackPauses(group);
       return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupStuns]).map(
         (segment) =>
