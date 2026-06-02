@@ -62,7 +62,7 @@ const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
-const MISS_DODGE_WINDOW_FRAMES = 4;
+const MISS_DODGE_WINDOW_FRAMES = 6;
 const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [0, 60],
   [1, 60],
@@ -1244,14 +1244,15 @@ function isMissedByDodgeWindow(positionIndex, flightStartFrame, hitFrame, window
   return flightStartFrame < window.startFrame && window.startFrame < hitFrame && hitFrame < windowEndFrame;
 }
 
-function isRlShotMissedByDodgeWindow(event, currentFrame, teamKey, opponentReloadTimeline = [], opponentTurnDodgeTimeline = []) {
+function getRlShotMissDodgeWindow(event, currentFrame, teamKey, opponentReloadTimeline = [], opponentTurnDodgeTimeline = []) {
   if (!state.allowMissedShots) return false;
   if (event.character.weapon !== "RL" || event.projectileFlightFrames <= 0) return false;
   const targetPositionIndex = getTargetPositionIndex(event.character, teamKey);
   const flightStartFrame = Math.max(0, currentFrame - event.projectileFlightFrames);
-  return [...opponentReloadTimeline, ...opponentTurnDodgeTimeline].some((window) =>
-    isMissedByDodgeWindow(targetPositionIndex, flightStartFrame, currentFrame, window),
-  );
+  return [
+    ...opponentReloadTimeline.map((window) => ({ ...window, type: "reload" })),
+    ...opponentTurnDodgeTimeline.map((window) => ({ ...window, type: "turn" })),
+  ].find((window) => isMissedByDodgeWindow(targetPositionIndex, flightStartFrame, currentFrame, window));
 }
 
 function characterForSlot(character, positionIndex, teamKey = "attack") {
@@ -1424,13 +1425,14 @@ function simulateBurst(
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
-      const isMissedShot = isRlShotMissedByDodgeWindow(
+      const missDodgeWindow = getRlShotMissDodgeWindow(
         event,
         currentFrame,
         teamKey,
         opponentReloadTimeline,
         opponentTurnDodgeTimeline,
       );
+      const isMissedShot = Boolean(missDodgeWindow);
       event.hits += shotCount;
       const chargeShotNumber = getAttackChargeShotNumber(event, shotCount);
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
@@ -1452,6 +1454,11 @@ function simulateBurst(
             frame: currentFrame,
             flightStartFrame: flightEvent.startFrame,
             flightFrames: event.projectileFlightFrames,
+            dodgeType: missDodgeWindow.type,
+            dodgeStartFrame: missDodgeWindow.startFrame,
+            dodgeEndFrame: Math.min(missDodgeWindow.endFrame, missDodgeWindow.startFrame + MISS_DODGE_WINDOW_FRAMES),
+            dodgerName: missDodgeWindow.characterName,
+            dodgerPositionIndex: missDodgeWindow.positionIndex,
           });
         }
       }
@@ -3122,12 +3129,28 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       .filter((reload) => reload.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
       .map((reload) => ({ ...reload, teamKey: item.teamKey, displayEndFrame }));
   });
-  const visibleFlightEvents = state.allowMissedShots
+  const visibleDodgeEvents = state.allowMissedShots
     ? chartResults.flatMap((item) => {
         const displayEndFrame = getBurstDisplayEndFrame(item.result);
-        return (item.result.flightTimeline || [])
-          .filter((flight) => flight.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
-          .map((flight) => ({ ...flight, teamKey: item.teamKey, displayEndFrame }));
+        return [
+          ...(item.result.reloadTimeline || []).map((reload) => ({
+            ...reload,
+            type: "reload",
+            startFrame: reload.startFrame,
+            endFrame: Math.min(reload.endFrame, reload.startFrame + MISS_DODGE_WINDOW_FRAMES),
+            durationFrames: Math.min(reload.reloadFrames || MISS_DODGE_WINDOW_FRAMES, MISS_DODGE_WINDOW_FRAMES),
+            teamKey: item.teamKey,
+            displayEndFrame,
+          })),
+          ...(item.result.turnDodgeTimeline || []).map((turn) => ({
+            ...turn,
+            type: "turn",
+            endFrame: Math.min(turn.endFrame, turn.startFrame + MISS_DODGE_WINDOW_FRAMES),
+            durationFrames: Math.min(turn.dodgeFrames || MISS_DODGE_WINDOW_FRAMES, MISS_DODGE_WINDOW_FRAMES),
+            teamKey: item.teamKey,
+            displayEndFrame,
+          })),
+        ].filter((window) => window.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame));
       })
     : [];
   const visibleMissedEvents = chartResults.flatMap((item) => {
@@ -3190,8 +3213,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     return [
       item.result.fullFrame,
       ...getAvailableBurstMarkers(item.result).map((marker) => marker.frame),
-      ...(item.result.reloadTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME, displayEndFrame)),
-      ...(item.result.flightTimeline || []).map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME, displayEndFrame)),
+      ...visibleDodgeEvents
+        .filter((entry) => entry.teamKey === item.teamKey)
+        .map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME, displayEndFrame)),
       ...(item.result.missedTimeline || []).map((entry) => Math.min(entry.frame, CHART_MAX_FRAME, displayEndFrame)),
     ];
   });
@@ -3404,30 +3428,24 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       );
     })
     .join("");
-  const reloadTracks = visibleReloadEvents
-    .map((reload) => {
-      const y = yForGroup(`${reload.teamKey}-${reload.positionIndex}`);
-      const startFrame = Math.min(reload.startFrame, maxFrame);
-      const endFrame = Math.min(reload.endFrame, maxFrame, reload.displayEndFrame);
+  const dodgeTracks = visibleDodgeEvents
+    .map((window) => {
+      const y = yForGroup(`${window.teamKey}-${window.positionIndex}`);
+      const startFrame = Math.min(window.startFrame, maxFrame);
+      const endFrame = Math.min(window.endFrame, maxFrame, window.displayEndFrame);
       if (endFrame <= startFrame) return "";
-      const tooltip = escapeHtml(`${reload.characterName}\n换弹：${reload.startFrame}F → ${reload.endFrame}F\n耗时：${reload.reloadFrames}F`);
-      return `<line class="chart-reload-track team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
-    })
-    .join("");
-  const flightTracks = visibleFlightEvents
-    .map((flight) => {
-      const y = yForGroup(`${flight.teamKey}-${flight.positionIndex}`);
-      const startFrame = Math.min(flight.startFrame, maxFrame);
-      const endFrame = Math.min(flight.endFrame, maxFrame, flight.displayEndFrame);
-      if (endFrame <= startFrame) return "";
-      const tooltip = escapeHtml(`${flight.characterName}\n飞行：${flight.startFrame}F → ${flight.endFrame}F\n耗时：${flight.flightFrames}F`);
-      return `<line class="chart-flight-track" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
+      const label = window.type === "reload" ? "换弹可空" : "转身可空";
+      const tooltip = escapeHtml(`${window.characterName}\n${label}：${window.startFrame}F → ${window.endFrame}F\n判定：${window.durationFrames}F`);
+      return `<line class="chart-dodge-track chart-dodge-${window.type} team-${window.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
     })
     .join("");
   const missedPoints = visibleMissedEvents
     .map((miss) => {
       const y = yForGroup(`${miss.teamKey}-${miss.positionIndex}`);
-      const tooltip = escapeHtml(`${miss.characterName}\n时间：${miss.frame} F\n结果：空枪，未命中\n飞行：${miss.flightStartFrame}F → ${miss.frame}F`);
+      const dodgeLabel = miss.dodgeType === "reload" ? "换弹可空" : "转身可空";
+      const tooltip = escapeHtml(
+        `${miss.characterName}\n时间：${miss.frame} F\n结果：空枪，未命中\n${dodgeLabel}：${miss.dodgeStartFrame}F → ${miss.dodgeEndFrame}F`,
+      );
       return `<circle class="chart-missed-point" cx="${xForFrame(miss.frame)}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle>`;
     })
     .join("");
@@ -3571,8 +3589,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${standardTrack}
       ${standardPoints}
       ${tracks}
-      ${reloadTracks}
-      ${flightTracks}
+      ${dodgeTracks}
       ${scarletCounterTracks}
       ${chargeTotalTrack}
       ${burstTotalTrack}

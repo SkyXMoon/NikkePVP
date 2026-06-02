@@ -7,7 +7,7 @@ const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
-const MISS_DODGE_WINDOW_FRAMES = 4;
+const MISS_DODGE_WINDOW_FRAMES = 6;
 const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [0, 60],
   [1, 60],
@@ -579,14 +579,15 @@ function isMissedByDodgeWindow(positionIndex, flightStartFrame, hitFrame, window
   return flightStartFrame < window.startFrame && window.startFrame < hitFrame && hitFrame < windowEndFrame;
 }
 
-function isRlShotMissedByDodgeWindow(event, currentFrame, teamKey, opponentReloadTimeline = [], opponentTurnDodgeTimeline = []) {
+function getRlShotMissDodgeWindow(event, currentFrame, teamKey, opponentReloadTimeline = [], opponentTurnDodgeTimeline = []) {
   if (!runtimeState.allowMissedShots) return false;
   if (event.character.weapon !== "RL" || event.projectileFlightFrames <= 0) return false;
   const targetPositionIndex = getTargetPositionIndex(event.character, teamKey);
   const flightStartFrame = Math.max(0, currentFrame - event.projectileFlightFrames);
-  return [...opponentReloadTimeline, ...opponentTurnDodgeTimeline].some((window) =>
-    isMissedByDodgeWindow(targetPositionIndex, flightStartFrame, currentFrame, window),
-  );
+  return [
+    ...opponentReloadTimeline.map((window) => ({ ...window, type: "reload" })),
+    ...opponentTurnDodgeTimeline.map((window) => ({ ...window, type: "turn" })),
+  ].find((window) => isMissedByDodgeWindow(targetPositionIndex, flightStartFrame, currentFrame, window));
 }
 
 function characterForSlot(character, positionIndex, teamKey = "attack") {
@@ -756,13 +757,14 @@ function simulateBurst(
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
-      const isMissedShot = isRlShotMissedByDodgeWindow(
+      const missDodgeWindow = getRlShotMissDodgeWindow(
         event,
         currentFrame,
         teamKey,
         opponentReloadTimeline,
         opponentTurnDodgeTimeline,
       );
+      const isMissedShot = Boolean(missDodgeWindow);
       event.hits += shotCount;
       const chargeShotNumber = getAttackChargeShotNumber(event, shotCount);
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
@@ -784,6 +786,11 @@ function simulateBurst(
             frame: currentFrame,
             flightStartFrame: flightEvent.startFrame,
             flightFrames: event.projectileFlightFrames,
+            dodgeType: missDodgeWindow.type,
+            dodgeStartFrame: missDodgeWindow.startFrame,
+            dodgeEndFrame: Math.min(missDodgeWindow.endFrame, missDodgeWindow.startFrame + MISS_DODGE_WINDOW_FRAMES),
+            dodgerName: missDodgeWindow.characterName,
+            dodgerPositionIndex: missDodgeWindow.positionIndex,
           });
         }
       }
