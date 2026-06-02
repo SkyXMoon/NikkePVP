@@ -62,6 +62,7 @@ const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
+const MISS_DODGE_WINDOW_FRAMES = 4;
 const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [0, 60],
   [1, 60],
@@ -1214,17 +1215,42 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []
   return null;
 }
 
-function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline = []) {
+function getTurnDodgeStartFrame(event, currentFrame) {
+  return Math.max(0, currentFrame - (Number(event.projectileFlightFrames) || 0));
+}
+
+function getTurnDodgeFrames(event) {
+  if (!isChargeWeapon(event.character)) return 0;
+  const turnFrames = Number(event.character.timing?.turnFrames ?? event.character.turnFrames ?? 0) || 0;
+  return Math.min(MISS_DODGE_WINDOW_FRAMES, Math.max(0, turnFrames));
+}
+
+function addTurnDodgeEvent(event, currentFrame) {
+  const dodgeFrames = getTurnDodgeFrames(event);
+  if (dodgeFrames <= 0) return;
+  const startFrame = getTurnDodgeStartFrame(event, currentFrame);
+  event.turnDodgeEvents.push({
+    positionIndex: event.positionIndex,
+    characterName: event.character.name,
+    startFrame,
+    endFrame: startFrame + dodgeFrames,
+    dodgeFrames,
+  });
+}
+
+function isMissedByDodgeWindow(positionIndex, flightStartFrame, hitFrame, window) {
+  if (window.positionIndex !== positionIndex) return false;
+  const windowEndFrame = Math.min(window.endFrame, window.startFrame + MISS_DODGE_WINDOW_FRAMES);
+  return flightStartFrame < window.startFrame && window.startFrame < hitFrame && hitFrame < windowEndFrame;
+}
+
+function isRlShotMissedByDodgeWindow(event, currentFrame, teamKey, opponentReloadTimeline = [], opponentTurnDodgeTimeline = []) {
   if (!state.allowMissedShots) return false;
   if (event.character.weapon !== "RL" || event.projectileFlightFrames <= 0) return false;
   const targetPositionIndex = getTargetPositionIndex(event.character, teamKey);
   const flightStartFrame = Math.max(0, currentFrame - event.projectileFlightFrames);
-  return opponentReloadTimeline.some(
-    (reload) =>
-      reload.positionIndex === targetPositionIndex &&
-      reload.startFrame >= flightStartFrame &&
-      reload.startFrame < currentFrame &&
-      reload.endFrame > currentFrame,
+  return [...opponentReloadTimeline, ...opponentTurnDodgeTimeline].some((window) =>
+    isMissedByDodgeWindow(targetPositionIndex, flightStartFrame, currentFrame, window),
   );
 }
 
@@ -1244,7 +1270,14 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   };
 }
 
-function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], opponentReloadTimeline = [], stunWindows = []) {
+function simulateBurst(
+  team,
+  teamKey = "attack",
+  specialChargeEvents = [],
+  opponentReloadTimeline = [],
+  opponentTurnDodgeTimeline = [],
+  stunWindows = [],
+) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
     .filter((member) => member.character);
@@ -1280,6 +1313,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       reloadEvents: [],
       flightEvents: [],
       missedShotEvents: [],
+      turnDodgeEvents: [],
       poisonChargeStarted: false,
     };
   });
@@ -1390,10 +1424,17 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
-      const isMissedShot = isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline);
+      const isMissedShot = isRlShotMissedByDodgeWindow(
+        event,
+        currentFrame,
+        teamKey,
+        opponentReloadTimeline,
+        opponentTurnDodgeTimeline,
+      );
       event.hits += shotCount;
       const chargeShotNumber = getAttackChargeShotNumber(event, shotCount);
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
+      addTurnDodgeEvent(event, currentFrame);
       if (event.character.weapon === "RL" && event.projectileFlightFrames > 0) {
         const flightEvent = {
           positionIndex: event.positionIndex,
@@ -1491,6 +1532,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
     finishingPositionIndices: [...currentFrameContributors].sort((a, b) => a - b),
     timeline,
     reloadTimeline: events.flatMap((event) => event.reloadEvents),
+    turnDodgeTimeline: events.flatMap((event) => event.turnDodgeEvents),
     flightTimeline: events.flatMap((event) => event.flightEvents),
     missedTimeline: events.flatMap((event) => event.missedShotEvents),
     stunTimeline: stunWindows,
@@ -2878,14 +2920,28 @@ function getResultSignature(result) {
 function computeBattleResults() {
   const attackStunWindows = getStunWindowsForTeam("attack");
   const defenseStunWindows = getStunWindowsForTeam("defense");
-  let attackResult = simulateBurst(state.team, "attack", [], [], attackStunWindows);
-  let defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], defenseStunWindows);
+  let attackResult = simulateBurst(state.team, "attack", [], [], [], attackStunWindows);
+  let defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], [], defenseStunWindows);
 
   for (let index = 0; index < 8; index += 1) {
     const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
     const defenseSpecials = getSpecialChargeEventsForTeam(defenseResult, attackResult);
-    const nextAttackResult = simulateBurst(state.team, "attack", attackSpecials, defenseResult?.reloadTimeline || [], attackStunWindows);
-    const nextDefenseResult = simulateBurst(state.defenseTeam, "defense", defenseSpecials, attackResult?.reloadTimeline || [], defenseStunWindows);
+    const nextAttackResult = simulateBurst(
+      state.team,
+      "attack",
+      attackSpecials,
+      defenseResult?.reloadTimeline || [],
+      defenseResult?.turnDodgeTimeline || [],
+      attackStunWindows,
+    );
+    const nextDefenseResult = simulateBurst(
+      state.defenseTeam,
+      "defense",
+      defenseSpecials,
+      attackResult?.reloadTimeline || [],
+      attackResult?.turnDodgeTimeline || [],
+      defenseStunWindows,
+    );
     const stable =
       getResultSignature(nextAttackResult) === getResultSignature(attackResult) &&
       getResultSignature(nextDefenseResult) === getResultSignature(defenseResult);
@@ -3536,7 +3592,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   `;
 }
 
-function renderChargeChart(result, defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], getStunWindowsForTeam("defense"))) {
+function renderChargeChart(result, defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], [], getStunWindowsForTeam("defense"))) {
   els.chargeChart.innerHTML = getChargeChartMarkup(result, null, defenseResult);
   fitChargeChartLabels(result, defenseResult);
   requestAnimationFrame(() => fitChargeChartLabels(result, defenseResult));
