@@ -1,4 +1,5 @@
 import { CHARACTERS, DATA_SOURCES } from "../.worker-build/generated/data.mjs";
+import { computeBattleResultsFromPayload } from "./simulator.js";
 
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
@@ -51,13 +52,9 @@ async function handleApi(request) {
   }
 
   if (url.pathname === "/api/calculate") {
-    return json(
-      {
-        error: "CALCULATE_API_NOT_MIGRATED",
-        message: "计算逻辑尚未迁移到 Worker。当前 Worker 已保留私有数据入口，下一步需要迁移 computeBattleResults。",
-      },
-      { status: 501 },
-    );
+    if (request.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, { status: 405 });
+    const payload = await request.json();
+    return json(computeBattleResultsFromPayload(payload, CHARACTERS));
   }
 
   return json({ error: "NOT_FOUND" }, { status: 404 });

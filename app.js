@@ -108,6 +108,8 @@ const state = {
     region: "cn",
     search: "",
   },
+  battleResults: null,
+  calculationRequestId: 0,
 };
 
 const els = {
@@ -1342,7 +1344,9 @@ function renderSingleTeamLegacy() {
       speedInput.addEventListener("input", (event) => {
         state.chargeSpeeds[index] = Math.max(0, Number(event.target.value) || 0);
         saveTeam();
+        invalidateBattleResults();
         updateTeamFinishMarkers(renderResults());
+        refreshBattleResults();
       });
     }
     fragment.append(slot);
@@ -1443,7 +1447,9 @@ function createSlotSettingsModal() {
       chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
       saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
       saveTeam();
+      invalidateBattleResults();
       updateTeamFinishMarkers(renderResults());
+      refreshBattleResults();
     });
   }
 
@@ -1458,7 +1464,9 @@ function createSlotSettingsModal() {
       event.target.value = magazine;
       saveCharacterMagazine(character, magazine, teamKey);
       saveTeam();
+      invalidateBattleResults();
       updateTeamFinishMarkers(renderResults());
+      refreshBattleResults();
     });
   }
 
@@ -1507,9 +1515,9 @@ function renderLineupSlots() {
   els.lineupSlots.replaceChildren(fragment);
 }
 
-function renderTeam() {
+function renderTeam(battleResults = getBattleResultsSnapshot()) {
   const fragment = document.createDocumentFragment();
-  const { attackResult, defenseResult } = computeBattleResults();
+  const { attackResult, defenseResult } = battleResults;
   const resultsByTeam = new Map([
     ["defense", defenseResult],
     ["attack", attackResult],
@@ -1657,7 +1665,7 @@ function renderTeam() {
         slot.querySelector(".slot-remove").addEventListener("contextmenu", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          const { attackResult: currentAttackResult, defenseResult: currentDefenseResult } = computeBattleResults();
+          const { attackResult: currentAttackResult, defenseResult: currentDefenseResult } = getBattleResultsSnapshot();
           const result = teamKey === "defense" ? currentDefenseResult : currentAttackResult;
           if (result && !result.error) {
             copyResultSummary(result, teamKey);
@@ -1716,9 +1724,11 @@ function renderTeam() {
           universalCharges[index] = value;
           slot.classList.toggle("has-universal", value > 0);
           saveTeam();
+          invalidateBattleResults();
           renderResults();
           updateTeamFinishMarkers();
           renderLineupSlots();
+          refreshBattleResults();
         });
       }
       slotsRow.append(slot);
@@ -1735,7 +1745,7 @@ function renderTeam() {
 
 function updateTeamFinishMarkers(result = null, defenseResult = null) {
   if (!result || !defenseResult) {
-    const battleResults = computeBattleResults();
+    const battleResults = getBattleResultsSnapshot();
     result = battleResults.attackResult;
     defenseResult = battleResults.defenseResult;
   }
@@ -2083,6 +2093,73 @@ function computeBattleResults() {
   }
 
   return { attackResult, defenseResult };
+}
+
+function shouldUseWorkerCalculation() {
+  return location.protocol !== "file:";
+}
+
+function createCalculationPayload() {
+  return {
+    defenseTeam: state.defenseTeam.map((character) => character?.id || null),
+    defenseChargeSpeeds: [...state.defenseChargeSpeeds],
+    defenseUniversalCharges: [...state.defenseUniversalCharges],
+    team: state.team.map((character) => character?.id || null),
+    chargeSpeeds: [...state.chargeSpeeds],
+    universalCharges: [...state.universalCharges],
+    characterQuantumCubes: state.characterQuantumCubes,
+    characterMagazines: state.characterMagazines,
+    jackalLinks: state.jackalLinks,
+    allowMissedShots: state.allowMissedShots,
+  };
+}
+
+function getBattleResultsSnapshot() {
+  if (state.battleResults) return state.battleResults;
+  if (shouldUseWorkerCalculation()) return { attackResult: null, defenseResult: null };
+  const results = computeBattleResults();
+  state.battleResults = results;
+  return results;
+}
+
+async function fetchBattleResultsFromWorker() {
+  const response = await fetch("/api/calculate", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json",
+    },
+    body: JSON.stringify(createCalculationPayload()),
+  });
+  if (!response.ok) throw new Error(`Worker计算失败：${response.status}`);
+  return response.json();
+}
+
+function refreshBattleResults() {
+  if (!shouldUseWorkerCalculation()) {
+    state.battleResults = computeBattleResults();
+    return;
+  }
+
+  const requestId = state.calculationRequestId + 1;
+  state.calculationRequestId = requestId;
+  fetchBattleResultsFromWorker()
+    .then((results) => {
+      if (requestId !== state.calculationRequestId) return;
+      state.battleResults = results;
+      renderTeam(results);
+      renderSummaryStrip(results.attackResult, results.defenseResult);
+      renderResults(results);
+      renderLineupSlots();
+    })
+    .catch((error) => {
+      console.error(error);
+      showToast(error?.message || "Worker计算失败");
+    });
+}
+
+function invalidateBattleResults() {
+  state.battleResults = null;
 }
 
 function estimateChartLabelWidth(label) {
@@ -2785,8 +2862,8 @@ function renderSummaryStrip(attackResult, defenseResult) {
   };
 }
 
-function renderResults() {
-  const { attackResult: result, defenseResult } = computeBattleResults();
+function renderResults(battleResults = getBattleResultsSnapshot()) {
+  const { attackResult: result, defenseResult } = battleResults;
   renderSummaryStrip(result, defenseResult);
 
   if (!result) {
@@ -2809,9 +2886,12 @@ function renderResults() {
 
 function render() {
   renderCharacters();
-  renderTeam();
+  invalidateBattleResults();
+  const battleResults = getBattleResultsSnapshot();
+  renderTeam(battleResults);
   renderLineupSlots();
-  renderResults();
+  renderResults(battleResults);
+  refreshBattleResults();
 }
 
 function addCharacterLegacy(character) {

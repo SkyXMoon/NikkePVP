@@ -43,4 +43,6 @@ npx wrangler r2 bucket create nikke-pvp-assets
 - `GET /api/characters?full=1`
 - `POST /api/calculate`
 
-当前前端仍兼容原本的本地计算模式。`/api/calculate` 已预留，但完整计算逻辑还需要继续从前端迁移到 Worker，迁移完成后才能真正隐藏充能计算逻辑和完整角色数据。
+当前前端在 Cloudflare/HTTP 环境会调用 `/api/calculate` 获取权威计算结果；`file://` 本地打开时仍保留前端本地计算作为开发兜底。
+
+注意：前端为了角色列表、筛选和详情显示，仍会请求 `/api/characters?full=1`。如果要进一步隐藏完整角色数据，需要继续把角色列表改成公开摘要数据，并将详情/充能组成也通过 API 按需返回。
