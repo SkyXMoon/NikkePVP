@@ -1909,7 +1909,7 @@ function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
         return {
           teamKey: item.teamKey,
           groupKey: `${item.teamKey}-scarlet-counter-${member.positionIndex}`,
-          label: `${TEAM_LABELS[item.teamKey]}-红莲反击充能`,
+          label: "红莲反击",
           type: "scarletCounter",
           member,
           chargePerCounter,
@@ -1964,7 +1964,7 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
         return {
           teamKey: item.teamKey,
           groupKey: `${item.teamKey}-jackal-link-${member.positionIndex}`,
-          label: `${TEAM_LABELS[item.teamKey]}-豺狼链接充能`,
+          label: "豺狼链接",
           type: "jackalLink",
           member,
           chargePerLink,
@@ -2286,7 +2286,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       return {
         teamKey: item.teamKey,
         groupKey: `${item.teamKey}-universal-charge`,
-        label: `${TEAM_LABELS[item.teamKey]}-万能充能`,
+        label: "万能充能",
         timeline,
       };
     })
@@ -2296,7 +2296,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     result: item.result,
     timeline: item.result.timeline.filter((entry) => entry.frame <= CHART_MAX_FRAME),
     groupKey: `${item.teamKey}-total`,
-    label: `${TEAM_LABELS[item.teamKey]}-总充能`,
+    label: "总充能",
   }));
   const primaryTotalGroup = totalGroups.find((group) => group.teamKey === "attack") || totalGroups[0];
   const visibleStandards = totalGroups
