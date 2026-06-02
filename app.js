@@ -77,9 +77,11 @@ const state = {
   defenseTeam: Array(TEAM_SIZE).fill(null),
   defenseChargeSpeeds: Array(TEAM_SIZE).fill(0),
   defenseUniversalCharges: Array(TEAM_SIZE).fill(0),
+  defenseRedHoodPierceCounts: Array(TEAM_SIZE).fill(0),
   team: Array(TEAM_SIZE).fill(null),
   chargeSpeeds: Array(TEAM_SIZE).fill(0),
   universalCharges: Array(TEAM_SIZE).fill(0),
+  redHoodPierceCounts: Array(TEAM_SIZE).fill(0),
   characterChargeSpeeds: {
     defense: {},
     attack: {},
@@ -229,6 +231,10 @@ function isAnyBurstStageCharacter(character) {
   return character?.name === "小红帽" || character?.slug === "小红帽" || String(character?.burstStage || "").trim() === "Λ";
 }
 
+function isRedHood(character) {
+  return character?.id === 111 || character?.name === "小红帽" || character?.slug === "小红帽";
+}
+
 function getCharacterBurstStages(character) {
   if (isAnyBurstStageCharacter(character)) return ["B1", "B2", "B3"];
   return String(character?.burstStage || "")
@@ -296,18 +302,29 @@ function getUniversalChargeState(teamKey = state.activeTeamKey) {
   return normalizeTeamKey(teamKey) === "defense" ? state.defenseUniversalCharges : state.universalCharges;
 }
 
+function getRedHoodPierceCountState(teamKey = state.activeTeamKey) {
+  return normalizeTeamKey(teamKey) === "defense" ? state.defenseRedHoodPierceCounts : state.redHoodPierceCounts;
+}
+
 function sanitizeUniversalCharge(value) {
   const charge = Number(value);
   if (!Number.isFinite(charge) || charge <= 0) return 0;
   return Math.min(100, Math.round(charge * 1000) / 1000);
 }
 
+function sanitizeRedHoodPierceCount(value) {
+  const count = Math.floor(Number(value) || 0);
+  return Math.max(0, Math.min(2, count));
+}
+
 function createEmptyLineupSlot() {
   return {
     defenseTeam: Array(TEAM_SIZE).fill(null),
     defenseUniversalCharges: Array(TEAM_SIZE).fill(0),
+    defenseRedHoodPierceCounts: Array(TEAM_SIZE).fill(0),
     team: Array(TEAM_SIZE).fill(null),
     universalCharges: Array(TEAM_SIZE).fill(0),
+    redHoodPierceCounts: Array(TEAM_SIZE).fill(0),
     jackalLinks: {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
@@ -319,8 +336,10 @@ function serializeLineupSlot() {
   return {
     defenseTeam: state.defenseTeam.map((character) => character?.id || null),
     defenseUniversalCharges: [...state.defenseUniversalCharges],
+    defenseRedHoodPierceCounts: [...state.defenseRedHoodPierceCounts],
     team: state.team.map((character) => character?.id || null),
     universalCharges: [...state.universalCharges],
+    redHoodPierceCounts: [...state.redHoodPierceCounts],
     jackalLinks: {
       defense: { ...normalizeJackalLink("defense"), targetIds: [...normalizeJackalLink("defense").targetIds] },
       attack: { ...normalizeJackalLink("attack"), targetIds: [...normalizeJackalLink("attack").targetIds] },
@@ -333,8 +352,10 @@ function normalizeLineupSlot(slot = {}) {
   return {
     defenseTeam: Array.from({ length: TEAM_SIZE }, (_, index) => slot.defenseTeam?.[index] ?? empty.defenseTeam[index]),
     defenseUniversalCharges: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(slot.defenseUniversalCharges?.[index])),
+    defenseRedHoodPierceCounts: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeRedHoodPierceCount(slot.defenseRedHoodPierceCounts?.[index])),
     team: Array.from({ length: TEAM_SIZE }, (_, index) => slot.team?.[index] ?? empty.team[index]),
     universalCharges: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(slot.universalCharges?.[index])),
+    redHoodPierceCounts: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeRedHoodPierceCount(slot.redHoodPierceCounts?.[index])),
     jackalLinks: {
       defense: {
         enabled: Boolean(slot.jackalLinks?.defense?.enabled),
@@ -362,8 +383,10 @@ function loadLineupSlot(index) {
   const slot = normalizeLineupSlot(state.lineupSlots[index]);
   state.defenseTeam = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => getCharacterById(slot.defenseTeam[slotIndex]));
   state.defenseUniversalCharges = [...slot.defenseUniversalCharges];
+  state.defenseRedHoodPierceCounts = [...slot.defenseRedHoodPierceCounts];
   state.team = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => getCharacterById(slot.team[slotIndex]));
   state.universalCharges = [...slot.universalCharges];
+  state.redHoodPierceCounts = [...slot.redHoodPierceCounts];
   applySavedTeamChargeSpeeds("defense");
   applySavedTeamChargeSpeeds("attack");
   state.jackalLinks = {
@@ -617,8 +640,7 @@ function getBaseChargeUnit(character) {
 function getChargeHitMultiplier(character) {
   if (character.weapon === "RL") return getRlHitSegments(character);
   if (character.weapon === "SG") return 10;
-  if (character.hasPenetration) return 2;
-  return 1;
+  return 1 + getPenetrationExtraHitCount(character);
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
@@ -758,6 +780,12 @@ function getCounterHitCount(character, shotCount = 1) {
   return shotCount;
 }
 
+function getPenetrationExtraHitCount(character) {
+  if (!character) return 0;
+  if (isRedHood(character)) return sanitizeRedHoodPierceCount(character.redHoodPierceCount);
+  return character.hasPenetration ? 1 : 0;
+}
+
 function getTargetPositionIndex(character, teamKey = "attack") {
   const rule = character.targetRule?.[normalizeTeamKey(teamKey)] || "↗";
   return rule === "↖" || rule === "↘" ? ENEMY_TEAM_SIZE - 1 : DEFAULT_RL_TARGET_INDEX;
@@ -779,11 +807,12 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
     };
   }
 
-  if (character.hasPenetration) {
+  const penetrationExtraHits = getPenetrationExtraHitCount(character);
+  if (penetrationExtraHits > 0) {
     return {
-      totalHits: shotHits * 2,
+      totalHits: shotHits * (1 + penetrationExtraHits),
       bodyHits: [[targetPositionIndex, shotCount]],
-      targetHits: [[targetPositionIndex, shotCount * 2]],
+      targetHits: [[targetPositionIndex, shotCount * (1 + penetrationExtraHits)]],
     };
   }
 
@@ -806,7 +835,7 @@ function isReloadingAtFrame(positionIndex, frame, reloadTimeline = []) {
 }
 
 function getReceivedPositionHits(character, hitProfile, frame, opponentReloadTimeline = []) {
-  if (character.weapon === "RL" || character.hasPenetration) return hitProfile.bodyHits;
+  if (character.weapon === "RL") return hitProfile.bodyHits;
   return hitProfile.bodyHits.filter(([positionIndex]) => !isReloadingAtFrame(positionIndex, frame, opponentReloadTimeline));
 }
 
@@ -928,11 +957,14 @@ function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTime
 function characterForSlot(character, positionIndex, teamKey = "attack") {
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
+  const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
   return {
     ...character,
+    hasPenetration: isRedHood(character) ? false : character.hasPenetration,
     stats: getEffectiveCharacterStats(character, teamKey),
     chargeSpeedPercent: Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
+    redHoodPierceCount: isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[positionIndex]) : 0,
   };
 }
 
@@ -1206,7 +1238,7 @@ function getTimingLabel(character) {
 
 function getTagMarkup(character) {
   const tags = [];
-  if (character.hasPenetration) tags.push("穿透");
+  if (character.hasPenetration && !isRedHood(character)) tags.push("穿透");
   if (character.hasExtraDamage) tags.push("额外伤害");
   if (character.flatBurstBonus) tags.push(`固定 +${character.flatBurstBonus}`);
   if (character.weapon === "RL") tags.push(`RL ${getRlHitSegments(character)} hit`);
@@ -1239,7 +1271,7 @@ function setTeamSlotDragImage(event, slot) {
 }
 
 function isTeamSlotDragControl(target) {
-  return Boolean(target?.closest?.(".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .universal-charge-field"));
+  return Boolean(target?.closest?.(".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .universal-charge-field"));
 }
 
 function clearPointerTeamDragClasses() {
@@ -1897,6 +1929,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
     const team = getTeamState(teamKey);
     const chargeSpeeds = getChargeSpeedState(teamKey);
     const universalCharges = getUniversalChargeState(teamKey);
+    const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
     const row = document.createElement("section");
     row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
     row.dataset.teamKey = teamKey;
@@ -1922,6 +1955,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
       const universalChargeValue = sanitizeUniversalCharge(universalCharges[index]);
       const displayMagazine = character ? getDisplayMagazine(character, teamKey) : null;
+      const redHoodPierceCount = character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0;
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
@@ -1952,6 +1986,16 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           <button class="slot-settings-toggle${isSettingsOpen ? " is-open" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)}" title="设置">
             <img src="assets/icons/ui/settings.svg" alt="" aria-hidden="true" />
           </button>
+          ${
+            isRedHood(character)
+              ? `
+                <button class="slot-pierce-count${redHoodPierceCount > 0 ? " is-active" : ""}" type="button" data-pierce-count="${redHoodPierceCount}" aria-label="设置 ${escapeHtml(character.name)} 穿透次数：${redHoodPierceCount}" title="穿透次数 ${redHoodPierceCount}">
+                  <span class="slot-pierce-icon" aria-hidden="true">穿</span>
+                  <span class="slot-pierce-value">${redHoodPierceCount}</span>
+                </button>
+              `
+              : ""
+          }
           ${
             isJackalOwner
               ? `
@@ -1989,7 +2033,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       });
 
       slot.addEventListener("dragstart", (event) => {
-        if (!character || event.target.closest(".slot-settings-toggle, .slot-link-toggle, .slot-link-target")) {
+        if (!character || event.target.closest(".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count")) {
           event.preventDefault();
           return;
         }
@@ -2060,6 +2104,23 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           event.preventDefault();
           event.stopPropagation();
         });
+        const pierceToggle = slot.querySelector(".slot-pierce-count");
+        if (pierceToggle) {
+          pierceToggle.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setActiveTeam(teamKey);
+            const pierceCounts = getRedHoodPierceCountState(teamKey);
+            pierceCounts[index] = (sanitizeRedHoodPierceCount(pierceCounts[index]) + 1) % 3;
+            saveTeam();
+            render();
+          });
+          pierceToggle.addEventListener("pointerdown", (event) => event.stopPropagation());
+          pierceToggle.addEventListener("dragstart", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          });
+        }
         const linkToggle = slot.querySelector(".slot-link-toggle");
         if (linkToggle) {
           linkToggle.addEventListener("click", (event) => {
@@ -3361,6 +3422,7 @@ function clearTeamLegacy() {
   state.team = Array(TEAM_SIZE).fill(null);
   state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
   state.universalCharges = Array(TEAM_SIZE).fill(0);
+  state.redHoodPierceCounts = Array(TEAM_SIZE).fill(0);
   saveTeam();
   render();
 }
@@ -3369,6 +3431,7 @@ function addCharacter(character) {
   const team = getTeamState();
   const chargeSpeeds = getChargeSpeedState();
   const universalCharges = getUniversalChargeState();
+  const redHoodPierceCounts = getRedHoodPierceCountState();
   if (team.some((member) => member && member.id === character.id)) {
     showToast(`${character.name} 已在${TEAM_LABELS[state.activeTeamKey]}中`);
     return;
@@ -3383,6 +3446,7 @@ function addCharacter(character) {
   team[emptyIndex] = character;
   chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, state.activeTeamKey);
   universalCharges[emptyIndex] = 0;
+  redHoodPierceCounts[emptyIndex] = 0;
   openSlotSettings = null;
   saveTeam();
   render();
@@ -3402,9 +3466,11 @@ function removeCharacter(teamKey, index) {
   const team = getTeamState(teamKey);
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const universalCharges = getUniversalChargeState(teamKey);
+  const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
   team[index] = null;
   chargeSpeeds[index] = 0;
   universalCharges[index] = 0;
+  redHoodPierceCounts[index] = 0;
   normalizeJackalLink(teamKey);
   openSlotSettings = null;
   saveTeam();
@@ -3418,6 +3484,8 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
   const toSpeeds = getChargeSpeedState(toTeamKey);
   const fromUniversalCharges = getUniversalChargeState(fromTeamKey);
   const toUniversalCharges = getUniversalChargeState(toTeamKey);
+  const fromPierceCounts = getRedHoodPierceCountState(fromTeamKey);
+  const toPierceCounts = getRedHoodPierceCountState(toTeamKey);
 
   if (
     (fromTeamKey === toTeamKey && fromIndex === toIndex) ||
@@ -3433,20 +3501,24 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
   const fromCharacter = fromTeam[fromIndex];
   const fromSpeed = fromSpeeds[fromIndex];
   const fromUniversalCharge = fromUniversalCharges[fromIndex];
+  const fromPierceCount = fromPierceCounts[fromIndex];
 
   if (toTeam[toIndex]) {
     [fromTeam[fromIndex], toTeam[toIndex]] = [toTeam[toIndex], fromTeam[fromIndex]];
     [fromSpeeds[fromIndex], toSpeeds[toIndex]] = [toSpeeds[toIndex], fromSpeeds[fromIndex]];
     [fromUniversalCharges[fromIndex], toUniversalCharges[toIndex]] = [toUniversalCharges[toIndex], fromUniversalCharges[fromIndex]];
+    [fromPierceCounts[fromIndex], toPierceCounts[toIndex]] = [toPierceCounts[toIndex], fromPierceCounts[fromIndex]];
     rememberTeamSlotChargeSpeed(fromTeamKey, fromIndex);
     rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
   } else {
     toTeam[toIndex] = fromCharacter;
     toSpeeds[toIndex] = fromSpeed;
     toUniversalCharges[toIndex] = fromUniversalCharge;
+    toPierceCounts[toIndex] = fromPierceCount;
     fromTeam[fromIndex] = null;
     fromSpeeds[fromIndex] = 0;
     fromUniversalCharges[fromIndex] = 0;
+    fromPierceCounts[fromIndex] = 0;
     rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
   }
 
@@ -3462,9 +3534,11 @@ function clearTeam() {
   state.defenseTeam = Array(TEAM_SIZE).fill(null);
   state.defenseChargeSpeeds = Array(TEAM_SIZE).fill(0);
   state.defenseUniversalCharges = Array(TEAM_SIZE).fill(0);
+  state.defenseRedHoodPierceCounts = Array(TEAM_SIZE).fill(0);
   state.team = Array(TEAM_SIZE).fill(null);
   state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
   state.universalCharges = Array(TEAM_SIZE).fill(0);
+  state.redHoodPierceCounts = Array(TEAM_SIZE).fill(0);
   normalizeJackalLinks();
   openSlotSettings = null;
   saveTeam();
@@ -3477,6 +3551,7 @@ function swapBattleTeams() {
 
   [state.defenseTeam, state.team] = [state.team, state.defenseTeam];
   [state.defenseUniversalCharges, state.universalCharges] = [state.universalCharges, state.defenseUniversalCharges];
+  [state.defenseRedHoodPierceCounts, state.redHoodPierceCounts] = [state.redHoodPierceCounts, state.defenseRedHoodPierceCounts];
   [state.jackalLinks.defense, state.jackalLinks.attack] = [state.jackalLinks.attack, state.jackalLinks.defense];
 
   applySavedTeamChargeSpeeds("defense");
@@ -3539,9 +3614,11 @@ function saveTeam() {
       defenseTeam: state.defenseTeam.map((character) => character?.id || null),
       defenseChargeSpeeds: state.defenseChargeSpeeds,
       defenseUniversalCharges: [...state.defenseUniversalCharges],
+      defenseRedHoodPierceCounts: [...state.defenseRedHoodPierceCounts],
       team: state.team.map((character) => character?.id || null),
       chargeSpeeds: state.chargeSpeeds,
       universalCharges: [...state.universalCharges],
+      redHoodPierceCounts: [...state.redHoodPierceCounts],
       characterChargeSpeeds: state.characterChargeSpeeds,
       characterQuantumCubes: state.characterQuantumCubes,
       characterMagazines: state.characterMagazines,
@@ -3564,9 +3641,11 @@ function loadTeam() {
       state.defenseTeam = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(saved.defenseTeam?.[index]));
       state.defenseChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => Number(saved.defenseChargeSpeeds?.[index]) || 0);
       state.defenseUniversalCharges = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(saved.defenseUniversalCharges?.[index]));
+      state.defenseRedHoodPierceCounts = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeRedHoodPierceCount(saved.defenseRedHoodPierceCounts?.[index]));
       state.team = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(saved.team?.[index]));
       state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => Number(saved.chargeSpeeds?.[index]) || 0);
       state.universalCharges = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(saved.universalCharges?.[index]));
+      state.redHoodPierceCounts = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeRedHoodPierceCount(saved.redHoodPierceCounts?.[index]));
       state.characterChargeSpeeds = {
         defense: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.defense),
         attack: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.attack),
@@ -3624,9 +3703,11 @@ function loadTeam() {
     state.defenseTeam = Array(TEAM_SIZE).fill(null);
     state.defenseChargeSpeeds = Array(TEAM_SIZE).fill(0);
     state.defenseUniversalCharges = Array(TEAM_SIZE).fill(0);
+    state.defenseRedHoodPierceCounts = Array(TEAM_SIZE).fill(0);
     state.team = Array(TEAM_SIZE).fill(null);
     state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
     state.universalCharges = Array(TEAM_SIZE).fill(0);
+    state.redHoodPierceCounts = Array(TEAM_SIZE).fill(0);
     state.characterChargeSpeeds = { defense: {}, attack: {} };
     state.characterQuantumCubes = { defense: {}, attack: {} };
     state.characterMagazines = { defense: {}, attack: {} };

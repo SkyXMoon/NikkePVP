@@ -1640,6 +1640,51 @@ input:focus {
   height: 16px;
 }
 
+.slot-pierce-count {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 34px;
+  height: 20px;
+  border: 1px solid rgba(235, 241, 248, 0.38);
+  border-radius: 5px;
+  padding: 0 4px;
+  color: rgba(247, 250, 255, 0.86);
+  background: rgba(61, 65, 72, 0.9);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.48);
+  transform: translateX(-50%);
+  transition: background 140ms ease, border-color 140ms ease, filter 140ms ease, transform 140ms ease;
+}
+
+.slot-pierce-count:hover {
+  filter: brightness(1.12);
+  transform: translateX(-50%) translateY(-1px);
+}
+
+.slot-pierce-count.is-active {
+  border-color: rgba(255, 184, 193, 0.9);
+  background: rgba(196, 40, 54, 0.94);
+  color: #fff;
+}
+
+.slot-pierce-icon {
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.slot-pierce-value {
+  min-width: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .slot-settings-backdrop {
   position: fixed;
   inset: 0;
@@ -2248,6 +2293,22 @@ summary {
 
   .slot-link-target span {
     font-size: 13px;
+  }
+
+  .slot-pierce-count {
+    bottom: 2px;
+    min-width: 28px;
+    height: 17px;
+    border-radius: 4px;
+    padding: 0 3px;
+  }
+
+  .slot-pierce-icon {
+    font-size: 8px;
+  }
+
+  .slot-pierce-value {
+    font-size: 9px;
   }
 
   .slot-copy .finish-mark {

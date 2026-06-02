@@ -9688,7 +9688,7 @@ const CHARACTERS = [
       "projectileFlightFramesByPosition": null,
       "turnFrames": 16
     },
-    "hasPenetration": true,
+    "hasPenetration": false,
     "hasExtraDamage": false,
     "delayedExtraHits": [],
     "hitCountExtraEvents": [],
@@ -9744,7 +9744,7 @@ const CHARACTERS = [
       "attack": "↖",
       "defense": "↙"
     },
-    "notes": "狙击步枪；系数 0.028",
+    "notes": "狙击步枪；系数 0.028；小红帽穿透次数由队伍槽位按钮手动控制",
     "source": "NIKKE PVP 充能计算器 v2.3.20（更新20260516）.xlsx"
   },
   {
