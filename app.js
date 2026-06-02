@@ -3659,6 +3659,25 @@ async function copyTextToClipboard(text) {
   if (!copied) throw new Error("copy command failed");
 }
 
+function isTextEditingElement(element = document.activeElement) {
+  if (!element) return false;
+  const tagName = element.tagName?.toLowerCase();
+  if (tagName === "textarea") return true;
+  if (element.isContentEditable) return true;
+  if (tagName !== "input") return false;
+  const type = String(element.type || "text").toLowerCase();
+  return ["text", "search", "number", "decimal", "tel", "url", "email", "password"].includes(type);
+}
+
+function scheduleResponsiveRender() {
+  if (resizeRenderId) cancelAnimationFrame(resizeRenderId);
+  resizeRenderId = requestAnimationFrame(() => {
+    resizeRenderId = null;
+    if (isTextEditingElement()) return;
+    render();
+  });
+}
+
 async function copyCharacterDetails(character) {
   try {
     await copyTextToClipboard(getCharacterDetailText(character));
@@ -3699,13 +3718,7 @@ function bindEvents() {
   });
   els.chargeChart.addEventListener("mousemove", showNearestChartTooltip);
   els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
-  window.addEventListener("resize", () => {
-    if (resizeRenderId) cancelAnimationFrame(resizeRenderId);
-    resizeRenderId = requestAnimationFrame(() => {
-      resizeRenderId = null;
-      render();
-    });
-  });
+  window.addEventListener("resize", scheduleResponsiveRender);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && isHelpModalOpen) closeHelpModal();
   });
