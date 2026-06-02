@@ -300,9 +300,20 @@ input:focus {
   color: var(--text);
 }
 
+.sort-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sort-dot,
 .list-divider {
-  color: var(--line);
-  font-weight: 900;
+  width: 3px;
+  height: 3px;
+  flex: 0 0 3px;
+  border-radius: 999px;
+  background: var(--line);
 }
 
 #listCount {

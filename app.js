@@ -3977,12 +3977,24 @@ function bindEvents() {
 }
 
 function updateSortSummary() {
-  const parts = ["排序：充能从高到低"];
-  if (normalizeStageFilter(state.filters.stage) !== "all") parts.push("爆裂");
-  if (state.filters.common === "common") parts.push("常用");
-  if (state.filters.region === "cn") parts.push("国服");
-  if (state.compactAvatarIcons) parts.push("简化图标");
-  els.sortSummary.textContent = parts.join("·");
+  const filters = [];
+  const stage = normalizeStageFilter(state.filters.stage);
+  if (stage !== "all") filters.push(`爆裂${stage.replace("B", "")}`);
+  if (state.filters.common === "common") filters.push("常用");
+  if (state.filters.region === "cn") filters.push("国服");
+  if (state.compactAvatarIcons) filters.push("简化图标");
+  els.sortSummary.textContent = "排序：";
+  const sortText = document.createElement("strong");
+  sortText.textContent = "充能从高到低";
+  els.sortSummary.append(sortText);
+  filters.forEach((filter) => {
+    const dot = document.createElement("span");
+    dot.className = "sort-dot";
+    dot.setAttribute("aria-hidden", "true");
+    const label = document.createElement("span");
+    label.textContent = filter;
+    els.sortSummary.append(dot, label);
+  });
 }
 
 function syncFilterControls() {
