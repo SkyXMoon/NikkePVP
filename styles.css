@@ -1781,11 +1781,11 @@ summary {
     height: calc(50svh - 19px);
     min-height: 330px;
     max-height: 460px;
-    overflow-x: auto;
+    overflow: hidden;
   }
 
   .charge-chart svg {
-    min-width: 820px;
+    min-width: 0;
     height: 100%;
   }
 
