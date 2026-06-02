@@ -408,6 +408,11 @@ function getSavedCharacterMagazine(character, teamKey = state.activeTeamKey) {
   return magazine > 0 ? magazine : null;
 }
 
+function getDisplayMagazine(character, teamKey = state.activeTeamKey) {
+  if (!state.allowMissedShots || !isScarlet(character)) return null;
+  return getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
+}
+
 function saveCharacterMagazine(character, value, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
   getCharacterMagazineMemory(teamKey)[character.id] = sanitizeMagazine(value);
@@ -1567,12 +1572,12 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const isSettingsOpen = character && isSlotSettingsOpen(teamKey, index);
       const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
       const universalChargeValue = sanitizeUniversalCharge(universalCharges[index]);
-      const savedMagazine = character && state.allowMissedShots && isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
+      const displayMagazine = character ? getDisplayMagazine(character, teamKey) : null;
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
-          : savedMagazine
-            ? String(savedMagazine)
+          : displayMagazine
+            ? String(displayMagazine)
             : "";
       const hasQuantumCube = character && getSavedCharacterQuantumCube(character, teamKey);
       const isJackalOwner = character && isLinkProvider(character);
