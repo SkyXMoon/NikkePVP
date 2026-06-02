@@ -930,8 +930,8 @@ input:focus {
   color: var(--text);
   background: rgba(10, 13, 19, 0.94);
   box-shadow: var(--shadow);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   line-height: 1.45;
   opacity: 0;
   pointer-events: none;
@@ -2135,8 +2135,8 @@ summary {
   }
 
   .chart-hover-tooltip {
-    font-size: 10px;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 700;
   }
 
   .chart-grid text,
