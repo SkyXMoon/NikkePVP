@@ -426,6 +426,15 @@ input:focus {
 .element-icon {
   right: 2px;
   bottom: 2px;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: transparent;
+}
+
+.element-icon img {
+  width: 18px;
+  height: 18px;
 }
 
 .tile-charge {
