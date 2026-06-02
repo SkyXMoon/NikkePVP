@@ -21,6 +21,7 @@ const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 0;
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 22;
 const CINDERELLA_INITIAL_HIT_SEQUENCE = [4, 2, 2, 2, 4, 4];
 const CINDERELLA_LOOP_HIT_SEQUENCE = [2, 2, 2, 2, 4, 4];
+const CINDERELLA_INITIAL_CHARGE_FRAMES = 70;
 const DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES = 60;
 
 let runtimeState = null;
@@ -160,7 +161,7 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
   }
 
   if (character.timing?.firstFrame !== null && character.timing?.intervalFrames !== null) {
-    const baseChargeFrames = isCinderella(character) ? DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES : character.timing.chargeFrames ?? 0;
+    const baseChargeFrames = isCinderella(character) ? CINDERELLA_INITIAL_CHARGE_FRAMES : character.timing.chargeFrames ?? 0;
     const chargeFrames = applyChargeSpeedFrames(baseChargeFrames, speed);
     const baseIntervalFrames = character.timing.turnFrames != null ? baseChargeFrames + character.timing.turnFrames : character.timing.intervalFrames;
     const intervalFrames = applyChargeSpeedTotalFrames(baseIntervalFrames, speed);
