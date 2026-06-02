@@ -99,6 +99,7 @@ const state = {
   activeLineupIndex: 0,
   lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
   allowMissedShots: true,
+  compactAvatarIcons: true,
   activeTeamKey: "attack",
   filters: {
     common: "common",
@@ -124,6 +125,7 @@ const els = {
   allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
   commonToggle: document.querySelector("#commonToggle"),
   regionToggle: document.querySelector("#regionToggle"),
+  compactAvatarToggle: document.querySelector("#compactAvatarToggle"),
   searchInput: document.querySelector("#searchInput"),
   toast: document.querySelector("#toast"),
   summaryStrip: document.querySelector("#summaryStrip"),
@@ -1231,9 +1233,15 @@ function renderCharacters() {
     tile.title = `#${index + 1} ${character.name}\n${character.rarity || "SSR"} · ${character.weapon} · ${character.burstStage} · ${getRegionLabel(character)}\n最终单发 ${getChargeValue(character).toFixed(2)}%\n${getChargeBreakdown(character)}`;
     tile.innerHTML = `
       <span class="tile-avatar">${getAvatarMarkup(character)}</span>
-      ${getIconMarkup(getWeaponIcon(character), character.weapon, "weapon-icon")}
-      ${getIconMarkup(getBurstIcon(character), character.burstStage, "burst-icon")}
-      ${getIconMarkup(getElementIcon(character), character.element, "element-icon")}
+      ${
+        state.compactAvatarIcons
+          ? ""
+          : `
+            ${getIconMarkup(getWeaponIcon(character), character.weapon, "weapon-icon")}
+            ${getIconMarkup(getBurstIcon(character), character.burstStage, "burst-icon")}
+            ${getIconMarkup(getElementIcon(character), character.element, "element-icon")}
+          `
+      }
       <span class="tile-charge">${getChargeValue(character).toFixed(1)}</span>
       <span class="tile-check" aria-hidden="true">✓</span>
     `;
@@ -3296,6 +3304,10 @@ function bindEvents() {
     state.filters.region = event.target.checked ? "cn" : "global";
     renderCharacters();
   });
+  els.compactAvatarToggle.addEventListener("change", (event) => {
+    state.compactAvatarIcons = event.target.checked;
+    renderCharacters();
+  });
   els.searchInput.addEventListener("input", (event) => {
     state.filters.search = event.target.value;
     renderCharacters();
@@ -3309,6 +3321,7 @@ async function bootstrap() {
   els.allowMissedShotsToggle.checked = state.allowMissedShots;
   els.commonToggle.checked = state.filters.common === "common";
   els.regionToggle.checked = state.filters.region === "cn";
+  els.compactAvatarToggle.checked = state.compactAvatarIcons;
   render();
 }
 

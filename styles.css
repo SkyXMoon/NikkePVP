@@ -180,7 +180,7 @@ h2 {
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) auto auto;
+  grid-template-columns: minmax(180px, 1fr) auto auto auto;
   align-items: center;
   gap: 8px;
   padding: 10px;
@@ -1828,7 +1828,7 @@ summary {
   }
 
   .filters {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
   }
 
   .panel-heading {
