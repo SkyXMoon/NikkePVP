@@ -702,7 +702,7 @@ function getChargeBreakdown(character) {
   }
   if (character.magazineEmptyExtraCharge) {
     lines.push(
-      `换弹追加：打完弹夹后${Number(character.magazineEmptyExtraDelayFrames) || 12}帧 +${formatNumber(character.magazineEmptyExtraCharge, 2)}%`,
+      `尾弹追加：打完弹夹后${Number(character.magazineEmptyExtraDelayFrames) || 12}帧 +${formatNumber(character.magazineEmptyExtraCharge, 2)}%`,
     );
   }
   if (character.delayedExtraHits?.length) {
@@ -793,7 +793,7 @@ function getMagazineEmptyExtraEvent(event, reloadEvent) {
     frame: reloadEvent.startFrame + delayFrames,
     chargeValue: Number(event.character.magazineEmptyExtraCharge) || 0,
     source: "magazine-empty",
-    label: event.character.magazineEmptyExtraLabel || "换弹追加",
+    label: event.character.magazineEmptyExtraLabel || "尾弹追加",
   };
 }
 

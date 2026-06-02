@@ -4768,7 +4768,7 @@ const CHARACTERS = [
     "hitCountExtraEvents": [],
     "magazineEmptyExtraDelayFrames": 12,
     "magazineEmptyExtraCharge": 0.5,
-    "magazineEmptyExtraLabel": "换弹追加",
+    "magazineEmptyExtraLabel": "尾弹追加",
     "flatBurstBonus": 0,
     "company": "泰特拉",
     "burstStage": "B3",
