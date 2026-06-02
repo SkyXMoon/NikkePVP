@@ -1492,6 +1492,16 @@ function getTimingLabel(character) {
   return `间隔 ${getChargeFrames(character, 0).interval}f`;
 }
 
+function getChargeSpeedPreviewFrame(character, positionIndex = 0, teamKey = "attack", chargeSpeed = 0) {
+  if (!character || !canShowFinishMarker(character)) return null;
+  const previewCharacter = {
+    ...character,
+    chargeSpeedPercent: sanitizeChargeSpeed(chargeSpeed),
+  };
+  const timing = getChargeFrames(previewCharacter, positionIndex, teamKey);
+  return Number.isFinite(timing.chargeFrames) ? timing.chargeFrames : timing.firstFrame;
+}
+
 function getTagMarkup(character) {
   const tags = [];
   if (character.hasPenetration && !isRedHood(character)) tags.push("穿透");
@@ -1919,6 +1929,7 @@ function createSlotSettingsModal() {
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
   const canEditChargeSpeed = canShowFinishMarker(character);
+  const chargeSpeedPreviewFrame = getChargeSpeedPreviewFrame(character, index, teamKey, chargeSpeedValue);
   const quantumCubeEnabled = getSavedCharacterQuantumCube(character, teamKey);
   const isScarletSettings = state.allowMissedShots && isScarlet(character);
   const magazineValue = getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
@@ -1941,6 +1952,7 @@ function createSlotSettingsModal() {
         <span>蓄速</span>
         <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" />
         <span>%</span>
+        <span class="slot-settings-frame-preview">${formatNumber(chargeSpeedPreviewFrame, 0)}F</span>
             </label>
           `
           : ""
@@ -1988,6 +2000,12 @@ function createSlotSettingsModal() {
 
   const speedInput = backdrop.querySelector(".slot-settings-input");
   if (speedInput) {
+    const speedFramePreview = backdrop.querySelector(".slot-settings-frame-preview");
+    const updateSpeedFramePreview = () => {
+      if (!speedFramePreview) return;
+      const frame = getChargeSpeedPreviewFrame(character, index, teamKey, speedInput.value);
+      speedFramePreview.textContent = `${formatNumber(frame, 0)}F`;
+    };
     speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
     speedInput.addEventListener("focus", (event) => event.target.select());
     speedInput.addEventListener("click", (event) => event.target.select());
@@ -1995,6 +2013,7 @@ function createSlotSettingsModal() {
     speedInput.addEventListener("input", (event) => {
       chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
       saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
+      updateSpeedFramePreview();
       saveTeam();
       invalidateBattleResults();
       updateTeamFinishMarkers(renderResults());
