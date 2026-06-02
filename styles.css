@@ -1256,14 +1256,15 @@ input:focus {
   z-index: 2;
   display: grid;
   place-items: center;
-  min-width: 30px;
-  height: 21px;
-  padding: 0 5px;
+  width: 28px;
+  height: 24px;
+  padding: 0;
   border: 1px solid rgba(77, 163, 255, 0.42);
   border-radius: 4px;
   color: #dff7ff;
   background: rgba(7, 9, 13, 0.78);
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 900;
   line-height: 1;
 }
 
@@ -1818,7 +1819,21 @@ summary {
     gap: 6px;
   }
 
+  .team-slot {
+    padding: 4px;
+  }
+
   .position {
+    left: 1px;
+    top: 3px;
+    width: 24px;
+    height: 21px;
+    font-size: 10px;
+  }
+
+  .universal-charge-label {
+    right: 1px;
+    top: 3px;
     width: 24px;
     height: 21px;
     font-size: 10px;
