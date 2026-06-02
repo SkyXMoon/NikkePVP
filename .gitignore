@@ -1,8 +1,5 @@
-.DS_Store
-Thumbs.db
-*.log
+.worker-build/
 node_modules/
-dist/
-build/
+.wrangler/
+.dev.vars
 __pycache__/
-*.pyc

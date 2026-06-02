@@ -60,6 +60,19 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
+async function loadCharacterData() {
+  if (typeof CHARACTERS !== "undefined" && Array.isArray(CHARACTERS)) return;
+  const response = await fetch("/api/characters?full=1", {
+    headers: { accept: "application/json" },
+  });
+  if (!response.ok) {
+    throw new Error(`角色数据加载失败：${response.status}`);
+  }
+  const payload = await response.json();
+  globalThis.DATA_SOURCES = payload.sources || {};
+  globalThis.CHARACTERS = Array.isArray(payload.characters) ? payload.characters : [];
+}
+
 const state = {
   defenseTeam: Array(TEAM_SIZE).fill(null),
   defenseChargeSpeeds: Array(TEAM_SIZE).fill(0),
@@ -3234,8 +3247,17 @@ function bindEvents() {
   });
 }
 
-initFilters();
-bindEvents();
-loadTeam();
-els.allowMissedShotsToggle.checked = state.allowMissedShots;
-render();
+async function bootstrap() {
+  await loadCharacterData();
+  initFilters();
+  bindEvents();
+  loadTeam();
+  els.allowMissedShotsToggle.checked = state.allowMissedShots;
+  render();
+}
+
+bootstrap().catch((error) => {
+  console.error(error);
+  els.toast.textContent = error?.message || "初始化失败";
+  els.toast.classList.add("show");
+});

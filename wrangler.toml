@@ -1,0 +1,21 @@
+name = "nikke-pvp-charge"
+main = "src/worker.js"
+compatibility_date = "2026-06-01"
+
+[assets]
+directory = ".worker-build/public"
+not_found_handling = "single-page-application"
+
+# Optional bindings. Create the resources first, then fill in the IDs.
+# [[kv_namespaces]]
+# binding = "NIKKE_CACHE"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+#
+# [[d1_databases]]
+# binding = "NIKKE_DB"
+# database_name = "nikke-pvp-charge"
+# database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+#
+# [[r2_buckets]]
+# binding = "NIKKE_ASSETS"
+# bucket_name = "nikke-pvp-assets"

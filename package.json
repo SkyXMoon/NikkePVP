@@ -1,0 +1,14 @@
+{
+  "name": "nikke-pvp-charge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "cf:prepare": "node scripts/prepare-cloudflare.mjs",
+    "cf:dev": "npm run cf:prepare && wrangler dev",
+    "cf:deploy": "npm run cf:prepare && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
