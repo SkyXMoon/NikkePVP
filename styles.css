@@ -63,9 +63,9 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .app-shell {
   display: block;
-  height: 100vh;
+  min-height: 100vh;
   padding: 12px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .main-stage,
@@ -79,7 +79,7 @@ input[type="number"]::-webkit-outer-spin-button {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  height: 100%;
+  min-height: 100%;
 }
 
 .content-grid {
@@ -89,7 +89,7 @@ input[type="number"]::-webkit-outer-spin-button {
   flex: 1;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .workspace {
@@ -1759,25 +1759,14 @@ summary {
 }
 
 @media (max-width: 1180px) {
-  .app-shell {
-    height: auto;
-    min-height: 100vh;
-    overflow: visible;
-  }
-
   .content-grid {
     grid-template-columns: 1fr;
-    overflow: visible;
   }
 
   .main-stage,
   .workspace,
   .team-workbench {
     overflow: visible;
-  }
-
-  .main-stage {
-    height: auto;
   }
 
   .team-slots-row {
