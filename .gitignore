@@ -5,3 +5,23 @@ node_modules/
 __pycache__/
 .npm-cache/
 layout-mobile-check.png
+
+# Local documents and source spreadsheets
+产品需求文档*.md
+*PRD*.md
+*.xlsx
+*.xls
+*.docx
+*.pdf
+CLOUDFLARE_DEPLOY.md
+
+# Extraction/download scratch data
+gamekee-avatar-map.json
+nikke-data-extracted.json
+nikke-top-avatar-matches.json
+nikke-top-characters.json
+
+# Local-only extraction/download helpers
+scripts/download_avatars.py
+scripts/download_nikke_top_avatars.py
+scripts/extract_nikke_xlsx.py
