@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "verify:layout": "node scripts/verify-layout.mjs",
     "cf:prepare": "node scripts/prepare-cloudflare.mjs",
     "cf:dev": "npm run cf:prepare && wrangler dev",
     "cf:deploy": "npm run cf:prepare && wrangler deploy"
