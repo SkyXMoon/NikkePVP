@@ -2068,7 +2068,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
               ? `
                 <button class="slot-pierce-count${redHoodPierceCount > 0 ? " is-active" : ""}" type="button" data-pierce-count="${redHoodPierceCount}" aria-label="设置 ${escapeHtml(character.name)} 穿透次数：${redHoodPierceCount}" title="穿透次数 ${redHoodPierceCount}">
                   <img class="slot-pierce-icon" src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />
-                  <span class="slot-pierce-value">${redHoodPierceCount}</span>
+                  ${redHoodPierceCount > 0 ? `<span class="slot-pierce-value">${redHoodPierceCount}</span>` : ""}
                 </button>
               `
               : ""
