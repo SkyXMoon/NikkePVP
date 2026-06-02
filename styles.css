@@ -1058,26 +1058,26 @@ input:focus {
 }
 
 .chart-dodge-track {
-  stroke: rgba(176, 182, 194, 0.82);
-  stroke-dasharray: 5 6;
+  stroke: rgba(255, 255, 255, 0.94);
+  stroke-dasharray: none;
   stroke-linecap: round;
   stroke-width: 2.2;
   cursor: pointer;
 }
 
 .chart-dodge-track.team-defense {
-  stroke: rgba(176, 182, 194, 0.82);
+  stroke: rgba(255, 255, 255, 0.94);
 }
 
 .chart-dodge-track.team-attack {
-  stroke: rgba(176, 182, 194, 0.82);
+  stroke: rgba(255, 255, 255, 0.94);
 }
 
 .chart-dodge-turn {
-  stroke: rgba(176, 182, 194, 0.82);
+  stroke: rgba(255, 255, 255, 0.94);
   stroke-linecap: round;
   stroke-width: 2.2;
-  stroke-dasharray: 5 6;
+  stroke-dasharray: none;
 }
 
 .chart-scarlet-counter-track {
