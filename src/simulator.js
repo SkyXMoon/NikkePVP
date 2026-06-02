@@ -320,7 +320,30 @@ function getChargeValue(character, shotNumber = null) {
   return getEffectiveBurstGen(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
+function isHarran(character) {
+  return character?.id === 57 || character?.slug === "哈兰" || character?.name === "哈兰";
+}
+
+function getHarranPoisonChargeValue(character) {
+  return getEffectiveBurstGen(character) * (character.hasExtraDamage ? 2 : 1);
+}
+
+function getHarranPoisonEvent(event, currentFrame) {
+  if (!isHarran(event.character) || event.poisonChargeStarted) return null;
+  event.poisonChargeStarted = true;
+  return {
+    character: event.character,
+    positionIndex: event.positionIndex,
+    frame: currentFrame + 60,
+    chargeValue: getHarranPoisonChargeValue(event.character),
+    source: "harran-poison",
+    label: "中毒充能",
+    repeatFrames: 60,
+  };
+}
+
 function getDelayedExtraEvents(event, currentFrame) {
+  if (isHarran(event.character)) return [];
   return (event.character.delayedExtraHits || []).map((extra) => ({
     character: event.character,
     positionIndex: event.positionIndex,
@@ -603,6 +626,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       reloadEvents: [],
       flightEvents: [],
       missedShotEvents: [],
+      poisonChargeStarted: false,
     };
   });
 
@@ -685,7 +709,13 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       if (owner) {
         owner.totalCharge += extra.chargeValue;
         owner.attackChargeTotal += extra.chargeValue;
-        addContribution(owner, extra.chargeValue, "延迟额外");
+        addContribution(owner, extra.chargeValue, extra.label || "延迟额外");
+        if (extra.repeatFrames) {
+          pendingExtraEvents.push({
+            ...extra,
+            frame: currentFrame + extra.repeatFrames,
+          });
+        }
       }
     });
 
@@ -737,6 +767,8 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       event.totalCharge += hitCountExtraCharge;
       event.attackChargeTotal += hitCountExtraCharge;
       addContribution(event, hitCountExtraCharge, "额外触发");
+      const harranPoisonEvent = getHarranPoisonEvent(event, currentFrame);
+      if (harranPoisonEvent) pendingExtraEvents.push(harranPoisonEvent);
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
       advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
     });

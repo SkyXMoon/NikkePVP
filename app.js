@@ -815,6 +815,28 @@ function getDelayedExtraLabel(character) {
   return character?.id === 57 || character?.slug === "哈兰" || character?.name === "哈兰" ? "中毒充能" : "延迟额外";
 }
 
+function isHarran(character) {
+  return character?.id === 57 || character?.slug === "哈兰" || character?.name === "哈兰";
+}
+
+function getHarranPoisonChargeValue(character) {
+  return getBaseChargeUnit(character) * (character.hasExtraDamage ? 2 : 1);
+}
+
+function getHarranPoisonEvent(event, currentFrame) {
+  if (!isHarran(event.character) || event.poisonChargeStarted) return null;
+  event.poisonChargeStarted = true;
+  return {
+    character: event.character,
+    positionIndex: event.positionIndex,
+    frame: currentFrame + 60,
+    chargeValue: getHarranPoisonChargeValue(event.character),
+    source: "harran-poison",
+    label: "中毒充能",
+    repeatFrames: 60,
+  };
+}
+
 function getChargeBreakdown(character) {
   const hitMultiplier = getChargeHitMultiplier(character);
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
@@ -847,7 +869,9 @@ function getChargeBreakdown(character) {
       `尾弹追加：打完弹夹后${Number(character.magazineEmptyExtraDelayFrames) || 12}帧 +${formatNumber(character.magazineEmptyExtraCharge, 2)}%`,
     );
   }
-  if (character.delayedExtraHits?.length) {
+  if (isHarran(character)) {
+    lines.push(`中毒充能：第一发命中后每60F +${formatNumber(getHarranPoisonChargeValue(character), 2)}%`);
+  } else if (character.delayedExtraHits?.length) {
     const delayedLabel = getDelayedExtraLabel(character);
     lines.push(
       `${delayedLabel}：${character.delayedExtraHits
@@ -917,6 +941,7 @@ function hideCharacterTooltip() {
 }
 
 function getDelayedExtraEvents(event, currentFrame) {
+  if (isHarran(event.character)) return [];
   return (event.character.delayedExtraHits || []).map((extra) => ({
     character: event.character,
     positionIndex: event.positionIndex,
@@ -1255,6 +1280,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       reloadEvents: [],
       flightEvents: [],
       missedShotEvents: [],
+      poisonChargeStarted: false,
     };
   });
 
@@ -1352,6 +1378,12 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
         owner.totalCharge += extra.chargeValue;
         owner.attackChargeTotal += extra.chargeValue;
         addContribution(owner, extra.chargeValue, extra.label || getDelayedExtraLabel(owner.character));
+        if (extra.repeatFrames) {
+          pendingExtraEvents.push({
+            ...extra,
+            frame: currentFrame + extra.repeatFrames,
+          });
+        }
       }
     });
 
@@ -1410,6 +1442,8 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       event.attackChargeTotal += hitCountExtraCharge;
       addContribution(event, hitCountExtraCharge, "额外触发");
       pendingExtraEvents.push(...getDelayedHitCountExtraEvents(event, currentFrame));
+      const harranPoisonEvent = getHarranPoisonEvent(event, currentFrame);
+      if (harranPoisonEvent) pendingExtraEvents.push(harranPoisonEvent);
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
       const reloadEvent = advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
       const magazineEmptyExtra = getMagazineEmptyExtraEvent(event, reloadEvent);
