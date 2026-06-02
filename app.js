@@ -154,7 +154,15 @@ function escapeHtml(value) {
 }
 
 function frameToSeconds(frame) {
-  return (frame / FRAMES_PER_SECOND).toFixed(2);
+  return formatNumber(frame / FRAMES_PER_SECOND, 2);
+}
+
+function formatNumber(value, maxDigits = 2) {
+  const number = Number(value) || 0;
+  return number
+    .toFixed(maxDigits)
+    .replace(/0+$/, "")
+    .replace(/\.$/, "");
 }
 
 function formatFrame(frame) {
@@ -197,8 +205,7 @@ function canShowFinishMarker(character) {
 }
 
 function formatSeconds(value) {
-  const seconds = Number(value) || 0;
-  return Number.isInteger(seconds) ? String(seconds) : seconds.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  return formatNumber(value, 2);
 }
 
 function getCharacterChargeFrameInfo(character) {
@@ -607,17 +614,17 @@ function getChargeBreakdown(character) {
   const effectiveBurstGen = getEffectiveBurstGen(character);
   const flatBonus = character.flatBurstBonus || 0;
   const lines = [
-    `充能组成：${effectiveBurstGen.toFixed(5)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${flatBonus.toFixed(2)}` : ""} = ${getChargeValue(character).toFixed(2)}%`,
-    `基础 ${effectiveBurstGen.toFixed(5)}%${character.quantumRelicCubeEnabled ? `（量子遗迹魔方 ${character.burstGen.toFixed(2)} × 1.0466）` : ""}`,
+    `充能组成：${formatNumber(effectiveBurstGen, 5)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${formatNumber(flatBonus, 2)}` : ""} = ${formatNumber(getChargeValue(character), 2)}%`,
+    `基础 ${formatNumber(effectiveBurstGen, 5)}%${character.quantumRelicCubeEnabled ? `（量子遗迹魔方 ${formatNumber(character.burstGen, 2)} × 1.0466）` : ""}`,
     hitLabel,
   ];
 
   if (character.hasExtraDamage) lines.push("额外伤害 ×2");
-  if (flatBonus) lines.push(`固定补充 +${flatBonus.toFixed(2)}%`);
+  if (flatBonus) lines.push(`固定补充 +${formatNumber(flatBonus, 2)}%`);
   if (character.hitCountExtraEvents?.length) {
     lines.push(
       `攻击次数追加：${character.hitCountExtraEvents
-        .map((event) => `第${event.hit}次 +${(effectiveBurstGen * event.segments * extraMultiplier).toFixed(2)}%`)
+        .map((event) => `第${event.hit}次 +${formatNumber(effectiveBurstGen * event.segments * extraMultiplier, 2)}%`)
         .join("，")}`,
     );
   }
@@ -625,7 +632,7 @@ function getChargeBreakdown(character) {
     const delayedLabel = getDelayedExtraLabel(character);
     lines.push(
       `${delayedLabel}：${character.delayedExtraHits
-        .map((event) => `${event.delayFrames}帧后 +${(effectiveBurstGen * event.segments * extraMultiplier).toFixed(2)}%`)
+        .map((event) => `${event.delayFrames}帧后 +${formatNumber(effectiveBurstGen * event.segments * extraMultiplier, 2)}%`)
         .join("，")}`,
     );
   }
@@ -636,7 +643,7 @@ function getChargeBreakdown(character) {
 function getCharacterDetailText(character) {
   return [
     `${character.name}（${character.rarity || "SSR"}）`,
-    `最终单发充能：${getChargeValue(character).toFixed(2)}%`,
+    `最终单发充能：${formatNumber(getChargeValue(character), 2)}%`,
     ...getChargeWeaponDetailLines(character),
     getChargeBreakdown(character),
   ].join("\n");
@@ -677,7 +684,7 @@ function showCharacterTooltip(character, index, tile) {
     <div class="character-tooltip-meta">
       #${index + 1} · ${escapeHtml(character.rarity || "SSR")} · ${escapeHtml(character.weapon)} · ${escapeHtml(character.burstStage)} · ${escapeHtml(getRegionLabel(character))}
     </div>
-    <div class="character-tooltip-main">最终单发 ${getChargeValue(character).toFixed(2)}%</div>
+    <div class="character-tooltip-main">最终单发 ${formatNumber(getChargeValue(character), 2)}%</div>
     <div class="character-tooltip-lines">
       ${detailLines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}
     </div>
@@ -1320,7 +1327,7 @@ function renderCharacters() {
     const tile = document.createElement("button");
     tile.type = "button";
     tile.className = `character-tile rarity-${getRarityClass(character)}${pickedIds.has(character.id) ? " is-picked" : ""}`;
-    tile.setAttribute("aria-label", `加入 ${character.name}，${character.weapon}，单发 ${getChargeValue(character).toFixed(2)}%`);
+    tile.setAttribute("aria-label", `加入 ${character.name}，${character.weapon}，单发 ${formatNumber(getChargeValue(character), 2)}%`);
     tile.innerHTML = `
       <span class="tile-avatar">${getAvatarMarkup(character)}</span>
       ${
@@ -1332,7 +1339,7 @@ function renderCharacters() {
             ${getIconMarkup(getElementIcon(character), character.element, "element-icon")}
           `
       }
-      <span class="tile-charge">${getChargeValue(character).toFixed(1)}</span>
+      <span class="tile-charge">${formatNumber(getChargeValue(character), 1)}</span>
       <span class="tile-check" aria-hidden="true">✓</span>
     `;
     tile.addEventListener("mouseenter", () => showCharacterTooltip(character, index, tile));
@@ -2200,16 +2207,16 @@ function getSpecialChargeTooltipLines(group, entry) {
       group.label,
       `时间：${entry.frame} F`,
       `受击累计：${entry.accumulatedHits} hit`,
-      `连接触发：${entry.triggerCount} × ${group.chargePerLink.toFixed(2)}% = ${entry.charge.toFixed(2)}%`,
-      `累计充能：${entry.cumulativeCharge.toFixed(2)}%`,
+      `连接触发：${entry.triggerCount} × ${formatNumber(group.chargePerLink, 2)}% = ${formatNumber(entry.charge, 2)}%`,
+      `累计充能：${formatNumber(entry.cumulativeCharge, 2)}%`,
     ];
   }
 
   return [
     group.label,
     `时间：${entry.frame} F`,
-    `期望反击：${entry.triggerCount} × ${group.chargePerCounter.toFixed(3)}% = ${entry.charge.toFixed(3)}%`,
-    `累计充能：${entry.cumulativeCharge.toFixed(3)}%`,
+    `期望反击：${entry.triggerCount} × ${formatNumber(group.chargePerCounter, 3)}% = ${formatNumber(entry.charge, 3)}%`,
+    `累计充能：${formatNumber(entry.cumulativeCharge, 3)}%`,
   ];
 }
 
@@ -2380,7 +2387,7 @@ function getCumulativeContributionLines(result, frame) {
     .map((member) => {
       const cumulative = cumulativeByPosition.get(member.positionIndex) || 0;
       if (cumulative <= BURST_EPSILON) return null;
-      return `${member.character.name}：${cumulative.toFixed(2)}%`;
+      return `${member.character.name}：${formatNumber(cumulative, 2)}%`;
     })
     .filter(Boolean);
 }
@@ -2780,9 +2787,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const lines = [
           group.label,
           `时间：${entry.frame} F`,
-          `充能：${entry.charge.toFixed(2)}%`,
+          `充能：${formatNumber(entry.charge, 2)}%`,
           "组成：",
-          ...entry.contributions.map((contribution) => `${contribution.characterName}：${contribution.charge.toFixed(2)}%`),
+          ...entry.contributions.map((contribution) => `${contribution.characterName}：${formatNumber(contribution.charge, 2)}%`),
         ];
         return `<circle class="chart-universal-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${formatTooltipLines(lines)}"></circle>`;
       }),
@@ -2800,8 +2807,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         ? formatTooltipLines([
             contribution.characterName,
             `时间：${point.frame} F`,
-            `充能：${contribution.charge.toFixed(2)}%`,
-            `累积充能：${contribution.cumulativeCharge.toFixed(2)}%`,
+            `充能：${formatNumber(contribution.charge, 2)}%`,
+            `累积充能：${formatNumber(contribution.cumulativeCharge, 2)}%`,
             `充能组成：${contribution.labels.join(" + ")}`,
           ])
         : "";
@@ -2824,10 +2831,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const characterChargeLines = getCumulativeContributionLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
-          `累计总充能：${entry.totalCharge.toFixed(2)}%`,
-          ...(universalChargeTotal > BURST_EPSILON ? [`万能充能：${universalChargeTotal.toFixed(2)}%`] : []),
-          ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${jackalLinkTotal.toFixed(2)}%`] : []),
-          ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${scarletCounterTotal.toFixed(2)}%`] : []),
+          `累计总充能：${formatNumber(entry.totalCharge, 2)}%`,
+          ...(universalChargeTotal > BURST_EPSILON ? [`万能充能：${formatNumber(universalChargeTotal, 2)}%`] : []),
+          ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${formatNumber(jackalLinkTotal, 2)}%`] : []),
+          ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${formatNumber(scarletCounterTotal, 2)}%`] : []),
           ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
         ]);
         return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle>`;
