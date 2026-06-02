@@ -2990,7 +2990,7 @@ function addCharacter(character) {
     return;
   }
 
-  const emptyIndex = team.findIndex((member, index) => !member && sanitizeUniversalCharge(universalCharges[index]) <= 0);
+  const emptyIndex = team.findIndex((member) => !member);
   if (emptyIndex === -1) {
     showToast(`${TEAM_LABELS[state.activeTeamKey]}已满，请先移除一个槽位`);
     return;
