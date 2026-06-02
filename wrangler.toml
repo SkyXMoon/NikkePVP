@@ -4,6 +4,7 @@ compatibility_date = "2026-06-01"
 
 [assets]
 directory = ".worker-build/public"
+binding = "ASSETS"
 not_found_handling = "single-page-application"
 
 # Optional bindings. Create the resources first, then fill in the IDs.
