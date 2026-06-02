@@ -610,10 +610,7 @@ function getChargeHitMultiplier(character) {
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
-  if (character.weapon === "RL") return `RL命中：${hitMultiplier} hit`;
-  if (character.weapon === "SG") return "命中：10 hit";
-  if (character.hasPenetration) return "穿透：2 hit";
-  return "命中：1 hit";
+  return `命中：${hitMultiplier} hit`;
 }
 
 function getChargeValue(character) {
@@ -785,7 +782,7 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
 }
 
 function getAttackContributionLabel(character, shotCount = 1) {
-  if (character.weapon === "MG" && shotCount > 1) return `${shotCount}发命中`;
+  if (character.weapon === "MG" && shotCount > 1) return `命中：${shotCount} hit`;
   return getChargeHitLabel(character);
 }
 
