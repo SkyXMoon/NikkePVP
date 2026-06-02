@@ -2036,8 +2036,8 @@ function formatContributionTargetHits(positionHits = [], labels = []) {
     Number.isFinite(labelHitTotal) && rawHitTotal > 0 && labelHitTotal > rawHitTotal ? labelHitTotal / rawHitTotal : 1;
   const targets = visiblePositionHits
     .sort((a, b) => a.positionIndex - b.positionIndex)
-    .map((positionHit) => `P${positionHit.positionIndex + 1}（${formatNumber(Number(positionHit.hitCount) * displayMultiplier, 2)} hit）`);
-  return targets.length ? `命中目标：${targets.join("，")}` : null;
+    .map((positionHit) => `P${positionHit.positionIndex + 1} (${formatNumber(Number(positionHit.hitCount) * displayMultiplier, 2)} hit)`);
+  return targets.length ? `命中目标：${targets.join(", ")}` : null;
 }
 
 function isScarlet(character) {
