@@ -695,6 +695,13 @@ function getReloadFrames(character) {
   return reloadSeconds > 0 ? Math.round(reloadSeconds * FRAMES_PER_SECOND) : 0;
 }
 
+function getEffectiveCharacterStats(character, teamKey = "attack") {
+  if (!isScarlet(character)) return character.stats;
+  if (!state.allowMissedShots) return { ...character.stats, magazine: 60 };
+  const savedMagazine = getSavedCharacterMagazine(character, teamKey);
+  return savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats;
+}
+
 function getBaseNextAttackFrame(event, currentFrame) {
   if (event.character.weapon !== "MG") {
     return currentFrame + event.interval;
@@ -796,10 +803,9 @@ function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTime
 function characterForSlot(character, positionIndex, teamKey = "attack") {
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
-  const savedMagazine = state.allowMissedShots && isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
   return {
     ...character,
-    stats: savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats,
+    stats: getEffectiveCharacterStats(character, teamKey),
     chargeSpeedPercent: Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
   };
