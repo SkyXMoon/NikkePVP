@@ -637,18 +637,18 @@ function getBaseChargeUnit(character) {
   return character.weapon === "SG" ? baseCharge / 10 : baseCharge;
 }
 
-function getChargeHitMultiplier(character) {
+function getChargeHitMultiplier(character, shotNumber = null) {
   if (character.weapon === "RL") return getRlHitSegments(character);
   if (character.weapon === "SG") return 10;
-  return 1 + getPenetrationExtraHitCount(character);
+  return 1 + getPenetrationExtraHitCount(character, shotNumber);
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
   return `命中：${hitMultiplier} hit`;
 }
 
-function getChargeValue(character) {
-  const coverMultiplier = getChargeHitMultiplier(character);
+function getChargeValue(character, shotNumber = null) {
+  const coverMultiplier = getChargeHitMultiplier(character, shotNumber);
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
   return getBaseChargeUnit(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
@@ -780,9 +780,15 @@ function getCounterHitCount(character, shotCount = 1) {
   return shotCount;
 }
 
-function getPenetrationExtraHitCount(character) {
+function getPenetrationExtraHitCount(character, shotNumber = null) {
   if (!character) return 0;
-  if (isRedHood(character)) return sanitizeRedHoodPierceCount(character.redHoodPierceCount);
+  if (isRedHood(character)) {
+    const pierceCount = sanitizeRedHoodPierceCount(character.redHoodPierceCount);
+    if (Number.isFinite(Number(shotNumber))) {
+      return Number(shotNumber) > 0 && Number(shotNumber) <= pierceCount ? 1 : 0;
+    }
+    return pierceCount > 0 ? 1 : 0;
+  }
   return character.hasPenetration ? 1 : 0;
 }
 
@@ -791,7 +797,7 @@ function getTargetPositionIndex(character, teamKey = "attack") {
   return rule === "↖" || rule === "↘" ? ENEMY_TEAM_SIZE - 1 : DEFAULT_RL_TARGET_INDEX;
 }
 
-function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
+function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotNumber = null) {
   const shotHits = getCounterHitCount(character, shotCount);
   const targetPositionIndex = getTargetPositionIndex(character, teamKey);
 
@@ -807,7 +813,7 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
     };
   }
 
-  const penetrationExtraHits = getPenetrationExtraHitCount(character);
+  const penetrationExtraHits = getPenetrationExtraHitCount(character, shotNumber);
   if (penetrationExtraHits > 0) {
     return {
       totalHits: shotHits * (1 + penetrationExtraHits),
@@ -823,9 +829,9 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
   };
 }
 
-function getAttackContributionLabel(character, shotCount = 1) {
+function getAttackContributionLabel(character, shotCount = 1, shotNumber = null) {
   if (character.weapon === "MG" && shotCount > 1) return `命中：${shotCount} hit`;
-  return getChargeHitLabel(character);
+  return getChargeHitLabel(character, getChargeHitMultiplier(character, shotNumber));
 }
 
 function isReloadingAtFrame(positionIndex, frame, reloadTimeline = []) {
@@ -1133,13 +1139,13 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
         return;
       }
 
-      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey);
+      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, event.hits);
       const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
-      const chargeValue = event.chargeValue * shotCount;
+      const chargeValue = getChargeValue(event.character, event.hits) * shotCount;
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
       event.attackChargeTotal += chargeValue;
-      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount));
+      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount, event.hits));
       const currentContribution = contributions.get(getContributionKey(event, true));
       if (currentContribution) {
         const receivedHitTotal = receivedPositionHits.reduce((sum, [, hitCount]) => sum + hitCount, 0);
@@ -1990,7 +1996,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             isRedHood(character)
               ? `
                 <button class="slot-pierce-count${redHoodPierceCount > 0 ? " is-active" : ""}" type="button" data-pierce-count="${redHoodPierceCount}" aria-label="设置 ${escapeHtml(character.name)} 穿透次数：${redHoodPierceCount}" title="穿透次数 ${redHoodPierceCount}">
-                  <span class="slot-pierce-icon" aria-hidden="true">穿</span>
+                  <img class="slot-pierce-icon" src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />
                   <span class="slot-pierce-value">${redHoodPierceCount}</span>
                 </button>
               `

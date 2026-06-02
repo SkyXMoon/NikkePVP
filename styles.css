@@ -1673,9 +1673,9 @@ input:focus {
 }
 
 .slot-pierce-icon {
-  font-size: 10px;
-  font-weight: 900;
-  line-height: 1;
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
 }
 
 .slot-pierce-value {
@@ -2304,7 +2304,8 @@ summary {
   }
 
   .slot-pierce-icon {
-    font-size: 8px;
+    width: 10px;
+    height: 10px;
   }
 
   .slot-pierce-value {
