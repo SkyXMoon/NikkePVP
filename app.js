@@ -96,6 +96,10 @@ const state = {
     defense: {},
     attack: {},
   },
+  characterRedHoodPierceCounts: {
+    defense: {},
+    attack: {},
+  },
   jackalLinks: {
     defense: { enabled: false, ownerId: null, targetIds: [] },
     attack: { enabled: false, ownerId: null, targetIds: [] },
@@ -408,6 +412,8 @@ function loadLineupSlot(index) {
   state.scarletCounterEnabled = [...slot.scarletCounterEnabled];
   applySavedTeamChargeSpeeds("defense");
   applySavedTeamChargeSpeeds("attack");
+  applySavedTeamRedHoodPierceCounts("defense");
+  applySavedTeamRedHoodPierceCounts("attack");
   state.jackalLinks = {
     defense: { ...slot.jackalLinks.defense, targetIds: [...slot.jackalLinks.defense.targetIds] },
     attack: { ...slot.jackalLinks.attack, targetIds: [...slot.jackalLinks.attack.targetIds] },
@@ -437,6 +443,14 @@ function getCharacterMagazineMemory(teamKey = state.activeTeamKey) {
     state.characterMagazines[normalizedTeamKey] = {};
   }
   return state.characterMagazines[normalizedTeamKey];
+}
+
+function getCharacterRedHoodPierceCountMemory(teamKey = state.activeTeamKey) {
+  const normalizedTeamKey = normalizeTeamKey(teamKey);
+  if (!state.characterRedHoodPierceCounts[normalizedTeamKey]) {
+    state.characterRedHoodPierceCounts[normalizedTeamKey] = {};
+  }
+  return state.characterRedHoodPierceCounts[normalizedTeamKey];
 }
 
 function sanitizeChargeSpeed(value) {
@@ -505,10 +519,34 @@ function resetCharacterMagazine(character, teamKey = state.activeTeamKey) {
   delete getCharacterMagazineMemory(teamKey)[character.id];
 }
 
+function hasSavedCharacterRedHoodPierceCount(character, teamKey = state.activeTeamKey) {
+  if (!character?.id) return false;
+  return Object.prototype.hasOwnProperty.call(getCharacterRedHoodPierceCountMemory(teamKey), character.id);
+}
+
+function getSavedCharacterRedHoodPierceCount(character, teamKey = state.activeTeamKey, fallback = 0) {
+  if (!character?.id) return sanitizeRedHoodPierceCount(fallback);
+  const memory = getCharacterRedHoodPierceCountMemory(teamKey);
+  return hasSavedCharacterRedHoodPierceCount(character, teamKey)
+    ? sanitizeRedHoodPierceCount(memory[character.id])
+    : sanitizeRedHoodPierceCount(fallback);
+}
+
+function saveCharacterRedHoodPierceCount(character, value, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  getCharacterRedHoodPierceCountMemory(teamKey)[character.id] = sanitizeRedHoodPierceCount(value);
+}
+
 function rememberTeamSlotChargeSpeed(teamKey, index) {
   const character = getTeamState(teamKey)[index];
   if (!character) return;
   saveCharacterChargeSpeed(character, getChargeSpeedState(teamKey)[index], teamKey);
+}
+
+function rememberTeamSlotRedHoodPierceCount(teamKey, index) {
+  const character = getTeamState(teamKey)[index];
+  if (!character || !isRedHood(character)) return;
+  saveCharacterRedHoodPierceCount(character, getRedHoodPierceCountState(teamKey)[index], teamKey);
 }
 
 function rememberTeamChargeSpeeds(teamKey) {
@@ -517,11 +555,27 @@ function rememberTeamChargeSpeeds(teamKey) {
   }
 }
 
+function rememberTeamRedHoodPierceCounts(teamKey) {
+  for (let index = 0; index < TEAM_SIZE; index += 1) {
+    rememberTeamSlotRedHoodPierceCount(teamKey, index);
+  }
+}
+
 function applySavedTeamChargeSpeeds(teamKey) {
   const team = getTeamState(teamKey);
   const chargeSpeeds = getChargeSpeedState(teamKey);
   for (let index = 0; index < TEAM_SIZE; index += 1) {
     chargeSpeeds[index] = team[index] ? getSavedCharacterChargeSpeed(team[index], teamKey) : 0;
+  }
+}
+
+function applySavedTeamRedHoodPierceCounts(teamKey) {
+  const team = getTeamState(teamKey);
+  const pierceCounts = getRedHoodPierceCountState(teamKey);
+  for (let index = 0; index < TEAM_SIZE; index += 1) {
+    pierceCounts[index] = team[index] && isRedHood(team[index])
+      ? getSavedCharacterRedHoodPierceCount(team[index], teamKey, pierceCounts[index])
+      : 0;
   }
 }
 
@@ -2200,6 +2254,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             setActiveTeam(teamKey);
             const pierceCounts = getRedHoodPierceCountState(teamKey);
             pierceCounts[index] = (sanitizeRedHoodPierceCount(pierceCounts[index]) + 1) % 3;
+            saveCharacterRedHoodPierceCount(character, pierceCounts[index], teamKey);
             saveTeam();
             render();
           });
@@ -3557,7 +3612,7 @@ function addCharacter(character) {
   team[emptyIndex] = character;
   chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, state.activeTeamKey);
   universalCharges[emptyIndex] = 0;
-  redHoodPierceCounts[emptyIndex] = 0;
+  redHoodPierceCounts[emptyIndex] = isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, state.activeTeamKey) : 0;
   scarletCounterEnabled[emptyIndex] = true;
   openSlotSettings = null;
   saveTeam();
@@ -3628,6 +3683,8 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
     [fromCounterEnabled[fromIndex], toCounterEnabled[toIndex]] = [toCounterEnabled[toIndex], fromCounterEnabled[fromIndex]];
     rememberTeamSlotChargeSpeed(fromTeamKey, fromIndex);
     rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
+    rememberTeamSlotRedHoodPierceCount(fromTeamKey, fromIndex);
+    rememberTeamSlotRedHoodPierceCount(toTeamKey, toIndex);
   } else {
     toTeam[toIndex] = fromCharacter;
     toSpeeds[toIndex] = fromSpeed;
@@ -3640,6 +3697,7 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
     fromPierceCounts[fromIndex] = 0;
     fromCounterEnabled[fromIndex] = true;
     rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
+    rememberTeamSlotRedHoodPierceCount(toTeamKey, toIndex);
   }
 
   setActiveTeam(toTeamKey);
@@ -3670,6 +3728,8 @@ function clearTeam() {
 function swapBattleTeams() {
   rememberTeamChargeSpeeds("defense");
   rememberTeamChargeSpeeds("attack");
+  rememberTeamRedHoodPierceCounts("defense");
+  rememberTeamRedHoodPierceCounts("attack");
 
   [state.defenseTeam, state.team] = [state.team, state.defenseTeam];
   [state.defenseUniversalCharges, state.universalCharges] = [state.universalCharges, state.defenseUniversalCharges];
@@ -3679,6 +3739,8 @@ function swapBattleTeams() {
 
   applySavedTeamChargeSpeeds("defense");
   applySavedTeamChargeSpeeds("attack");
+  applySavedTeamRedHoodPierceCounts("defense");
+  applySavedTeamRedHoodPierceCounts("attack");
   normalizeJackalLinks();
   openSlotSettings = null;
   saveTeam();
@@ -3720,10 +3782,26 @@ function normalizeSavedCharacterMagazines(savedMagazines = {}) {
   );
 }
 
+function normalizeSavedCharacterRedHoodPierceCounts(savedCounts = {}) {
+  return Object.fromEntries(
+    Object.entries(savedCounts || {})
+      .map(([characterId, count]) => [characterId, sanitizeRedHoodPierceCount(count)])
+      .filter(([characterId]) => getCharacterById(characterId)),
+  );
+}
+
 function rememberLoadedTeamChargeSpeeds(teamKey) {
   getTeamState(teamKey).forEach((character, index) => {
     if (character) {
       saveCharacterChargeSpeed(character, getChargeSpeedState(teamKey)[index], teamKey);
+    }
+  });
+}
+
+function rememberLoadedTeamRedHoodPierceCounts(teamKey) {
+  getTeamState(teamKey).forEach((character, index) => {
+    if (character && isRedHood(character) && !hasSavedCharacterRedHoodPierceCount(character, teamKey)) {
+      saveCharacterRedHoodPierceCount(character, getRedHoodPierceCountState(teamKey)[index], teamKey);
     }
   });
 }
@@ -3747,6 +3825,7 @@ function saveTeam() {
       characterChargeSpeeds: state.characterChargeSpeeds,
       characterQuantumCubes: state.characterQuantumCubes,
       characterMagazines: state.characterMagazines,
+      characterRedHoodPierceCounts: state.characterRedHoodPierceCounts,
       activeLineupIndex: state.activeLineupIndex,
       lineupSlots: state.lineupSlots,
       jackalLinks: state.jackalLinks,
@@ -3785,6 +3864,10 @@ function loadTeam() {
         defense: normalizeSavedCharacterMagazines(saved.characterMagazines?.defense),
         attack: normalizeSavedCharacterMagazines(saved.characterMagazines?.attack),
       };
+      state.characterRedHoodPierceCounts = {
+        defense: normalizeSavedCharacterRedHoodPierceCounts(saved.characterRedHoodPierceCounts?.defense),
+        attack: normalizeSavedCharacterRedHoodPierceCounts(saved.characterRedHoodPierceCounts?.attack),
+      };
       state.jackalLinks = {
         defense: {
           enabled: Boolean(saved.jackalLinks?.defense?.enabled),
@@ -3816,6 +3899,8 @@ function loadTeam() {
       };
       rememberLoadedTeamChargeSpeeds("defense");
       rememberLoadedTeamChargeSpeeds("attack");
+      rememberLoadedTeamRedHoodPierceCounts("defense");
+      rememberLoadedTeamRedHoodPierceCounts("attack");
       normalizeJackalLinks();
       setActiveTeam(saved.activeTeamKey || "attack");
       return;
