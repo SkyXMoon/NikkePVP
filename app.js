@@ -158,15 +158,14 @@ function formatFrame(frame) {
 }
 
 function getStandardChargeBand(frame) {
-  const standards = [...STANDARD_CHARGE_FRAMES].sort((a, b) => a.frame - b.frame);
-  const fasterThan = standards.filter((standard) => frame < standard.frame);
-  const slowerThan = standards.filter((standard) => frame > standard.frame);
-  const equalStandard = standards.find((standard) => frame === standard.frame);
-
-  if (equalStandard) return `等于${equalStandard.label}`;
-  if (fasterThan.length === standards.length) return `快于${standards[0].label}`;
-  if (slowerThan.length === standards.length) return `慢于${standards.at(-1).label}`;
-  return `快于${fasterThan[0].label}`;
+  const rlValue = frame / 76;
+  const formattedRlValue = Number.isInteger(rlValue)
+    ? String(rlValue)
+    : rlValue
+        .toFixed(2)
+        .replace(/0+$/, "")
+        .replace(/\.$/, "");
+  return `等于${formattedRlValue}RL`;
 }
 
 function getTeamPositionText(finishingPositionIndices = [], teamKey = "attack") {
