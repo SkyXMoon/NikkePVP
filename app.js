@@ -365,6 +365,11 @@ function sanitizeMagazine(value) {
   return Math.max(20, Math.floor(Number(value) || 0));
 }
 
+function parseCompleteMagazine(value) {
+  const magazine = Math.floor(Number(value));
+  return Number.isFinite(magazine) && magazine >= 20 ? magazine : null;
+}
+
 function getSavedCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
   if (!character?.id) return 0;
   return sanitizeChargeSpeed(getCharacterChargeSpeedMemory(teamKey)[character.id]);
@@ -1456,6 +1461,15 @@ function createSlotSettingsModal() {
     magazineInput.addEventListener("click", (event) => event.target.select());
     magazineInput.addEventListener("dragstart", (event) => event.stopPropagation());
     magazineInput.addEventListener("input", (event) => {
+      const magazine = parseCompleteMagazine(event.target.value);
+      if (magazine === null) return;
+      saveCharacterMagazine(character, magazine, teamKey);
+      saveTeam();
+      invalidateBattleResults();
+      updateTeamFinishMarkers(renderResults());
+      refreshBattleResults();
+    });
+    magazineInput.addEventListener("blur", (event) => {
       const magazine = sanitizeMagazine(event.target.value);
       event.target.value = magazine;
       saveCharacterMagazine(character, magazine, teamKey);
@@ -3138,6 +3152,8 @@ function saveTeam() {
       lineupSlots: state.lineupSlots,
       jackalLinks: state.jackalLinks,
       allowMissedShots: state.allowMissedShots,
+      compactAvatarIcons: state.compactAvatarIcons,
+      filters: state.filters,
       activeTeamKey: state.activeTeamKey,
     }),
   );
@@ -3186,6 +3202,14 @@ function loadTeam() {
         saveCurrentLineupSlot();
       }
       state.allowMissedShots = saved.allowMissedShots === true;
+      state.compactAvatarIcons = saved.compactAvatarIcons !== false;
+      state.filters = {
+        ...state.filters,
+        ...(saved.filters && typeof saved.filters === "object" ? saved.filters : {}),
+        common: saved.filters?.common === "all" ? "all" : "common",
+        region: saved.filters?.region === "global" ? "global" : "cn",
+        search: typeof saved.filters?.search === "string" ? saved.filters.search : "",
+      };
       rememberLoadedTeamChargeSpeeds("defense");
       rememberLoadedTeamChargeSpeeds("attack");
       normalizeJackalLinks();
@@ -3298,18 +3322,22 @@ function bindEvents() {
   });
   els.commonToggle.addEventListener("change", (event) => {
     state.filters.common = event.target.checked ? "common" : "all";
+    saveTeam();
     renderCharacters();
   });
   els.regionToggle.addEventListener("change", (event) => {
     state.filters.region = event.target.checked ? "cn" : "global";
+    saveTeam();
     renderCharacters();
   });
   els.compactAvatarToggle.addEventListener("change", (event) => {
     state.compactAvatarIcons = event.target.checked;
+    saveTeam();
     renderCharacters();
   });
   els.searchInput.addEventListener("input", (event) => {
     state.filters.search = event.target.value;
+    saveTeam();
     renderCharacters();
   });
 }
@@ -3322,6 +3350,7 @@ async function bootstrap() {
   els.commonToggle.checked = state.filters.common === "common";
   els.regionToggle.checked = state.filters.region === "cn";
   els.compactAvatarToggle.checked = state.compactAvatarIcons;
+  els.searchInput.value = state.filters.search;
   render();
 }
 
