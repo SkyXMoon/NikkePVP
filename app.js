@@ -1597,7 +1597,7 @@ function renderTeam() {
           <div class="slot-empty">
             <span class="position">P${index + 1}</span>
             <label class="universal-charge-field" aria-label="P${index + 1}万能充能值">
-              <span>万能</span>
+              <span class="universal-charge-label">万能</span>
               <input type="text" inputmode="decimal" value="${universalChargeValue || ""}" placeholder="0" data-universal-index="${index}" />
             </label>
           </div>
