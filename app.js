@@ -974,9 +974,12 @@ function getNextAttackFrameAfterStun(event, currentFrame, baseNextFrame, stunWin
 }
 
 function getReloadAttackFrameAfterStun(event, reloadEndFrame, defaultNextFrame, stunWindows = []) {
-  const nextFrame = isCinderella(event.character) ? reloadEndFrame + event.reloadInterval : defaultNextFrame;
+  const nextFrame =
+    isCinderella(event.character) || isChargeWeapon(event.character)
+      ? reloadEndFrame + (event.reloadInterval || event.chargeFrames || event.interval)
+      : reloadEndFrame;
   return (
-    getChargeInterruptedFrame(event.character, event.positionIndex, reloadEndFrame, nextFrame, event.reloadInterval, stunWindows) ??
+    getChargeInterruptedFrame(event.character, event.positionIndex, reloadEndFrame, nextFrame, nextFrame - reloadEndFrame, stunWindows) ??
     getFrameAfterStun(nextFrame, event.positionIndex, stunWindows)
   );
 }
