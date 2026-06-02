@@ -62,6 +62,55 @@ const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
+const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
+  [0, 60],
+  [1, 60],
+  [2, 58],
+  [3, 58],
+  [4, 58],
+  [5, 56],
+  [6, 56],
+  [7, 56],
+  [8, 54],
+  [9, 54],
+  [10, 54],
+  [11, 52],
+  [12, 52],
+  [13, 52],
+  [14, 52],
+  [15, 50],
+  [16, 50],
+  [17, 50],
+  [18, 48],
+  [19, 48],
+  [20, 48],
+  [21, 46],
+  [22, 46],
+  [23, 46],
+  [24, 46],
+  [25, 44],
+  [26, 44],
+  [27, 44],
+  [28, 42],
+  [29, 42],
+  [30, 42],
+  [31, 40],
+  [32, 40],
+  [33, 40],
+  [34, 40],
+  [35, 38],
+  [36, 38],
+  [37, 38],
+  [38, 36],
+  [39, 36],
+  [40, 36],
+  [41, 34],
+  [42, 34],
+  [43, 34],
+  [44, 32],
+  [45, 32],
+  [46, 32],
+]);
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
@@ -591,16 +640,21 @@ function setActiveTeam(teamKey) {
 
 function applyChargeSpeedFrames(baseFrames, chargeSpeedPercent = 0) {
   if (!baseFrames) return baseFrames;
-  const speed = Number(chargeSpeedPercent) || 0;
+  const speed = Math.round(Number(chargeSpeedPercent) || 0);
+  if (baseFrames === 60 && FIXED_CHARGE_SPEED_FRAMES_60.has(speed)) return FIXED_CHARGE_SPEED_FRAMES_60.get(speed);
   if (speed <= 0) return baseFrames;
   return Math.floor((baseFrames / 2) / (1 + speed / 100)) * 2;
 }
 
 function applyChargeSpeedTotalFrames(baseFrames, chargeSpeedPercent = 0) {
   if (!baseFrames) return baseFrames;
-  const speed = Number(chargeSpeedPercent) || 0;
+  const speed = Math.round(Number(chargeSpeedPercent) || 0);
   if (speed <= 0) return baseFrames;
   return Math.floor(baseFrames / (1 + speed / 100) / 2) * 2;
+}
+
+function applyChargeSpeedIntervalFrames(baseChargeFrames, fixedFrames, chargeSpeedPercent = 0) {
+  return applyChargeSpeedFrames(baseChargeFrames, chargeSpeedPercent) + (Number(fixedFrames) || 0);
 }
 
 function isCinderella(character) {
@@ -646,13 +700,14 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
     const chargeFrames = applyChargeSpeedFrames(baseChargeFrames, speed);
     const baseIntervalFrames =
       character.timing.turnFrames != null ? baseChargeFrames + character.timing.turnFrames : character.timing.intervalFrames;
-    const intervalFrames = applyChargeSpeedTotalFrames(baseIntervalFrames, speed);
+    const fixedIntervalFrames = Math.max(0, baseIntervalFrames - baseChargeFrames);
+    const intervalFrames = applyChargeSpeedIntervalFrames(baseChargeFrames, fixedIntervalFrames, speed);
 
     if (character.weapon === "RL" && character.timing.projectileFlightFramesByPosition) {
       const flightFrames = getRlProjectileFlightFrames(character, positionIndex, teamKey);
       const firstFrame = isCinderella(character)
         ? chargeFrames + flightFrames
-        : character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames + flightFrames, speed);
+        : character.firstFrameOverride ?? chargeFrames + flightFrames;
       return {
         firstFrame,
         interval: isCinderella(character) ? CINDERELLA_ATTACK_INTERVAL_FRAMES : character.attackIntervalFrames || intervalFrames,
@@ -666,7 +721,7 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 
     if (["SR", "RL"].includes(character.weapon)) {
       return {
-        firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames, speed),
+        firstFrame: character.firstFrameOverride ?? chargeFrames,
         interval: character.attackIntervalFrames || intervalFrames,
         chargeFrames,
         baseChargeFrames,
@@ -692,8 +747,8 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
     const turnFrames = character.turnFrames ?? 16;
     const baseChargeFrames = sheetChargeFrames ?? 60;
     return {
-      firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames, speed),
-      interval: character.attackIntervalFrames || applyChargeSpeedTotalFrames(baseChargeFrames + turnFrames, speed),
+      firstFrame: character.firstFrameOverride ?? applyChargeSpeedFrames(baseChargeFrames, speed),
+      interval: character.attackIntervalFrames || applyChargeSpeedIntervalFrames(baseChargeFrames, turnFrames, speed),
       chargeFrames,
       baseChargeFrames,
       baseIntervalFrames: baseChargeFrames + turnFrames,
@@ -704,8 +759,8 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
     const turnFrames = character.turnFrames ?? 16;
     const baseChargeFrames = sheetChargeFrames ?? 60;
     return {
-      firstFrame: character.firstFrameOverride ?? applyChargeSpeedTotalFrames(baseChargeFrames + flightFrames, speed),
-      interval: character.attackIntervalFrames || applyChargeSpeedTotalFrames(baseChargeFrames + turnFrames, speed),
+      firstFrame: character.firstFrameOverride ?? applyChargeSpeedFrames(baseChargeFrames, speed) + flightFrames,
+      interval: character.attackIntervalFrames || applyChargeSpeedIntervalFrames(baseChargeFrames, turnFrames, speed),
       chargeFrames,
       baseChargeFrames,
       baseIntervalFrames: baseChargeFrames + turnFrames,
@@ -1028,8 +1083,9 @@ function getRedHoodStackedChargeSpeed(character, stacks = 0) {
 }
 
 function getRedHoodStackedInterval(event, stacks = event.redHoodChargeSpeedStacks) {
-  const baseIntervalFrames = event.baseIntervalFrames || event.interval;
-  return applyChargeSpeedTotalFrames(baseIntervalFrames, getRedHoodStackedChargeSpeed(event.character, stacks));
+  const baseChargeFrames = event.baseChargeFrames || event.chargeFrames || 0;
+  const fixedIntervalFrames = Math.max(0, (event.baseIntervalFrames || event.interval) - baseChargeFrames);
+  return applyChargeSpeedIntervalFrames(baseChargeFrames, fixedIntervalFrames, getRedHoodStackedChargeSpeed(event.character, stacks));
 }
 
 function getBaseNextAttackFrame(event, currentFrame, shotCount = 1) {
