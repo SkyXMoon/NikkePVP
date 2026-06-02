@@ -4766,6 +4766,9 @@ const CHARACTERS = [
     "hasExtraDamage": false,
     "delayedExtraHits": [],
     "hitCountExtraEvents": [],
+    "magazineEmptyExtraDelayFrames": 12,
+    "magazineEmptyExtraCharge": 0.5,
+    "magazineEmptyExtraLabel": "换弹追加",
     "flatBurstBonus": 0,
     "company": "泰特拉",
     "burstStage": "B3",
@@ -4818,7 +4821,7 @@ const CHARACTERS = [
       "attack": "↗",
       "defense": "↘"
     },
-    "notes": "霰弹枪；系数 0.0025",
+    "notes": "霰弹枪；系数 0.0025；打完弹夹后12帧追加0.5充能",
     "source": "NIKKE PVP 充能计算器 v2.3.20（更新20260516）.xlsx"
   },
   {

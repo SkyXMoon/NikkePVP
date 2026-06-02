@@ -700,6 +700,11 @@ function getChargeBreakdown(character) {
         .join("，")}`,
     );
   }
+  if (character.magazineEmptyExtraCharge) {
+    lines.push(
+      `换弹追加：打完弹夹后${Number(character.magazineEmptyExtraDelayFrames) || 12}帧 +${formatNumber(character.magazineEmptyExtraCharge, 2)}%`,
+    );
+  }
   if (character.delayedExtraHits?.length) {
     const delayedLabel = getDelayedExtraLabel(character);
     lines.push(
@@ -777,6 +782,19 @@ function getDelayedExtraEvents(event, currentFrame) {
     chargeValue: getBaseChargeUnit(event.character) * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
     source: "delayed",
   }));
+}
+
+function getMagazineEmptyExtraEvent(event, reloadEvent) {
+  if (!event || !reloadEvent || !event.character.magazineEmptyExtraCharge) return null;
+  const delayFrames = Number(event.character.magazineEmptyExtraDelayFrames) || 12;
+  return {
+    character: event.character,
+    positionIndex: event.positionIndex,
+    frame: reloadEvent.startFrame + delayFrames,
+    chargeValue: Number(event.character.magazineEmptyExtraCharge) || 0,
+    source: "magazine-empty",
+    label: event.character.magazineEmptyExtraLabel || "换弹追加",
+  };
 }
 
 function getHitCountExtraCharge(event) {
@@ -958,10 +976,11 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []
     };
     event.reloadEvents.push(reloadEvent);
     event.nextFrame = getReloadAttackFrameAfterStun(event, reloadEvent.endFrame, baseNextFrame + reloadFrames, stunWindows);
-    return;
+    return reloadEvent;
   }
 
   event.nextFrame = getNextAttackFrameAfterStun(event, currentFrame, baseNextFrame, stunWindows);
+  return null;
 }
 
 function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline = []) {
@@ -1123,7 +1142,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       if (owner) {
         owner.totalCharge += extra.chargeValue;
         owner.attackChargeTotal += extra.chargeValue;
-        addContribution(owner, extra.chargeValue, getDelayedExtraLabel(owner.character));
+        addContribution(owner, extra.chargeValue, extra.label || getDelayedExtraLabel(owner.character));
       }
     });
 
@@ -1155,7 +1174,9 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       }
 
       if (isMissedShot) {
-        advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
+        const reloadEvent = advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
+        const magazineEmptyExtra = getMagazineEmptyExtraEvent(event, reloadEvent);
+        if (magazineEmptyExtra) pendingExtraEvents.push(magazineEmptyExtra);
         return;
       }
 
@@ -1179,7 +1200,9 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       event.attackChargeTotal += hitCountExtraCharge;
       addContribution(event, hitCountExtraCharge, "额外触发");
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
-      advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
+      const reloadEvent = advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
+      const magazineEmptyExtra = getMagazineEmptyExtraEvent(event, reloadEvent);
+      if (magazineEmptyExtra) pendingExtraEvents.push(magazineEmptyExtra);
     });
 
     if (contributions.size) {
