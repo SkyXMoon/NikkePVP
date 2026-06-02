@@ -335,7 +335,7 @@ input:focus {
 }
 
 .character-tile.is-picked .tile-avatar img {
-  filter: grayscale(1) brightness(0.58);
+  filter: grayscale(0.45) brightness(0.82);
 }
 
 .character-tile.is-picked .tile-avatar::after {
@@ -343,26 +343,25 @@ input:focus {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: rgba(45, 61, 80, 0.28);
+  background: rgba(45, 61, 80, 0.14);
 }
 
 .tile-check {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  right: 3px;
+  top: 3px;
   z-index: 2;
   display: none;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: 999px;
   color: #fff;
   background: var(--blue);
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 900;
   line-height: 1;
-  transform: translate(-50%, -50%);
 }
 
 .character-tile.is-picked .tile-check {
