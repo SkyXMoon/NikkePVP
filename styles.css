@@ -1845,9 +1845,9 @@ summary {
   }
 
   .team-slots-row {
-    grid-template-columns: repeat(5, minmax(56px, 64px));
+    grid-template-columns: repeat(5, minmax(66px, 72px));
     justify-content: center;
-    gap: 6px;
+    gap: 4px;
   }
 
   .team-slot {
