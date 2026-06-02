@@ -1021,7 +1021,10 @@ function getRedHoodChargeSpeedStacksAfterAttack(event, shotCount = 1) {
 
 function getRedHoodStackedChargeSpeed(character, stacks = 0) {
   const baseSpeed = Number(character.chargeSpeedPercent) || 0;
-  return baseSpeed + Math.min(RED_HOOD_MAX_CHARGE_SPEED_STACKS, Math.max(0, Number(stacks) || 0)) * RED_HOOD_CHARGE_SPEED_PER_ATTACK;
+  const stackBonus = Math.round(
+    Math.min(RED_HOOD_MAX_CHARGE_SPEED_STACKS, Math.max(0, Number(stacks) || 0)) * RED_HOOD_CHARGE_SPEED_PER_ATTACK,
+  );
+  return baseSpeed + stackBonus;
 }
 
 function getRedHoodStackedInterval(event, stacks = event.redHoodChargeSpeedStacks) {
