@@ -49,6 +49,8 @@ const LITTLE_MERMAID_TIMELINE_EVENT = {
 };
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 10;
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 12;
+const CINDERELLA_INITIAL_HIT_SEQUENCE = [3, 2, 2, 2, 3, 3];
+const CINDERELLA_LOOP_HIT_SEQUENCE = [2, 2, 2, 2, 3, 3];
 const DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES = 60;
 const CHART_MAX_FRAME = 600;
 const CHART_WIDTH = 1800;
@@ -601,6 +603,15 @@ function isCinderella(character) {
   return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
 }
 
+function getCinderellaChargeHitCount(shotNumber = 1) {
+  const normalizedShotNumber = Math.max(1, Math.floor(Number(shotNumber) || 1));
+  if (normalizedShotNumber <= CINDERELLA_INITIAL_HIT_SEQUENCE.length) {
+    return CINDERELLA_INITIAL_HIT_SEQUENCE[normalizedShotNumber - 1];
+  }
+  const loopIndex = (normalizedShotNumber - CINDERELLA_INITIAL_HIT_SEQUENCE.length - 1) % CINDERELLA_LOOP_HIT_SEQUENCE.length;
+  return CINDERELLA_LOOP_HIT_SEQUENCE[loopIndex];
+}
+
 function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
   if (isCinderella(character)) return CINDERELLA_PROJECTILE_FLIGHT_FRAMES;
   if (Number.isFinite(character.projectileFlightFrames)) return character.projectileFlightFrames;
@@ -694,6 +705,7 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 }
 
 function getRlHitSegments(character) {
+  if (isCinderella(character)) return CINDERELLA_INITIAL_HIT_SEQUENCE[0];
   const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
   const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
   const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
@@ -711,12 +723,14 @@ function getBaseChargeUnit(character) {
 }
 
 function getChargeHitMultiplier(character, shotNumber = null) {
+  if (isCinderella(character)) return getCinderellaChargeHitCount(shotNumber);
   if (character.weapon === "RL") return getRlHitSegments(character);
   if (character.weapon === "SG") return 10;
   return 1 + getPenetrationExtraHitCount(character, shotNumber);
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
+  if (isCinderella(character)) return "命中：3/2/2/2/3/3 hit，之后 2/2/2/2/3/3 hit 循环";
   return `命中：${hitMultiplier} hit`;
 }
 
@@ -888,6 +902,10 @@ function getAttackShotCount(event) {
   return MG_WARMUP_EVENTS[event.mgWarmupIndex]?.shots ?? 1;
 }
 
+function getAttackChargeShotNumber(event, shotCount = 1) {
+  return isCinderella(event.character) ? event.shotsInMagazine + shotCount : event.hits;
+}
+
 function getCounterHitCount(character, shotCount = 1) {
   if (character.weapon === "SG") return shotCount * 10;
   return shotCount;
@@ -913,6 +931,14 @@ function getTargetPositionIndex(character, teamKey = "attack") {
 function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotNumber = null) {
   const shotHits = getCounterHitCount(character, shotCount);
   const targetPositionIndex = getTargetPositionIndex(character, teamKey);
+
+  if (isCinderella(character)) {
+    return {
+      totalHits: shotHits,
+      bodyHits: [[targetPositionIndex, shotCount]],
+      targetHits: [[targetPositionIndex, getCinderellaChargeHitCount(shotNumber)]],
+    };
+  }
 
   if (character.weapon === "RL") {
     const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
@@ -1231,6 +1257,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       const shotCount = getAttackShotCount(event);
       const isMissedShot = isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline);
       event.hits += shotCount;
+      const chargeShotNumber = getAttackChargeShotNumber(event, shotCount);
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
       if (event.character.weapon === "RL" && event.projectileFlightFrames > 0) {
         const flightEvent = {
@@ -1260,13 +1287,13 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
         return;
       }
 
-      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, event.hits);
+      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber);
       const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
-      const chargeValue = getChargeValue(event.character, event.hits) * shotCount;
+      const chargeValue = getChargeValue(event.character, chargeShotNumber) * shotCount;
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
       event.attackChargeTotal += chargeValue;
-      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount, event.hits));
+      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount, chargeShotNumber));
       const currentContribution = contributions.get(getContributionKey(event, true));
       if (currentContribution) {
         const receivedHitTotal = receivedPositionHits.reduce((sum, [, hitCount]) => sum + hitCount, 0);

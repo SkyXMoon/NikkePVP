@@ -19,6 +19,8 @@ const LITTLE_MERMAID_STUN_DURATION_FRAMES = 180;
 const LITTLE_MERMAID_STUN_TARGET_INDEX = 0;
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 10;
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 12;
+const CINDERELLA_INITIAL_HIT_SEQUENCE = [3, 2, 2, 2, 3, 3];
+const CINDERELLA_LOOP_HIT_SEQUENCE = [2, 2, 2, 2, 3, 3];
 const DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES = 60;
 
 let runtimeState = null;
@@ -87,6 +89,15 @@ function isLittleMermaid(character) {
 
 function isCinderella(character) {
   return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
+}
+
+function getCinderellaChargeHitCount(shotNumber = 1) {
+  const normalizedShotNumber = Math.max(1, Math.floor(Number(shotNumber) || 1));
+  if (normalizedShotNumber <= CINDERELLA_INITIAL_HIT_SEQUENCE.length) {
+    return CINDERELLA_INITIAL_HIT_SEQUENCE[normalizedShotNumber - 1];
+  }
+  const loopIndex = (normalizedShotNumber - CINDERELLA_INITIAL_HIT_SEQUENCE.length - 1) % CINDERELLA_LOOP_HIT_SEQUENCE.length;
+  return CINDERELLA_LOOP_HIT_SEQUENCE[loopIndex];
 }
 
 function resultHasRosanna(result) {
@@ -214,6 +225,7 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 }
 
 function getRlHitSegments(character) {
+  if (isCinderella(character)) return CINDERELLA_INITIAL_HIT_SEQUENCE[0];
   const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
   const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
   const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
@@ -225,8 +237,14 @@ function getEffectiveBurstGen(character) {
   return character.quantumRelicCubeEnabled ? baseBurstGen * QUANTUM_RELIC_CUBE_MULTIPLIER : baseBurstGen;
 }
 
-function getChargeValue(character) {
-  const coverMultiplier = character.weapon === "RL" ? getRlHitSegments(character) : character.hasPenetration ? 2 : 1;
+function getChargeValue(character, shotNumber = null) {
+  const coverMultiplier = isCinderella(character)
+    ? getCinderellaChargeHitCount(shotNumber)
+    : character.weapon === "RL"
+      ? getRlHitSegments(character)
+      : character.hasPenetration
+        ? 2
+        : 1;
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
   return getEffectiveBurstGen(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
@@ -255,6 +273,10 @@ function getAttackShotCount(event) {
   return MG_WARMUP_EVENTS[event.mgWarmupIndex]?.shots ?? 1;
 }
 
+function getAttackChargeShotNumber(event, shotCount = 1) {
+  return isCinderella(event.character) ? event.shotsInMagazine + shotCount : event.hits;
+}
+
 function getCounterHitCount(character, shotCount = 1) {
   if (character.weapon === "SG") return shotCount * 10;
   return shotCount;
@@ -265,9 +287,17 @@ function getTargetPositionIndex(character, teamKey = "attack") {
   return rule === "↖" || rule === "↘" ? ENEMY_TEAM_SIZE - 1 : DEFAULT_RL_TARGET_INDEX;
 }
 
-function getAttackHitProfile(character, shotCount = 1, teamKey = "attack") {
+function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotNumber = null) {
   const shotHits = getCounterHitCount(character, shotCount);
   const targetPositionIndex = getTargetPositionIndex(character, teamKey);
+
+  if (isCinderella(character)) {
+    return {
+      totalHits: shotHits,
+      positionHits: [[targetPositionIndex, shotCount]],
+      targetHits: [[targetPositionIndex, getCinderellaChargeHitCount(shotNumber)]],
+    };
+  }
 
   if (character.weapon === "RL") {
     const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
@@ -563,6 +593,7 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
       const shotCount = getAttackShotCount(event);
       const isMissedShot = isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTimeline);
       event.hits += shotCount;
+      const chargeShotNumber = getAttackChargeShotNumber(event, shotCount);
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
       if (event.character.weapon === "RL" && event.projectileFlightFrames > 0) {
         const flightEvent = {
@@ -590,9 +621,9 @@ function simulateBurst(team, teamKey = "attack", specialChargeEvents = [], oppon
         return;
       }
 
-      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey);
+      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber);
       const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
-      const chargeValue = event.chargeValue * shotCount;
+      const chargeValue = getChargeValue(event.character, chargeShotNumber) * shotCount;
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
       event.attackChargeTotal += chargeValue;
