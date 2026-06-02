@@ -2096,7 +2096,7 @@ function computeBattleResults() {
 }
 
 function shouldUseWorkerCalculation() {
-  return location.protocol !== "file:";
+  return false;
 }
 
 function createCalculationPayload() {

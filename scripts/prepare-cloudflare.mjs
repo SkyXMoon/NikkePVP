@@ -21,10 +21,7 @@ async function prepareDataModule() {
 
 async function preparePublicIndex() {
   const source = await readFile(join(root, "index.html"), "utf8");
-  const html = source
-    .replace(/\s*<script src="data\.js"><\/script>/, "")
-    .replace('<script src="app.js"></script>', '<script src="app.js"></script>');
-  await writeFile(join(publicDir, "index.html"), html, "utf8");
+  await writeFile(join(publicDir, "index.html"), source, "utf8");
 }
 
 await rm(buildRoot, { recursive: true, force: true });
@@ -33,6 +30,7 @@ await mkdir(generatedDir, { recursive: true });
 
 await prepareDataModule();
 await preparePublicIndex();
+await copyStaticAsset("data.js");
 await copyStaticAsset("app.js");
 await copyStaticAsset("styles.css");
 await copyStaticAsset("assets");
