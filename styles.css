@@ -1518,8 +1518,8 @@ input:focus {
   right: 0;
   bottom: 0;
   z-index: 2;
-  min-width: 22px;
-  padding: 1px 4px;
+  min-width: 18px;
+  padding: 1px 2px;
   border: 1px solid rgba(221, 251, 255, 0.5);
   border-radius: 4px;
   color: #fff;
