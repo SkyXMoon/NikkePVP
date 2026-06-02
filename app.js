@@ -98,7 +98,7 @@ const state = {
   },
   activeLineupIndex: 0,
   lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
-  allowMissedShots: true,
+  allowMissedShots: false,
   compactAvatarIcons: true,
   activeTeamKey: "attack",
   filters: {
@@ -791,7 +791,7 @@ function isRlShotMissedByReload(event, currentFrame, teamKey, opponentReloadTime
 function characterForSlot(character, positionIndex, teamKey = "attack") {
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
-  const savedMagazine = isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
+  const savedMagazine = state.allowMissedShots && isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
   return {
     ...character,
     stats: savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats,
@@ -1367,7 +1367,7 @@ function createSlotSettingsModal() {
   const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
   const canEditChargeSpeed = canShowFinishMarker(character);
   const quantumCubeEnabled = getSavedCharacterQuantumCube(character, teamKey);
-  const isScarletSettings = isScarlet(character);
+  const isScarletSettings = state.allowMissedShots && isScarlet(character);
   const magazineValue = getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
   const backdrop = document.createElement("div");
   backdrop.className = "slot-settings-backdrop";
@@ -1547,7 +1547,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const isSettingsOpen = character && isSlotSettingsOpen(teamKey, index);
       const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
       const universalChargeValue = sanitizeUniversalCharge(universalCharges[index]);
-      const savedMagazine = character && isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
+      const savedMagazine = character && state.allowMissedShots && isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
@@ -3185,7 +3185,7 @@ function loadTeam() {
       } else {
         saveCurrentLineupSlot();
       }
-      state.allowMissedShots = saved.allowMissedShots !== false;
+      state.allowMissedShots = saved.allowMissedShots === true;
       rememberLoadedTeamChargeSpeeds("defense");
       rememberLoadedTeamChargeSpeeds("attack");
       normalizeJackalLinks();
@@ -3214,7 +3214,7 @@ function loadTeam() {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
     };
-    state.allowMissedShots = true;
+    state.allowMissedShots = false;
   }
 }
 

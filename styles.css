@@ -629,7 +629,7 @@ input:focus {
   position: relative;
   width: 17px;
   height: 17px;
-  border: 2px solid currentColor;
+  border: 2px dashed currentColor;
   border-radius: 999px;
 }
 
@@ -643,8 +643,10 @@ input:focus {
 .miss-icon::before {
   left: 50%;
   top: -5px;
-  width: 2px;
+  width: 0;
   height: 23px;
+  border-left: 2px dashed currentColor;
+  background: transparent;
   transform: translateX(-50%);
 }
 
@@ -652,7 +654,9 @@ input:focus {
   left: -5px;
   top: 50%;
   width: 23px;
-  height: 2px;
+  height: 0;
+  border-top: 2px dashed currentColor;
+  background: transparent;
   transform: translateY(-50%);
 }
 
