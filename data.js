@@ -1300,7 +1300,12 @@ const CHARACTERS = [
     "hasPenetration": false,
     "hasExtraDamage": false,
     "delayedExtraHits": [],
-    "hitCountExtraEvents": [],
+    "hitCountExtraEvents": [
+      {
+        "every": 5,
+        "segments": 1
+      }
+    ],
     "flatBurstBonus": 0,
     "company": "米西利斯",
     "burstStage": "B3",

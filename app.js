@@ -624,7 +624,10 @@ function getChargeBreakdown(character) {
   if (character.hitCountExtraEvents?.length) {
     lines.push(
       `攻击次数追加：${character.hitCountExtraEvents
-        .map((event) => `第${event.hit}次 +${formatNumber(effectiveBurstGen * event.segments * extraMultiplier, 2)}%`)
+        .map((event) => {
+          const triggerText = event.every ? `每${event.every}发` : `第${event.hit}次`;
+          return `${triggerText} +${formatNumber(effectiveBurstGen * event.segments * extraMultiplier, 2)}%`;
+        })
         .join("，")}`,
     );
   }
@@ -709,7 +712,7 @@ function getDelayedExtraEvents(event, currentFrame) {
 
 function getHitCountExtraCharge(event) {
   return (event.character.hitCountExtraEvents || [])
-    .filter((extra) => extra.hit === event.hits)
+    .filter((extra) => extra.hit === event.hits || (extra.every && event.hits > 0 && event.hits % extra.every === 0))
     .reduce((sum, extra) => {
       const extraMultiplier = event.character.hasExtraDamage ? 2 : 1;
       return sum + getEffectiveBurstGen(event.character) * extra.segments * extraMultiplier;
