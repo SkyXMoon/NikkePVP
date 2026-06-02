@@ -3475,16 +3475,30 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     })
     .join("");
   const reloadDurationTracks = visibleReloadEvents
-    .map((reload) => {
+    .flatMap((reload) => {
       const y = yForGroup(`${reload.teamKey}-${reload.positionIndex}`);
       const startFrame = Math.min(reload.startFrame, maxFrame);
-      const endFrame = Math.min(reload.endFrame, maxFrame, reload.displayEndFrame);
-      if (endFrame <= startFrame) return "";
+      const group = memberPointGroups.find((item) => item.teamKey === reload.teamKey && item.member.positionIndex === reload.positionIndex);
+      const nextHitFrame = group?.frames.find((frame) => frame > reload.startFrame) ?? reload.endFrame;
+      const endFrame = Math.min(nextHitFrame, maxFrame, reload.displayEndFrame);
+      if (endFrame <= startFrame) return [];
       const dodgeEndFrame = Math.min(reload.endFrame, reload.startFrame + MISS_DODGE_WINDOW_FRAMES);
+      const visibleDodgeEndFrame = Math.min(dodgeEndFrame, maxFrame, reload.displayEndFrame);
       const tooltip = escapeHtml(
         `${reload.characterName}\n换弹：${reload.startFrame}F → ${reload.endFrame}F\n可空判定：${reload.startFrame}F → ${dodgeEndFrame}F`,
       );
-      return `<line class="chart-dodge-track chart-dodge-reload-duration team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
+      const lines = [];
+      if (visibleDodgeEndFrame > startFrame) {
+        lines.push(
+          `<line class="chart-dodge-track chart-dodge-reload-window team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(visibleDodgeEndFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`,
+        );
+      }
+      if (endFrame > visibleDodgeEndFrame) {
+        lines.push(
+          `<line class="chart-dodge-track chart-dodge-reload-duration team-${reload.teamKey}" x1="${xForFrame(visibleDodgeEndFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`,
+        );
+      }
+      return lines;
     })
     .join("");
   const dodgeTracks = visibleDodgeEvents
