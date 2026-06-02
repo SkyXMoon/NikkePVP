@@ -1649,8 +1649,9 @@ input:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
-  height: 20px;
+  min-width: 0;
+  width: 22px;
+  height: 22px;
   border: 1px solid rgba(235, 241, 248, 0.38);
   border-radius: 5px;
   padding: 0 4px;
@@ -1664,8 +1665,8 @@ input:focus {
 .slot-counter-toggle {
   left: 50%;
   right: auto;
-  min-width: 24px;
-  width: 24px;
+  min-width: 0;
+  width: 22px;
   padding: 0;
   transform: translateX(-50%);
 }
@@ -1695,14 +1696,14 @@ input:focus {
 }
 
 .slot-pierce-icon {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   object-fit: contain;
 }
 
 .slot-counter-toggle img {
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   object-fit: contain;
 }
 
@@ -2332,8 +2333,9 @@ summary {
   .slot-pierce-count,
   .slot-counter-toggle {
     bottom: 2px;
-    min-width: 28px;
-    height: 17px;
+    min-width: 0;
+    width: 18px;
+    height: 18px;
     border-radius: 4px;
     padding: 0 3px;
   }
@@ -2341,14 +2343,13 @@ summary {
   .slot-counter-toggle {
     left: 50%;
     right: auto;
-    min-width: 18px;
     width: 18px;
     padding: 0;
   }
 
   .slot-pierce-icon {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
   }
 
   .slot-pierce-value {
@@ -2356,8 +2357,8 @@ summary {
   }
 
   .slot-counter-toggle img {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
   }
 
   .slot-copy .finish-mark {
