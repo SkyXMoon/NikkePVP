@@ -19,8 +19,9 @@ const LITTLE_MERMAID_STUN_DURATION_FRAMES = 180;
 const LITTLE_MERMAID_STUN_TARGET_INDEX = 0;
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 0;
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 22;
-const CINDERELLA_INITIAL_HIT_SEQUENCE = [4, 2, 2, 2, 4, 4];
-const CINDERELLA_LOOP_HIT_SEQUENCE = [2, 2, 2, 2, 4, 4];
+const CINDERELLA_INITIAL_CHARGE_SEQUENCE = [4, 2, 2, 2, 4, 4];
+const CINDERELLA_LOOP_CHARGE_SEQUENCE = [2, 2, 2, 2, 4, 4];
+const CINDERELLA_TARGET_HIT_COUNT = 2;
 const CINDERELLA_INITIAL_CHARGE_FRAMES = 70;
 const DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES = 60;
 
@@ -92,13 +93,13 @@ function isCinderella(character) {
   return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
 }
 
-function getCinderellaChargeHitCount(shotNumber = 1) {
+function getCinderellaChargeMultiplier(shotNumber = 1) {
   const normalizedShotNumber = Math.max(1, Math.floor(Number(shotNumber) || 1));
-  if (normalizedShotNumber <= CINDERELLA_INITIAL_HIT_SEQUENCE.length) {
-    return CINDERELLA_INITIAL_HIT_SEQUENCE[normalizedShotNumber - 1];
+  if (normalizedShotNumber <= CINDERELLA_INITIAL_CHARGE_SEQUENCE.length) {
+    return CINDERELLA_INITIAL_CHARGE_SEQUENCE[normalizedShotNumber - 1];
   }
-  const loopIndex = (normalizedShotNumber - CINDERELLA_INITIAL_HIT_SEQUENCE.length - 1) % CINDERELLA_LOOP_HIT_SEQUENCE.length;
-  return CINDERELLA_LOOP_HIT_SEQUENCE[loopIndex];
+  const loopIndex = (normalizedShotNumber - CINDERELLA_INITIAL_CHARGE_SEQUENCE.length - 1) % CINDERELLA_LOOP_CHARGE_SEQUENCE.length;
+  return CINDERELLA_LOOP_CHARGE_SEQUENCE[loopIndex];
 }
 
 function resultHasRosanna(result) {
@@ -226,7 +227,7 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 }
 
 function getRlHitSegments(character) {
-  if (isCinderella(character)) return CINDERELLA_INITIAL_HIT_SEQUENCE[0];
+  if (isCinderella(character)) return CINDERELLA_TARGET_HIT_COUNT;
   const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
   const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
   const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
@@ -240,7 +241,7 @@ function getEffectiveBurstGen(character) {
 
 function getChargeValue(character, shotNumber = null) {
   const coverMultiplier = isCinderella(character)
-    ? getCinderellaChargeHitCount(shotNumber)
+    ? getCinderellaChargeMultiplier(shotNumber)
     : character.weapon === "RL"
       ? getRlHitSegments(character)
       : character.hasPenetration
@@ -296,7 +297,7 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotN
     return {
       totalHits: shotHits,
       positionHits: [[targetPositionIndex, shotCount]],
-      targetHits: [[targetPositionIndex, getCinderellaChargeHitCount(shotNumber)]],
+      targetHits: [[targetPositionIndex, CINDERELLA_TARGET_HIT_COUNT]],
     };
   }
 

@@ -49,8 +49,9 @@ const LITTLE_MERMAID_TIMELINE_EVENT = {
 };
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 0;
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 22;
-const CINDERELLA_INITIAL_HIT_SEQUENCE = [4, 2, 2, 2, 4, 4];
-const CINDERELLA_LOOP_HIT_SEQUENCE = [2, 2, 2, 2, 4, 4];
+const CINDERELLA_INITIAL_CHARGE_SEQUENCE = [4, 2, 2, 2, 4, 4];
+const CINDERELLA_LOOP_CHARGE_SEQUENCE = [2, 2, 2, 2, 4, 4];
+const CINDERELLA_TARGET_HIT_COUNT = 2;
 const CINDERELLA_INITIAL_CHARGE_FRAMES = 70;
 const DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES = 60;
 const CHART_MAX_FRAME = 600;
@@ -604,13 +605,13 @@ function isCinderella(character) {
   return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
 }
 
-function getCinderellaChargeHitCount(shotNumber = 1) {
+function getCinderellaChargeMultiplier(shotNumber = 1) {
   const normalizedShotNumber = Math.max(1, Math.floor(Number(shotNumber) || 1));
-  if (normalizedShotNumber <= CINDERELLA_INITIAL_HIT_SEQUENCE.length) {
-    return CINDERELLA_INITIAL_HIT_SEQUENCE[normalizedShotNumber - 1];
+  if (normalizedShotNumber <= CINDERELLA_INITIAL_CHARGE_SEQUENCE.length) {
+    return CINDERELLA_INITIAL_CHARGE_SEQUENCE[normalizedShotNumber - 1];
   }
-  const loopIndex = (normalizedShotNumber - CINDERELLA_INITIAL_HIT_SEQUENCE.length - 1) % CINDERELLA_LOOP_HIT_SEQUENCE.length;
-  return CINDERELLA_LOOP_HIT_SEQUENCE[loopIndex];
+  const loopIndex = (normalizedShotNumber - CINDERELLA_INITIAL_CHARGE_SEQUENCE.length - 1) % CINDERELLA_LOOP_CHARGE_SEQUENCE.length;
+  return CINDERELLA_LOOP_CHARGE_SEQUENCE[loopIndex];
 }
 
 function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
@@ -706,7 +707,7 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 }
 
 function getRlHitSegments(character) {
-  if (isCinderella(character)) return CINDERELLA_INITIAL_HIT_SEQUENCE[0];
+  if (isCinderella(character)) return CINDERELLA_TARGET_HIT_COUNT;
   const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
   const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
   const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
@@ -724,14 +725,14 @@ function getBaseChargeUnit(character) {
 }
 
 function getChargeHitMultiplier(character, shotNumber = null) {
-  if (isCinderella(character)) return getCinderellaChargeHitCount(shotNumber);
+  if (isCinderella(character)) return getCinderellaChargeMultiplier(shotNumber);
   if (character.weapon === "RL") return getRlHitSegments(character);
   if (character.weapon === "SG") return 10;
   return 1 + getPenetrationExtraHitCount(character, shotNumber);
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
-  if (isCinderella(character)) return "命中：4/2/2/2/4/4 hit，之后 2/2/2/2/4/4 hit 循环";
+  if (isCinderella(character)) return `命中：${CINDERELLA_TARGET_HIT_COUNT} hit；充能倍率：4/2/2/2/4/4，之后 2/2/2/2/4/4 循环`;
   return `命中：${hitMultiplier} hit`;
 }
 
@@ -937,7 +938,7 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotN
     return {
       totalHits: shotHits,
       bodyHits: [[targetPositionIndex, shotCount]],
-      targetHits: [[targetPositionIndex, getCinderellaChargeHitCount(shotNumber)]],
+      targetHits: [[targetPositionIndex, CINDERELLA_TARGET_HIT_COUNT]],
     };
   }
 
