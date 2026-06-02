@@ -610,10 +610,10 @@ function getChargeHitMultiplier(character) {
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
-  if (character.weapon === "RL") return `RL命中：${hitMultiplier}段`;
-  if (character.weapon === "SG") return "命中：10段";
-  if (character.hasPenetration) return "穿透：2段";
-  return "命中：1段";
+  if (character.weapon === "RL") return `RL命中：${hitMultiplier}hit`;
+  if (character.weapon === "SG") return "命中：10hit";
+  if (character.hasPenetration) return "穿透：2hit";
+  return "命中：1hit";
 }
 
 function getChargeValue(character) {
@@ -1187,7 +1187,7 @@ function getTagMarkup(character) {
   if (character.hasPenetration) tags.push("穿透");
   if (character.hasExtraDamage) tags.push("额外伤害");
   if (character.flatBurstBonus) tags.push(`固定 +${character.flatBurstBonus}`);
-  if (character.weapon === "RL") tags.push(`RL ${getRlHitSegments(character)} 段`);
+  if (character.weapon === "RL") tags.push(`RL ${getRlHitSegments(character)} hit`);
   return tags.map((tag) => `<span class="pill">${escapeHtml(tag)}</span>`).join("");
 }
 
