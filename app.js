@@ -1043,9 +1043,11 @@ function getTargetPositionIndex(character, teamKey = "attack") {
   return rule === "↖" || rule === "↘" ? ENEMY_TEAM_SIZE - 1 : DEFAULT_RL_TARGET_INDEX;
 }
 
-function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotNumber = null) {
+function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotNumber = null, targetPositionIndexOverride = null) {
   const shotHits = getCounterHitCount(character, shotCount);
-  const targetPositionIndex = getTargetPositionIndex(character, teamKey);
+  const targetPositionIndex = Number.isInteger(targetPositionIndexOverride)
+    ? Math.max(0, Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndexOverride))
+    : getTargetPositionIndex(character, teamKey);
 
   if (isCinderella(character)) {
     return {
@@ -1097,6 +1099,44 @@ function isReloadingAtFrame(positionIndex, frame, reloadTimeline = []) {
 function getReceivedPositionHits(character, hitProfile, frame, opponentReloadTimeline = []) {
   if (character.weapon === "RL") return hitProfile.bodyHits;
   return hitProfile.bodyHits.filter(([positionIndex]) => !isReloadingAtFrame(positionIndex, frame, opponentReloadTimeline));
+}
+
+function isNoah(character) {
+  return character?.id === 12 || character?.name === "诺雅" || character?.slug === "诺雅";
+}
+
+function isNoise(character) {
+  return character?.id === 49 || character?.name === "诺伊斯" || character?.slug === "诺伊斯";
+}
+
+function isTauntCharacter(character) {
+  return isNoah(character) || isNoise(character);
+}
+
+function getTauntTargetState(team = [], teamKey = "attack") {
+  const candidates = team
+    .map((character, positionIndex) => {
+      if (!character || !isTauntCharacter(character)) return null;
+      const slotCharacter = characterForSlot(character, positionIndex, teamKey);
+      const timing = getChargeFrames(slotCharacter, positionIndex, teamKey);
+      return {
+        positionIndex,
+        chargeFrames: Number(timing.chargeFrames) || 0,
+        activationFrame: Number(timing.firstFrame) || 0,
+      };
+    })
+    .filter(Boolean);
+  if (!candidates.length) return null;
+  candidates.sort((a, b) => b.chargeFrames - a.chargeFrames || b.positionIndex - a.positionIndex);
+  return candidates[0];
+}
+
+function getTauntedTargetPositionIndex(event, attackSequenceNumber, currentFrame, opponentTauntTarget = null) {
+  if (!Number.isInteger(opponentTauntTarget?.positionIndex)) return null;
+  if (!event || event.positionIndex > 1) return null;
+  if (attackSequenceNumber < 2) return null;
+  if (currentFrame <= opponentTauntTarget.activationFrame) return null;
+  return opponentTauntTarget.positionIndex;
 }
 
 function getMagazineSize(character) {
@@ -1261,10 +1301,19 @@ function isMissedByDodgeWindow(positionIndex, flightStartFrame, hitFrame, window
   return flightStartFrame < window.startFrame && window.startFrame < hitFrame && hitFrame < windowEndFrame;
 }
 
-function getRlShotMissDodgeWindow(event, currentFrame, teamKey, opponentReloadTimeline = [], opponentTurnDodgeTimeline = []) {
+function getRlShotMissDodgeWindow(
+  event,
+  currentFrame,
+  teamKey,
+  opponentReloadTimeline = [],
+  opponentTurnDodgeTimeline = [],
+  targetPositionIndexOverride = null,
+) {
   if (!state.allowMissedShots) return false;
   if (event.character.weapon !== "RL" || event.projectileFlightFrames <= 0) return false;
-  const targetPositionIndex = getTargetPositionIndex(event.character, teamKey);
+  const targetPositionIndex = Number.isInteger(targetPositionIndexOverride)
+    ? Math.max(0, Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndexOverride))
+    : getTargetPositionIndex(event.character, teamKey);
   const flightStartFrame = Math.max(0, currentFrame - event.projectileFlightFrames);
   return [
     ...opponentReloadTimeline.map((window) => ({ ...window, type: "reload" })),
@@ -1295,6 +1344,7 @@ function simulateBurst(
   opponentReloadTimeline = [],
   opponentTurnDodgeTimeline = [],
   stunWindows = [],
+  opponentTauntTarget = null,
 ) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
@@ -1442,12 +1492,20 @@ function simulateBurst(
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
+      const attackSequenceNumber = event.hitFrames.length + 1;
+      const tauntedTargetPositionIndex = getTauntedTargetPositionIndex(
+        event,
+        attackSequenceNumber,
+        currentFrame,
+        opponentTauntTarget,
+      );
       const missDodgeWindow = getRlShotMissDodgeWindow(
         event,
         currentFrame,
         teamKey,
         opponentReloadTimeline,
         opponentTurnDodgeTimeline,
+        tauntedTargetPositionIndex,
       );
       const isMissedShot = Boolean(missDodgeWindow);
       event.hits += shotCount;
@@ -1487,7 +1545,7 @@ function simulateBurst(
         return;
       }
 
-      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber);
+      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber, tauntedTargetPositionIndex);
       const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
       const chargeValue = getChargeValue(event.character, chargeShotNumber) * shotCount;
       totalCharge += chargeValue;
@@ -3184,8 +3242,10 @@ function getResultSignature(result) {
 function computeBattleResults() {
   const attackStunWindows = getStunWindowsForTeam("attack");
   const defenseStunWindows = getStunWindowsForTeam("defense");
-  let attackResult = simulateBurst(state.team, "attack", [], [], [], attackStunWindows);
-  let defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], [], defenseStunWindows);
+  const defenseTauntTarget = getTauntTargetState(state.defenseTeam, "defense");
+  const attackTauntTarget = getTauntTargetState(state.team, "attack");
+  let attackResult = simulateBurst(state.team, "attack", [], [], [], attackStunWindows, defenseTauntTarget);
+  let defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], [], defenseStunWindows, attackTauntTarget);
 
   for (let index = 0; index < 8; index += 1) {
     const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
@@ -3197,6 +3257,7 @@ function computeBattleResults() {
       defenseResult?.reloadTimeline || [],
       defenseResult?.turnDodgeTimeline || [],
       attackStunWindows,
+      defenseTauntTarget,
     );
     const nextDefenseResult = simulateBurst(
       state.defenseTeam,
@@ -3205,6 +3266,7 @@ function computeBattleResults() {
       attackResult?.reloadTimeline || [],
       attackResult?.turnDodgeTimeline || [],
       defenseStunWindows,
+      attackTauntTarget,
     );
     const stable =
       getResultSignature(nextAttackResult) === getResultSignature(attackResult) &&
