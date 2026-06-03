@@ -165,6 +165,7 @@ const state = {
   activeLineupIndex: 0,
   lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
   allowMissedShots: true,
+  testMode: false,
   compactAvatarIcons: true,
   activeTeamKey: "attack",
   filters: {
@@ -213,6 +214,7 @@ const localPaidInferenceState = {
   missShots: Array(TEAM_SIZE).fill(0),
   result: null,
   error: "",
+  loading: false,
 };
 
 const TEAM_LABELS = {
@@ -1640,7 +1642,7 @@ function setTeamSlotDragImage(event, slot) {
 function isTeamSlotDragControl(target) {
   return Boolean(
     target?.closest?.(
-      ".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .universal-charge-field",
+      ".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .slot-test-shot, .universal-charge-field",
     ),
   );
 }
@@ -2319,58 +2321,11 @@ function formatPaidInferenceMatch(match, key) {
   return `P${match.attackPosition} ${match.attackCharacterName} 第${match.shotNumber}发：${values || "无匹配"}`;
 }
 
-function getPaidInferenceResultMarkup() {
-  if (localPaidInferenceState.error) {
-    return `<div class="paid-inference-result is-error">${escapeHtml(localPaidInferenceState.error)}</div>`;
-  }
-  const result = localPaidInferenceState.result;
-  if (!result) {
-    return `<div class="paid-inference-result">选择空枪发数后点击运行反推。Pro 后端需在本地 8787 端口运行。</div>`;
-  }
-  const noah = result.candidates?.find((candidate) => candidate.type === "noah-charge-speed");
-  const scarlet = result.candidates?.find((candidate) => candidate.type === "scarlet-magazine");
-  const sections = [
-    {
-      title: noah?.characterName || "诺雅",
-      lines: noah?.matches?.map((match) => formatPaidInferenceMatch(match, "chargeSpeeds")) || [],
-    },
-    {
-      title: scarlet?.characterName || "红莲",
-      lines: scarlet?.matches?.map((match) => formatPaidInferenceMatch(match, "magazines")) || [],
-    },
-  ];
-  return `
-    <div class="paid-inference-result">
-      ${sections
-        .map(
-          (section) => `
-            <div class="paid-inference-section">
-              <strong>${escapeHtml(section.title)}</strong>
-              ${
-                section.lines.length
-                  ? section.lines.map((line) => `<span>${escapeHtml(line)}</span>`).join("")
-                  : "<span>无匹配</span>"
-              }
-            </div>
-          `,
-        )
-        .join("")}
-    </div>
-  `;
-}
-
-async function runLocalPaidInference(backdrop) {
-  const resultNode = backdrop.querySelector(".paid-inference-result-wrap");
-  const activeShotCount = localPaidInferenceState.missShots.filter((shot) => shot > 0).length;
-  if (activeShotCount === 0) {
-    localPaidInferenceState.result = null;
-    localPaidInferenceState.error = "请先给至少一个进攻 RL 角色选择第几发空枪。";
-    resultNode.innerHTML = getPaidInferenceResultMarkup();
-    return;
-  }
-  localPaidInferenceState.result = null;
+async function refreshLocalPaidInference() {
+  localPaidInferenceState.loading = true;
   localPaidInferenceState.error = "";
-  resultNode.innerHTML = `<div class="paid-inference-result">正在请求本地 Pro 后端...</div>`;
+  localPaidInferenceState.result = null;
+  renderTeam();
   try {
     const response = await fetch(LOCAL_PAID_API_URL, {
       method: "POST",
@@ -2385,82 +2340,57 @@ async function runLocalPaidInference(backdrop) {
       throw new Error(data?.message || `Pro 后端返回 ${response.status}`);
     }
     localPaidInferenceState.result = data.data;
-    resultNode.innerHTML = getPaidInferenceResultMarkup();
   } catch (error) {
-    localPaidInferenceState.error = `无法连接本地 Pro 后端。请先在 E:\\CodexWorkSpace\\Nikke-PVP-Pro 运行 npm run dev。${error?.message ? ` (${error.message})` : ""}`;
-    resultNode.innerHTML = getPaidInferenceResultMarkup();
+    localPaidInferenceState.error = `无法连接本地 Pro 后端。请确认 http://localhost:8787 已启动。${error?.message ? ` (${error.message})` : ""}`;
+  } finally {
+    localPaidInferenceState.loading = false;
+    renderTeam();
   }
 }
 
-function createPaidFeatureLocalWorkspace() {
-  const backdrop = document.createElement("div");
-  backdrop.className = "paid-modal-backdrop";
-  backdrop.setAttribute("role", "presentation");
-  const attackRows = state.team
-    .map((character, index) => {
-      const shot = Number(localPaidInferenceState.missShots[index]) || 0;
-      const canInfer = character?.weapon === "RL";
-      return `
-        <div class="paid-inference-row${canInfer ? "" : " is-disabled"}">
-          <span class="paid-inference-name">P${index + 1} ${escapeHtml(character?.name || "空")}</span>
-          <span class="paid-inference-buttons">
-            ${[0, 1, 2, 3]
-              .map(
-                (value) => `
-                  <button class="paid-shot-button${shot === value ? " is-active" : ""}" type="button" data-paid-shot-index="${index}" data-paid-shot-value="${value}" ${canInfer ? "" : "disabled"}>${value}</button>
-                `,
-              )
-              .join("")}
-          </span>
-        </div>
-      `;
-    })
-    .join("");
-  backdrop.innerHTML = `
-    <section class="paid-modal" role="dialog" aria-modal="true" aria-label="付费功能本地测试">
-      <div class="paid-modal-head">
-        <div>
-          <span class="paid-modal-kicker">Local Pro</span>
-          <strong>空枪反推</strong>
-        </div>
-        <button class="paid-modal-close" type="button" aria-label="关闭">X</button>
-      </div>
-      <div class="paid-modal-content">
-        <p>本地付费测试权限已开启。</p>
-        <p>选择进攻队 RL 角色观测到的空枪发数，运行后会调用本地 Pro 后端。</p>
-        <div class="paid-inference-grid">${attackRows}</div>
-        <div class="paid-inference-result-wrap">${getPaidInferenceResultMarkup()}</div>
-      </div>
-      <div class="paid-modal-actions">
-        <button class="paid-modal-secondary" type="button" data-paid-dev-disable>关闭本地权限</button>
-        <button class="paid-modal-secondary" type="button" data-paid-run-inference>运行反推</button>
-        <button class="paid-modal-confirm" type="button">知道了</button>
-      </div>
-    </section>
-  `;
-  backdrop.addEventListener("click", (event) => {
-    if (event.target === backdrop) closePaidFeatureModal();
+function getPaidCandidateLines(candidateType, valueKey) {
+  const candidate = localPaidInferenceState.result?.candidates?.find((item) => item.type === candidateType);
+  if (localPaidInferenceState.loading) return ["计算中..."];
+  if (localPaidInferenceState.error) return [localPaidInferenceState.error];
+  if (!candidate?.matches?.length) return ["无匹配"];
+  return candidate.matches.map((match) => formatPaidInferenceMatch(match, valueKey));
+}
+
+function renderTestDefenseRow() {
+  const row = document.createElement("section");
+  row.className = "team-row test-defense-row";
+  row.dataset.teamKey = "defense";
+  row.setAttribute("aria-label", "空枪反推候选");
+  row.innerHTML = '<div class="test-candidates-row"></div>';
+  const slotsRow = row.querySelector(".test-candidates-row");
+  const candidates = [
+    {
+      character: getCharacterById(12),
+      lines: getPaidCandidateLines("noah-charge-speed", "chargeSpeeds"),
+      hasMatch: Boolean(localPaidInferenceState.result?.candidates?.find((candidate) => candidate.type === "noah-charge-speed")?.matches?.length),
+    },
+    {
+      character: getCharacterById(37),
+      lines: getPaidCandidateLines("scarlet-magazine", "magazines"),
+      hasMatch: Boolean(localPaidInferenceState.result?.candidates?.find((candidate) => candidate.type === "scarlet-magazine")?.matches?.length),
+    },
+  ];
+
+  candidates.forEach((candidate) => {
+    const slot = document.createElement("div");
+    slot.className = `test-candidate${candidate.hasMatch ? " has-test-match" : ""}${localPaidInferenceState.error ? " is-error" : ""}`;
+    slot.innerHTML = `
+      <span class="test-candidate-avatar team-slot filled${getTeamSlotRarityClass(candidate.character)}" aria-label="${escapeHtml(candidate.character?.name || "")}">
+        <span class="team-avatar">${candidate.character ? getAvatarMarkup(candidate.character) : ""}</span>
+      </span>
+      <span class="test-candidate-result">
+        ${candidate.lines.map((line) => `<strong>${escapeHtml(line)}</strong>`).join("")}
+      </span>
+    `;
+    slotsRow.append(slot);
   });
-  backdrop.querySelector(".paid-modal").addEventListener("click", (event) => event.stopPropagation());
-  backdrop.querySelector(".paid-modal-close").addEventListener("click", closePaidFeatureModal);
-  backdrop.querySelector(".paid-modal-confirm").addEventListener("click", closePaidFeatureModal);
-  backdrop.querySelector("[data-paid-dev-disable]").addEventListener("click", () => {
-    setLocalPaidDevAccess(false);
-    closePaidFeatureModal();
-    showToast("已关闭本地付费测试权限");
-  });
-  backdrop.querySelectorAll("[data-paid-shot-index]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const index = Number(button.dataset.paidShotIndex);
-      localPaidInferenceState.missShots[index] = Number(button.dataset.paidShotValue) || 0;
-      localPaidInferenceState.result = null;
-      localPaidInferenceState.error = "";
-      closePaidFeatureModal();
-      document.body.append(createPaidFeatureLocalWorkspace());
-    });
-  });
-  backdrop.querySelector("[data-paid-run-inference]").addEventListener("click", () => runLocalPaidInference(backdrop));
-  return backdrop;
+
+  return row;
 }
 
 function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false, isLocalDev = false } = {}) {
@@ -2511,15 +2441,32 @@ function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false, is
   backdrop.querySelector("[data-paid-dev-enable]")?.addEventListener("click", () => {
     setLocalPaidDevAccess(true);
     closePaidFeatureModal();
-    document.body.append(createPaidFeatureLocalWorkspace());
+    setPaidTestMode(true);
   });
   return backdrop;
+}
+
+function setPaidTestMode(enabled) {
+  state.testMode = Boolean(enabled);
+  if (!state.testMode) {
+    localPaidInferenceState.missShots = Array(TEAM_SIZE).fill(0);
+    localPaidInferenceState.result = null;
+    localPaidInferenceState.error = "";
+    localPaidInferenceState.loading = false;
+  } else {
+    localPaidInferenceState.result = null;
+    localPaidInferenceState.error = "";
+    localPaidInferenceState.loading = false;
+  }
+  setActiveTeam("attack");
+  hideChartTooltip();
+  render();
 }
 
 function openPaidInferenceFeature() {
   if (hasLocalPaidDevAccess()) {
     closePaidFeatureModal();
-    document.body.append(createPaidFeatureLocalWorkspace());
+    setPaidTestMode(!state.testMode);
     return;
   }
   const isMiniProgram = isWechatMiniProgramRuntime();
@@ -2540,6 +2487,8 @@ function getLineupSlotCount(slot) {
 
 function renderLineupSlots() {
   if (!els.lineupSlots) return;
+  els.lineupSlots.hidden = state.testMode;
+  if (state.testMode) return;
   const fragment = document.createDocumentFragment();
   state.lineupSlots.forEach((slot, index) => {
     const count = getLineupSlotCount(slot);
@@ -2557,19 +2506,27 @@ function renderLineupSlots() {
 function renderTeam(battleResults = getBattleResultsSnapshot()) {
   const fragment = document.createDocumentFragment();
   const { attackResult, defenseResult } = battleResults;
+  if (els.paidInferenceButton) {
+    els.paidInferenceButton.classList.toggle("is-active", state.testMode);
+    els.paidInferenceButton.setAttribute("aria-pressed", String(state.testMode));
+  }
   const resultsByTeam = new Map([
     ["defense", defenseResult],
     ["attack", attackResult],
   ]);
 
   ["defense", "attack"].forEach((teamKey) => {
+    if (state.testMode && teamKey === "defense") {
+      fragment.append(renderTestDefenseRow());
+      return;
+    }
     const team = getTeamState(teamKey);
     const chargeSpeeds = getChargeSpeedState(teamKey);
     const universalCharges = getUniversalChargeState(teamKey);
     const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
     const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
     const row = document.createElement("section");
-    row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
+    row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}${state.testMode && teamKey === "attack" ? " is-test-attack" : ""}`;
     row.dataset.teamKey = teamKey;
     row.setAttribute("aria-label", TEAM_LABELS[teamKey]);
     row.innerHTML = '<div class="team-slots-row"></div>';
@@ -2595,6 +2552,8 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const displayMagazine = character ? getDisplayMagazine(character, teamKey) : null;
       const redHoodPierceCount = character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0;
       const isScarletCounterEnabled = character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false;
+      const testMissValue = Number(localPaidInferenceState.missShots[index]) || 0;
+      const canUseTestMissButton = state.testMode && teamKey === "attack" && character?.weapon === "RL";
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
@@ -2660,6 +2619,11 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
                   ${isJackalTarget ? '<img src="assets/icons/ui/link.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
                 </button>
               `
+              : ""
+          }
+          ${
+            state.testMode && teamKey === "attack"
+              ? `<button class="slot-test-shot${testMissValue > 0 ? " is-active" : ""}" type="button" ${canUseTestMissButton ? "" : "disabled"} aria-label="空枪发数 ${testMissValue}" title="空枪发数：${testMissValue}">${testMissValue}</button>`
               : ""
           }
         `
@@ -2783,6 +2747,25 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           });
           counterToggle.addEventListener("pointerdown", (event) => event.stopPropagation());
           counterToggle.addEventListener("dragstart", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          });
+        }
+        const testShotButton = slot.querySelector(".slot-test-shot");
+        if (testShotButton) {
+          testShotButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (testShotButton.disabled) return;
+            setActiveTeam("attack");
+            localPaidInferenceState.missShots[index] = ((Number(localPaidInferenceState.missShots[index]) || 0) + 1) % 4;
+            localPaidInferenceState.result = null;
+            localPaidInferenceState.error = "";
+            renderTeam();
+            refreshLocalPaidInference();
+          });
+          testShotButton.addEventListener("pointerdown", (event) => event.stopPropagation());
+          testShotButton.addEventListener("dragstart", (event) => {
             event.preventDefault();
             event.stopPropagation();
           });
