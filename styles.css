@@ -2159,10 +2159,7 @@ input:focus {
   grid-template-columns: 52px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(242, 245, 250, 0.12);
-  border-radius: 6px;
-  padding: 5px;
-  background: rgba(255, 255, 255, 0.035);
+  padding: 0;
 }
 
 .test-candidate-avatar {
@@ -2592,7 +2589,6 @@ summary {
   .test-candidate {
     grid-template-columns: 42px minmax(0, 1fr);
     gap: 5px;
-    padding: 4px;
   }
 
   .test-candidate-avatar {
