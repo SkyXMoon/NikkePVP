@@ -211,10 +211,11 @@ let resizeRenderId = null;
 let openSlotSettings = null;
 let isHelpModalOpen = false;
 const localPaidInferenceState = {
-  missShots: Array(TEAM_SIZE).fill(0),
   result: null,
   error: "",
   loading: false,
+  requestSignature: "",
+  refreshTimer: null,
 };
 
 const TEAM_LABELS = {
@@ -1642,7 +1643,7 @@ function setTeamSlotDragImage(event, slot) {
 function isTeamSlotDragControl(target) {
   return Boolean(
     target?.closest?.(
-      ".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .slot-test-shot, .universal-charge-field",
+      ".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .universal-charge-field",
     ),
   );
 }
@@ -2312,13 +2313,29 @@ function getLocalPaidInferencePayload() {
   return {
     attackTeam: state.team.map((character) => character?.id || null),
     attackChargeSpeeds: [...state.chargeSpeeds],
-    missShots: [...localPaidInferenceState.missShots],
+    maxAutoShots: 2,
   };
+}
+
+function getLocalPaidInferenceSignature() {
+  return JSON.stringify(getLocalPaidInferencePayload());
 }
 
 function formatPaidInferenceMatch(match, key) {
   const values = match.displayValues?.length ? match.displayValues.join(" / ") : (match[key] || []).join(" / ");
   return `P${match.attackPosition} ${match.attackCharacterName} 第${match.shotNumber}发：${values || "无匹配"}`;
+}
+
+function scheduleLocalPaidInferenceRefresh() {
+  if (!state.testMode || !hasLocalPaidDevAccess()) return;
+  const signature = getLocalPaidInferenceSignature();
+  if (signature === localPaidInferenceState.requestSignature && (localPaidInferenceState.loading || localPaidInferenceState.result || localPaidInferenceState.error)) return;
+  if (localPaidInferenceState.refreshTimer) clearTimeout(localPaidInferenceState.refreshTimer);
+  localPaidInferenceState.refreshTimer = setTimeout(() => {
+    localPaidInferenceState.refreshTimer = null;
+    localPaidInferenceState.requestSignature = signature;
+    refreshLocalPaidInference();
+  }, 0);
 }
 
 async function refreshLocalPaidInference() {
@@ -2449,14 +2466,15 @@ function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false, is
 function setPaidTestMode(enabled) {
   state.testMode = Boolean(enabled);
   if (!state.testMode) {
-    localPaidInferenceState.missShots = Array(TEAM_SIZE).fill(0);
     localPaidInferenceState.result = null;
     localPaidInferenceState.error = "";
     localPaidInferenceState.loading = false;
+    localPaidInferenceState.requestSignature = "";
   } else {
     localPaidInferenceState.result = null;
     localPaidInferenceState.error = "";
     localPaidInferenceState.loading = false;
+    localPaidInferenceState.requestSignature = "";
   }
   setActiveTeam("attack");
   hideChartTooltip();
@@ -2552,8 +2570,6 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const displayMagazine = character ? getDisplayMagazine(character, teamKey) : null;
       const redHoodPierceCount = character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0;
       const isScarletCounterEnabled = character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false;
-      const testMissValue = Number(localPaidInferenceState.missShots[index]) || 0;
-      const canUseTestMissButton = state.testMode && teamKey === "attack" && character?.weapon === "RL";
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
@@ -2619,11 +2635,6 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
                   ${isJackalTarget ? '<img src="assets/icons/ui/link.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
                 </button>
               `
-              : ""
-          }
-          ${
-            state.testMode && teamKey === "attack"
-              ? `<button class="slot-test-shot${testMissValue > 0 ? " is-active" : ""}" type="button" ${canUseTestMissButton ? "" : "disabled"} aria-label="空枪发数 ${testMissValue}" title="空枪发数：${testMissValue}">${testMissValue}</button>`
               : ""
           }
         `
@@ -2747,25 +2758,6 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           });
           counterToggle.addEventListener("pointerdown", (event) => event.stopPropagation());
           counterToggle.addEventListener("dragstart", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-          });
-        }
-        const testShotButton = slot.querySelector(".slot-test-shot");
-        if (testShotButton) {
-          testShotButton.addEventListener("click", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (testShotButton.disabled) return;
-            setActiveTeam("attack");
-            localPaidInferenceState.missShots[index] = ((Number(localPaidInferenceState.missShots[index]) || 0) + 1) % 4;
-            localPaidInferenceState.result = null;
-            localPaidInferenceState.error = "";
-            renderTeam();
-            refreshLocalPaidInference();
-          });
-          testShotButton.addEventListener("pointerdown", (event) => event.stopPropagation());
-          testShotButton.addEventListener("dragstart", (event) => {
             event.preventDefault();
             event.stopPropagation();
           });
@@ -4106,6 +4098,7 @@ function render() {
   renderTeam(battleResults);
   renderLineupSlots();
   renderResults(battleResults);
+  scheduleLocalPaidInferenceRefresh();
   refreshBattleResults();
 }
 
@@ -4425,6 +4418,7 @@ function saveTeam() {
       activeTeamKey: state.activeTeamKey,
     }),
   );
+  scheduleLocalPaidInferenceRefresh();
 }
 
 function loadTeam() {

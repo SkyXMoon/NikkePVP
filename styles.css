@@ -2201,48 +2201,6 @@ input:focus {
   color: #ffd9dc;
 }
 
-.slot-test-shot {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 4px);
-  z-index: 5;
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 20px;
-  border: 1px solid rgba(242, 245, 250, 0.28);
-  border-radius: 5px;
-  padding: 0;
-  color: var(--muted);
-  background: rgba(7, 9, 13, 0.9);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.38);
-  font-size: 11px;
-  font-weight: 900;
-  line-height: 1;
-  transform: translateX(-50%);
-  transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
-}
-
-.slot-test-shot:hover {
-  border-color: rgba(71, 200, 212, 0.8);
-  color: #fff;
-  transform: translateX(-50%) translateY(-1px);
-}
-
-.slot-test-shot.is-active {
-  border-color: rgba(255, 118, 132, 0.9);
-  color: #fff;
-  background: rgba(228, 63, 79, 0.9);
-}
-
-.slot-test-shot:disabled {
-  color: rgba(169, 177, 191, 0.34);
-  border-color: rgba(242, 245, 250, 0.12);
-  background: rgba(7, 9, 13, 0.48);
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
 .help-section {
   min-width: 0;
   border: 1px solid rgba(242, 245, 250, 0.1);
@@ -2675,14 +2633,6 @@ summary {
   .slot-counter-toggle img {
     width: 9px;
     height: 9px;
-  }
-
-  .slot-test-shot {
-    top: calc(100% + 3px);
-    width: 22px;
-    height: 18px;
-    border-radius: 4px;
-    font-size: 10px;
   }
 
   .slot-copy .finish-mark {
