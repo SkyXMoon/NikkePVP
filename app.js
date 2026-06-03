@@ -829,6 +829,14 @@ function getChargeValue(character, shotNumber = null) {
   return getBaseChargeUnit(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
+function getAttackChargeValue(character, shotNumber = null, hitProfile = null, shotCount = 1) {
+  if (!hitProfile || isCinderella(character)) return getChargeValue(character, shotNumber) * shotCount;
+  const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
+  const extraMultiplier = character.hasExtraDamage ? 2 : 1;
+  const flatBonus = (character.flatBurstBonus || 0) * shotCount;
+  return getBaseChargeUnit(character) * actualHitMultiplier * extraMultiplier + flatBonus;
+}
+
 function getDelayedExtraLabel(character) {
   return character?.id === 57 || character?.slug === "哈兰" || character?.name === "哈兰" ? "中毒充能" : "延迟额外";
 }
@@ -1548,7 +1556,7 @@ function simulateBurst(
 
       const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber, tauntedTargetPositionIndex);
       const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
-      const chargeValue = getChargeValue(event.character, chargeShotNumber) * shotCount;
+      const chargeValue = getAttackChargeValue(event.character, chargeShotNumber, hitProfile, shotCount);
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
       event.attackChargeTotal += chargeValue;
