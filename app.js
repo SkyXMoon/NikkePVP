@@ -6,6 +6,7 @@ const DEFAULT_RL_TARGET_INDEX = 0;
 const BURST_EPSILON = 1e-6;
 const STORAGE_KEY = "nikke-arena-charge-team-v2";
 const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
+const PAID_DEV_ACCESS_KEY = "nikke-paid-dev-access";
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
@@ -2270,6 +2271,24 @@ function isWechatMiniProgramRuntime() {
   return window.__wxjs_environment === "miniprogram" || Boolean(window.wx?.miniProgram);
 }
 
+function isLocalDevRuntime() {
+  const { protocol, hostname } = window.location;
+  return protocol === "file:" || ["localhost", "127.0.0.1", "::1"].includes(hostname);
+}
+
+function hasLocalPaidDevAccess() {
+  return isLocalDevRuntime() && localStorage.getItem(PAID_DEV_ACCESS_KEY) === "1";
+}
+
+function setLocalPaidDevAccess(enabled) {
+  if (!isLocalDevRuntime()) return;
+  if (enabled) {
+    localStorage.setItem(PAID_DEV_ACCESS_KEY, "1");
+  } else {
+    localStorage.removeItem(PAID_DEV_ACCESS_KEY);
+  }
+}
+
 function openWechatMiniProgramPaidPage() {
   const payPageUrl = "/pages/pay/index?feature=miss-inference";
   if (!window.wx?.miniProgram?.navigateTo) return false;
@@ -2281,7 +2300,44 @@ function closePaidFeatureModal() {
   document.querySelector(".paid-modal-backdrop")?.remove();
 }
 
-function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false } = {}) {
+function createPaidFeatureLocalWorkspace() {
+  const backdrop = document.createElement("div");
+  backdrop.className = "paid-modal-backdrop";
+  backdrop.setAttribute("role", "presentation");
+  backdrop.innerHTML = `
+    <section class="paid-modal" role="dialog" aria-modal="true" aria-label="付费功能本地测试">
+      <div class="paid-modal-head">
+        <div>
+          <span class="paid-modal-kicker">Local Pro</span>
+          <strong>空枪反推</strong>
+        </div>
+        <button class="paid-modal-close" type="button" aria-label="关闭">X</button>
+      </div>
+      <div class="paid-modal-content">
+        <p>本地付费测试权限已开启。</p>
+        <p>这里会作为后续付费功能的本地测试入口，线上环境不会显示这个开发通道。</p>
+      </div>
+      <div class="paid-modal-actions">
+        <button class="paid-modal-secondary" type="button" data-paid-dev-disable>关闭本地权限</button>
+        <button class="paid-modal-confirm" type="button">知道了</button>
+      </div>
+    </section>
+  `;
+  backdrop.addEventListener("click", (event) => {
+    if (event.target === backdrop) closePaidFeatureModal();
+  });
+  backdrop.querySelector(".paid-modal").addEventListener("click", (event) => event.stopPropagation());
+  backdrop.querySelector(".paid-modal-close").addEventListener("click", closePaidFeatureModal);
+  backdrop.querySelector(".paid-modal-confirm").addEventListener("click", closePaidFeatureModal);
+  backdrop.querySelector("[data-paid-dev-disable]").addEventListener("click", () => {
+    setLocalPaidDevAccess(false);
+    closePaidFeatureModal();
+    showToast("已关闭本地付费测试权限");
+  });
+  return backdrop;
+}
+
+function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false, isLocalDev = false } = {}) {
   const backdrop = document.createElement("div");
   backdrop.className = "paid-modal-backdrop";
   backdrop.setAttribute("role", "presentation");
@@ -2289,7 +2345,17 @@ function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false } =
     ? didNavigate
       ? "正在跳转到微信小程序付费页。"
       : "当前处于微信小程序环境，请在小程序付费页开通后使用。"
-    : "该功能仅在微信小程序内开放。请通过微信小程序使用付费功能。";
+    : isLocalDev
+      ? "当前是本地开发环境，可以启用本地付费测试权限。"
+      : "该功能仅在微信小程序内开放。请通过微信小程序使用付费功能。";
+  const localDevPanel = isLocalDev
+    ? `
+      <div class="paid-dev-panel">
+        <strong>本地测试</strong>
+        <span>仅当前本机浏览器生效，不会影响线上用户。</span>
+      </div>
+    `
+    : "";
   backdrop.innerHTML = `
     <section class="paid-modal" role="dialog" aria-modal="true" aria-label="付费功能">
       <div class="paid-modal-head">
@@ -2302,8 +2368,10 @@ function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false } =
       <div class="paid-modal-content">
         <p>${escapeHtml(message)}</p>
         <p>网页端暂不提供该付费功能，免费功能仍可正常使用。</p>
+        ${localDevPanel}
       </div>
       <div class="paid-modal-actions">
+        ${isLocalDev ? '<button class="paid-modal-secondary" type="button" data-paid-dev-enable>启用本地测试</button>' : ""}
         <button class="paid-modal-confirm" type="button">知道了</button>
       </div>
     </section>
@@ -2314,14 +2382,25 @@ function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false } =
   backdrop.querySelector(".paid-modal").addEventListener("click", (event) => event.stopPropagation());
   backdrop.querySelector(".paid-modal-close").addEventListener("click", closePaidFeatureModal);
   backdrop.querySelector(".paid-modal-confirm").addEventListener("click", closePaidFeatureModal);
+  backdrop.querySelector("[data-paid-dev-enable]")?.addEventListener("click", () => {
+    setLocalPaidDevAccess(true);
+    closePaidFeatureModal();
+    document.body.append(createPaidFeatureLocalWorkspace());
+  });
   return backdrop;
 }
 
 function openPaidInferenceFeature() {
+  if (hasLocalPaidDevAccess()) {
+    closePaidFeatureModal();
+    document.body.append(createPaidFeatureLocalWorkspace());
+    return;
+  }
   const isMiniProgram = isWechatMiniProgramRuntime();
+  const isLocalDev = isLocalDevRuntime();
   const didNavigate = isMiniProgram ? openWechatMiniProgramPaidPage() : false;
   closePaidFeatureModal();
-  document.body.append(createPaidFeatureModal({ isMiniProgram, didNavigate }));
+  document.body.append(createPaidFeatureModal({ isMiniProgram, didNavigate, isLocalDev }));
 }
 
 function getLineupSlotCount(slot) {
