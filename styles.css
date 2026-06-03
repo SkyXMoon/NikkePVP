@@ -2026,7 +2026,7 @@ input:focus {
 }
 
 .paid-modal {
-  width: min(420px, calc(100vw - 44px));
+  width: min(560px, calc(100vw - 44px));
   border: 1px solid rgba(240, 196, 92, 0.82);
   border-radius: 8px;
   overflow: hidden;
@@ -2090,6 +2090,93 @@ input:focus {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.55;
+}
+
+.paid-inference-grid {
+  display: grid;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.paid-inference-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(242, 245, 250, 0.1);
+  border-radius: 6px;
+  padding: 6px 7px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.paid-inference-row.is-disabled {
+  opacity: 0.46;
+}
+
+.paid-inference-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paid-inference-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.paid-shot-button {
+  width: 26px;
+  height: 24px;
+  border: 1px solid rgba(235, 241, 248, 0.28);
+  border-radius: 5px;
+  padding: 0;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.paid-shot-button.is-active {
+  border-color: rgba(77, 163, 255, 0.88);
+  color: #fff;
+  background: rgba(77, 163, 255, 0.24);
+}
+
+.paid-inference-result {
+  display: grid;
+  gap: 7px;
+  margin-top: 4px;
+  border: 1px solid rgba(71, 200, 212, 0.28);
+  border-radius: 6px;
+  padding: 9px 10px;
+  background: rgba(71, 200, 212, 0.08);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.paid-inference-result.is-error {
+  border-color: rgba(255, 118, 132, 0.48);
+  background: rgba(255, 74, 94, 0.1);
+  color: #ffd9dc;
+}
+
+.paid-inference-section {
+  display: grid;
+  gap: 3px;
+}
+
+.paid-inference-section strong {
+  color: var(--cyan);
+  font-size: 12px;
+}
+
+.paid-inference-section span {
+  overflow-wrap: anywhere;
 }
 
 .paid-modal-content p {

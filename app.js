@@ -7,6 +7,7 @@ const BURST_EPSILON = 1e-6;
 const STORAGE_KEY = "nikke-arena-charge-team-v2";
 const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const PAID_DEV_ACCESS_KEY = "nikke-paid-dev-access";
+const LOCAL_PAID_API_URL = "http://localhost:8787/api/paid/miss-inference";
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
@@ -208,6 +209,11 @@ let suppressTeamSlotClick = false;
 let resizeRenderId = null;
 let openSlotSettings = null;
 let isHelpModalOpen = false;
+const localPaidInferenceState = {
+  missShots: Array(TEAM_SIZE).fill(0),
+  result: null,
+  error: "",
+};
 
 const TEAM_LABELS = {
   defense: "防守队",
@@ -2300,10 +2306,116 @@ function closePaidFeatureModal() {
   document.querySelector(".paid-modal-backdrop")?.remove();
 }
 
+function getLocalPaidInferencePayload() {
+  return {
+    attackTeam: state.team.map((character) => character?.id || null),
+    attackChargeSpeeds: [...state.chargeSpeeds],
+    missShots: [...localPaidInferenceState.missShots],
+  };
+}
+
+function formatPaidInferenceMatch(match, key) {
+  const values = match.displayValues?.length ? match.displayValues.join(" / ") : (match[key] || []).join(" / ");
+  return `P${match.attackPosition} ${match.attackCharacterName} 第${match.shotNumber}发：${values || "无匹配"}`;
+}
+
+function getPaidInferenceResultMarkup() {
+  if (localPaidInferenceState.error) {
+    return `<div class="paid-inference-result is-error">${escapeHtml(localPaidInferenceState.error)}</div>`;
+  }
+  const result = localPaidInferenceState.result;
+  if (!result) {
+    return `<div class="paid-inference-result">选择空枪发数后点击运行反推。Pro 后端需在本地 8787 端口运行。</div>`;
+  }
+  const noah = result.candidates?.find((candidate) => candidate.type === "noah-charge-speed");
+  const scarlet = result.candidates?.find((candidate) => candidate.type === "scarlet-magazine");
+  const sections = [
+    {
+      title: noah?.characterName || "诺雅",
+      lines: noah?.matches?.map((match) => formatPaidInferenceMatch(match, "chargeSpeeds")) || [],
+    },
+    {
+      title: scarlet?.characterName || "红莲",
+      lines: scarlet?.matches?.map((match) => formatPaidInferenceMatch(match, "magazines")) || [],
+    },
+  ];
+  return `
+    <div class="paid-inference-result">
+      ${sections
+        .map(
+          (section) => `
+            <div class="paid-inference-section">
+              <strong>${escapeHtml(section.title)}</strong>
+              ${
+                section.lines.length
+                  ? section.lines.map((line) => `<span>${escapeHtml(line)}</span>`).join("")
+                  : "<span>无匹配</span>"
+              }
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+async function runLocalPaidInference(backdrop) {
+  const resultNode = backdrop.querySelector(".paid-inference-result-wrap");
+  const activeShotCount = localPaidInferenceState.missShots.filter((shot) => shot > 0).length;
+  if (activeShotCount === 0) {
+    localPaidInferenceState.result = null;
+    localPaidInferenceState.error = "请先给至少一个进攻 RL 角色选择第几发空枪。";
+    resultNode.innerHTML = getPaidInferenceResultMarkup();
+    return;
+  }
+  localPaidInferenceState.result = null;
+  localPaidInferenceState.error = "";
+  resultNode.innerHTML = `<div class="paid-inference-result">正在请求本地 Pro 后端...</div>`;
+  try {
+    const response = await fetch(LOCAL_PAID_API_URL, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer dev-paid-token",
+      },
+      body: JSON.stringify(getLocalPaidInferencePayload()),
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.ok) {
+      throw new Error(data?.message || `Pro 后端返回 ${response.status}`);
+    }
+    localPaidInferenceState.result = data.data;
+    resultNode.innerHTML = getPaidInferenceResultMarkup();
+  } catch (error) {
+    localPaidInferenceState.error = `无法连接本地 Pro 后端。请先在 E:\\CodexWorkSpace\\Nikke-PVP-Pro 运行 npm run dev。${error?.message ? ` (${error.message})` : ""}`;
+    resultNode.innerHTML = getPaidInferenceResultMarkup();
+  }
+}
+
 function createPaidFeatureLocalWorkspace() {
   const backdrop = document.createElement("div");
   backdrop.className = "paid-modal-backdrop";
   backdrop.setAttribute("role", "presentation");
+  const attackRows = state.team
+    .map((character, index) => {
+      const shot = Number(localPaidInferenceState.missShots[index]) || 0;
+      const canInfer = character?.weapon === "RL";
+      return `
+        <div class="paid-inference-row${canInfer ? "" : " is-disabled"}">
+          <span class="paid-inference-name">P${index + 1} ${escapeHtml(character?.name || "空")}</span>
+          <span class="paid-inference-buttons">
+            ${[0, 1, 2, 3]
+              .map(
+                (value) => `
+                  <button class="paid-shot-button${shot === value ? " is-active" : ""}" type="button" data-paid-shot-index="${index}" data-paid-shot-value="${value}" ${canInfer ? "" : "disabled"}>${value}</button>
+                `,
+              )
+              .join("")}
+          </span>
+        </div>
+      `;
+    })
+    .join("");
   backdrop.innerHTML = `
     <section class="paid-modal" role="dialog" aria-modal="true" aria-label="付费功能本地测试">
       <div class="paid-modal-head">
@@ -2315,10 +2427,13 @@ function createPaidFeatureLocalWorkspace() {
       </div>
       <div class="paid-modal-content">
         <p>本地付费测试权限已开启。</p>
-        <p>这里会作为后续付费功能的本地测试入口，线上环境不会显示这个开发通道。</p>
+        <p>选择进攻队 RL 角色观测到的空枪发数，运行后会调用本地 Pro 后端。</p>
+        <div class="paid-inference-grid">${attackRows}</div>
+        <div class="paid-inference-result-wrap">${getPaidInferenceResultMarkup()}</div>
       </div>
       <div class="paid-modal-actions">
         <button class="paid-modal-secondary" type="button" data-paid-dev-disable>关闭本地权限</button>
+        <button class="paid-modal-secondary" type="button" data-paid-run-inference>运行反推</button>
         <button class="paid-modal-confirm" type="button">知道了</button>
       </div>
     </section>
@@ -2334,6 +2449,17 @@ function createPaidFeatureLocalWorkspace() {
     closePaidFeatureModal();
     showToast("已关闭本地付费测试权限");
   });
+  backdrop.querySelectorAll("[data-paid-shot-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.paidShotIndex);
+      localPaidInferenceState.missShots[index] = Number(button.dataset.paidShotValue) || 0;
+      localPaidInferenceState.result = null;
+      localPaidInferenceState.error = "";
+      closePaidFeatureModal();
+      document.body.append(createPaidFeatureLocalWorkspace());
+    });
+  });
+  backdrop.querySelector("[data-paid-run-inference]").addEventListener("click", () => runLocalPaidInference(backdrop));
   return backdrop;
 }
 
