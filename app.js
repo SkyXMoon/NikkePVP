@@ -2338,7 +2338,7 @@ function getLocalPaidInferencePayload() {
   return {
     attackTeam: state.team.map((character) => character?.id || null),
     attackChargeSpeeds: [...state.chargeSpeeds],
-    maxAutoShots: 2,
+    maxAutoShots: 3,
   };
 }
 
@@ -2529,8 +2529,7 @@ function getLineupSlotCount(slot) {
 
 function renderLineupSlots() {
   if (!els.lineupSlots) return;
-  els.lineupSlots.hidden = state.testMode;
-  if (state.testMode) return;
+  els.lineupSlots.hidden = false;
   const fragment = document.createDocumentFragment();
   state.lineupSlots.forEach((slot, index) => {
     const count = getLineupSlotCount(slot);
