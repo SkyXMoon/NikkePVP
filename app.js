@@ -2323,13 +2323,6 @@ function toggleLocalPaidDevAccess() {
   showToast(nextEnabled ? "已启用本地付费测试" : "已关闭本地付费测试");
 }
 
-function openWechatMiniProgramPaidPage() {
-  const payPageUrl = "/pages/pay/index?feature=miss-inference";
-  if (!window.wx?.miniProgram?.navigateTo) return false;
-  window.wx.miniProgram.navigateTo({ url: payPageUrl });
-  return true;
-}
-
 function closePaidFeatureModal() {
   document.querySelector(".paid-modal-backdrop")?.remove();
 }
@@ -2440,27 +2433,12 @@ function renderTestDefenseRow() {
   return row;
 }
 
-function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false, isLocalDev = false } = {}) {
+function createPaidFeatureModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "paid-modal-backdrop";
   backdrop.setAttribute("role", "presentation");
-  const message = isMiniProgram
-    ? didNavigate
-      ? "正在跳转到微信小程序付费页。"
-      : "当前处于微信小程序环境，请在小程序付费页开通后使用。"
-    : isLocalDev
-      ? "当前是本地开发环境，可以启用本地付费测试权限。"
-      : "该功能仅在微信小程序内开放。请通过微信小程序使用付费功能。";
-  const localDevPanel = isLocalDev
-    ? `
-      <div class="paid-dev-panel">
-        <strong>本地测试</strong>
-        <span>仅当前本机浏览器生效，不会影响线上用户。</span>
-      </div>
-    `
-    : "";
   backdrop.innerHTML = `
-    <section class="paid-modal" role="dialog" aria-modal="true" aria-label="付费功能">
+    <section class="paid-modal" role="dialog" aria-modal="true" aria-label="功能提示">
       <div class="paid-modal-head">
         <div>
           <span class="paid-modal-kicker">Pro</span>
@@ -2469,9 +2447,7 @@ function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false, is
         <button class="paid-modal-close" type="button" aria-label="关闭">X</button>
       </div>
       <div class="paid-modal-content">
-        <p>${escapeHtml(message)}</p>
-        <p>网页端暂不提供该付费功能，免费功能仍可正常使用。</p>
-        ${localDevPanel}
+        <p>该功能正在开发中！</p>
       </div>
       <div class="paid-modal-actions">
         <button class="paid-modal-confirm" type="button">知道了</button>
@@ -2511,11 +2487,8 @@ function openPaidInferenceFeature() {
     setPaidTestMode(!state.testMode);
     return;
   }
-  const isMiniProgram = isWechatMiniProgramRuntime();
-  const isLocalDev = isLocalDevRuntime();
-  const didNavigate = isMiniProgram ? openWechatMiniProgramPaidPage() : false;
   closePaidFeatureModal();
-  document.body.append(createPaidFeatureModal({ isMiniProgram, didNavigate, isLocalDev }));
+  document.body.append(createPaidFeatureModal());
 }
 
 function getLineupSlotCount(slot) {
