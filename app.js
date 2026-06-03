@@ -2114,19 +2114,31 @@ function createSlotSettingsModal() {
       const frame = getChargeSpeedPreviewFrame(character, index, teamKey, speedInput.value);
       speedFramePreview.textContent = `${formatFrameCount(frame)}F`;
     };
-    speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
-    speedInput.addEventListener("focus", (event) => event.target.select());
-    speedInput.addEventListener("click", (event) => event.target.select());
-    speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
-    speedInput.addEventListener("input", (event) => {
-      chargeSpeeds[index] = sanitizeChargeSpeed(event.target.value);
-      saveCharacterChargeSpeed(character, chargeSpeeds[index], teamKey);
+    const commitSpeedValue = () => {
+      const speed = sanitizeChargeSpeed(speedInput.value);
+      speedInput.value = speed;
+      if (chargeSpeeds[index] === speed) return;
+      chargeSpeeds[index] = speed;
+      saveCharacterChargeSpeed(character, speed, teamKey);
       updateSpeedFramePreview();
       saveTeam();
       invalidateBattleResults();
       updateTeamFinishMarkers(renderResults());
       refreshBattleResults();
+    };
+    speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
+    speedInput.addEventListener("focus", (event) => event.target.select());
+    speedInput.addEventListener("click", (event) => event.target.select());
+    speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
+    speedInput.addEventListener("input", () => {
+      updateSpeedFramePreview();
     });
+    speedInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      speedInput.blur();
+    });
+    speedInput.addEventListener("blur", commitSpeedValue);
   }
 
   const magazineInput = backdrop.querySelector(".slot-settings-magazine");
