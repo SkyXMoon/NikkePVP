@@ -114,7 +114,11 @@ function getSavedCharacterQuantumCube(character, teamKey = "attack") {
 
 function getSavedCharacterMagazine(character, teamKey = "attack") {
   const magazine = Number(runtimeState.characterMagazines?.[normalizeTeamKey(teamKey)]?.[character.id]);
-  return Number.isFinite(magazine) && magazine >= 20 ? Math.floor(magazine) : null;
+  const normalizedMagazine = Math.floor(magazine);
+  if (!Number.isFinite(normalizedMagazine)) return null;
+  if (normalizedMagazine === 20) return 20;
+  if (normalizedMagazine >= 26 && normalizedMagazine <= 88) return normalizedMagazine;
+  return null;
 }
 
 function isScarlet(character) {

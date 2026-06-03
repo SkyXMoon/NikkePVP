@@ -518,12 +518,18 @@ function sanitizeChargeSpeed(value) {
 }
 
 function sanitizeMagazine(value) {
-  return Math.max(20, Math.floor(Number(value) || 0));
+  const magazine = Math.floor(Number(value) || 0);
+  if (magazine === 20) return 20;
+  if (magazine < 26) return 20;
+  return Math.min(88, magazine);
 }
 
 function parseCompleteMagazine(value) {
   const magazine = Math.floor(Number(value));
-  return Number.isFinite(magazine) && magazine >= 20 ? magazine : null;
+  if (!Number.isFinite(magazine)) return null;
+  if (magazine === 20) return 20;
+  if (magazine >= 26 && magazine <= 88) return magazine;
+  return null;
 }
 
 function getSavedCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
@@ -2053,7 +2059,7 @@ function createSlotSettingsModal() {
           ? `
             <label class="settings-field">
               <span>弹容</span>
-              <input class="slot-settings-magazine" type="number" min="20" max="999" step="1" value="${magazineValue}" />
+              <input class="slot-settings-magazine" type="number" min="20" max="88" step="1" value="${magazineValue}" />
               <span>发</span>
             </label>
           `
