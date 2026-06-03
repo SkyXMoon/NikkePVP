@@ -62,10 +62,6 @@ const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
-const MISS_DODGE_WINDOW_FRAMES = 6;
-const TEST_NOAH_ID = 12;
-const TEST_SCARLET_ID = 37;
-const TEST_SCARLET_MAGAZINES = [20, 26, 32, 33, 34, 35, 36];
 const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [0, 60],
   [1, 60],
@@ -151,10 +147,6 @@ const state = {
     defense: {},
     attack: {},
   },
-  characterMagazines: {
-    defense: {},
-    attack: {},
-  },
   characterRedHoodPierceCounts: {
     defense: {},
     attack: {},
@@ -165,9 +157,6 @@ const state = {
   },
   activeLineupIndex: 0,
   lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
-  allowMissedShots: true,
-  testMode: false,
-  testMissShots: Array(TEAM_SIZE).fill(0),
   compactAvatarIcons: true,
   activeTeamKey: "attack",
   filters: {
@@ -188,11 +177,9 @@ const els = {
   resultPanel: document.querySelector("#resultPanel"),
   chargeChart: document.querySelector("#chargeChart"),
   lineupSlots: document.querySelector("#lineupSlots"),
-  testModeButton: document.querySelector("#testModeButton"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
   copyTeamButton: document.querySelector("#copyTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
-  allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
   commonToggle: document.querySelector("#commonToggle"),
   regionToggle: document.querySelector("#regionToggle"),
   compactAvatarToggle: document.querySelector("#compactAvatarToggle"),
@@ -503,14 +490,6 @@ function getCharacterQuantumCubeMemory(teamKey = state.activeTeamKey) {
   return state.characterQuantumCubes[normalizedTeamKey];
 }
 
-function getCharacterMagazineMemory(teamKey = state.activeTeamKey) {
-  const normalizedTeamKey = normalizeTeamKey(teamKey);
-  if (!state.characterMagazines[normalizedTeamKey]) {
-    state.characterMagazines[normalizedTeamKey] = {};
-  }
-  return state.characterMagazines[normalizedTeamKey];
-}
-
 function getCharacterRedHoodPierceCountMemory(teamKey = state.activeTeamKey) {
   const normalizedTeamKey = normalizeTeamKey(teamKey);
   if (!state.characterRedHoodPierceCounts[normalizedTeamKey]) {
@@ -521,15 +500,6 @@ function getCharacterRedHoodPierceCountMemory(teamKey = state.activeTeamKey) {
 
 function sanitizeChargeSpeed(value) {
   return Math.max(0, Number(value) || 0);
-}
-
-function sanitizeMagazine(value) {
-  return Math.max(20, Math.floor(Number(value) || 0));
-}
-
-function parseCompleteMagazine(value) {
-  const magazine = Math.floor(Number(value));
-  return Number.isFinite(magazine) && magazine >= 20 ? magazine : null;
 }
 
 function getSavedCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
@@ -562,27 +532,8 @@ function resetCharacterQuantumCube(character, teamKey = state.activeTeamKey) {
   delete getCharacterQuantumCubeMemory(teamKey)[character.id];
 }
 
-function getSavedCharacterMagazine(character, teamKey = state.activeTeamKey) {
-  if (!character?.id) return null;
-  const memory = getCharacterMagazineMemory(teamKey);
-  if (!Object.prototype.hasOwnProperty.call(memory, character.id)) return null;
-  const magazine = sanitizeMagazine(memory[character.id]);
-  return magazine > 0 ? magazine : null;
-}
-
-function getDisplayMagazine(character, teamKey = state.activeTeamKey) {
-  if (!state.allowMissedShots || !isScarlet(character)) return null;
-  return getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
-}
-
-function saveCharacterMagazine(character, value, teamKey = state.activeTeamKey) {
-  if (!character?.id) return;
-  getCharacterMagazineMemory(teamKey)[character.id] = sanitizeMagazine(value);
-}
-
-function resetCharacterMagazine(character, teamKey = state.activeTeamKey) {
-  if (!character?.id) return;
-  delete getCharacterMagazineMemory(teamKey)[character.id];
+function getDisplayMagazine() {
+  return null;
 }
 
 function hasSavedCharacterRedHoodPierceCount(character, teamKey = state.activeTeamKey) {
@@ -1101,9 +1052,7 @@ function getReloadFrames(character) {
 
 function getEffectiveCharacterStats(character, teamKey = "attack") {
   if (!isScarlet(character)) return character.stats;
-  if (!state.allowMissedShots) return { ...character.stats, magazine: 60 };
-  const savedMagazine = getSavedCharacterMagazine(character, teamKey);
-  return savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats;
+  return { ...character.stats, magazine: 60 };
 }
 
 function getRedHoodChargeSpeedStacksAfterAttack(event, shotCount = 1) {
@@ -1221,46 +1170,6 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []
   return null;
 }
 
-function getTurnDodgeStartFrame(event, currentFrame) {
-  return Math.max(0, currentFrame - (Number(event.projectileFlightFrames) || 0));
-}
-
-function getTurnDodgeFrames(event) {
-  if (!isChargeWeapon(event.character)) return 0;
-  const turnFrames = Number(event.character.timing?.turnFrames ?? event.character.turnFrames ?? 0) || 0;
-  return Math.min(MISS_DODGE_WINDOW_FRAMES, Math.max(0, turnFrames));
-}
-
-function addTurnDodgeEvent(event, currentFrame) {
-  const dodgeFrames = getTurnDodgeFrames(event);
-  if (dodgeFrames <= 0) return;
-  const startFrame = getTurnDodgeStartFrame(event, currentFrame);
-  event.turnDodgeEvents.push({
-    positionIndex: event.positionIndex,
-    characterName: event.character.name,
-    startFrame,
-    endFrame: startFrame + dodgeFrames,
-    dodgeFrames,
-  });
-}
-
-function isMissedByDodgeWindow(positionIndex, flightStartFrame, hitFrame, window) {
-  if (window.positionIndex !== positionIndex) return false;
-  const windowEndFrame = Math.min(window.endFrame, window.startFrame + MISS_DODGE_WINDOW_FRAMES);
-  return flightStartFrame < window.startFrame && window.startFrame < hitFrame && hitFrame < windowEndFrame;
-}
-
-function getRlShotMissDodgeWindow(event, currentFrame, teamKey, opponentReloadTimeline = [], opponentTurnDodgeTimeline = []) {
-  if (!state.allowMissedShots) return false;
-  if (event.character.weapon !== "RL" || event.projectileFlightFrames <= 0) return false;
-  const targetPositionIndex = getTargetPositionIndex(event.character, teamKey);
-  const flightStartFrame = Math.max(0, currentFrame - event.projectileFlightFrames);
-  return [
-    ...opponentReloadTimeline.map((window) => ({ ...window, type: "reload" })),
-    ...opponentTurnDodgeTimeline.map((window) => ({ ...window, type: "turn" })),
-  ].find((window) => isMissedByDodgeWindow(targetPositionIndex, flightStartFrame, currentFrame, window));
-}
-
 function characterForSlot(character, positionIndex, teamKey = "attack") {
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
@@ -1282,7 +1191,6 @@ function simulateBurst(
   teamKey = "attack",
   specialChargeEvents = [],
   opponentReloadTimeline = [],
-  opponentTurnDodgeTimeline = [],
   stunWindows = [],
 ) {
   const members = team
@@ -1319,8 +1227,6 @@ function simulateBurst(
       hitFrames: [],
       reloadEvents: [],
       flightEvents: [],
-      missedShotEvents: [],
-      turnDodgeEvents: [],
       poisonChargeStarted: false,
     };
   });
@@ -1431,18 +1337,9 @@ function simulateBurst(
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
-      const missDodgeWindow = getRlShotMissDodgeWindow(
-        event,
-        currentFrame,
-        teamKey,
-        opponentReloadTimeline,
-        opponentTurnDodgeTimeline,
-      );
-      const isMissedShot = Boolean(missDodgeWindow);
       event.hits += shotCount;
       const chargeShotNumber = getAttackChargeShotNumber(event, shotCount);
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
-      addTurnDodgeEvent(event, currentFrame);
       if (event.character.weapon === "RL" && event.projectileFlightFrames > 0) {
         const flightEvent = {
           positionIndex: event.positionIndex,
@@ -1450,32 +1347,9 @@ function simulateBurst(
           startFrame: Math.max(0, currentFrame - event.projectileFlightFrames),
           endFrame: currentFrame,
           flightFrames: event.projectileFlightFrames,
-          missed: isMissedShot,
         };
         event.flightEvents.push(flightEvent);
-        if (isMissedShot) {
-          event.missedShotEvents.push({
-            positionIndex: event.positionIndex,
-            characterName: event.character.name,
-            frame: currentFrame,
-            flightStartFrame: flightEvent.startFrame,
-            flightFrames: event.projectileFlightFrames,
-            dodgeType: missDodgeWindow.type,
-            dodgeStartFrame: missDodgeWindow.startFrame,
-            dodgeEndFrame: Math.min(missDodgeWindow.endFrame, missDodgeWindow.startFrame + MISS_DODGE_WINDOW_FRAMES),
-            dodgerName: missDodgeWindow.characterName,
-            dodgerPositionIndex: missDodgeWindow.positionIndex,
-          });
-        }
       }
-
-      if (isMissedShot) {
-        const reloadEvent = advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
-        const magazineEmptyExtra = getMagazineEmptyExtraEvent(event, reloadEvent);
-        if (magazineEmptyExtra) pendingExtraEvents.push(magazineEmptyExtra);
-        return;
-      }
-
       const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber);
       const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
       const chargeValue = getChargeValue(event.character, chargeShotNumber) * shotCount;
@@ -1545,9 +1419,7 @@ function simulateBurst(
     finishingPositionIndices: [...currentFrameContributors].sort((a, b) => a - b),
     timeline,
     reloadTimeline: events.flatMap((event) => event.reloadEvents),
-    turnDodgeTimeline: events.flatMap((event) => event.turnDodgeEvents),
     flightTimeline: events.flatMap((event) => event.flightEvents),
-    missedTimeline: events.flatMap((event) => event.missedShotEvents),
     stunTimeline: stunWindows,
     members: events,
   };
@@ -1632,7 +1504,7 @@ function setTeamSlotDragImage(event, slot) {
 function isTeamSlotDragControl(target) {
   return Boolean(
     target?.closest?.(
-      ".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .slot-test-shot, .universal-charge-field",
+      ".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .universal-charge-field",
     ),
   );
 }
@@ -2028,8 +1900,6 @@ function createSlotSettingsModal() {
   const canEditChargeSpeed = canShowFinishMarker(character);
   const chargeSpeedPreviewFrame = getChargeSpeedPreviewFrame(character, index, teamKey, chargeSpeedValue);
   const quantumCubeEnabled = getSavedCharacterQuantumCube(character, teamKey);
-  const isScarletSettings = state.allowMissedShots && isScarlet(character);
-  const magazineValue = getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
   const backdrop = document.createElement("div");
   backdrop.className = "slot-settings-backdrop";
   backdrop.setAttribute("role", "presentation");
@@ -2050,17 +1920,6 @@ function createSlotSettingsModal() {
         <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" />
         <span>%</span>
         <span class="slot-settings-frame-preview">${formatFrameCount(chargeSpeedPreviewFrame)}F</span>
-            </label>
-          `
-          : ""
-      }
-      ${
-        isScarletSettings
-          ? `
-            <label class="settings-field">
-              <span>弹容</span>
-              <input class="slot-settings-magazine" type="number" min="20" max="999" step="1" value="${magazineValue}" />
-              <span>发</span>
             </label>
           `
           : ""
@@ -2118,32 +1977,6 @@ function createSlotSettingsModal() {
     });
   }
 
-  const magazineInput = backdrop.querySelector(".slot-settings-magazine");
-  if (magazineInput) {
-    magazineInput.addEventListener("pointerdown", (event) => event.stopPropagation());
-    magazineInput.addEventListener("focus", (event) => event.target.select());
-    magazineInput.addEventListener("click", (event) => event.target.select());
-    magazineInput.addEventListener("dragstart", (event) => event.stopPropagation());
-    magazineInput.addEventListener("input", (event) => {
-      const magazine = parseCompleteMagazine(event.target.value);
-      if (magazine === null) return;
-      saveCharacterMagazine(character, magazine, teamKey);
-      saveTeam();
-      invalidateBattleResults();
-      updateTeamFinishMarkers(renderResults());
-      refreshBattleResults();
-    });
-    magazineInput.addEventListener("blur", (event) => {
-      const magazine = sanitizeMagazine(event.target.value);
-      event.target.value = magazine;
-      saveCharacterMagazine(character, magazine, teamKey);
-      saveTeam();
-      invalidateBattleResults();
-      updateTeamFinishMarkers(renderResults());
-      refreshBattleResults();
-    });
-  }
-
   const quantumCubeInput = backdrop.querySelector(".slot-settings-quantum-cube");
   quantumCubeInput.addEventListener("change", (event) => {
     saveCharacterQuantumCube(character, event.target.checked, teamKey);
@@ -2156,7 +1989,6 @@ function createSlotSettingsModal() {
     chargeSpeeds[index] = 0;
     resetCharacterChargeSpeed(character, teamKey);
     resetCharacterQuantumCube(character, teamKey);
-    resetCharacterMagazine(character, teamKey);
     saveTeam();
     render();
   });
@@ -2175,9 +2007,8 @@ function createHelpModal() {
     {
       title: "充能轴",
       items: [
-        "上方图表展示双方队伍的关键充能帧、标准 RL 轴、爆裂节点、换弹、空枪、晕眩等时间点。",
+        "上方图表展示双方队伍的关键充能帧、标准 RL 轴、爆裂节点、换弹、晕眩等时间点。",
         "鼠标在图表内移动时，会自动显示距离最近的关键帧详情，并用辅助线标记对应角色和帧数。",
-        "总充能轴会汇总角色攻击、万能充能、红莲反击、豺狼链接等有效贡献。",
       ],
     },
     {
@@ -2191,9 +2022,8 @@ function createHelpModal() {
     {
       title: "角色设置",
       items: [
-        "点击头像右上角齿轮，可设置蓄力速度、量子遗迹魔方、红莲弹容等角色专属参数。",
-        "蓄速、量子魔方、弹容按进攻/防守分别保存；切换方案时会沿用该角色在对应队伍侧的保存值。",
-        "红莲弹容只在开启“计算空枪”时参与计算；未开启时按不缺弹处理。",
+        "点击头像右上角齿轮，可设置蓄力速度、量子遗迹魔方等角色专属参数。",
+        "蓄速、量子魔方按进攻/防守分别保存；切换方案时会沿用该角色在对应队伍侧的保存值。",
       ],
     },
     {
@@ -2276,8 +2106,6 @@ function getLineupSlotCount(slot) {
 
 function renderLineupSlots() {
   if (!els.lineupSlots) return;
-  els.lineupSlots.hidden = state.testMode;
-  if (state.testMode) return;
   const fragment = document.createDocumentFragment();
   state.lineupSlots.forEach((slot, index) => {
     const count = getLineupSlotCount(slot);
@@ -2292,194 +2120,22 @@ function renderLineupSlots() {
   els.lineupSlots.replaceChildren(fragment);
 }
 
-function getAttackRlShotWindow(character, positionIndex, shotNumber) {
-  if (!character || character.weapon !== "RL" || shotNumber <= 0) return null;
-  const attackCharacter = characterForSlot(character, positionIndex, "attack");
-  const timing = getChargeFrames(attackCharacter, positionIndex, "attack");
-  const flightFrames = Number(timing.projectileFlightFrames) || 0;
-  if (flightFrames <= 0) return null;
-  const hitFrame = timing.firstFrame + (shotNumber - 1) * timing.interval;
-  return {
-    character,
-    positionIndex,
-    shotNumber,
-    launchFrame: hitFrame - flightFrames,
-    hitFrame,
-    flightFrames,
-  };
-}
-
-function getTestAttackWindows() {
-  return state.team
-    .map((character, positionIndex) => getAttackRlShotWindow(character, positionIndex, Number(state.testMissShots[positionIndex]) || 0))
-    .filter(Boolean);
-}
-
-function matchesDodgeWindow(attackWindow, dodgeStartFrame, dodgeFrames = MISS_DODGE_WINDOW_FRAMES) {
-  return (
-    attackWindow.launchFrame < dodgeStartFrame &&
-    dodgeStartFrame < attackWindow.hitFrame &&
-    attackWindow.hitFrame < dodgeStartFrame + dodgeFrames
-  );
-}
-
-function groupNumberRanges(values = []) {
-  const sorted = [...new Set(values)].sort((a, b) => a - b);
-  const ranges = [];
-  sorted.forEach((value) => {
-    const last = ranges.at(-1);
-    if (last && value === last.end + 1) {
-      last.end = value;
-    } else {
-      ranges.push({ start: value, end: value });
-    }
-  });
-  return ranges.map((range) => (range.start === range.end ? String(range.start) : `${range.start}-${range.end}`));
-}
-
-function getNoahChargeSpeedsForAttackWindow(attackWindow) {
-  const noah = getCharacterById(TEST_NOAH_ID);
-  if (!noah || !attackWindow) return [];
-  const candidates = [...FIXED_CHARGE_SPEED_FRAMES_60.keys()].filter((speed) => speed >= 0 && speed <= 26);
-  return candidates.filter((speed) => {
-    const defenseNoah = { ...noah, chargeSpeedPercent: speed };
-    const timing = getChargeFrames(defenseNoah, 0, "defense");
-    const flightFrames = Number(timing.projectileFlightFrames) || 0;
-    const intervalFrames = Number(timing.interval) || 0;
-    const firstTurnFrame = timing.firstFrame - flightFrames;
-    if (intervalFrames <= 0) return false;
-    const maxFrame = attackWindow.hitFrame + intervalFrames;
-    for (let turnFrame = firstTurnFrame; turnFrame <= maxFrame; turnFrame += intervalFrames) {
-      if (matchesDodgeWindow(attackWindow, turnFrame)) return true;
-    }
-    return false;
-  });
-}
-
-function inferNoahChargeSpeeds(attackWindows = getTestAttackWindows()) {
-  return attackWindows
-    .map((attackWindow) => ({
-      attackWindow,
-      values: getNoahChargeSpeedsForAttackWindow(attackWindow),
-    }))
-    .filter((entry) => entry.values.length > 0);
-}
-
-function getScarletReloadStarts(magazine, maxFrame) {
-  const scarlet = getCharacterById(TEST_SCARLET_ID);
-  const intervalFrames = 6;
-  const reloadFrames = getReloadFrames(scarlet);
-  const starts = [];
-  let reloadStart = (magazine - 1) * intervalFrames;
-  while (reloadStart <= maxFrame) {
-    starts.push(reloadStart);
-    reloadStart += reloadFrames + (magazine - 1) * intervalFrames;
-  }
-  return starts;
-}
-
-function getScarletMagazinesForAttackWindow(attackWindow) {
-  if (!attackWindow) return [];
-  const maxFrame = attackWindow.hitFrame + 240;
-  return TEST_SCARLET_MAGAZINES.filter((magazine) =>
-    getScarletReloadStarts(magazine, maxFrame).some((reloadStart) => matchesDodgeWindow(attackWindow, reloadStart)),
-  );
-}
-
-function inferScarletMagazines(attackWindows = getTestAttackWindows()) {
-  return attackWindows
-    .map((attackWindow) => ({
-      attackWindow,
-      values: getScarletMagazinesForAttackWindow(attackWindow),
-    }))
-    .filter((entry) => entry.values.length > 0);
-}
-
-function getTestInferenceResults() {
-  const attackWindows = getTestAttackWindows();
-  return {
-    attackWindows,
-    noahSpeeds: inferNoahChargeSpeeds(attackWindows),
-    scarletMagazines: inferScarletMagazines(attackWindows),
-  };
-}
-
-function formatTestCandidateValues(values, suffix = "") {
-  if (!values.length) return "无匹配";
-  return groupNumberRanges(values).map((value) => `${value}${suffix}`).join(" / ");
-}
-
-function formatTestCandidateLines(entries = [], label, suffix = "") {
-  if (!entries.length) return ["无匹配"];
-  return entries.map((entry) => {
-    const positionText = `P${entry.attackWindow.positionIndex + 1}`;
-    const valueText = formatTestCandidateValues(entry.values, suffix);
-    return `${positionText}, ${label}${valueText}`;
-  });
-}
-
-function renderTestDefenseRow(inference = getTestInferenceResults()) {
-  const row = document.createElement("section");
-  row.className = "team-row test-defense-row";
-  row.dataset.teamKey = "defense";
-  row.setAttribute("aria-label", "空枪反推候选");
-  row.innerHTML = '<div class="test-candidates-row"></div>';
-  const slotsRow = row.querySelector(".test-candidates-row");
-  const candidates = [
-    {
-      character: getCharacterById(TEST_NOAH_ID),
-      lines: formatTestCandidateLines(inference.noahSpeeds, "蓄速", "%"),
-      hasMatch: inference.noahSpeeds.length > 0,
-    },
-    {
-      character: getCharacterById(TEST_SCARLET_ID),
-      lines: formatTestCandidateLines(inference.scarletMagazines, "弹容"),
-      hasMatch: inference.scarletMagazines.length > 0,
-    },
-  ];
-
-  candidates.forEach((candidate) => {
-    const slot = document.createElement("div");
-    slot.className = `test-candidate${candidate.hasMatch ? " has-test-match" : ""}`;
-    slot.innerHTML = `
-      <span class="test-candidate-avatar team-slot filled${getTeamSlotRarityClass(candidate.character)}" aria-label="${escapeHtml(candidate.character?.name || "")}">
-        <span class="team-avatar">${candidate.character ? getAvatarMarkup(candidate.character) : ""}</span>
-      </span>
-      <span class="test-candidate-result">
-        ${candidate.lines.map((line) => `<strong>${escapeHtml(line)}</strong>`).join("")}
-      </span>
-    `;
-    slotsRow.append(slot);
-  });
-
-  return row;
-}
-
 function renderTeam(battleResults = getBattleResultsSnapshot()) {
   const fragment = document.createDocumentFragment();
   const { attackResult, defenseResult } = battleResults;
-  if (els.testModeButton) {
-    els.testModeButton.classList.toggle("is-active", state.testMode);
-    els.testModeButton.setAttribute("aria-pressed", String(state.testMode));
-  }
-  const testInference = state.testMode ? getTestInferenceResults() : null;
   const resultsByTeam = new Map([
     ["defense", defenseResult],
     ["attack", attackResult],
   ]);
 
   ["defense", "attack"].forEach((teamKey) => {
-    if (state.testMode && teamKey === "defense") {
-      fragment.append(renderTestDefenseRow(testInference));
-      return;
-    }
     const team = getTeamState(teamKey);
     const chargeSpeeds = getChargeSpeedState(teamKey);
     const universalCharges = getUniversalChargeState(teamKey);
     const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
     const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
     const row = document.createElement("section");
-    row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}${state.testMode && teamKey === "attack" ? " is-test-attack" : ""}`;
+    row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
     row.dataset.teamKey = teamKey;
     row.setAttribute("aria-label", TEAM_LABELS[teamKey]);
     row.innerHTML = '<div class="team-slots-row"></div>';
@@ -2505,8 +2161,6 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const displayMagazine = character ? getDisplayMagazine(character, teamKey) : null;
       const redHoodPierceCount = character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0;
       const isScarletCounterEnabled = character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false;
-      const testMissValue = Number(state.testMissShots[index]) || 0;
-      const canUseTestMissButton = state.testMode && teamKey === "attack" && character?.weapon === "RL";
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
@@ -2572,11 +2226,6 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
                   ${isJackalTarget ? '<img src="assets/icons/ui/link.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
                 </button>
               `
-              : ""
-          }
-          ${
-            state.testMode && teamKey === "attack"
-              ? `<button class="slot-test-shot${testMissValue > 0 ? " is-active" : ""}" type="button" ${canUseTestMissButton ? "" : "disabled"} aria-label="空枪发数 ${testMissValue}" title="空枪发数：${testMissValue}">${testMissValue}</button>`
               : ""
           }
         `
@@ -2700,22 +2349,6 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           });
           counterToggle.addEventListener("pointerdown", (event) => event.stopPropagation());
           counterToggle.addEventListener("dragstart", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-          });
-        }
-        const testShotButton = slot.querySelector(".slot-test-shot");
-        if (testShotButton) {
-          testShotButton.addEventListener("click", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (testShotButton.disabled) return;
-            setActiveTeam("attack");
-            state.testMissShots[index] = ((Number(state.testMissShots[index]) || 0) + 1) % 4;
-            render();
-          });
-          testShotButton.addEventListener("pointerdown", (event) => event.stopPropagation());
-          testShotButton.addEventListener("dragstart", (event) => {
             event.preventDefault();
             event.stopPropagation();
           });
@@ -3134,8 +2767,8 @@ function getResultSignature(result) {
 function computeBattleResults() {
   const attackStunWindows = getStunWindowsForTeam("attack");
   const defenseStunWindows = getStunWindowsForTeam("defense");
-  let attackResult = simulateBurst(state.team, "attack", [], [], [], attackStunWindows);
-  let defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], [], defenseStunWindows);
+  let attackResult = simulateBurst(state.team, "attack", [], [], attackStunWindows);
+  let defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], defenseStunWindows);
 
   for (let index = 0; index < 8; index += 1) {
     const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
@@ -3145,7 +2778,6 @@ function computeBattleResults() {
       "attack",
       attackSpecials,
       defenseResult?.reloadTimeline || [],
-      defenseResult?.turnDodgeTimeline || [],
       attackStunWindows,
     );
     const nextDefenseResult = simulateBurst(
@@ -3153,7 +2785,6 @@ function computeBattleResults() {
       "defense",
       defenseSpecials,
       attackResult?.reloadTimeline || [],
-      attackResult?.turnDodgeTimeline || [],
       defenseStunWindows,
     );
     const stable =
@@ -3180,9 +2811,7 @@ function createCalculationPayload() {
     chargeSpeeds: [...state.chargeSpeeds],
     universalCharges: [...state.universalCharges],
     characterQuantumCubes: state.characterQuantumCubes,
-    characterMagazines: state.characterMagazines,
     jackalLinks: state.jackalLinks,
-    allowMissedShots: state.allowMissedShots,
   };
 }
 
@@ -3336,36 +2965,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       .filter((reload) => reload.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
       .map((reload) => ({ ...reload, teamKey: item.teamKey, displayEndFrame }));
   });
-  const visibleDodgeEvents = state.allowMissedShots
-    ? chartResults.flatMap((item) => {
-        const displayEndFrame = getBurstDisplayEndFrame(item.result);
-        return [
-          ...(item.result.reloadTimeline || []).map((reload) => ({
-            ...reload,
-            type: "reload",
-            startFrame: reload.startFrame,
-            endFrame: Math.min(reload.endFrame, reload.startFrame + MISS_DODGE_WINDOW_FRAMES),
-            durationFrames: Math.min(reload.reloadFrames || MISS_DODGE_WINDOW_FRAMES, MISS_DODGE_WINDOW_FRAMES),
-            teamKey: item.teamKey,
-            displayEndFrame,
-          })),
-          ...(item.result.turnDodgeTimeline || []).map((turn) => ({
-            ...turn,
-            type: "turn",
-            endFrame: Math.min(turn.endFrame, turn.startFrame + MISS_DODGE_WINDOW_FRAMES),
-            durationFrames: Math.min(turn.dodgeFrames || MISS_DODGE_WINDOW_FRAMES, MISS_DODGE_WINDOW_FRAMES),
-            teamKey: item.teamKey,
-            displayEndFrame,
-          })),
-        ].filter((window) => window.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame));
-      })
-    : [];
-  const visibleMissedEvents = chartResults.flatMap((item) => {
-    const displayEndFrame = getBurstDisplayEndFrame(item.result);
-    return (item.result.missedTimeline || [])
-      .filter((miss) => miss.frame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
-      .map((miss) => ({ ...miss, teamKey: item.teamKey, displayEndFrame }));
-  });
   const visibleStunEvents = chartResults.flatMap((item) => {
     const displayEndFrame = getBurstDisplayEndFrame(item.result);
     return (item.result.stunTimeline || [])
@@ -3419,12 +3018,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     const displayEndFrame = getBurstDisplayEndFrame(item.result);
     return [
       item.result.fullFrame,
-      ...getAvailableBurstMarkers(item.result).map((marker) => marker.frame),
-      ...visibleDodgeEvents
-        .filter((entry) => entry.teamKey === item.teamKey)
-        .map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME, displayEndFrame)),
-      ...(item.result.missedTimeline || []).map((entry) => Math.min(entry.frame, CHART_MAX_FRAME, displayEndFrame)),
-    ];
+      ...getAvailableBurstMarkers(item.result).map((marker) => marker.frame),    ];
   });
   const counterFrameCandidates = scarletCounterGroups.flatMap((group) => group.timeline.map((entry) => entry.frame));
   const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, ...counterFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
@@ -3638,19 +3232,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       if (group.frames.length < 2) return "";
       const firstFrame = Math.min(...group.frames);
       const lastFrame = Math.max(...group.frames);
-      const groupMisses = visibleMissedEvents
-        .filter((miss) => miss.teamKey === group.teamKey && miss.positionIndex === group.member.positionIndex)
-        .map((miss) => {
-          const previousFrame = group.frames.filter((frame) => frame < miss.frame).at(-1);
-          return previousFrame === undefined
-            ? null
-            : {
-                startFrame: previousFrame,
-                endFrame: miss.frame,
-              };
-        })
-        .filter(Boolean);
-      return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupMisses, ...groupStuns]).map(
+      return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupStuns]).map(
         (segment) =>
           `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(segment.start)}" y1="${y}" x2="${xForFrame(segment.end)}" y2="${y}" />`,
       );
@@ -3689,45 +3271,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const nextHitFrame = group?.frames.find((frame) => frame > reload.startFrame) ?? reload.endFrame;
       const endFrame = Math.min(nextHitFrame, maxFrame, reload.displayEndFrame);
       if (endFrame <= startFrame) return [];
-      const dodgeEndFrame = Math.min(reload.endFrame, reload.startFrame + MISS_DODGE_WINDOW_FRAMES);
-      const visibleDodgeEndFrame = Math.min(dodgeEndFrame, maxFrame, reload.displayEndFrame);
-      const tooltip = escapeHtml(
-        `${reload.characterName}\n换弹：${reload.startFrame}F → ${reload.endFrame}F\n可空判定：${reload.startFrame}F → ${dodgeEndFrame}F`,
-      );
-      const lines = [];
-      if (visibleDodgeEndFrame > startFrame) {
-        lines.push(
-          `<line class="chart-dodge-track chart-dodge-reload-window team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(visibleDodgeEndFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`,
-        );
-      }
-      if (endFrame > visibleDodgeEndFrame) {
-        lines.push(
-          `<line class="chart-dodge-track chart-dodge-reload-duration team-${reload.teamKey}" x1="${xForFrame(visibleDodgeEndFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`,
-        );
-      }
-      return lines;
-    })
-    .join("");
-  const dodgeTracks = visibleDodgeEvents
-    .filter((window) => window.type !== "reload")
-    .map((window) => {
-      const y = yForGroup(`${window.teamKey}-${window.positionIndex}`);
-      const startFrame = Math.min(window.startFrame, maxFrame);
-      const endFrame = Math.min(window.endFrame, maxFrame, window.displayEndFrame);
-      if (endFrame <= startFrame) return "";
-      const label = window.type === "reload" ? "换弹可空" : "转身可空";
-      const tooltip = escapeHtml(`${window.characterName}\n${label}：${window.startFrame}F → ${window.endFrame}F\n判定：${window.durationFrames}F`);
-      return `<line class="chart-dodge-track chart-dodge-${window.type} team-${window.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
-    })
-    .join("");
-  const missedPoints = visibleMissedEvents
-    .map((miss) => {
-      const y = yForGroup(`${miss.teamKey}-${miss.positionIndex}`);
-      const dodgeLabel = miss.dodgeType === "reload" ? "换弹可空" : "转身可空";
-      const tooltip = escapeHtml(
-        `${miss.characterName}\n时间：${miss.frame} F\n结果：空枪，未命中\n${dodgeLabel}：${miss.dodgeStartFrame}F → ${miss.dodgeEndFrame}F`,
-      );
-      return `<circle class="chart-missed-point" cx="${xForFrame(miss.frame)}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle>`;
+      const tooltip = escapeHtml(`${reload.characterName}\n???${reload.startFrame}F -> ${reload.endFrame}F`);
+      return [`<line class="chart-dodge-track chart-dodge-reload-duration team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`];
     })
     .join("");
   const scarletCounterTracks = scarletCounterGroups
@@ -3870,15 +3415,11 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${standardTrack}
       ${standardPoints}
       ${tracks}
-      ${reloadDurationTracks}
-      ${dodgeTracks}
-      ${scarletCounterTracks}
+      ${reloadDurationTracks}      ${scarletCounterTracks}
       ${chargeTotalTrack}
       ${burstTotalTrack}
       ${universalChargePoints}
-      ${pointMarks}
-      ${missedPoints}
-      ${stunPoints}
+      ${pointMarks}      ${stunPoints}
       ${scarletCounterPoints}
       ${totalPoints}
       ${burstPoints}
@@ -4314,14 +3855,6 @@ function normalizeSavedCharacterFlags(savedFlags = {}) {
   );
 }
 
-function normalizeSavedCharacterMagazines(savedMagazines = {}) {
-  return Object.fromEntries(
-    Object.entries(savedMagazines || {})
-      .map(([characterId, magazine]) => [characterId, sanitizeMagazine(magazine)])
-      .filter(([characterId, magazine]) => getCharacterById(characterId) && magazine > 0),
-  );
-}
-
 function normalizeSavedCharacterRedHoodPierceCounts(savedCounts = {}) {
   return Object.fromEntries(
     Object.entries(savedCounts || {})
@@ -4364,12 +3897,10 @@ function saveTeam() {
       scarletCounterEnabled: [...state.scarletCounterEnabled],
       characterChargeSpeeds: state.characterChargeSpeeds,
       characterQuantumCubes: state.characterQuantumCubes,
-      characterMagazines: state.characterMagazines,
       characterRedHoodPierceCounts: state.characterRedHoodPierceCounts,
       activeLineupIndex: state.activeLineupIndex,
       lineupSlots: state.lineupSlots,
       jackalLinks: state.jackalLinks,
-      allowMissedShots: state.allowMissedShots,
       compactAvatarIcons: state.compactAvatarIcons,
       filters: state.filters,
       activeTeamKey: state.activeTeamKey,
@@ -4400,10 +3931,6 @@ function loadTeam() {
         defense: normalizeSavedCharacterFlags(saved.characterQuantumCubes?.defense),
         attack: normalizeSavedCharacterFlags(saved.characterQuantumCubes?.attack),
       };
-      state.characterMagazines = {
-        defense: normalizeSavedCharacterMagazines(saved.characterMagazines?.defense),
-        attack: normalizeSavedCharacterMagazines(saved.characterMagazines?.attack),
-      };
       state.characterRedHoodPierceCounts = {
         defense: normalizeSavedCharacterRedHoodPierceCounts(saved.characterRedHoodPierceCounts?.defense),
         attack: normalizeSavedCharacterRedHoodPierceCounts(saved.characterRedHoodPierceCounts?.attack),
@@ -4427,7 +3954,6 @@ function loadTeam() {
       } else {
         saveCurrentLineupSlot();
       }
-      state.allowMissedShots = typeof saved.allowMissedShots === "boolean" ? saved.allowMissedShots : true;
       state.compactAvatarIcons = saved.compactAvatarIcons !== false;
       state.filters = {
         ...state.filters,
@@ -4464,14 +3990,12 @@ function loadTeam() {
     state.scarletCounterEnabled = Array(TEAM_SIZE).fill(true);
     state.characterChargeSpeeds = { defense: {}, attack: {} };
     state.characterQuantumCubes = { defense: {}, attack: {} };
-    state.characterMagazines = { defense: {}, attack: {} };
     state.activeLineupIndex = 0;
     state.lineupSlots = Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot());
     state.jackalLinks = {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
     };
-    state.allowMissedShots = true;
   }
 }
 
@@ -4554,18 +4078,6 @@ function bindEvents() {
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.copyTeamButton.addEventListener("click", copyBattleResultsSummary);
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
-  els.testModeButton?.addEventListener("click", () => {
-    state.testMode = !state.testMode;
-    if (!state.testMode) state.testMissShots = Array(TEAM_SIZE).fill(0);
-    setActiveTeam("attack");
-    hideChartTooltip();
-    render();
-  });
-  els.allowMissedShotsToggle.addEventListener("change", (event) => {
-    state.allowMissedShots = event.target.checked;
-    saveTeam();
-    render();
-  });
   els.lineupSlots.addEventListener("click", (event) => {
     const button = event.target.closest("[data-lineup-index]");
     if (!button) return;
@@ -4645,7 +4157,6 @@ async function bootstrap() {
   await loadCharacterData();
   bindEvents();
   loadTeam();
-  els.allowMissedShotsToggle.checked = state.allowMissedShots;
   syncFilterControls();
   render();
 }
