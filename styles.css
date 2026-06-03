@@ -1360,10 +1360,6 @@ input:focus {
   box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.16);
 }
 
-.team-row.is-test-attack {
-  padding-bottom: 26px;
-}
-
 .team-slots-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -2533,10 +2529,6 @@ summary {
 
   .team-slot {
     padding: 4px;
-  }
-
-  .team-row.is-test-attack {
-    padding-bottom: 22px;
   }
 
   .test-candidates-row {

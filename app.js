@@ -700,8 +700,7 @@ function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack
     if (positionIndex <= 3) return 14;
     return 12;
   }
-  const positionKey = `P${positionIndex + 1}`;
-  return character.timing?.projectileFlightFramesByPosition?.[positionKey] ?? (positionIndex <= 1 ? 16 : 14);
+  return character.timing?.projectileFlightFramesByPosition?.P1 ?? 16;
 }
 
 function getChargeFrames(character, positionIndex, teamKey = "attack") {
@@ -2375,8 +2374,13 @@ function getPaidCandidateLines(candidateType, valueKey) {
 
 function renderTestDefenseRow() {
   const row = document.createElement("section");
-  row.className = "team-row test-defense-row";
+  row.className = `team-row test-defense-row${state.activeTeamKey === "defense" ? " is-active" : ""}`;
   row.dataset.teamKey = "defense";
+  row.addEventListener("click", () => {
+    const wasActive = state.activeTeamKey === "defense";
+    setActiveTeam("defense");
+    if (!wasActive) render();
+  });
   row.setAttribute("aria-label", "空枪反推候选");
   row.innerHTML = '<div class="test-candidates-row"></div>';
   const slotsRow = row.querySelector(".test-candidates-row");
@@ -2544,7 +2548,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
     const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
     const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
     const row = document.createElement("section");
-    row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}${state.testMode && teamKey === "attack" ? " is-test-attack" : ""}`;
+    row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
     row.dataset.teamKey = teamKey;
     row.setAttribute("aria-label", TEAM_LABELS[teamKey]);
     row.innerHTML = '<div class="team-slots-row"></div>';
