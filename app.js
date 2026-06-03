@@ -2340,7 +2340,7 @@ function groupNumberRanges(values = []) {
 function getNoahChargeSpeedsForAttackWindow(attackWindow) {
   const noah = getCharacterById(TEST_NOAH_ID);
   if (!noah || !attackWindow) return [];
-  const candidates = [...FIXED_CHARGE_SPEED_FRAMES_60.keys()].filter((speed) => speed >= 0 && speed <= 46);
+  const candidates = [...FIXED_CHARGE_SPEED_FRAMES_60.keys()].filter((speed) => speed >= 0 && speed <= 26);
   return candidates.filter((speed) => {
     const defenseNoah = { ...noah, chargeSpeedPercent: speed };
     const timing = getChargeFrames(defenseNoah, 0, "defense");
