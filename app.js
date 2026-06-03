@@ -3740,6 +3740,17 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
                 flight.endFrame <= getBurstDisplayEndFrame(group.result),
             )
             .map((flight) => ({ frame: flight.endFrame, missed: flight.missed }));
+          if (shotFrames.length === 0) {
+            return group.frames
+              .slice(1)
+              .map((frame, index) => {
+                const previousFrame = group.frames[index];
+                return frame > previousFrame
+                  ? `<line class="chart-track team-${group.teamKey}" x1="${xForFrame(previousFrame)}" y1="${y}" x2="${xForFrame(frame)}" y2="${y}" />`
+                  : "";
+              })
+              .filter(Boolean);
+          }
 
           return shotFrames
             .slice(1)
