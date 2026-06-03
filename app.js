@@ -2317,7 +2317,7 @@ function createHelpModal() {
     {
       title: "角色选择",
       items: [
-        "搜索会在当前服务器和常用筛选范围内查找角色；常用、国服、简洁开关会本地保存。",
+        "搜索会在当前服务器和常用筛选范围内查找角色；常用、国服开关会本地保存。",
         "角色默认按最终单发充能效率从高到低排序；再次点击已选角色会从当前队伍中移除。",
         "右键角色卡可复制该角色当前显示的详细充能信息。",
       ],
@@ -4953,7 +4953,7 @@ function bindEvents() {
     saveTeam();
     renderCharacters();
   });
-  els.compactAvatarToggle.addEventListener("change", (event) => {
+  els.compactAvatarToggle?.addEventListener("change", (event) => {
     state.compactAvatarIcons = event.target.checked;
     saveTeam();
     renderCharacters();
@@ -4980,7 +4980,6 @@ function updateSortSummary() {
   if (stage !== "all") filters.push(`爆裂${stage.replace("B", "")}`);
   if (state.filters.common === "common") filters.push("常用");
   if (state.filters.region === "cn") filters.push("国服");
-  if (state.compactAvatarIcons) filters.push("简化图标");
   els.sortSummary.textContent = "排序：";
   const sortText = document.createElement("strong");
   sortText.textContent = "充能从高到低";
@@ -4998,7 +4997,9 @@ function updateSortSummary() {
 function syncFilterControls() {
   els.commonToggle.checked = state.filters.common === "common";
   els.regionToggle.checked = state.filters.region === "cn";
-  els.compactAvatarToggle.checked = state.compactAvatarIcons;
+  if (els.compactAvatarToggle) {
+    els.compactAvatarToggle.checked = state.compactAvatarIcons;
+  }
   els.stageFilterButtons.forEach((button) => {
     const isActive = normalizeStageFilter(state.filters.stage) === button.dataset.stageFilter;
     button.setAttribute("aria-pressed", String(isActive));
