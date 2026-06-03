@@ -916,11 +916,29 @@ function getChargeBreakdown(character) {
 
 function getCharacterDetailText(character) {
   return [
-    `${character.name}（${character.rarity || "SSR"}）`,
+    `${getCharacterDisplayName(character)}（${character.rarity || "SSR"}）`,
     `最终单发充能：${formatNumber(getChargeValue(character), 2)}%`,
     ...getChargeWeaponDetailLines(character),
     getChargeBreakdown(character),
   ].join("\n");
+}
+
+function getCharacterEnglishName(character) {
+  const englishName = String(character?.enName || "").trim();
+  if (!englishName || englishName === character?.name) return "";
+  return englishName;
+}
+
+function getCharacterDisplayName(character) {
+  const englishName = getCharacterEnglishName(character);
+  return englishName ? `${character.name}（${englishName}）` : character.name;
+}
+
+function getCharacterSearchText(character) {
+  return [character.name, character.enName, character.slug]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 }
 
 function getCharacterTooltip() {
@@ -952,7 +970,7 @@ function showCharacterTooltip(character, index, tile) {
   const detailLines = [...getChargeWeaponDetailLines(character), ...getChargeBreakdown(character).split("\n")];
   tooltip.innerHTML = `
     <div class="character-tooltip-head">
-      <strong>${escapeHtml(character.name)}</strong>
+      <strong>${escapeHtml(getCharacterDisplayName(character))}</strong>
       <span>可右键复制</span>
     </div>
     <div class="character-tooltip-meta">
@@ -1943,10 +1961,7 @@ function getFilteredCharacters() {
     const matchesRegion = character.regions.includes(state.filters.region);
     const stageFilter = normalizeStageFilter(state.filters.stage);
     const matchesStage = stageFilter === "all" || getCharacterBurstStages(character).includes(stageFilter);
-    const matchesSearch =
-      !keyword ||
-      character.name.toLowerCase().includes(keyword) ||
-      character.enName.toLowerCase().includes(keyword);
+    const matchesSearch = !keyword || getCharacterSearchText(character).includes(keyword);
     return matchesCommon && matchesRegion && matchesStage && matchesSearch;
   }).sort((a, b) => {
     const chargeDiff = getChargeValue(b) - getChargeValue(a);

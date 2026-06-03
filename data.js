@@ -7,7 +7,7 @@ const CHARACTERS = [
     "id": 1,
     "slug": "海伦-珍藏",
     "name": "海伦 珍藏",
-    "enName": "海伦 珍藏",
+    "enName": "Helm +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/1.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/28/8230.png",
@@ -45,41 +45,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.3982,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.3982,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.5973,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.5973,
         "fourRl": 0.7964,
         "fiveRl": 0.9955,
         "oneRl": 0.1991,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.1991,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       },
       "defense": {
         "twoRl": 0.3982,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.3982,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.5973,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.5973,
         "fourRl": 0.7964,
         "fiveRl": 0.9955,
         "oneRl": 0.1991,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.1991,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       }
     },
     "targetRule": {
@@ -93,7 +93,7 @@ const CHARACTERS = [
     "id": 2,
     "slug": "阿妮斯-超级巨星",
     "name": "阿妮斯:超级巨星",
-    "enName": "阿妮斯:超级巨星",
+    "enName": "Anis: Star",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/2.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2026/3/24/610046.png",
@@ -136,41 +136,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.35616,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.35616,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.53424,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.71232,
         "fourRl": 0.71232,
         "fiveRl": 0.8904,
         "oneRl": 0.17808,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.17808,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       },
       "defense": {
         "twoRl": 0.35616,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.35616,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.53424,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.71232,
         "fourRl": 0.71232,
         "fiveRl": 0.8904,
         "oneRl": 0.17808,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.17808,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       }
     },
     "targetRule": {
@@ -184,7 +184,7 @@ const CHARACTERS = [
     "id": 3,
     "slug": "白雪公主-重型武装",
     "name": "白雪公主:重型武装",
-    "enName": "白雪公主:重型武装",
+    "enName": "Snow White: Heavy Arms",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/3.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/11/31/291657.png",
@@ -221,41 +221,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
+      "magazine": 6,
+      "reloadSeconds": 2,
       "chargeSeconds": 1.2,
-      "maxCharge": 250.0
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.336,
-        "twoRlHits": 3.0,
+        "twoRlHits": 3,
         "fiveSg": 0.588,
-        "fiveSgHits": 6.0,
+        "fiveSgHits": 6,
         "threeRl": 0.672,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.924,
         "fourRl": 1.008,
         "fiveRl": 1.232,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.28,
-        "threeSgHits": 3.0
+        "threeSgHits": 3
       },
       "defense": {
         "twoRl": 0.336,
-        "twoRlHits": 3.0,
+        "twoRlHits": 3,
         "fiveSg": 0.588,
-        "fiveSgHits": 6.0,
+        "fiveSgHits": 6,
         "threeRl": 0.672,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.924,
         "fourRl": 1.008,
         "fiveRl": 1.232,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.28,
-        "threeSgHits": 3.0
+        "threeSgHits": 3
       }
     },
     "targetRule": {
@@ -269,7 +269,7 @@ const CHARACTERS = [
     "id": 4,
     "slug": "特蕾娜",
     "name": "特蕾娜",
-    "enName": "特蕾娜",
+    "enName": "Trina",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/4.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/2/18/437251.png",
@@ -312,41 +312,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 68.59,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.52,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.288,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.288,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.432,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.432,
         "fourRl": 0.576,
         "fiveRl": 0.72,
         "oneRl": 0.144,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.144,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.288,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.288,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.432,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.432,
         "fourRl": 0.576,
         "fiveRl": 0.72,
         "oneRl": 0.144,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.144,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -360,7 +360,7 @@ const CHARACTERS = [
     "id": 5,
     "slug": "阿妮斯",
     "name": "阿妮斯",
-    "enName": "阿妮斯",
+    "enName": "Anis",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/5.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/7/4/621341.png",
@@ -404,41 +404,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 65.02,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.03,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.284,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.284,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.426,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.426,
         "fourRl": 0.568,
         "fiveRl": 0.71,
         "oneRl": 0.142,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.142,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.284,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.284,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.426,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.426,
         "fourRl": 0.568,
         "fiveRl": 0.71,
         "oneRl": 0.142,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.142,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -452,7 +452,7 @@ const CHARACTERS = [
     "id": 6,
     "slug": "豺狼",
     "name": "豺狼",
-    "enName": "豺狼",
+    "enName": "Jackal",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/6.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/0/9/653492.png",
@@ -496,41 +496,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 65.02,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.03,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.284,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.284,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.426,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.426,
         "fourRl": 0.568,
         "fiveRl": 0.71,
         "oneRl": 0.142,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.142,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.284,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.284,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.426,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.426,
         "fourRl": 0.568,
         "fiveRl": 0.71,
         "oneRl": 0.142,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.142,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -544,7 +544,7 @@ const CHARACTERS = [
     "id": 7,
     "slug": "桑迪",
     "name": "桑迪",
-    "enName": "桑迪",
+    "enName": "Centi",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/7.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/6236.png",
@@ -588,41 +588,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 1.52,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.276,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.276,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.414,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.414,
         "fourRl": 0.552,
         "fiveRl": 0.69,
         "oneRl": 0.138,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.138,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.276,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.276,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.414,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.414,
         "fourRl": 0.552,
         "fiveRl": 0.69,
         "oneRl": 0.138,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.138,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -679,41 +679,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 1.52,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.276,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.276,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.414,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.414,
         "fourRl": 0.552,
         "fiveRl": 0.69,
         "oneRl": 0.138,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.138,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.276,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.276,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.414,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.414,
         "fourRl": 0.552,
         "fiveRl": 0.69,
         "oneRl": 0.138,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.138,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -727,7 +727,7 @@ const CHARACTERS = [
     "id": 9,
     "slug": "鲁玛妮",
     "name": "鲁玛妮",
-    "enName": "鲁玛妮",
+    "enName": "Rumani",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/9.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/9/18/856152.png",
@@ -770,41 +770,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 56.38,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 1.82,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.26,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.26,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.39,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.39,
         "fourRl": 0.52,
         "fiveRl": 0.65,
         "oneRl": 0.13,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.13,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.26,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.26,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.39,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.39,
         "fourRl": 0.52,
         "fiveRl": 0.65,
         "oneRl": 0.13,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.13,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -818,7 +818,7 @@ const CHARACTERS = [
     "id": 10,
     "slug": "爱蜜莉雅-21.49",
     "name": "爱蜜莉雅 21.49%",
-    "enName": "爱蜜莉雅 21.49%",
+    "enName": "Emilia",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/10.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/2/25/537729.png",
@@ -861,41 +861,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.252,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.378,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.504,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.504,
         "fourRl": 0.63,
         "fiveRl": 0.756,
         "oneRl": 0.126,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.126,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       },
       "defense": {
         "twoRl": 0.252,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.378,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.504,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.504,
         "fourRl": 0.63,
         "fiveRl": 0.756,
         "oneRl": 0.126,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.126,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       }
     },
     "targetRule": {
@@ -909,7 +909,7 @@ const CHARACTERS = [
     "id": 11,
     "slug": "爱蜜莉雅",
     "name": "爱蜜莉雅",
-    "enName": "爱蜜莉雅",
+    "enName": "Emilia",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/11.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/2/25/537729.png",
@@ -952,41 +952,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.252,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.252,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.378,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.378,
         "fourRl": 0.504,
         "fiveRl": 0.63,
         "oneRl": 0.126,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.126,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       },
       "defense": {
         "twoRl": 0.252,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.252,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.378,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.378,
         "fourRl": 0.504,
         "fiveRl": 0.63,
         "oneRl": 0.126,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.126,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       }
     },
     "targetRule": {
@@ -1000,7 +1000,7 @@ const CHARACTERS = [
     "id": 12,
     "slug": "诺雅",
     "name": "诺雅",
-    "enName": "诺雅",
+    "enName": "Noah",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/12.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/880362.png",
@@ -1044,41 +1044,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 32.02,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.24,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.24,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.36,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.36,
         "fourRl": 0.48,
         "fiveRl": 0.6,
         "oneRl": 0.12,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.12,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       },
       "defense": {
         "twoRl": 0.24,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.24,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.36,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.36,
         "fourRl": 0.48,
         "fiveRl": 0.6,
         "oneRl": 0.12,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.12,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       }
     },
     "targetRule": {
@@ -1092,7 +1092,7 @@ const CHARACTERS = [
     "id": 13,
     "slug": "帕斯卡",
     "name": "帕斯卡",
-    "enName": "帕斯卡",
+    "enName": "Pascal",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/13.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/8/6/849095.png",
@@ -1134,42 +1134,42 @@ const CHARACTERS = [
       "global"
     ],
     "stats": {
-      "weaponDamage": 75.0,
-      "magazine": 6.0,
+      "weaponDamage": 75,
+      "magazine": 6,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 1.0,
+      "chargeSeconds": 1,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.184,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.23,
-        "fiveSgHits": 5.0,
+        "fiveSgHits": 5,
         "threeRl": 0.276,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.276,
         "fourRl": 0.276,
         "fiveRl": 0.322,
         "oneRl": 0.092,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.138,
-        "threeSgHits": 3.0
+        "threeSgHits": 3
       },
       "defense": {
         "twoRl": 0.184,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.23,
-        "fiveSgHits": 5.0,
+        "fiveSgHits": 5,
         "threeRl": 0.276,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.276,
         "fourRl": 0.276,
         "fiveRl": 0.322,
         "oneRl": 0.092,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.138,
-        "threeSgHits": 3.0
+        "threeSgHits": 3
       }
     },
     "targetRule": {
@@ -1183,7 +1183,7 @@ const CHARACTERS = [
     "id": 14,
     "slug": "梅登-冰玫瑰",
     "name": "梅登:冰玫瑰",
-    "enName": "梅登:冰玫瑰",
+    "enName": "Maiden: Ice Rose",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/14.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/11/12/305462.png",
@@ -1226,41 +1226,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.182,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.182,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.273,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.273,
         "fourRl": 0.364,
         "fiveRl": 0.455,
         "oneRl": 0.091,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.091,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       },
       "defense": {
         "twoRl": 0.182,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.182,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.273,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.273,
         "fourRl": 0.364,
         "fiveRl": 0.455,
         "oneRl": 0.091,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.091,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       }
     },
     "targetRule": {
@@ -1274,7 +1274,7 @@ const CHARACTERS = [
     "id": 15,
     "slug": "德雷克-珍藏",
     "name": "德雷克 珍藏",
-    "enName": "德雷克 珍藏",
+    "enName": "Drake +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/15.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/943813.png",
@@ -1319,41 +1319,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 214.3,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.52,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.2295,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.2745,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.3195,
         "fourRl": 0.3645,
         "fiveRl": 0.4095,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.2295,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.2745,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.3195,
         "fourRl": 0.3645,
         "fiveRl": 0.4095,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -1367,7 +1367,7 @@ const CHARACTERS = [
     "id": 16,
     "slug": "德雷克",
     "name": "德雷克",
-    "enName": "德雷克",
+    "enName": "Drake",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/16.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/943813.png",
@@ -1405,41 +1405,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 214.3,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 0.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -1453,7 +1453,7 @@ const CHARACTERS = [
     "id": 17,
     "slug": "毒蛇",
     "name": "毒蛇",
-    "enName": "毒蛇",
+    "enName": "Viper",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/17.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/2/31/434605.png",
@@ -1491,41 +1491,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 220.4,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 0.56,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -1539,7 +1539,7 @@ const CHARACTERS = [
     "id": 18,
     "slug": "毒蛇-珍藏",
     "name": "毒蛇 珍藏",
-    "enName": "毒蛇 珍藏",
+    "enName": "Viper +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/18.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/2/31/434605.png",
@@ -1576,41 +1576,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 220.4,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 0.56,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -1624,7 +1624,7 @@ const CHARACTERS = [
     "id": 19,
     "slug": "梅登",
     "name": "梅登",
-    "enName": "梅登",
+    "enName": "Maiden",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/19.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/750510.png",
@@ -1662,41 +1662,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 231.6,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 0.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -1710,7 +1710,7 @@ const CHARACTERS = [
     "id": 20,
     "slug": "尼恩",
     "name": "尼恩",
-    "enName": "尼恩",
+    "enName": "Neon",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/20.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/7/4/193067.png",
@@ -1748,41 +1748,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 224.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 0.6,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -1796,7 +1796,7 @@ const CHARACTERS = [
     "id": 21,
     "slug": "诺亚尔",
     "name": "诺亚尔",
-    "enName": "诺亚尔",
+    "enName": "Noir",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/21.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/4/19/479166.png",
@@ -1834,41 +1834,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 204.6,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 0.23,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -1882,7 +1882,7 @@ const CHARACTERS = [
     "id": 22,
     "slug": "佩珀",
     "name": "佩珀",
-    "enName": "佩珀",
+    "enName": "Pepper",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/22.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/47776.png",
@@ -1920,41 +1920,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 231.6,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 0.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -1968,7 +1968,7 @@ const CHARACTERS = [
     "id": 23,
     "slug": "舒格",
     "name": "舒格",
-    "enName": "舒格",
+    "enName": "Sugar",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/23.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/141962.png",
@@ -2006,41 +2006,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 231.6,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 0.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -2054,7 +2054,7 @@ const CHARACTERS = [
     "id": 24,
     "slug": "索达-闪亮兔女郎",
     "name": "索达:闪亮兔女郎",
-    "enName": "索达:闪亮兔女郎",
+    "enName": "Soda: Twinkling Bunny",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/24.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/5/3/311477.png",
@@ -2092,41 +2092,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 231.6,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 0.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.18,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.225,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.27,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.315,
         "fourRl": 0.36,
         "fiveRl": 0.405,
         "oneRl": 0.09,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.135,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -2140,7 +2140,7 @@ const CHARACTERS = [
     "id": 25,
     "slug": "拉普拉斯-珍藏",
     "name": "拉普拉斯 珍藏",
-    "enName": "拉普拉斯 珍藏",
+    "enName": "Laplace +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/25.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/10/21/46079.png",
@@ -2183,41 +2183,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 63.11,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.33,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.174,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.174,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.261,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.261,
         "fourRl": 0.348,
         "fiveRl": 0.435,
         "oneRl": 0.087,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.087,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       },
       "defense": {
         "twoRl": 0.174,
-        "twoRlHits": 4.0,
+        "twoRlHits": 4,
         "fiveSg": 0.174,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.261,
-        "threeRlHits": 6.0,
+        "threeRlHits": 6,
         "sevenSg": 0.261,
         "fourRl": 0.348,
         "fiveRl": 0.435,
         "oneRl": 0.087,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.087,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       }
     },
     "targetRule": {
@@ -2231,7 +2231,7 @@ const CHARACTERS = [
     "id": 26,
     "slug": "莉贝雷利奥-水母",
     "name": "莉贝雷利奥(水母)",
-    "enName": "莉贝雷利奥(水母)",
+    "enName": "Liberalio",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/26.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/10/6/238459.png",
@@ -2268,41 +2268,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
+      "magazine": 6,
+      "reloadSeconds": 2,
       "chargeSeconds": 1.5,
-      "maxCharge": 250.0
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.168,
-        "twoRlHits": 6.0,
+        "twoRlHits": 6,
         "fiveSg": 0.168,
-        "fiveSgHits": 6.0,
+        "fiveSgHits": 6,
         "threeRl": 0.336,
-        "threeRlHits": 12.0,
+        "threeRlHits": 12,
         "sevenSg": 0.336,
         "fourRl": 0.336,
         "fiveRl": 0.504,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.168,
-        "threeSgHits": 6.0
+        "threeSgHits": 6
       },
       "defense": {
         "twoRl": 0.168,
-        "twoRlHits": 6.0,
+        "twoRlHits": 6,
         "fiveSg": 0.168,
-        "fiveSgHits": 6.0,
+        "fiveSgHits": 6,
         "threeRl": 0.336,
-        "threeRlHits": 12.0,
+        "threeRlHits": 12,
         "sevenSg": 0.336,
         "fourRl": 0.336,
         "fiveRl": 0.504,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.168,
-        "threeSgHits": 6.0
+        "threeSgHits": 6
       }
     },
     "targetRule": {
@@ -2316,7 +2316,7 @@ const CHARACTERS = [
     "id": 27,
     "slug": "米卡-雪地伙伴",
     "name": "米卡:雪地伙伴",
-    "enName": "米卡:雪地伙伴",
+    "enName": "Mica: Snow Buddy",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/27.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/11/22/456564.png",
@@ -2353,41 +2353,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 11.7,
-      "magazine": 120.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 2,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.152,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.184,
-        "fiveSgHits": 46.0,
+        "fiveSgHits": 46,
         "threeRl": 0.228,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.26,
         "fourRl": 0.304,
         "fiveRl": 0.38,
         "oneRl": 0.08,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.116,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.152,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.184,
-        "fiveSgHits": 46.0,
+        "fiveSgHits": 46,
         "threeRl": 0.228,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.26,
         "fourRl": 0.304,
         "fiveRl": 0.38,
         "oneRl": 0.08,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.116,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -2401,7 +2401,7 @@ const CHARACTERS = [
     "id": 28,
     "slug": "茨瓦伊",
     "name": "茨瓦伊",
-    "enName": "茨瓦伊",
+    "enName": "Zwei",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/28.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/7/12/75880.png",
@@ -2438,41 +2438,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 100.75,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.14,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.175,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.21,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.245,
         "fourRl": 0.28,
         "fiveRl": 0.315,
         "oneRl": 0.07,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.105,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.14,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.175,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.21,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.245,
         "fourRl": 0.28,
         "fiveRl": 0.315,
         "oneRl": 0.07,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.105,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -2486,7 +2486,7 @@ const CHARACTERS = [
     "id": 29,
     "slug": "尼希利斯塔",
     "name": "尼希利斯塔",
-    "enName": "尼希利斯塔",
+    "enName": "Nihilister",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/29.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/4/4/644473.png",
@@ -2523,41 +2523,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.14,
-        "twoRlHits": 3.0,
+        "twoRlHits": 3,
         "fiveSg": 0.14,
-        "fiveSgHits": 5.0,
+        "fiveSgHits": 5,
         "threeRl": 0.252,
-        "threeRlHits": 7.0,
+        "threeRlHits": 7,
         "sevenSg": 0.252,
         "fourRl": 0.364,
         "fiveRl": 0.476,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.14,
-        "twoRlHits": 3.0,
+        "twoRlHits": 3,
         "fiveSg": 0.14,
-        "fiveSgHits": 5.0,
+        "fiveSgHits": 5,
         "threeRl": 0.252,
-        "threeRlHits": 7.0,
+        "threeRlHits": 7,
         "sevenSg": 0.252,
         "fourRl": 0.364,
         "fiveRl": 0.476,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -2608,41 +2608,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 100.75,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.14,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.175,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.21,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.245,
         "fourRl": 0.28,
         "fiveRl": 0.315,
         "oneRl": 0.07,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.105,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.14,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.175,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.21,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.245,
         "fourRl": 0.28,
         "fiveRl": 0.315,
         "oneRl": 0.07,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.105,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -2656,7 +2656,7 @@ const CHARACTERS = [
     "id": 31,
     "slug": "阿尔卡娜",
     "name": "阿尔卡娜",
-    "enName": "阿尔卡娜",
+    "enName": "Arcana",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/31.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/4/19/646332.png",
@@ -2699,41 +2699,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 64.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.12,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.12,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.18,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.18,
         "fourRl": 0.18,
         "fiveRl": 0.24,
         "oneRl": 0.06,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.06,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.12,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.12,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.18,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.18,
         "fourRl": 0.18,
         "fiveRl": 0.24,
         "oneRl": 0.06,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.06,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -2791,41 +2791,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 67.65,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 2.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 2,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.117,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.117,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.234,
-        "threeRlHits": 4.0,
+        "threeRlHits": 4,
         "sevenSg": 0.234,
         "fourRl": 0.234,
         "fiveRl": 0.351,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.117,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       },
       "defense": {
         "twoRl": 0.117,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.117,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.234,
-        "threeRlHits": 4.0,
+        "threeRlHits": 4,
         "sevenSg": 0.234,
         "fourRl": 0.234,
         "fiveRl": 0.351,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.117,
-        "threeSgHits": 2.0
+        "threeSgHits": 2
       }
     },
     "targetRule": {
@@ -2839,7 +2839,7 @@ const CHARACTERS = [
     "id": 33,
     "slug": "拉普拉斯",
     "name": "拉普拉斯",
-    "enName": "拉普拉斯",
+    "enName": "Laplace",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/33.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/10/21/46079.png",
@@ -2883,41 +2883,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 63.11,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.33,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.116,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.116,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.174,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.174,
         "fourRl": 0.232,
         "fiveRl": 0.29,
         "oneRl": 0.058,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.058,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.116,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.116,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.174,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.174,
         "fourRl": 0.232,
         "fiveRl": 0.29,
         "oneRl": 0.058,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.058,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -2931,7 +2931,7 @@ const CHARACTERS = [
     "id": 34,
     "slug": "长发公主",
     "name": "长发公主",
-    "enName": "长发公主",
+    "enName": "Rapunzel",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/34.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/951208.png",
@@ -2975,41 +2975,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 62.95,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.3,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.116,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.116,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.174,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.174,
         "fourRl": 0.232,
         "fiveRl": 0.29,
         "oneRl": 0.058,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.058,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.116,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.116,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.174,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.174,
         "fourRl": 0.232,
         "fiveRl": 0.29,
         "oneRl": 0.058,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.058,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -3023,7 +3023,7 @@ const CHARACTERS = [
     "id": 35,
     "slug": "迪塞尔-冬日甜心",
     "name": "迪塞尔:冬日甜心",
-    "enName": "迪塞尔:冬日甜心",
+    "enName": "Diesel: Winter Sweets",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/35.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/11/5/17667.png",
@@ -3067,41 +3067,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.116,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.116,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.174,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.174,
         "fourRl": 0.232,
         "fiveRl": 0.29,
         "oneRl": 0.058,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.058,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.116,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.116,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.174,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.174,
         "fourRl": 0.232,
         "fiveRl": 0.29,
         "oneRl": 0.058,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.058,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -3115,7 +3115,7 @@ const CHARACTERS = [
     "id": 36,
     "slug": "格拉维",
     "name": "格拉维",
-    "enName": "格拉维",
+    "enName": "Grave",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/36.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/10/5/646530.png",
@@ -3152,41 +3152,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 17.91,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.1125,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.1395,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.171,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.198,
         "fourRl": 0.225,
         "fiveRl": 0.27,
         "oneRl": 0.0585,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0855,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.1125,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.1395,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.171,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.198,
         "fourRl": 0.225,
         "fiveRl": 0.27,
         "oneRl": 0.0585,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0855,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -3200,7 +3200,7 @@ const CHARACTERS = [
     "id": 37,
     "slug": "红莲",
     "name": "红莲",
-    "enName": "红莲",
+    "enName": "Scarlet",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/37.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/935524.png",
@@ -3238,41 +3238,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 27.08,
-      "magazine": 20.0,
+      "magazine": 20,
       "reloadSeconds": 2.3,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.1125,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.1395,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.171,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.198,
         "fourRl": 0.225,
         "fiveRl": 0.27,
         "oneRl": 0.0585,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0855,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.1125,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.1395,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.171,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.198,
         "fourRl": 0.225,
         "fiveRl": 0.27,
         "oneRl": 0.0585,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0855,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -3286,7 +3286,7 @@ const CHARACTERS = [
     "id": 38,
     "slug": "安克",
     "name": "安克",
-    "enName": "安克",
+    "enName": "Anchor",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/38.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/7/7/565557.png",
@@ -3329,41 +3329,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -3377,7 +3377,7 @@ const CHARACTERS = [
     "id": 39,
     "slug": "安克-天真的女仆",
     "name": "安克:天真的女仆",
-    "enName": "安克:天真的女仆",
+    "enName": "Anchor: Innocent Maid",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/39.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/1/7/643681.png",
@@ -3420,41 +3420,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -3468,7 +3468,7 @@ const CHARACTERS = [
     "id": 40,
     "slug": "安妮-奇迹仙女",
     "name": "安妮:奇迹仙女",
-    "enName": "安妮:奇迹仙女",
+    "enName": "Anne: Miracle Fairy",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/40.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2022/11/6/291028.png",
@@ -3512,41 +3512,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -3560,7 +3560,7 @@ const CHARACTERS = [
     "id": 41,
     "slug": "贝斯蒂",
     "name": "贝斯蒂",
-    "enName": "贝斯蒂",
+    "enName": "Vesti",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/41.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/769951.png",
@@ -3604,41 +3604,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -3652,7 +3652,7 @@ const CHARACTERS = [
     "id": 42,
     "slug": "贝伊",
     "name": "贝伊",
-    "enName": "贝伊",
+    "enName": "Bay",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/42.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/3/15/664314.png",
@@ -3695,41 +3695,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -3743,7 +3743,7 @@ const CHARACTERS = [
     "id": 43,
     "slug": "贝伊-珍藏",
     "name": "贝伊 珍藏",
-    "enName": "贝伊 珍藏",
+    "enName": "Bay +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/43.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/3/15/664314.png",
@@ -3786,41 +3786,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -3834,7 +3834,7 @@ const CHARACTERS = [
     "id": 44,
     "slug": "饼干",
     "name": "饼干",
-    "enName": "饼干",
+    "enName": "Biscuit",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/44.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/1/23/822522.png",
@@ -3878,41 +3878,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -3926,7 +3926,7 @@ const CHARACTERS = [
     "id": 45,
     "slug": "蒂亚",
     "name": "蒂亚",
-    "enName": "蒂亚",
+    "enName": "Tia",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/45.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/8/22/538464.png",
@@ -3969,41 +3969,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -4017,7 +4017,7 @@ const CHARACTERS = [
     "id": 46,
     "slug": "基里",
     "name": "基里",
-    "enName": "基里",
+    "enName": "Quiry",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/46.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/9/23/964371.png",
@@ -4060,41 +4060,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -4108,7 +4108,7 @@ const CHARACTERS = [
     "id": 47,
     "slug": "克拉斯特",
     "name": "克拉斯特",
-    "enName": "克拉斯特",
+    "enName": "Crust",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/47.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/3/17/185020.png",
@@ -4151,41 +4151,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -4199,7 +4199,7 @@ const CHARACTERS = [
     "id": 48,
     "slug": "米卡",
     "name": "米卡",
-    "enName": "米卡",
+    "enName": "Mica",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/48.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/7/4/732607.png",
@@ -4243,41 +4243,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -4291,7 +4291,7 @@ const CHARACTERS = [
     "id": 49,
     "slug": "诺伊斯",
     "name": "诺伊斯",
-    "enName": "诺伊斯",
+    "enName": "Noise",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/49.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/515916.png",
@@ -4335,41 +4335,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -4383,7 +4383,7 @@ const CHARACTERS = [
     "id": 50,
     "slug": "帕瓦",
     "name": "帕瓦",
-    "enName": "帕瓦",
+    "enName": "Power",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/50.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/1/21/620280.png",
@@ -4426,41 +4426,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -4474,7 +4474,7 @@ const CHARACTERS = [
     "id": 51,
     "slug": "索拉",
     "name": "索拉",
-    "enName": "索拉",
+    "enName": "Sora",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/51.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/6/7/113922.png",
@@ -4517,41 +4517,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -4565,7 +4565,7 @@ const CHARACTERS = [
     "id": 52,
     "slug": "艾达·王",
     "name": "艾达·王",
-    "enName": "艾达·王",
+    "enName": "Ada",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/52.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/8/25/817769.png",
@@ -4608,41 +4608,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -4656,7 +4656,7 @@ const CHARACTERS = [
     "id": 53,
     "slug": "玛娜",
     "name": "玛娜",
-    "enName": "玛娜",
+    "enName": "Mana",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/53.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/0/17/919940.png",
@@ -4693,41 +4693,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 15.07,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.1065,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.13206,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.16188,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.18744,
         "fourRl": 0.213,
         "fiveRl": 0.2556,
         "oneRl": 0.05538,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.08094,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.1065,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.13206,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.16188,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.18744,
         "fourRl": 0.213,
         "fiveRl": 0.2556,
         "oneRl": 0.05538,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.08094,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -4741,7 +4741,7 @@ const CHARACTERS = [
     "id": 54,
     "slug": "阿妮斯-闪耀夏日",
     "name": "阿妮斯:闪耀夏日",
-    "enName": "阿妮斯:闪耀夏日",
+    "enName": "Anis: Sparkling Summer",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/54.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/7/7/219410.png",
@@ -4782,41 +4782,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 259.2,
-      "magazine": 5.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 0.0,
+      "magazine": 5,
+      "reloadSeconds": 2,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.1,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.13,
-        "fiveSgHits": 51.0,
+        "fiveSgHits": 51,
         "threeRl": 0.13,
-        "threeRlHits": 51.0,
+        "threeRlHits": 51,
         "sevenSg": 0.13,
         "fourRl": 0.155,
         "fiveRl": 0.18,
         "oneRl": 0.05,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.075,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.1,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.13,
-        "fiveSgHits": 51.0,
+        "fiveSgHits": 51,
         "threeRl": 0.13,
-        "threeRlHits": 51.0,
+        "threeRlHits": 51,
         "sevenSg": 0.13,
         "fourRl": 0.155,
         "fiveRl": 0.18,
         "oneRl": 0.05,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.075,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -4867,41 +4867,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 71.09,
-      "magazine": 9.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 9,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.088,
-        "twoRlHits": 8.0,
+        "twoRlHits": 8,
         "fiveSg": 0.121,
-        "fiveSgHits": 11.0,
+        "fiveSgHits": 11,
         "threeRl": 0.132,
-        "threeRlHits": 12.0,
+        "threeRlHits": 12,
         "sevenSg": 0.143,
         "fourRl": 0.154,
         "fiveRl": 0.176,
         "oneRl": 0.044,
-        "oneRlHits": 4.0,
+        "oneRlHits": 4,
         "threeSg": 0.066,
-        "threeSgHits": 6.0
+        "threeSgHits": 6
       },
       "defense": {
         "twoRl": 0.088,
-        "twoRlHits": 8.0,
+        "twoRlHits": 8,
         "fiveSg": 0.121,
-        "fiveSgHits": 11.0,
+        "fiveSgHits": 11,
         "threeRl": 0.132,
-        "threeRlHits": 12.0,
+        "threeRlHits": 12,
         "sevenSg": 0.143,
         "fourRl": 0.154,
         "fiveRl": 0.176,
         "oneRl": 0.044,
-        "oneRlHits": 4.0,
+        "oneRlHits": 4,
         "threeSg": 0.066,
-        "threeSgHits": 6.0
+        "threeSgHits": 6
       }
     },
     "targetRule": {
@@ -4915,7 +4915,7 @@ const CHARACTERS = [
     "id": 56,
     "slug": "红莲-暗影",
     "name": "红莲:暗影",
-    "enName": "红莲:暗影",
+    "enName": "Scarlet: Black Shadow",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/56.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/0/2/232983.png",
@@ -4968,41 +4968,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 57.29,
-      "magazine": 9.0,
-      "reloadSeconds": 2.0,
+      "magazine": 9,
+      "reloadSeconds": 2,
       "chargeSeconds": 0.3,
-      "maxCharge": 150.0
+      "maxCharge": 150
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0875,
-        "twoRlHits": 3.0,
+        "twoRlHits": 3,
         "fiveSg": 0.1125,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.1375,
-        "threeRlHits": 5.0,
+        "threeRlHits": 5,
         "sevenSg": 0.1875,
         "fourRl": 0.2125,
         "fiveRl": 0.2375,
         "oneRl": 0.05,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.0875,
-        "threeSgHits": 3.0
+        "threeSgHits": 3
       },
       "defense": {
         "twoRl": 0.0875,
-        "twoRlHits": 3.0,
+        "twoRlHits": 3,
         "fiveSg": 0.1125,
-        "fiveSgHits": 4.0,
+        "fiveSgHits": 4,
         "threeRl": 0.1375,
-        "threeRlHits": 5.0,
+        "threeRlHits": 5,
         "sevenSg": 0.1875,
         "fourRl": 0.2125,
         "fiveRl": 0.2375,
         "oneRl": 0.05,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.0875,
-        "threeSgHits": 3.0
+        "threeSgHits": 3
       }
     },
     "targetRule": {
@@ -5016,7 +5016,7 @@ const CHARACTERS = [
     "id": 57,
     "slug": "哈兰",
     "name": "哈兰",
-    "enName": "哈兰",
+    "enName": "Harran",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/57.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/126887.png",
@@ -5059,41 +5059,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 70.89,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.3,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.087,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.087,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.145,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.145,
         "fourRl": 0.203,
         "fiveRl": 0.261,
         "oneRl": 0.029,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.029,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.087,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.087,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.145,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.145,
         "fourRl": 0.203,
         "fiveRl": 0.261,
         "oneRl": 0.029,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.029,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -5107,7 +5107,7 @@ const CHARACTERS = [
     "id": 58,
     "slug": "蕾贝儿",
     "name": "蕾贝儿",
-    "enName": "蕾贝儿",
+    "enName": "Label",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/58.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2026/0/16/618292.png",
@@ -5144,41 +5144,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0852,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.105648,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.129504,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.149952,
         "fourRl": 0.1704,
         "fiveRl": 0.2004,
         "oneRl": 0.044304,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.064752,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.0852,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.105648,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.129504,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.149952,
         "fourRl": 0.1704,
         "fiveRl": 0.2004,
         "oneRl": 0.044304,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.064752,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -5192,7 +5192,7 @@ const CHARACTERS = [
     "id": 59,
     "slug": "渡鸦",
     "name": "渡鸦",
-    "enName": "渡鸦",
+    "enName": "Raven",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/59.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/5/18/190418.png",
@@ -5236,41 +5236,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 2.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 2,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.084,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.084,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 4.0,
+        "threeRlHits": 4,
         "sevenSg": 0.168,
         "fourRl": 0.182,
         "fiveRl": 0.217,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.07,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.084,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.084,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 4.0,
+        "threeRlHits": 4,
         "sevenSg": 0.168,
         "fourRl": 0.182,
         "fiveRl": 0.217,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.07,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -5284,14 +5284,14 @@ const CHARACTERS = [
     "id": 60,
     "slug": "普丽瓦蒂-不友善的女仆",
     "name": "普丽瓦蒂:不友善的女仆",
-    "enName": "普丽瓦蒂:不友善的女仆",
+    "enName": "Privaty: Unkind Maid",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/60.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/1/2/371020.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -5321,41 +5321,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 182.1,
-      "magazine": 9.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 0.0,
+      "magazine": 9,
+      "reloadSeconds": 2,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.084,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.062,
-        "threeSgHits": 31.0
+        "threeSgHits": 31
       },
       "defense": {
         "twoRl": 0.084,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.062,
-        "threeSgHits": 31.0
+        "threeSgHits": 31
       }
     },
     "targetRule": {
@@ -5369,7 +5369,7 @@ const CHARACTERS = [
     "id": 61,
     "slug": "吉尔提",
     "name": "吉尔提",
-    "enName": "吉尔提",
+    "enName": "Guilty",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/61.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/0/10/3316.png",
@@ -5406,41 +5406,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 231.4,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 2.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 41.0,
+        "twoRlHits": 41,
         "fiveSg": 0.104,
-        "fiveSgHits": 51.0,
+        "fiveSgHits": 51,
         "threeRl": 0.128,
-        "threeRlHits": 62.0,
+        "threeRlHits": 62,
         "sevenSg": 0.148,
         "fourRl": 0.168,
         "fiveRl": 0.192,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 41.0,
+        "twoRlHits": 41,
         "fiveSg": 0.104,
-        "fiveSgHits": 51.0,
+        "fiveSgHits": 51,
         "threeRl": 0.128,
-        "threeRlHits": 62.0,
+        "threeRlHits": 62,
         "sevenSg": 0.148,
         "fourRl": 0.168,
         "fiveRl": 0.192,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -5454,14 +5454,14 @@ const CHARACTERS = [
     "id": 62,
     "slug": "艾瑟儿",
     "name": "艾瑟儿",
-    "enName": "艾瑟儿",
+    "enName": "Ether",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/62.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/7/4/668734.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -5492,41 +5492,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 214.3,
-      "magazine": 9.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 0.0,
+      "magazine": 9,
+      "reloadSeconds": 2,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -5540,14 +5540,14 @@ const CHARACTERS = [
     "id": 63,
     "slug": "波莉",
     "name": "波莉",
-    "enName": "波莉",
+    "enName": "Poli",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/63.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/448895.png",
     "isCommon": true,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -5578,41 +5578,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 201.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -5626,14 +5626,14 @@ const CHARACTERS = [
     "id": 64,
     "slug": "波莉-珍藏",
     "name": "波莉 珍藏",
-    "enName": "波莉 珍藏",
+    "enName": "Poli +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/64.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/448895.png",
     "isCommon": true,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -5663,41 +5663,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 201.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -5711,14 +5711,14 @@ const CHARACTERS = [
     "id": 65,
     "slug": "莱昂纳",
     "name": "莱昂纳",
-    "enName": "莱昂纳",
+    "enName": "Leona",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/65.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/0/15/849751.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -5748,41 +5748,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 201.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -5796,14 +5796,14 @@ const CHARACTERS = [
     "id": 66,
     "slug": "玛律恰那",
     "name": "玛律恰那",
-    "enName": "玛律恰那",
+    "enName": "Marciana",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/66.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/8/22/656896.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -5833,41 +5833,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 201.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -5881,14 +5881,14 @@ const CHARACTERS = [
     "id": 67,
     "slug": "梅里",
     "name": "梅里",
-    "enName": "梅里",
+    "enName": "Mary",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/67.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/567788.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -5919,41 +5919,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 201.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -5967,14 +5967,14 @@ const CHARACTERS = [
     "id": 68,
     "slug": "娜嘉",
     "name": "娜嘉",
-    "enName": "娜嘉",
+    "enName": "Naga",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/68.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/8/22/366685.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -6004,41 +6004,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 204.8,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -6052,14 +6052,14 @@ const CHARACTERS = [
     "id": 69,
     "slug": "尼夫",
     "name": "尼夫",
-    "enName": "尼夫",
+    "enName": "Neve",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/69.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2022/11/6/187868.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -6089,41 +6089,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 201.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -6137,14 +6137,14 @@ const CHARACTERS = [
     "id": 70,
     "slug": "桃乐丝-机缘巧遇",
     "name": "桃乐丝:机缘巧遇",
-    "enName": "桃乐丝:机缘巧遇",
+    "enName": "Dorothy: Serendipity",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/70.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/6/18/68872.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -6174,41 +6174,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 201.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -6222,14 +6222,14 @@ const CHARACTERS = [
     "id": 71,
     "slug": "伊莎贝尔",
     "name": "伊莎贝尔",
-    "enName": "伊莎贝尔",
+    "enName": "Isabel",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/71.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/182220.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -6260,41 +6260,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 210.7,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.86,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -6308,14 +6308,14 @@ const CHARACTERS = [
     "id": 72,
     "slug": "索林-霜雪车票",
     "name": "索林:霜雪车票",
-    "enName": "索林:霜雪车票",
+    "enName": "Soline: Frost Ticket",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/72.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/10/26/933895.png",
     "isCommon": true,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -6346,41 +6346,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 201.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -6394,14 +6394,14 @@ const CHARACTERS = [
     "id": 73,
     "slug": "布丽德-静默轨道",
     "name": "布丽德:静默轨道",
-    "enName": "布丽德:静默轨道",
+    "enName": "Brid",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/73.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/11/11/65222.png",
     "isCommon": false,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -6432,41 +6432,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 201.5,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.102,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.122,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.142,
         "fourRl": 0.162,
         "fiveRl": 0.182,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -6480,14 +6480,14 @@ const CHARACTERS = [
     "id": 74,
     "slug": "阿尔卡娜-命运伴侣",
     "name": "阿尔卡娜:命运伴侣",
-    "enName": "阿尔卡娜:命运伴侣",
+    "enName": "Arcana: Fortune Mate",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/74.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2026/2/20/852854.png",
     "isCommon": true,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
-    "burstGen": 2.0,
+    "burstGen": 2,
     "burstCoefficient": 0.002,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": null,
@@ -6517,41 +6517,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 222.8,
-      "magazine": 9.0,
+      "magazine": 9,
       "reloadSeconds": 2.33,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       },
       "defense": {
         "twoRl": 0.08,
-        "twoRlHits": 40.0,
+        "twoRlHits": 40,
         "fiveSg": 0.1,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.12,
-        "threeRlHits": 60.0,
+        "threeRlHits": 60,
         "sevenSg": 0.14,
         "fourRl": 0.16,
         "fiveRl": 0.18,
         "oneRl": 0.04,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.06,
-        "threeSgHits": 30.0
+        "threeSgHits": 30
       }
     },
     "targetRule": {
@@ -6602,41 +6602,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 4.55,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.8,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.076,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.092,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.114,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.13,
         "fourRl": 0.152,
         "fiveRl": 0.19,
         "oneRl": 0.04,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.058,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       },
       "defense": {
         "twoRl": 0.076,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.092,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.114,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.13,
         "fourRl": 0.152,
         "fiveRl": 0.19,
         "oneRl": 0.04,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.058,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       }
     },
     "targetRule": {
@@ -6650,7 +6650,7 @@ const CHARACTERS = [
     "id": 76,
     "slug": "坎西",
     "name": "坎西",
-    "enName": "坎西",
+    "enName": "Quency",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/76.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/0/10/332657.png",
@@ -6687,41 +6687,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 4.47,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.076,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.092,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.114,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.13,
         "fourRl": 0.152,
         "fiveRl": 0.19,
         "oneRl": 0.04,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.058,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       },
       "defense": {
         "twoRl": 0.076,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.092,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.114,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.13,
         "fourRl": 0.152,
         "fiveRl": 0.19,
         "oneRl": 0.04,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.058,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       }
     },
     "targetRule": {
@@ -6735,7 +6735,7 @@ const CHARACTERS = [
     "id": 77,
     "slug": "克拉乌",
     "name": "克拉乌",
-    "enName": "克拉乌",
+    "enName": "Crow",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/77.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/29538.png",
@@ -6773,41 +6773,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.59,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.076,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.092,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.114,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.13,
         "fourRl": 0.152,
         "fiveRl": 0.19,
         "oneRl": 0.04,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.058,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       },
       "defense": {
         "twoRl": 0.076,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.092,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.114,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.13,
         "fourRl": 0.152,
         "fiveRl": 0.19,
         "oneRl": 0.04,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.058,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       }
     },
     "targetRule": {
@@ -6821,7 +6821,7 @@ const CHARACTERS = [
     "id": 78,
     "slug": "索林",
     "name": "索林",
-    "enName": "索林",
+    "enName": "Soline",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/78.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/190751.png",
@@ -6859,41 +6859,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.85,
-      "magazine": 120.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 2,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.076,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.092,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.114,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.13,
         "fourRl": 0.152,
         "fiveRl": 0.19,
         "oneRl": 0.04,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.058,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       },
       "defense": {
         "twoRl": 0.076,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.092,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.114,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.13,
         "fourRl": 0.152,
         "fiveRl": 0.19,
         "oneRl": 0.04,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.058,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       }
     },
     "targetRule": {
@@ -6907,7 +6907,7 @@ const CHARACTERS = [
     "id": 79,
     "slug": "明日香",
     "name": "明日香",
-    "enName": "明日香",
+    "enName": "Asuka Shikinami Langley",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/79.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/7/26/969221.png",
@@ -6944,41 +6944,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 18.76,
-      "magazine": 20.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 20,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.075,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.093,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.114,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.132,
         "fourRl": 0.15,
         "fiveRl": 0.18,
         "oneRl": 0.039,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.057,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.075,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.093,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.114,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.132,
         "fourRl": 0.15,
         "fiveRl": 0.18,
         "oneRl": 0.039,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.057,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -6992,7 +6992,7 @@ const CHARACTERS = [
     "id": 80,
     "slug": "白雪公主",
     "name": "白雪公主",
-    "enName": "白雪公主",
+    "enName": "Snow White",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/80.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/619677.png",
@@ -7030,41 +7030,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.71,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.0975,
-        "threeRlHits": 39.0,
+        "threeRlHits": 39,
         "sevenSg": 0.1125,
         "fourRl": 0.1275,
         "fiveRl": 0.155,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.0975,
-        "threeRlHits": 39.0,
+        "threeRlHits": 39,
         "sevenSg": 0.1125,
         "fourRl": 0.1275,
         "fiveRl": 0.155,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -7078,7 +7078,7 @@ const CHARACTERS = [
     "id": 81,
     "slug": "爱德",
     "name": "爱德",
-    "enName": "爱德",
+    "enName": "Ade",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/81.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/1/2/524440.png",
@@ -7115,41 +7115,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.71,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -7163,7 +7163,7 @@ const CHARACTERS = [
     "id": 82,
     "slug": "零-二期",
     "name": "零（二期）",
-    "enName": "零（二期）",
+    "enName": "Rei Ayanami (Tentative Name)",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/82.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/7/26/153028.png",
@@ -7200,41 +7200,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.71,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0625,
-        "twoRlHits": 22.0,
+        "twoRlHits": 22,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.0625,
-        "twoRlHits": 22.0,
+        "twoRlHits": 22,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -7248,7 +7248,7 @@ const CHARACTERS = [
     "id": 83,
     "slug": "米哈拉",
     "name": "米哈拉",
-    "enName": "米哈拉",
+    "enName": "Mihara",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/83.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/4/361815.png",
@@ -7286,41 +7286,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 15.07,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -7334,7 +7334,7 @@ const CHARACTERS = [
     "id": 84,
     "slug": "牡丹",
     "name": "牡丹",
-    "enName": "牡丹",
+    "enName": "Moran",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/84.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/0/15/971316.png",
@@ -7371,41 +7371,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.71,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -7419,7 +7419,7 @@ const CHARACTERS = [
     "id": 85,
     "slug": "潘托姆",
     "name": "潘托姆",
-    "enName": "潘托姆",
+    "enName": "Phantom",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/85.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/8/23/466930.png",
@@ -7456,41 +7456,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 15.78,
-      "magazine": 60.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 2,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -7541,41 +7541,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.71,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.0625,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0775,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.095,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.11,
         "fourRl": 0.125,
         "fiveRl": 0.15,
         "oneRl": 0.0325,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0475,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -7589,7 +7589,7 @@ const CHARACTERS = [
     "id": 87,
     "slug": "贝斯蒂-战术升级",
     "name": "贝斯蒂:战术升级",
-    "enName": "贝斯蒂:战术升级",
+    "enName": "Vesti: Tactical Upgrade",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/87.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/7/21/729883.png",
@@ -7632,41 +7632,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 22.44,
-      "magazine": 8.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 2.0,
-      "maxCharge": 200.0
+      "magazine": 8,
+      "reloadSeconds": 2,
+      "chargeSeconds": 2,
+      "maxCharge": 200
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0585,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.1755,
-        "fiveSgHits": 6.0,
+        "fiveSgHits": 6,
         "threeRl": 0.234,
-        "threeRlHits": 8.0,
+        "threeRlHits": 8,
         "sevenSg": 0.234,
         "fourRl": 0.234,
         "fiveRl": 0.2925,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
-        "threeSg": 0.0,
-        "threeSgHits": 0.0
+        "oneRl": 0,
+        "oneRlHits": 0,
+        "threeSg": 0,
+        "threeSgHits": 0
       },
       "defense": {
         "twoRl": 0.0585,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.1755,
-        "fiveSgHits": 6.0,
+        "fiveSgHits": 6,
         "threeRl": 0.234,
-        "threeRlHits": 8.0,
+        "threeRlHits": 8,
         "sevenSg": 0.234,
         "fourRl": 0.234,
         "fiveRl": 0.2925,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
-        "threeSg": 0.0,
-        "threeSgHits": 0.0
+        "oneRl": 0,
+        "oneRlHits": 0,
+        "threeSg": 0,
+        "threeSgHits": 0
       }
     },
     "targetRule": {
@@ -7680,7 +7680,7 @@ const CHARACTERS = [
     "id": 88,
     "slug": "姬野",
     "name": "姬野",
-    "enName": "姬野",
+    "enName": "Himeno",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/88.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/1/23/48573.png",
@@ -7717,41 +7717,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 70.89,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.3,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.058,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.058,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.087,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.087,
         "fourRl": 0.116,
         "fiveRl": 0.145,
         "oneRl": 0.029,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.029,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.058,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.058,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.087,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.087,
         "fourRl": 0.116,
         "fiveRl": 0.145,
         "oneRl": 0.029,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.029,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -7765,7 +7765,7 @@ const CHARACTERS = [
     "id": 89,
     "slug": "露姬",
     "name": "露姬",
-    "enName": "露姬",
+    "enName": "Rouge",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/89.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/8/20/374933.png",
@@ -7802,41 +7802,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 71.07,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.33,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.058,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.058,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.087,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.087,
         "fourRl": 0.116,
         "fiveRl": 0.145,
         "oneRl": 0.029,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.029,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.058,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.058,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.087,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.087,
         "fourRl": 0.116,
         "fiveRl": 0.145,
         "oneRl": 0.029,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.029,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -7850,7 +7850,7 @@ const CHARACTERS = [
     "id": 90,
     "slug": "银华",
     "name": "银华",
-    "enName": "银华",
+    "enName": "Eunhwa",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/90.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/273380.png",
@@ -7888,41 +7888,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 71.07,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 2.33,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.058,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.058,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.087,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.087,
         "fourRl": 0.116,
         "fiveRl": 0.145,
         "oneRl": 0.029,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.029,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.058,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.058,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.087,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.087,
         "fourRl": 0.116,
         "fiveRl": 0.145,
         "oneRl": 0.029,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.029,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -7936,7 +7936,7 @@ const CHARACTERS = [
     "id": 91,
     "slug": "鲁德米拉",
     "name": "鲁德米拉",
-    "enName": "鲁德米拉",
+    "enName": "Ludmilla",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/91.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/931256.png",
@@ -7974,41 +7974,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 10.32,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 2.76,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.057,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.069,
-        "fiveSgHits": 46.0,
+        "fiveSgHits": 46,
         "threeRl": 0.0855,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.0975,
         "fourRl": 0.114,
         "fiveRl": 0.1425,
         "oneRl": 0.03,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.0435,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.057,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.069,
-        "fiveSgHits": 46.0,
+        "fiveSgHits": 46,
         "threeRl": 0.0855,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.0975,
         "fourRl": 0.114,
         "fiveRl": 0.1425,
         "oneRl": 0.03,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.0435,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -8022,7 +8022,7 @@ const CHARACTERS = [
     "id": 92,
     "slug": "坎西-逃生女王",
     "name": "坎西:逃生女王",
-    "enName": "坎西:逃生女王",
+    "enName": "Quency: Escape Queen",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/92.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/8/23/449924.png",
@@ -8059,41 +8059,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.06,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05624,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.06808,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.08436,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.0962,
         "fourRl": 0.11248,
         "fiveRl": 0.1406,
         "oneRl": 0.0296,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.04292,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       },
       "defense": {
         "twoRl": 0.05624,
-        "twoRlHits": 76.0,
+        "twoRlHits": 76,
         "fiveSg": 0.06808,
-        "fiveSgHits": 92.0,
+        "fiveSgHits": 92,
         "threeRl": 0.08436,
-        "threeRlHits": 114.0,
+        "threeRlHits": 114,
         "sevenSg": 0.0962,
         "fourRl": 0.11248,
         "fiveRl": 0.1406,
         "oneRl": 0.0296,
-        "oneRlHits": 40.0,
+        "oneRlHits": 40,
         "threeSg": 0.04292,
-        "threeSgHits": 58.0
+        "threeSgHits": 58
       }
     },
     "targetRule": {
@@ -8151,41 +8151,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
+      "magazine": 6,
+      "reloadSeconds": 2,
       "chargeSeconds": 1.5,
-      "maxCharge": 350.0
+      "maxCharge": 350
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.056,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.112,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.112,
         "fourRl": 0.112,
         "fiveRl": 0.168,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.056,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.112,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.112,
         "fourRl": 0.112,
         "fiveRl": 0.168,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8242,41 +8242,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
+      "magazine": 6,
+      "reloadSeconds": 2,
       "chargeSeconds": 1.5,
-      "maxCharge": 350.0
+      "maxCharge": 350
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.056,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.112,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.112,
         "fourRl": 0.112,
         "fiveRl": 0.168,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.056,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.112,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.112,
         "fourRl": 0.112,
         "fiveRl": 0.168,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8290,7 +8290,7 @@ const CHARACTERS = [
     "id": 95,
     "slug": "杨",
     "name": "杨",
-    "enName": "杨",
+    "enName": "Yan",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/95.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/675453.png",
@@ -8334,41 +8334,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
+      "magazine": 6,
+      "reloadSeconds": 2,
       "chargeSeconds": 1.5,
-      "maxCharge": 350.0
+      "maxCharge": 350
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.056,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.112,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.112,
         "fourRl": 0.112,
         "fiveRl": 0.168,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.056,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.112,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.112,
         "fourRl": 0.112,
         "fiveRl": 0.168,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8382,7 +8382,7 @@ const CHARACTERS = [
     "id": 96,
     "slug": "尤妮",
     "name": "尤妮",
-    "enName": "尤妮",
+    "enName": "Yuni",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/96.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/981454.png",
@@ -8426,41 +8426,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
+      "magazine": 6,
+      "reloadSeconds": 2,
       "chargeSeconds": 1.5,
-      "maxCharge": 350.0
+      "maxCharge": 350
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.056,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.112,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.112,
         "fourRl": 0.112,
         "fiveRl": 0.168,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.056,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.112,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.112,
         "fourRl": 0.112,
         "fiveRl": 0.168,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8474,7 +8474,7 @@ const CHARACTERS = [
     "id": 97,
     "slug": "爱因",
     "name": "爱因",
-    "enName": "爱因",
+    "enName": "Ein",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/97.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/6/29/838398.png",
@@ -8511,41 +8511,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.14,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.14,
         "fourRl": 0.168,
         "fiveRl": 0.196,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.14,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.14,
         "fourRl": 0.168,
         "fiveRl": 0.196,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8559,7 +8559,7 @@ const CHARACTERS = [
     "id": 98,
     "slug": "d-杀手妻子",
     "name": "D:杀手妻子",
-    "enName": "D:杀手妻子",
+    "enName": "D: Killer Wife",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/98.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/2/11/509448.png",
@@ -8596,41 +8596,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8644,7 +8644,7 @@ const CHARACTERS = [
     "id": 99,
     "slug": "艾可希雅",
     "name": "艾可希雅",
-    "enName": "艾可希雅",
+    "enName": "Exia",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/99.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/790186.png",
@@ -8682,41 +8682,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8730,7 +8730,7 @@ const CHARACTERS = [
     "id": 100,
     "slug": "艾可希雅-珍藏",
     "name": "艾可希雅 珍藏",
-    "enName": "艾可希雅 珍藏",
+    "enName": "Exia +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/100.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/790186.png",
@@ -8768,41 +8768,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8816,7 +8816,7 @@ const CHARACTERS = [
     "id": 101,
     "slug": "布蕾德",
     "name": "布蕾德",
-    "enName": "布蕾德",
+    "enName": "Bready",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/101.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/2/31/701752.png",
@@ -8853,41 +8853,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8901,7 +8901,7 @@ const CHARACTERS = [
     "id": 102,
     "slug": "朵拉",
     "name": "朵拉",
-    "enName": "朵拉",
+    "enName": "Dolla",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/102.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/308653.png",
@@ -8939,41 +8939,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -8987,7 +8987,7 @@ const CHARACTERS = [
     "id": 103,
     "slug": "海伦",
     "name": "海伦",
-    "enName": "海伦",
+    "enName": "Helm",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/103.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/28/8230.png",
@@ -9025,41 +9025,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9073,7 +9073,7 @@ const CHARACTERS = [
     "id": 104,
     "slug": "可可",
     "name": "可可",
-    "enName": "可可",
+    "enName": "Cocoa",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/104.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/0/31/591006.png",
@@ -9110,41 +9110,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9158,7 +9158,7 @@ const CHARACTERS = [
     "id": 105,
     "slug": "拉姆",
     "name": "拉姆",
-    "enName": "拉姆",
+    "enName": "Ram",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/105.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/2/25/236258.png",
@@ -9195,41 +9195,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9243,7 +9243,7 @@ const CHARACTERS = [
     "id": 106,
     "slug": "麦斯威尔",
     "name": "麦斯威尔",
-    "enName": "麦斯威尔",
+    "enName": "Maxwell",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/106.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/478656.png",
@@ -9281,41 +9281,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9329,7 +9329,7 @@ const CHARACTERS = [
     "id": 107,
     "slug": "米尔克",
     "name": "米尔克",
-    "enName": "米尔克",
+    "enName": "Milk",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/107.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/548627.png",
@@ -9367,41 +9367,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9415,7 +9415,7 @@ const CHARACTERS = [
     "id": 108,
     "slug": "米尔克-珍藏",
     "name": "米尔克 珍藏",
-    "enName": "米尔克 珍藏",
+    "enName": "Milk +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/108.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/548627.png",
@@ -9452,41 +9452,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9500,7 +9500,7 @@ const CHARACTERS = [
     "id": 109,
     "slug": "特罗尼",
     "name": "特罗尼",
-    "enName": "特罗尼",
+    "enName": "Trony",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/109.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/4/16/567313.png",
@@ -9537,41 +9537,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9585,7 +9585,7 @@ const CHARACTERS = [
     "id": 110,
     "slug": "樱花-夏日绽放",
     "name": "樱花:夏日绽放",
-    "enName": "樱花:夏日绽放",
+    "enName": "Sakura: Bloom in Summer",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/110.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/6/5/903652.png",
@@ -9622,41 +9622,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 28.0,
+        "twoRlHits": 28,
         "fiveSg": 0.068,
-        "fiveSgHits": 34.0,
+        "fiveSgHits": 34,
         "threeRl": 0.084,
-        "threeRlHits": 42.0,
+        "threeRlHits": 42,
         "sevenSg": 0.096,
         "fourRl": 0.11,
         "fiveRl": 0.134,
         "oneRl": 0.028,
-        "oneRlHits": 14.0,
+        "oneRlHits": 14,
         "threeSg": 0.042,
-        "threeSgHits": 21.0
+        "threeSgHits": 21
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 28.0,
+        "twoRlHits": 28,
         "fiveSg": 0.068,
-        "fiveSgHits": 34.0,
+        "fiveSgHits": 34,
         "threeRl": 0.084,
-        "threeRlHits": 42.0,
+        "threeRlHits": 42,
         "sevenSg": 0.096,
         "fourRl": 0.11,
         "fiveRl": 0.134,
         "oneRl": 0.028,
-        "oneRlHits": 14.0,
+        "oneRlHits": 14,
         "threeSg": 0.042,
-        "threeSgHits": 21.0
+        "threeSgHits": 21
       }
     },
     "targetRule": {
@@ -9670,7 +9670,7 @@ const CHARACTERS = [
     "id": 111,
     "slug": "小红帽",
     "name": "小红帽",
-    "enName": "小红帽",
+    "enName": "Red Hood",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/111.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/10/6/702095.png",
@@ -9708,41 +9708,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9756,7 +9756,7 @@ const CHARACTERS = [
     "id": 112,
     "slug": "长发公主-纯洁恩典",
     "name": "长发公主:纯洁恩典",
-    "enName": "长发公主:纯洁恩典",
+    "enName": "Rapunzel: Pure Grace",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/112.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/10/5/110080.png",
@@ -9793,41 +9793,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9841,7 +9841,7 @@ const CHARACTERS = [
     "id": 113,
     "slug": "真理",
     "name": "真理",
-    "enName": "真理",
+    "enName": "Mari Makinami Illustrious",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/113.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/7/26/527815.png",
@@ -9878,41 +9878,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -9926,7 +9926,7 @@ const CHARACTERS = [
     "id": 114,
     "slug": "银华-战术升级",
     "name": "银华:战术升级",
-    "enName": "银华:战术升级",
+    "enName": "Eunhwa: Tactical Upgrade",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/114.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/7/14/407020.png",
@@ -9963,41 +9963,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10048,41 +10048,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10133,41 +10133,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10218,41 +10218,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10303,41 +10303,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10388,41 +10388,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.056,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.056,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.084,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.084,
         "fourRl": 0.112,
         "fiveRl": 0.14,
         "oneRl": 0.028,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10436,7 +10436,7 @@ const CHARACTERS = [
     "id": 120,
     "slug": "尤尔夏",
     "name": "尤尔夏",
-    "enName": "尤尔夏",
+    "enName": "Yulha",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/120.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/251875.png",
@@ -10474,41 +10474,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 68.23,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 1.87,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.055,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.055,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.0825,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.0825,
         "fourRl": 0.11,
         "fiveRl": 0.1375,
         "oneRl": 0.0275,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.0275,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.055,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.055,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.0825,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.0825,
         "fourRl": 0.11,
         "fiveRl": 0.1375,
         "oneRl": 0.0275,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.0275,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10522,7 +10522,7 @@ const CHARACTERS = [
     "id": 121,
     "slug": "艾德米",
     "name": "艾德米",
-    "enName": "艾德米",
+    "enName": "Admi",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/121.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/258582.png",
@@ -10560,41 +10560,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 67.37,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 1.73,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.054,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.054,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.081,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.081,
         "fourRl": 0.108,
         "fiveRl": 0.135,
         "oneRl": 0.027,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.027,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.054,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.054,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.081,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.081,
         "fourRl": 0.108,
         "fiveRl": 0.135,
         "oneRl": 0.027,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.027,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10608,7 +10608,7 @@ const CHARACTERS = [
     "id": 122,
     "slug": "樱花",
     "name": "樱花",
-    "enName": "樱花",
+    "enName": "Sakura",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/122.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/2/29/749516.png",
@@ -10644,42 +10644,42 @@ const CHARACTERS = [
       "global"
     ],
     "stats": {
-      "weaponDamage": 67.0,
-      "magazine": 6.0,
+      "weaponDamage": 67,
+      "magazine": 6,
       "reloadSeconds": 1.67,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.054,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.054,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.081,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.081,
         "fourRl": 0.108,
         "fiveRl": 0.135,
         "oneRl": 0.027,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.027,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.054,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.054,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.081,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.081,
         "fourRl": 0.108,
         "fiveRl": 0.135,
         "oneRl": 0.027,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.027,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10693,7 +10693,7 @@ const CHARACTERS = [
     "id": 123,
     "slug": "梅里-海湾女神",
     "name": "梅里:海湾女神",
-    "enName": "梅里:海湾女神",
+    "enName": "Mary: Bay Goddess",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/123.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/5/16/499321.png",
@@ -10730,41 +10730,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 65.95,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.053,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.053,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.0795,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.0795,
         "fourRl": 0.106,
         "fiveRl": 0.1325,
         "oneRl": 0.0265,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.0265,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.053,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.053,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.0795,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.0795,
         "fourRl": 0.106,
         "fiveRl": 0.1325,
         "oneRl": 0.0265,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.0265,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10778,7 +10778,7 @@ const CHARACTERS = [
     "id": 124,
     "slug": "普琳玛",
     "name": "普琳玛",
-    "enName": "普琳玛",
+    "enName": "Frima",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/124.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/24359.png",
@@ -10816,41 +10816,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 65.95,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.053,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.053,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.0795,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.0795,
         "fourRl": 0.106,
         "fiveRl": 0.1325,
         "oneRl": 0.0265,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.0265,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.053,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.053,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.0795,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.0795,
         "fourRl": 0.106,
         "fiveRl": 0.1325,
         "oneRl": 0.0265,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.0265,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10864,7 +10864,7 @@ const CHARACTERS = [
     "id": 125,
     "slug": "普琳玛-珍藏",
     "name": "普琳玛 珍藏",
-    "enName": "普琳玛 珍藏",
+    "enName": "Frima +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/125.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/24359.png",
@@ -10902,41 +10902,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 65.95,
-      "magazine": 6.0,
+      "magazine": 6,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.053,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.053,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.0795,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.0795,
         "fourRl": 0.106,
         "fiveRl": 0.1325,
         "oneRl": 0.0265,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.0265,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.053,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.053,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.0795,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.0795,
         "fourRl": 0.106,
         "fiveRl": 0.1325,
         "oneRl": 0.0265,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.0265,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -10950,7 +10950,7 @@ const CHARACTERS = [
     "id": 126,
     "slug": "海伦-海蓝宝石",
     "name": "海伦:海蓝宝石",
-    "enName": "海伦:海蓝宝石",
+    "enName": "Helm: Aquamarine",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/126.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/7/7/947173.png",
@@ -10987,41 +10987,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.078,
-        "threeRlHits": 39.0,
+        "threeRlHits": 39,
         "sevenSg": 0.092,
         "fourRl": 0.104,
         "fiveRl": 0.128,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.078,
-        "threeRlHits": 39.0,
+        "threeRlHits": 39,
         "sevenSg": 0.092,
         "fourRl": 0.104,
         "fiveRl": 0.128,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11073,41 +11073,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.99,
-      "magazine": 90.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 90,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.126,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.126,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11121,7 +11121,7 @@ const CHARACTERS = [
     "id": 128,
     "slug": "布兰儿",
     "name": "布兰儿",
-    "enName": "布兰儿",
+    "enName": "Blanc",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/128.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/4/19/535689.png",
@@ -11159,41 +11159,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11207,7 +11207,7 @@ const CHARACTERS = [
     "id": 129,
     "slug": "布丽德",
     "name": "布丽德",
-    "enName": "布丽德",
+    "enName": "Brid",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/129.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/969645.png",
@@ -11245,41 +11245,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.29,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.3,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11293,7 +11293,7 @@ const CHARACTERS = [
     "id": 130,
     "slug": "富克旺",
     "name": "富克旺",
-    "enName": "富克旺",
+    "enName": "Folkwang",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/130.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/48828.png",
@@ -11330,41 +11330,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.29,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.3,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11378,7 +11378,7 @@ const CHARACTERS = [
     "id": 131,
     "slug": "吉萝婷-寒冬杀手",
     "name": "吉萝婷:寒冬杀手",
-    "enName": "吉萝婷:寒冬杀手",
+    "enName": "Guillotine: Winter Slayer",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/131.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/11/12/298329.png",
@@ -11415,41 +11415,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11463,7 +11463,7 @@ const CHARACTERS = [
     "id": 132,
     "slug": "拉毗",
     "name": "拉毗",
-    "enName": "拉毗",
+    "enName": "Rapi",
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/132.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/7/4/138205.png",
@@ -11501,41 +11501,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11549,7 +11549,7 @@ const CHARACTERS = [
     "id": 133,
     "slug": "露菲",
     "name": "露菲",
-    "enName": "露菲",
+    "enName": "Rupee",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/133.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/558882.png",
@@ -11587,41 +11587,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11635,7 +11635,7 @@ const CHARACTERS = [
     "id": 134,
     "slug": "露菲-冬日购物狂",
     "name": "露菲:冬日购物狂",
-    "enName": "露菲:冬日购物狂",
+    "enName": "Rupee: Winter Shopper",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/134.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2022/11/6/976022.png",
@@ -11672,41 +11672,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11720,7 +11720,7 @@ const CHARACTERS = [
     "id": 135,
     "slug": "罗珊娜-高雅海洋",
     "name": "罗珊娜:高雅海洋",
-    "enName": "罗珊娜:高雅海洋",
+    "enName": "Rosanna: Chic Ocean",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/135.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/6/5/436770.png",
@@ -11757,41 +11757,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11805,7 +11805,7 @@ const CHARACTERS = [
     "id": 136,
     "slug": "莫莉",
     "name": "莫莉",
-    "enName": "莫莉",
+    "enName": "Mori",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/136.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/4/6/459992.png",
@@ -11842,41 +11842,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11890,7 +11890,7 @@ const CHARACTERS = [
     "id": 137,
     "slug": "普丽瓦蒂",
     "name": "普丽瓦蒂",
-    "enName": "普丽瓦蒂",
+    "enName": "Privaty",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/137.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/69007.png",
@@ -11928,41 +11928,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.122,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.122,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -11976,7 +11976,7 @@ const CHARACTERS = [
     "id": 138,
     "slug": "森",
     "name": "森",
-    "enName": "森",
+    "enName": "Sin",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/138.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/0/10/738031.png",
@@ -12013,41 +12013,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -12061,7 +12061,7 @@ const CHARACTERS = [
     "id": 139,
     "slug": "桃乐丝",
     "name": "桃乐丝",
-    "enName": "桃乐丝",
+    "enName": "Dorothy",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/139.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/3/27/987509.png",
@@ -12099,41 +12099,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -12147,7 +12147,7 @@ const CHARACTERS = [
     "id": 140,
     "slug": "托比",
     "name": "托比",
-    "enName": "托比",
+    "enName": "Tove",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/140.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/10/27/965556.png",
@@ -12184,41 +12184,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.2,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -12232,7 +12232,7 @@ const CHARACTERS = [
     "id": 141,
     "slug": "托比-珍藏",
     "name": "托比 珍藏",
-    "enName": "托比 珍藏",
+    "enName": "Tove +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/141.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/10/27/965556.png",
@@ -12269,41 +12269,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.2,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -12317,7 +12317,7 @@ const CHARACTERS = [
     "id": 142,
     "slug": "伊芙",
     "name": "伊芙",
-    "enName": "伊芙",
+    "enName": "Eve",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/142.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/5/18/386431.png",
@@ -12354,41 +12354,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.128,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.128,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -12402,7 +12402,7 @@ const CHARACTERS = [
     "id": 143,
     "slug": "尤莉亚",
     "name": "尤莉亚",
-    "enName": "尤莉亚",
+    "enName": "Julia",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/143.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/893725.png",
@@ -12440,41 +12440,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.07,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.2,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -12488,7 +12488,7 @@ const CHARACTERS = [
     "id": 144,
     "slug": "尤莉亚-珍藏",
     "name": "尤莉亚 珍藏",
-    "enName": "尤莉亚 珍藏",
+    "enName": "Julia +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/144.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/893725.png",
@@ -12525,41 +12525,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 14.07,
-      "magazine": 60.0,
+      "magazine": 60,
       "reloadSeconds": 1.2,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.12,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -12610,41 +12610,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.122,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.05,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.062,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.076,
-        "threeRlHits": 38.0,
+        "threeRlHits": 38,
         "sevenSg": 0.088,
         "fourRl": 0.1,
         "fiveRl": 0.122,
         "oneRl": 0.026,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.038,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -12658,7 +12658,7 @@ const CHARACTERS = [
     "id": 146,
     "slug": "米兰达-珍藏",
     "name": "米兰达 珍藏",
-    "enName": "米兰达 珍藏",
+    "enName": "Miranda +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/146.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/104442.png",
@@ -12695,41 +12695,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 10.8,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.43,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.043,
-        "twoRlHits": 43.0,
+        "twoRlHits": 43,
         "fiveSg": 0.051,
-        "fiveSgHits": 51.0,
+        "fiveSgHits": 51,
         "threeRl": 0.062,
-        "threeRlHits": 62.0,
+        "threeRlHits": 62,
         "sevenSg": 0.07,
         "fourRl": 0.081,
         "fiveRl": 0.1,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.043,
-        "twoRlHits": 43.0,
+        "twoRlHits": 43,
         "fiveSg": 0.051,
-        "fiveSgHits": 51.0,
+        "fiveSgHits": 51,
         "threeRl": 0.062,
-        "threeRlHits": 62.0,
+        "threeRlHits": 62,
         "sevenSg": 0.07,
         "fourRl": 0.081,
         "fiveRl": 0.1,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -12780,41 +12780,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.73,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -12828,7 +12828,7 @@ const CHARACTERS = [
     "id": 148,
     "slug": "艾菲涅尔",
     "name": "艾菲涅尔",
-    "enName": "艾菲涅尔",
+    "enName": "Epinel",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/148.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/921049.png",
@@ -12866,41 +12866,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 10.12,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -12914,7 +12914,7 @@ const CHARACTERS = [
     "id": 149,
     "slug": "爱丽丝-仙境兔女郎",
     "name": "爱丽丝:仙境兔女郎",
-    "enName": "爱丽丝:仙境兔女郎",
+    "enName": "Alice: Wonderland Bunny",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/149.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/5/3/230740.png",
@@ -12951,41 +12951,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 10.12,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.025,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.034,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.025,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.034,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -12999,7 +12999,7 @@ const CHARACTERS = [
     "id": 150,
     "slug": "克雷伊",
     "name": "克雷伊",
-    "enName": "克雷伊",
+    "enName": "Clay",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/150.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/5/24/235196.png",
@@ -13036,41 +13036,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 10.12,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13084,7 +13084,7 @@ const CHARACTERS = [
     "id": 151,
     "slug": "莱伊",
     "name": "莱伊",
-    "enName": "莱伊",
+    "enName": "Rei",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/151.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/3/27/379549.png",
@@ -13122,41 +13122,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 9.15,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.83,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13170,7 +13170,7 @@ const CHARACTERS = [
     "id": 152,
     "slug": "丽塔",
     "name": "丽塔",
-    "enName": "丽塔",
+    "enName": "Liter",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/152.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/455781.png",
@@ -13208,41 +13208,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.73,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13256,7 +13256,7 @@ const CHARACTERS = [
     "id": 153,
     "slug": "马斯特",
     "name": "马斯特",
-    "enName": "马斯特",
+    "enName": "Mast",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/153.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/6/13/724288.png",
@@ -13293,41 +13293,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.73,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13341,7 +13341,7 @@ const CHARACTERS = [
     "id": 154,
     "slug": "玛奇玛",
     "name": "玛奇玛",
-    "enName": "玛奇玛",
+    "enName": "Makima",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/154.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/1/23/123381.png",
@@ -13378,41 +13378,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.73,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13426,7 +13426,7 @@ const CHARACTERS = [
     "id": 155,
     "slug": "美里",
     "name": "美里",
-    "enName": "美里",
+    "enName": "Misato Katsuragi",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/155.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_231/h_300/1253/4408/2025/3/18/843526.png",
@@ -13463,41 +13463,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.1,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13511,7 +13511,7 @@ const CHARACTERS = [
     "id": 156,
     "slug": "米兰达",
     "name": "米兰达",
-    "enName": "米兰达",
+    "enName": "Miranda",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/156.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/104442.png",
@@ -13549,41 +13549,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 10.8,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.43,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13597,7 +13597,7 @@ const CHARACTERS = [
     "id": 157,
     "slug": "尼罗",
     "name": "尼罗",
-    "enName": "尼罗",
+    "enName": "Nero",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/157.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/6/7/308378.png",
@@ -13634,41 +13634,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.39,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.3,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13682,7 +13682,7 @@ const CHARACTERS = [
     "id": 158,
     "slug": "诺薇尔",
     "name": "诺薇尔",
-    "enName": "诺薇尔",
+    "enName": "Novel",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/158.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/43637/2022/10/2/479357.png",
@@ -13720,41 +13720,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.1,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13768,7 +13768,7 @@ const CHARACTERS = [
     "id": 159,
     "slug": "沃纶姆",
     "name": "沃纶姆",
-    "enName": "沃纶姆",
+    "enName": "Volume",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/159.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_159/h_207/1253/43637/2022/7/4/344271.png",
@@ -13805,41 +13805,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.73,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13853,7 +13853,7 @@ const CHARACTERS = [
     "id": 160,
     "slug": "西格娜",
     "name": "西格娜",
-    "enName": "西格娜",
+    "enName": "Belorta",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/160.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/116225.png",
@@ -13891,41 +13891,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.1,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -13939,7 +13939,7 @@ const CHARACTERS = [
     "id": 161,
     "slug": "小美人鱼",
     "name": "小美人鱼",
-    "enName": "小美人鱼",
+    "enName": "Little Mermaid",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/161.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/4/6/905701.png",
@@ -13976,41 +13976,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 10.12,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.025,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.034,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.025,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.034,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -14024,7 +14024,7 @@ const CHARACTERS = [
     "id": 162,
     "slug": "樱",
     "name": "樱",
-    "enName": "樱",
+    "enName": "Sakura Suzuhara",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/162.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/1/24/372063.png",
@@ -14061,41 +14061,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.1,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -14109,7 +14109,7 @@ const CHARACTERS = [
     "id": 163,
     "slug": "娜由塔",
     "name": "娜由塔",
-    "enName": "娜由塔",
+    "enName": "Nayuta",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/163.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/9/31/427110.png",
@@ -14146,41 +14146,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 8.73,
-      "magazine": 120.0,
+      "magazine": 120,
       "reloadSeconds": 1.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -14231,41 +14231,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 10.12,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -14316,41 +14316,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 10.12,
-      "magazine": 120.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 120,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       },
       "defense": {
         "twoRl": 0.038,
-        "twoRlHits": 38.0,
+        "twoRlHits": 38,
         "fiveSg": 0.047,
-        "fiveSgHits": 47.0,
+        "fiveSgHits": 47,
         "threeRl": 0.057,
-        "threeRlHits": 57.0,
+        "threeRlHits": 57,
         "sevenSg": 0.065,
         "fourRl": 0.075,
         "fiveRl": 0.093,
         "oneRl": 0.02,
-        "oneRlHits": 20.0,
+        "oneRlHits": 20,
         "threeSg": 0.029,
-        "threeSgHits": 29.0
+        "threeSgHits": 29
       }
     },
     "targetRule": {
@@ -14364,7 +14364,7 @@ const CHARACTERS = [
     "id": 166,
     "slug": "神罚",
     "name": "神罚",
-    "enName": "神罚",
+    "enName": "Modernia",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/166.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/236746/2022/11/27/67879.png",
@@ -14402,41 +14402,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 7.71,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.3,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.033,
-        "twoRlHits": 66.0,
+        "twoRlHits": 66,
         "fiveSg": 0.05,
-        "fiveSgHits": 100.0,
+        "fiveSgHits": 100,
         "threeRl": 0.071,
-        "threeRlHits": 142.0,
+        "threeRlHits": 142,
         "sevenSg": 0.087,
         "fourRl": 0.109,
         "fiveRl": 0.147,
         "oneRl": 0.007,
-        "oneRlHits": 14.0,
+        "oneRlHits": 14,
         "threeSg": 0.016,
-        "threeSgHits": 32.0
+        "threeSgHits": 32
       },
       "defense": {
         "twoRl": 0.033,
-        "twoRlHits": 66.0,
+        "twoRlHits": 66,
         "fiveSg": 0.05,
-        "fiveSgHits": 100.0,
+        "fiveSgHits": 100,
         "threeRl": 0.071,
-        "threeRlHits": 142.0,
+        "threeRlHits": 142,
         "sevenSg": 0.087,
         "fourRl": 0.109,
         "fiveRl": 0.147,
         "oneRl": 0.007,
-        "oneRlHits": 14.0,
+        "oneRlHits": 14,
         "threeSg": 0.016,
-        "threeSgHits": 32.0
+        "threeSgHits": 32
       }
     },
     "targetRule": {
@@ -14450,7 +14450,7 @@ const CHARACTERS = [
     "id": 167,
     "slug": "爱丽丝",
     "name": "爱丽丝",
-    "enName": "爱丽丝",
+    "enName": "Alice",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/167.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/65002.png",
@@ -14488,41 +14488,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 69.04,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
+      "magazine": 6,
+      "reloadSeconds": 2,
       "chargeSeconds": 1.5,
-      "maxCharge": 350.0
+      "maxCharge": 350
     },
     "scenario": {
       "attack": {
         "twoRl": 0.028,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.028,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.056,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.056,
         "fourRl": 0.056,
         "fiveRl": 0.084,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.028,
-        "twoRlHits": 1.0,
+        "twoRlHits": 1,
         "fiveSg": 0.028,
-        "fiveSgHits": 1.0,
+        "fiveSgHits": 1,
         "threeRl": 0.056,
-        "threeRlHits": 2.0,
+        "threeRlHits": 2,
         "sevenSg": 0.056,
         "fourRl": 0.056,
         "fiveRl": 0.084,
-        "oneRl": 0.0,
-        "oneRlHits": 0.0,
+        "oneRl": 0,
+        "oneRlHits": 0,
         "threeSg": 0.028,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -14536,7 +14536,7 @@ const CHARACTERS = [
     "id": 168,
     "slug": "米哈拉-灵魂锁链",
     "name": "米哈拉:灵魂锁链",
-    "enName": "米哈拉:灵魂锁链",
+    "enName": "Mihara: Bonding Chain",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/168.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/4/6/282296.png",
@@ -14573,41 +14573,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.026,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.0385,
-        "fiveSgHits": 52.0,
+        "fiveSgHits": 52,
         "threeRl": 0.0495,
-        "threeRlHits": 73.0,
+        "threeRlHits": 73,
         "sevenSg": 0.06,
         "fourRl": 0.071,
         "fiveRl": 0.00906,
         "oneRl": 0.008,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.015,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.026,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.0385,
-        "fiveSgHits": 52.0,
+        "fiveSgHits": 52,
         "threeRl": 0.0495,
-        "threeRlHits": 73.0,
+        "threeRlHits": 73,
         "sevenSg": 0.06,
         "fourRl": 0.071,
         "fiveRl": 0.00906,
         "oneRl": 0.008,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.015,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -14621,7 +14621,7 @@ const CHARACTERS = [
     "id": 169,
     "slug": "灰姑娘",
     "name": "灰姑娘",
-    "enName": "灰姑娘",
+    "enName": "Cinderella",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/169.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_231/h_300/1253/4408/2025/3/17/295657.png",
@@ -14665,41 +14665,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 32.11,
-      "magazine": 24.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 0.0,
+      "magazine": 24,
+      "reloadSeconds": 2,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.018,
-        "twoRlHits": 8.0,
+        "twoRlHits": 8,
         "fiveSg": 0.0225,
-        "fiveSgHits": 10.0,
+        "fiveSgHits": 10,
         "threeRl": 0.036,
-        "threeRlHits": 14.0,
+        "threeRlHits": 14,
         "sevenSg": 0.0405,
         "fourRl": 0.0495,
         "fiveRl": 0.063,
         "oneRl": 0.009,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.018,
-        "threeSgHits": 4.0
+        "threeSgHits": 4
       },
       "defense": {
         "twoRl": 0.018,
-        "twoRlHits": 8.0,
+        "twoRlHits": 8,
         "fiveSg": 0.0225,
-        "fiveSgHits": 10.0,
+        "fiveSgHits": 10,
         "threeRl": 0.036,
-        "threeRlHits": 14.0,
+        "threeRlHits": 14,
         "sevenSg": 0.0405,
         "fourRl": 0.0495,
         "fiveRl": 0.063,
         "oneRl": 0.009,
-        "oneRlHits": 2.0,
+        "oneRlHits": 2,
         "threeSg": 0.018,
-        "threeSgHits": 4.0
+        "threeSgHits": 4
       }
     },
     "targetRule": {
@@ -14713,7 +14713,7 @@ const CHARACTERS = [
     "id": 170,
     "slug": "罗珊娜",
     "name": "罗珊娜",
-    "enName": "罗珊娜",
+    "enName": "Rosanna",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/170.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/7/5/758854.png",
@@ -14751,41 +14751,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.1,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 1.67,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0175,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.026,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0365,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0445,
         "fourRl": 0.0555,
         "fiveRl": 0.0745,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.009,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0175,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.026,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0365,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0445,
         "fourRl": 0.0555,
         "fiveRl": 0.0745,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.009,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -14799,7 +14799,7 @@ const CHARACTERS = [
     "id": 171,
     "slug": "鲁德米拉-冬日之主",
     "name": "鲁德米拉:冬日之主",
-    "enName": "鲁德米拉:冬日之主",
+    "enName": "Ludmilla: Winter Owner",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/171.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/11/11/998853.png",
@@ -14836,41 +14836,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.86,
-      "magazine": 300.0,
-      "reloadSeconds": 3.0,
-      "chargeSeconds": 0.0,
+      "magazine": 300,
+      "reloadSeconds": 3,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -14884,7 +14884,7 @@ const CHARACTERS = [
     "id": 172,
     "slug": "明日香-wille",
     "name": "明日香:WILLE",
-    "enName": "明日香:WILLE",
+    "enName": "Asuka Shikinami Langley: WILLE",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/172.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/1/24/368055.png",
@@ -14921,41 +14921,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.47,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.33,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -14969,7 +14969,7 @@ const CHARACTERS = [
     "id": 173,
     "slug": "阿莉亚",
     "name": "阿莉亚",
-    "enName": "阿莉亚",
+    "enName": "Aria",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/173.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_159/h_207/1253/43637/2022/7/4/537237.png",
@@ -15007,41 +15007,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.47,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.33,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15055,7 +15055,7 @@ const CHARACTERS = [
     "id": 174,
     "slug": "艾玛",
     "name": "艾玛",
-    "enName": "艾玛",
+    "enName": "Emma",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/174.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/88875.png",
@@ -15093,41 +15093,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15141,7 +15141,7 @@ const CHARACTERS = [
     "id": 175,
     "slug": "迪塞尔",
     "name": "迪塞尔",
-    "enName": "迪塞尔",
+    "enName": "Diesel",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/175.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/508514.png",
@@ -15179,41 +15179,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.38,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.16,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15227,7 +15227,7 @@ const CHARACTERS = [
     "id": 176,
     "slug": "迪塞尔-珍藏",
     "name": "迪塞尔 珍藏",
-    "enName": "迪塞尔 珍藏",
+    "enName": "Diesel +",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/176.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/508514.png",
@@ -15265,41 +15265,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.38,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.16,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15313,7 +15313,7 @@ const CHARACTERS = [
     "id": 177,
     "slug": "芙萝拉",
     "name": "芙萝拉",
-    "enName": "芙萝拉",
+    "enName": "Flora",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/177.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/10/25/116606.png",
@@ -15350,41 +15350,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15398,7 +15398,7 @@ const CHARACTERS = [
     "id": 178,
     "slug": "皇冠",
     "name": "皇冠",
-    "enName": "皇冠",
+    "enName": "Crown",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/178.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/3/25/388609.png",
@@ -15436,41 +15436,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15484,7 +15484,7 @@ const CHARACTERS = [
     "id": 179,
     "slug": "吉萝婷",
     "name": "吉萝婷",
-    "enName": "吉萝婷",
+    "enName": "Guillotine",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/179.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/43637/2022/7/4/114608.png",
@@ -15522,41 +15522,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15570,7 +15570,7 @@ const CHARACTERS = [
     "id": 180,
     "slug": "吉洛",
     "name": "吉洛",
-    "enName": "吉洛",
+    "enName": "Kilo",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/180.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/3/28/377875.png",
@@ -15607,41 +15607,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15655,7 +15655,7 @@ const CHARACTERS = [
     "id": 181,
     "slug": "拉毗-小红帽",
     "name": "拉毗:小红帽",
-    "enName": "拉毗:小红帽",
+    "enName": "Rapi: Red Hood",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/181.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/0/2/90588.png",
@@ -15693,41 +15693,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15778,41 +15778,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15826,7 +15826,7 @@ const CHARACTERS = [
     "id": 183,
     "slug": "零-一期",
     "name": "零（一期）",
-    "enName": "零（一期）",
+    "enName": "Rei Ayanami (Tentative Name)",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/183.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/7/26/153028.png",
@@ -15863,41 +15863,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15911,7 +15911,7 @@ const CHARACTERS = [
     "id": 184,
     "slug": "马斯特-浪漫的女仆",
     "name": "马斯特:浪漫的女仆",
-    "enName": "马斯特:浪漫的女仆",
+    "enName": "Mast: Romantic Maid",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/184.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/1/7/390407.png",
@@ -15948,41 +15948,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -15996,7 +15996,7 @@ const CHARACTERS = [
     "id": 185,
     "slug": "尼恩-蓝色海洋",
     "name": "尼恩:蓝色海洋",
-    "enName": "尼恩:蓝色海洋",
+    "enName": "Neon: Blue Ocean",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/185.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_200/h_259/1253/4408/2023/5/16/672030.png",
@@ -16033,41 +16033,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -16081,7 +16081,7 @@ const CHARACTERS = [
     "id": 186,
     "slug": "索达",
     "name": "索达",
-    "enName": "索达",
+    "enName": "Soda",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/186.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/0/31/852435.png",
@@ -16118,41 +16118,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -16166,7 +16166,7 @@ const CHARACTERS = [
     "id": 187,
     "slug": "伊莱格",
     "name": "伊莱格",
-    "enName": "伊莱格",
+    "enName": "Elegg",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/187.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/1/26/770157.png",
@@ -16203,41 +16203,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -16251,7 +16251,7 @@ const CHARACTERS = [
     "id": 188,
     "slug": "伊莱格-boom与惊吓",
     "name": "伊莱格:BOOM与惊吓",
-    "enName": "伊莱格:BOOM与惊吓",
+    "enName": "Elegg: Boom and Shock",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/188.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/6/24/259858.png",
@@ -16288,41 +16288,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -16336,7 +16336,7 @@ const CHARACTERS = [
     "id": 189,
     "slug": "艾玛-战术升级",
     "name": "艾玛:战术升级",
-    "enName": "艾玛:战术升级",
+    "enName": "Emma: Tactical Upgrade",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/189.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/7/11/448236.png",
@@ -16373,41 +16373,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -16421,7 +16421,7 @@ const CHARACTERS = [
     "id": 190,
     "slug": "德尔塔-怪盗忍者",
     "name": "德尔塔:怪盗忍者",
-    "enName": "德尔塔:怪盗忍者",
+    "enName": "Delta",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/190.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/9/21/462375.png",
@@ -16459,41 +16459,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 5.57,
-      "magazine": 300.0,
+      "magazine": 300,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 0.0,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       },
       "defense": {
         "twoRl": 0.0165,
-        "twoRlHits": 33.0,
+        "twoRlHits": 33,
         "fiveSg": 0.025,
-        "fiveSgHits": 50.0,
+        "fiveSgHits": 50,
         "threeRl": 0.0355,
-        "threeRlHits": 71.0,
+        "threeRlHits": 71,
         "sevenSg": 0.0435,
         "fourRl": 0.0545,
         "fiveRl": 0.0735,
         "oneRl": 0.0035,
-        "oneRlHits": 7.0,
+        "oneRlHits": 7,
         "threeSg": 0.008,
-        "threeSgHits": 16.0
+        "threeSgHits": 16
       }
     },
     "targetRule": {
@@ -16507,7 +16507,7 @@ const CHARACTERS = [
     "id": 191,
     "slug": "白雪公主-纯真年代",
     "name": "白雪公主:纯真年代",
-    "enName": "白雪公主:纯真年代",
+    "enName": "Snow White: Innocent Days",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/191.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/10/6/545788.png",
@@ -16544,41 +16544,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 13.65,
-      "magazine": 60.0,
-      "reloadSeconds": 1.0,
-      "chargeSeconds": 0.0,
+      "magazine": 60,
+      "reloadSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
       "attack": {
         "twoRl": 0.0125,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0155,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.0195,
-        "threeRlHits": 39.0,
+        "threeRlHits": 39,
         "sevenSg": 0.0225,
         "fourRl": 0.0255,
         "fiveRl": 0.033,
         "oneRl": 0.0065,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0095,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       },
       "defense": {
         "twoRl": 0.0125,
-        "twoRlHits": 25.0,
+        "twoRlHits": 25,
         "fiveSg": 0.0155,
-        "fiveSgHits": 31.0,
+        "fiveSgHits": 31,
         "threeRl": 0.0195,
-        "threeRlHits": 39.0,
+        "threeRlHits": 39,
         "sevenSg": 0.0225,
         "fourRl": 0.0255,
         "fiveRl": 0.033,
         "oneRl": 0.0065,
-        "oneRlHits": 13.0,
+        "oneRlHits": 13,
         "threeSg": 0.0095,
-        "threeSgHits": 19.0
+        "threeSgHits": 19
       }
     },
     "targetRule": {
@@ -16592,7 +16592,7 @@ const CHARACTERS = [
     "id": 192,
     "slug": "尼恩-透视之眼",
     "name": "尼恩:透视之眼",
-    "enName": "尼恩:透视之眼",
+    "enName": "Neon: Vision Eye",
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/192.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2026/3/29/468730.png",
@@ -16635,41 +16635,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.06,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.06,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.09,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.12,
         "fourRl": 0.12,
         "fiveRl": null,
         "oneRl": 0.03,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.03,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.06,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.06,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.09,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.12,
         "fourRl": 0.12,
         "fiveRl": null,
         "oneRl": 0.03,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.03,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
@@ -16726,41 +16726,41 @@ const CHARACTERS = [
     ],
     "stats": {
       "weaponDamage": 61.3,
-      "magazine": 6.0,
-      "reloadSeconds": 2.0,
-      "chargeSeconds": 1.0,
-      "maxCharge": 250.0
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
     },
     "scenario": {
       "attack": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       },
       "defense": {
         "twoRl": 0.112,
-        "twoRlHits": 2.0,
+        "twoRlHits": 2,
         "fiveSg": 0.112,
-        "fiveSgHits": 2.0,
+        "fiveSgHits": 2,
         "threeRl": 0.168,
-        "threeRlHits": 3.0,
+        "threeRlHits": 3,
         "sevenSg": 0.168,
         "fourRl": 0.224,
         "fiveRl": 0.28,
         "oneRl": 0.056,
-        "oneRlHits": 1.0,
+        "oneRlHits": 1,
         "threeSg": 0.056,
-        "threeSgHits": 1.0
+        "threeSgHits": 1
       }
     },
     "targetRule": {
