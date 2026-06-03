@@ -63,6 +63,9 @@ const JACKAL_LINK_HIT_THRESHOLD = 10;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
 const MISS_DODGE_WINDOW_FRAMES = 6;
+const TEST_NOAH_ID = 12;
+const TEST_SCARLET_ID = 37;
+const TEST_SCARLET_MAGAZINES = [20, 26, 32, 33, 34, 35, 36];
 const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [0, 60],
   [1, 60],
@@ -163,6 +166,8 @@ const state = {
   activeLineupIndex: 0,
   lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
   allowMissedShots: true,
+  testMode: false,
+  testMissShots: Array(TEAM_SIZE).fill(0),
   compactAvatarIcons: true,
   activeTeamKey: "attack",
   filters: {
@@ -183,6 +188,7 @@ const els = {
   resultPanel: document.querySelector("#resultPanel"),
   chargeChart: document.querySelector("#chargeChart"),
   lineupSlots: document.querySelector("#lineupSlots"),
+  testModeButton: document.querySelector("#testModeButton"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
   copyTeamButton: document.querySelector("#copyTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
@@ -1624,7 +1630,11 @@ function setTeamSlotDragImage(event, slot) {
 }
 
 function isTeamSlotDragControl(target) {
-  return Boolean(target?.closest?.(".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .universal-charge-field"));
+  return Boolean(
+    target?.closest?.(
+      ".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .slot-test-shot, .universal-charge-field",
+    ),
+  );
 }
 
 function clearPointerTeamDragClasses() {
@@ -2266,6 +2276,8 @@ function getLineupSlotCount(slot) {
 
 function renderLineupSlots() {
   if (!els.lineupSlots) return;
+  els.lineupSlots.hidden = state.testMode;
+  if (state.testMode) return;
   const fragment = document.createDocumentFragment();
   state.lineupSlots.forEach((slot, index) => {
     const count = getLineupSlotCount(slot);
@@ -2280,22 +2292,174 @@ function renderLineupSlots() {
   els.lineupSlots.replaceChildren(fragment);
 }
 
+function getAttackRlShotWindow(character, positionIndex, shotNumber) {
+  if (!character || character.weapon !== "RL" || shotNumber <= 0) return null;
+  const attackCharacter = characterForSlot(character, positionIndex, "attack");
+  const timing = getChargeFrames(attackCharacter, positionIndex, "attack");
+  const flightFrames = Number(timing.projectileFlightFrames) || 0;
+  if (flightFrames <= 0) return null;
+  const hitFrame = timing.firstFrame + (shotNumber - 1) * timing.interval;
+  return {
+    character,
+    positionIndex,
+    shotNumber,
+    launchFrame: hitFrame - flightFrames,
+    hitFrame,
+    flightFrames,
+  };
+}
+
+function getTestAttackWindows() {
+  return state.team
+    .map((character, positionIndex) => getAttackRlShotWindow(character, positionIndex, Number(state.testMissShots[positionIndex]) || 0))
+    .filter(Boolean);
+}
+
+function matchesDodgeWindow(attackWindow, dodgeStartFrame, dodgeFrames = MISS_DODGE_WINDOW_FRAMES) {
+  return (
+    attackWindow.launchFrame < dodgeStartFrame &&
+    dodgeStartFrame < attackWindow.hitFrame &&
+    attackWindow.hitFrame < dodgeStartFrame + dodgeFrames
+  );
+}
+
+function groupNumberRanges(values = []) {
+  const sorted = [...new Set(values)].sort((a, b) => a - b);
+  const ranges = [];
+  sorted.forEach((value) => {
+    const last = ranges.at(-1);
+    if (last && value === last.end + 1) {
+      last.end = value;
+    } else {
+      ranges.push({ start: value, end: value });
+    }
+  });
+  return ranges.map((range) => (range.start === range.end ? String(range.start) : `${range.start}-${range.end}`));
+}
+
+function inferNoahChargeSpeeds(attackWindows = getTestAttackWindows()) {
+  const noah = getCharacterById(TEST_NOAH_ID);
+  if (!noah || attackWindows.length === 0) return [];
+  const candidates = [...FIXED_CHARGE_SPEED_FRAMES_60.keys()].filter((speed) => speed >= 0 && speed <= 46);
+  return candidates.filter((speed) => {
+    const defenseNoah = { ...noah, chargeSpeedPercent: speed };
+    const timing = getChargeFrames(defenseNoah, 0, "defense");
+    const flightFrames = Number(timing.projectileFlightFrames) || 0;
+    const intervalFrames = Number(timing.interval) || 0;
+    const firstTurnFrame = timing.firstFrame - flightFrames;
+    if (intervalFrames <= 0) return false;
+    return attackWindows.every((attackWindow) => {
+      const maxFrame = attackWindow.hitFrame + intervalFrames;
+      for (let turnFrame = firstTurnFrame; turnFrame <= maxFrame; turnFrame += intervalFrames) {
+        if (matchesDodgeWindow(attackWindow, turnFrame)) return true;
+      }
+      return false;
+    });
+  });
+}
+
+function getScarletReloadStarts(magazine, maxFrame) {
+  const scarlet = getCharacterById(TEST_SCARLET_ID);
+  const intervalFrames = 6;
+  const reloadFrames = getReloadFrames(scarlet);
+  const starts = [];
+  let reloadStart = (magazine - 1) * intervalFrames;
+  while (reloadStart <= maxFrame) {
+    starts.push(reloadStart);
+    reloadStart += reloadFrames + (magazine - 1) * intervalFrames;
+  }
+  return starts;
+}
+
+function inferScarletMagazines(attackWindows = getTestAttackWindows()) {
+  if (attackWindows.length === 0) return [];
+  const maxFrame = Math.max(...attackWindows.map((window) => window.hitFrame)) + 240;
+  return TEST_SCARLET_MAGAZINES.filter((magazine) =>
+    attackWindows.every((attackWindow) =>
+      getScarletReloadStarts(magazine, maxFrame).some((reloadStart) => matchesDodgeWindow(attackWindow, reloadStart)),
+    ),
+  );
+}
+
+function getTestInferenceResults() {
+  const attackWindows = getTestAttackWindows();
+  return {
+    attackWindows,
+    noahSpeeds: inferNoahChargeSpeeds(attackWindows),
+    scarletMagazines: inferScarletMagazines(attackWindows),
+  };
+}
+
+function formatTestCandidateValues(values, suffix = "") {
+  if (!values.length) return "无匹配";
+  return groupNumberRanges(values).map((value) => `${value}${suffix}`).join(" / ");
+}
+
+function renderTestDefenseRow(inference = getTestInferenceResults()) {
+  const row = document.createElement("section");
+  row.className = "team-row test-defense-row";
+  row.dataset.teamKey = "defense";
+  row.setAttribute("aria-label", "空枪反推候选");
+  row.innerHTML = '<div class="team-slots-row test-candidates-row"></div>';
+  const slotsRow = row.querySelector(".team-slots-row");
+  const candidates = [
+    {
+      character: getCharacterById(TEST_NOAH_ID),
+      label: "蓄速",
+      value: formatTestCandidateValues(inference.noahSpeeds, "%"),
+      hasMatch: inference.noahSpeeds.length > 0,
+    },
+    {
+      character: getCharacterById(TEST_SCARLET_ID),
+      label: "弹容",
+      value: formatTestCandidateValues(inference.scarletMagazines),
+      hasMatch: inference.scarletMagazines.length > 0,
+    },
+  ];
+
+  candidates.forEach((candidate) => {
+    const slot = document.createElement("div");
+    slot.className = `team-slot test-candidate filled${getTeamSlotRarityClass(candidate.character)}${candidate.hasMatch ? " has-test-match" : ""}`;
+    slot.innerHTML = `
+      <div class="slot-remove" aria-label="${escapeHtml(candidate.character?.name || "")}">
+        <span class="team-avatar">${candidate.character ? getAvatarMarkup(candidate.character) : ""}</span>
+        <span class="test-candidate-result">
+          <span>${escapeHtml(candidate.label)}</span>
+          <strong>${escapeHtml(candidate.value)}</strong>
+        </span>
+      </div>
+    `;
+    slotsRow.append(slot);
+  });
+
+  return row;
+}
+
 function renderTeam(battleResults = getBattleResultsSnapshot()) {
   const fragment = document.createDocumentFragment();
   const { attackResult, defenseResult } = battleResults;
+  if (els.testModeButton) {
+    els.testModeButton.classList.toggle("is-active", state.testMode);
+    els.testModeButton.setAttribute("aria-pressed", String(state.testMode));
+  }
+  const testInference = state.testMode ? getTestInferenceResults() : null;
   const resultsByTeam = new Map([
     ["defense", defenseResult],
     ["attack", attackResult],
   ]);
 
   ["defense", "attack"].forEach((teamKey) => {
+    if (state.testMode && teamKey === "defense") {
+      fragment.append(renderTestDefenseRow(testInference));
+      return;
+    }
     const team = getTeamState(teamKey);
     const chargeSpeeds = getChargeSpeedState(teamKey);
     const universalCharges = getUniversalChargeState(teamKey);
     const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
     const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
     const row = document.createElement("section");
-    row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
+    row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}${state.testMode && teamKey === "attack" ? " is-test-attack" : ""}`;
     row.dataset.teamKey = teamKey;
     row.setAttribute("aria-label", TEAM_LABELS[teamKey]);
     row.innerHTML = '<div class="team-slots-row"></div>';
@@ -2321,6 +2485,8 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const displayMagazine = character ? getDisplayMagazine(character, teamKey) : null;
       const redHoodPierceCount = character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0;
       const isScarletCounterEnabled = character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false;
+      const testMissValue = Number(state.testMissShots[index]) || 0;
+      const canUseTestMissButton = state.testMode && teamKey === "attack" && character?.weapon === "RL";
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
@@ -2388,6 +2554,11 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
               `
               : ""
           }
+          ${
+            state.testMode && teamKey === "attack"
+              ? `<button class="slot-test-shot${testMissValue > 0 ? " is-active" : ""}" type="button" ${canUseTestMissButton ? "" : "disabled"} aria-label="空枪发数 ${testMissValue}" title="空枪发数：${testMissValue}">${testMissValue}</button>`
+              : ""
+          }
         `
         : `
           <div class="slot-empty">
@@ -2407,7 +2578,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       });
 
       slot.addEventListener("dragstart", (event) => {
-        if (!character || event.target.closest(".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle")) {
+        if (!character || isTeamSlotDragControl(event.target)) {
           event.preventDefault();
           return;
         }
@@ -2509,6 +2680,22 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           });
           counterToggle.addEventListener("pointerdown", (event) => event.stopPropagation());
           counterToggle.addEventListener("dragstart", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          });
+        }
+        const testShotButton = slot.querySelector(".slot-test-shot");
+        if (testShotButton) {
+          testShotButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (testShotButton.disabled) return;
+            setActiveTeam("attack");
+            state.testMissShots[index] = ((Number(state.testMissShots[index]) || 0) + 1) % 4;
+            render();
+          });
+          testShotButton.addEventListener("pointerdown", (event) => event.stopPropagation());
+          testShotButton.addEventListener("dragstart", (event) => {
             event.preventDefault();
             event.stopPropagation();
           });
@@ -4347,6 +4534,13 @@ function bindEvents() {
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.copyTeamButton.addEventListener("click", copyBattleResultsSummary);
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
+  els.testModeButton?.addEventListener("click", () => {
+    state.testMode = !state.testMode;
+    if (!state.testMode) state.testMissShots = Array(TEAM_SIZE).fill(0);
+    setActiveTeam("attack");
+    hideChartTooltip();
+    render();
+  });
   els.allowMissedShotsToggle.addEventListener("change", (event) => {
     state.allowMissedShots = event.target.checked;
     saveTeam();
