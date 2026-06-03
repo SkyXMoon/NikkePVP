@@ -4676,6 +4676,33 @@ function getInlineSvgStyles() {
     .join("\n");
 }
 
+function inlineComputedSvgStyles(sourceSvg, targetSvg) {
+  const sourceElements = [sourceSvg, ...sourceSvg.querySelectorAll("*")];
+  const targetElements = [targetSvg, ...targetSvg.querySelectorAll("*")];
+  const properties = [
+    "fill",
+    "stroke",
+    "stroke-width",
+    "stroke-dasharray",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "font-size",
+    "font-weight",
+    "font-family",
+    "opacity",
+  ];
+
+  sourceElements.forEach((sourceElement, index) => {
+    const targetElement = targetElements[index];
+    if (!targetElement) return;
+    const computed = getComputedStyle(sourceElement);
+    properties.forEach((property) => {
+      const value = computed.getPropertyValue(property);
+      if (value) targetElement.style.setProperty(property, value);
+    });
+  });
+}
+
 function getSvgViewBoxSize(svg) {
   const viewBox = svg.viewBox?.baseVal;
   if (viewBox?.width && viewBox?.height) {
@@ -4731,6 +4758,12 @@ async function getChargeChartPngBlob() {
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   clone.setAttribute("width", width);
   clone.setAttribute("height", height);
+  clone.style.setProperty("--accent", "#e43f4f");
+  clone.style.setProperty("--blue", "#4da3ff");
+  clone.style.setProperty("--cyan", "#47c8d4");
+  clone.style.setProperty("--gold", "#f0c45c");
+  clone.style.setProperty("--text", "#f2f5fa");
+  inlineComputedSvgStyles(svg, clone);
 
   const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
   style.textContent = getInlineSvgStyles();
@@ -4771,7 +4804,6 @@ async function copyBattleResultsWithChart(text) {
     new ClipboardItem({
       "text/html": new Blob([html], { type: "text/html" }),
       "text/plain": new Blob([text], { type: "text/plain" }),
-      "image/png": imageBlob,
     }),
   ]);
 }
