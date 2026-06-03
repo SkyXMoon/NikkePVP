@@ -2380,7 +2380,7 @@ function renderTestDefenseRow() {
     const slot = document.createElement("div");
     slot.className = `test-candidate${candidate.hasMatch ? " has-test-match" : ""}${localPaidInferenceState.error ? " is-error" : ""}`;
     slot.innerHTML = `
-      <span class="test-candidate-avatar team-slot filled${getTeamSlotRarityClass(candidate.character)}" aria-label="${escapeHtml(candidate.character?.name || "")}">
+      <span class="test-candidate-avatar" aria-label="${escapeHtml(candidate.character?.name || "")}">
         <span class="team-avatar">${candidate.character ? getAvatarMarkup(candidate.character) : ""}</span>
       </span>
       <span class="test-candidate-result">
