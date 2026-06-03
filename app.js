@@ -4661,6 +4661,121 @@ async function copyTextToClipboard(text) {
   if (!copied) throw new Error("copy command failed");
 }
 
+function getInlineSvgStyles() {
+  return Array.from(document.styleSheets)
+    .map((sheet) => {
+      try {
+        return Array.from(sheet.cssRules || [])
+          .map((rule) => rule.cssText)
+          .join("\n");
+      } catch {
+        return "";
+      }
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+function getSvgViewBoxSize(svg) {
+  const viewBox = svg.viewBox?.baseVal;
+  if (viewBox?.width && viewBox?.height) {
+    return {
+      width: Math.ceil(viewBox.width),
+      height: Math.ceil(viewBox.height),
+    };
+  }
+
+  const rect = svg.getBoundingClientRect();
+  return {
+    width: Math.ceil(rect.width || 1200),
+    height: Math.ceil(rect.height || 420),
+  };
+}
+
+function loadImageFromUrl(url) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = url;
+  });
+}
+
+function canvasToPngBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("failed to render chart image"));
+      }
+    }, "image/png");
+  });
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function getChargeChartPngBlob() {
+  const svg = els.chargeChart?.querySelector("svg");
+  if (!svg) throw new Error("charge chart is not rendered");
+
+  const { width, height } = getSvgViewBoxSize(svg);
+  const clone = svg.cloneNode(true);
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  clone.setAttribute("width", width);
+  clone.setAttribute("height", height);
+
+  const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
+  style.textContent = getInlineSvgStyles();
+  clone.insertBefore(style, clone.firstChild);
+
+  const svgText = new XMLSerializer().serializeToString(clone);
+  const url = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml;charset=utf-8" }));
+  try {
+    const image = await loadImageFromUrl(url);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#0b0e14";
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+    return await canvasToPngBlob(canvas);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function copyBattleResultsWithChart(text) {
+  if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+    throw new Error("rich clipboard is not supported");
+  }
+
+  const imageBlob = await getChargeChartPngBlob();
+  const imageDataUrl = await blobToDataUrl(imageBlob);
+  const html = `
+    <div>
+      <img src="${imageDataUrl}" alt="充能时间轴" style="max-width:100%;height:auto;display:block;" />
+      <pre style="white-space:pre-wrap;margin:12px 0 0;font-family:Arial,'Microsoft YaHei',sans-serif;">${escapeHtml(text)}</pre>
+    </div>
+  `;
+
+  await navigator.clipboard.write([
+    new ClipboardItem({
+      "text/html": new Blob([html], { type: "text/html" }),
+      "text/plain": new Blob([text], { type: "text/plain" }),
+      "image/png": imageBlob,
+    }),
+  ]);
+}
+
 function isTextEditingElement(element = document.activeElement) {
   if (!element) return false;
   const tagName = element.tagName?.toLowerCase();
@@ -4696,10 +4811,15 @@ async function copyBattleResultsSummary() {
     return;
   }
   try {
-    await copyTextToClipboard(text);
-    showToast("已复制双方队伍信息");
+    await copyBattleResultsWithChart(text);
+    showToast("已复制时间轴图片和双方队伍信息");
   } catch {
-    showToast("复制失败，请检查浏览器剪切板权限");
+    try {
+      await copyTextToClipboard(text);
+      showToast("已复制文字，时间轴图片复制失败");
+    } catch {
+      showToast("复制失败，请检查浏览器剪切板权限");
+    }
   }
 }
 
