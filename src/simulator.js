@@ -7,6 +7,7 @@ const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
+const MISS_DODGE_WINDOW_FRAMES = 6;
 const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [0, 60],
   [1, 60],
@@ -109,6 +110,11 @@ function getCharacterById(id) {
 
 function getSavedCharacterQuantumCube(character, teamKey = "attack") {
   return Boolean(runtimeState.characterQuantumCubes?.[normalizeTeamKey(teamKey)]?.[character.id]);
+}
+
+function getSavedCharacterMagazine(character, teamKey = "attack") {
+  const magazine = Number(runtimeState.characterMagazines?.[normalizeTeamKey(teamKey)]?.[character.id]);
+  return Number.isFinite(magazine) && magazine >= 20 ? Math.floor(magazine) : null;
 }
 
 function isScarlet(character) {
@@ -544,12 +550,53 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []
   event.nextFrame = getNextAttackFrameAfterStun(event, currentFrame, baseNextFrame, stunWindows);
 }
 
+function getTurnDodgeStartFrame(event, currentFrame) {
+  return Math.max(0, currentFrame - (Number(event.projectileFlightFrames) || 0));
+}
+
+function getTurnDodgeFrames(event) {
+  if (!isChargeWeapon(event.character)) return 0;
+  const turnFrames = Number(event.character.timing?.turnFrames ?? event.character.turnFrames ?? 0) || 0;
+  return Math.min(MISS_DODGE_WINDOW_FRAMES, Math.max(0, turnFrames));
+}
+
+function addTurnDodgeEvent(event, currentFrame) {
+  const dodgeFrames = getTurnDodgeFrames(event);
+  if (dodgeFrames <= 0) return;
+  const startFrame = getTurnDodgeStartFrame(event, currentFrame);
+  event.turnDodgeEvents.push({
+    positionIndex: event.positionIndex,
+    characterName: event.character.name,
+    startFrame,
+    endFrame: startFrame + dodgeFrames,
+    dodgeFrames,
+  });
+}
+
+function isMissedByDodgeWindow(positionIndex, flightStartFrame, hitFrame, window) {
+  if (window.positionIndex !== positionIndex) return false;
+  const windowEndFrame = Math.min(window.endFrame, window.startFrame + MISS_DODGE_WINDOW_FRAMES);
+  return flightStartFrame < window.startFrame && window.startFrame < hitFrame && hitFrame < windowEndFrame;
+}
+
+function getRlShotMissDodgeWindow(event, currentFrame, teamKey, opponentReloadTimeline = [], opponentTurnDodgeTimeline = []) {
+  if (!runtimeState.allowMissedShots) return false;
+  if (event.character.weapon !== "RL" || event.projectileFlightFrames <= 0) return false;
+  const targetPositionIndex = getTargetPositionIndex(event.character, teamKey);
+  const flightStartFrame = Math.max(0, currentFrame - event.projectileFlightFrames);
+  return [
+    ...opponentReloadTimeline.map((window) => ({ ...window, type: "reload" })),
+    ...opponentTurnDodgeTimeline.map((window) => ({ ...window, type: "turn" })),
+  ].find((window) => isMissedByDodgeWindow(targetPositionIndex, flightStartFrame, currentFrame, window));
+}
+
 function characterForSlot(character, positionIndex, teamKey = "attack") {
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
+  const savedMagazine = isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
   return {
     ...character,
-    stats: isScarlet(character) ? { ...character.stats, magazine: 60 } : character.stats,
+    stats: savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats,
     chargeSpeedPercent: Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
   };
@@ -575,6 +622,7 @@ function simulateBurst(
   teamKey = "attack",
   specialChargeEvents = [],
   opponentReloadTimeline = [],
+  opponentTurnDodgeTimeline = [],
   stunWindows = [],
 ) {
   const members = team
@@ -611,6 +659,8 @@ function simulateBurst(
       hitFrames: [],
       reloadEvents: [],
       flightEvents: [],
+      missedShotEvents: [],
+      turnDodgeEvents: [],
       poisonChargeStarted: false,
     };
   });
@@ -707,9 +757,18 @@ function simulateBurst(
     const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
+      const missDodgeWindow = getRlShotMissDodgeWindow(
+        event,
+        currentFrame,
+        teamKey,
+        opponentReloadTimeline,
+        opponentTurnDodgeTimeline,
+      );
+      const isMissedShot = Boolean(missDodgeWindow);
       event.hits += shotCount;
       const chargeShotNumber = getAttackChargeShotNumber(event, shotCount);
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
+      addTurnDodgeEvent(event, currentFrame);
       if (event.character.weapon === "RL" && event.projectileFlightFrames > 0) {
         const flightEvent = {
           positionIndex: event.positionIndex,
@@ -717,9 +776,30 @@ function simulateBurst(
           startFrame: Math.max(0, currentFrame - event.projectileFlightFrames),
           endFrame: currentFrame,
           flightFrames: event.projectileFlightFrames,
+          missed: isMissedShot,
         };
         event.flightEvents.push(flightEvent);
+        if (isMissedShot) {
+          event.missedShotEvents.push({
+            positionIndex: event.positionIndex,
+            characterName: event.character.name,
+            frame: currentFrame,
+            flightStartFrame: flightEvent.startFrame,
+            flightFrames: event.projectileFlightFrames,
+            dodgeType: missDodgeWindow.type,
+            dodgeStartFrame: missDodgeWindow.startFrame,
+            dodgeEndFrame: Math.min(missDodgeWindow.endFrame, missDodgeWindow.startFrame + MISS_DODGE_WINDOW_FRAMES),
+            dodgerName: missDodgeWindow.characterName,
+            dodgerPositionIndex: missDodgeWindow.positionIndex,
+          });
+        }
       }
+
+      if (isMissedShot) {
+        advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
+        return;
+      }
+
       const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber);
       const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
       const chargeValue = getChargeValue(event.character, chargeShotNumber) * shotCount;
@@ -777,7 +857,9 @@ function simulateBurst(
     finishingPositionIndices: [...currentFrameContributors].sort((a, b) => a - b),
     timeline,
     reloadTimeline: events.flatMap((event) => event.reloadEvents),
+    turnDodgeTimeline: events.flatMap((event) => event.turnDodgeEvents),
     flightTimeline: events.flatMap((event) => event.flightEvents),
+    missedTimeline: events.flatMap((event) => event.missedShotEvents),
     stunTimeline: stunWindows,
     members: events,
   };
@@ -903,10 +985,15 @@ function normalizePayload(payload = {}, characters = []) {
       defense: payload.characterQuantumCubes?.defense || {},
       attack: payload.characterQuantumCubes?.attack || {},
     },
+    characterMagazines: {
+      defense: payload.characterMagazines?.defense || {},
+      attack: payload.characterMagazines?.attack || {},
+    },
     jackalLinks: {
       defense: payload.jackalLinks?.defense || { enabled: false, ownerId: null, targetIds: [] },
       attack: payload.jackalLinks?.attack || { enabled: false, ownerId: null, targetIds: [] },
     },
+    allowMissedShots: payload.allowMissedShots !== false,
   };
 }
 
@@ -914,8 +1001,8 @@ export function computeBattleResultsFromPayload(payload = {}, characters = []) {
   runtimeState = normalizePayload(payload, characters);
   const attackStunWindows = getStunWindowsForTeam("attack");
   const defenseStunWindows = getStunWindowsForTeam("defense");
-  let attackResult = simulateBurst(runtimeState.team, "attack", [], [], attackStunWindows);
-  let defenseResult = simulateBurst(runtimeState.defenseTeam, "defense", [], [], defenseStunWindows);
+  let attackResult = simulateBurst(runtimeState.team, "attack", [], [], [], attackStunWindows);
+  let defenseResult = simulateBurst(runtimeState.defenseTeam, "defense", [], [], [], defenseStunWindows);
 
   for (let index = 0; index < 8; index += 1) {
     const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
@@ -925,6 +1012,7 @@ export function computeBattleResultsFromPayload(payload = {}, characters = []) {
       "attack",
       attackSpecials,
       defenseResult?.reloadTimeline || [],
+      defenseResult?.turnDodgeTimeline || [],
       attackStunWindows,
     );
     const nextDefenseResult = simulateBurst(
@@ -932,6 +1020,7 @@ export function computeBattleResultsFromPayload(payload = {}, characters = []) {
       "defense",
       defenseSpecials,
       attackResult?.reloadTimeline || [],
+      attackResult?.turnDodgeTimeline || [],
       defenseStunWindows,
     );
     const stable = getResultSignature(nextAttackResult) === getResultSignature(attackResult) && getResultSignature(nextDefenseResult) === getResultSignature(defenseResult);

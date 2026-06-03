@@ -743,6 +743,59 @@ input:focus {
   box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.18);
 }
 
+.miss-toggle {
+  cursor: pointer;
+}
+
+.miss-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.miss-icon {
+  position: relative;
+  width: 17px;
+  height: 17px;
+  border: 2px dashed currentColor;
+  border-radius: 999px;
+}
+
+.miss-icon::before,
+.miss-icon::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
+
+.miss-icon::before {
+  left: 50%;
+  top: -5px;
+  width: 0;
+  height: 23px;
+  border-left: 2px dashed currentColor;
+  background: transparent;
+  transform: translateX(-50%);
+}
+
+.miss-icon::after {
+  left: -5px;
+  top: 50%;
+  width: 23px;
+  height: 0;
+  border-top: 2px dashed currentColor;
+  background: transparent;
+  transform: translateY(-50%);
+}
+
+.miss-toggle:has(input:checked) {
+  border-color: rgba(77, 163, 255, 0.86);
+  color: #9dccff;
+  background: rgba(77, 163, 255, 0.16);
+  box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.16) inset;
+}
 
 .copy-team-button,
 .swap-team-button,
@@ -1033,6 +1086,13 @@ input:focus {
   stroke: rgba(255, 255, 255, 0.94);
 }
 
+.chart-dodge-turn {
+  stroke: rgba(255, 255, 255, 0.94);
+  stroke-linecap: round;
+  stroke-width: 2.2;
+  stroke-dasharray: none;
+}
+
 .chart-dodge-reload-duration {
   stroke-dasharray: 5 6;
 }
@@ -1095,6 +1155,13 @@ input:focus {
   fill: var(--accent);
   stroke: #ffd9dc;
   stroke-width: 1.8;
+}
+
+.chart-missed-point {
+  fill: #8a9099;
+  stroke: rgba(7, 9, 13, 0.95);
+  stroke-width: 1.6;
+  cursor: pointer;
 }
 
 .chart-stun-point {
