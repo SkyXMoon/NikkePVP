@@ -4,6 +4,7 @@ node_modules/
 .dev.vars
 __pycache__/
 .npm-cache/
+Nikke-PVP-Pro/
 
 # Local-only documents, extracted data, helper scripts, and screenshots.
 local/
