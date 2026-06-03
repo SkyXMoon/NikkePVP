@@ -2194,7 +2194,7 @@ input:focus {
 }
 
 .test-candidate.has-test-match .test-candidate-result strong {
-  color: var(--quiet);
+  color: var(--green);
 }
 
 .test-candidate.is-error .test-candidate-result strong {
