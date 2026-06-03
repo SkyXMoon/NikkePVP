@@ -186,6 +186,7 @@ const els = {
   resultPanel: document.querySelector("#resultPanel"),
   chargeChart: document.querySelector("#chargeChart"),
   lineupSlots: document.querySelector("#lineupSlots"),
+  appVersion: document.querySelector("#appVersion"),
   paidInferenceButton: document.querySelector("#paidInferenceButton"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
   copyTeamButton: document.querySelector("#copyTeamButton"),
@@ -2297,6 +2298,31 @@ function setLocalPaidDevAccess(enabled) {
   }
 }
 
+function syncLocalPaidDevAccessControl() {
+  if (!els.appVersion) return;
+  const isLocalDev = isLocalDevRuntime();
+  els.appVersion.classList.toggle("is-local-dev", isLocalDev);
+  els.appVersion.classList.toggle("has-paid-dev-access", hasLocalPaidDevAccess());
+  if (isLocalDev) {
+    els.appVersion.setAttribute("role", "button");
+    els.appVersion.setAttribute("tabindex", "0");
+    els.appVersion.setAttribute("title", hasLocalPaidDevAccess() ? "关闭本地付费测试" : "启用本地付费测试");
+  } else {
+    els.appVersion.removeAttribute("role");
+    els.appVersion.removeAttribute("tabindex");
+    els.appVersion.removeAttribute("title");
+  }
+}
+
+function toggleLocalPaidDevAccess() {
+  if (!isLocalDevRuntime()) return;
+  const nextEnabled = !hasLocalPaidDevAccess();
+  setLocalPaidDevAccess(nextEnabled);
+  if (!nextEnabled && state.testMode) setPaidTestMode(false);
+  syncLocalPaidDevAccessControl();
+  showToast(nextEnabled ? "已启用本地付费测试" : "已关闭本地付费测试");
+}
+
 function openWechatMiniProgramPaidPage() {
   const payPageUrl = "/pages/pay/index?feature=miss-inference";
   if (!window.wx?.miniProgram?.navigateTo) return false;
@@ -2448,7 +2474,6 @@ function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false, is
         ${localDevPanel}
       </div>
       <div class="paid-modal-actions">
-        ${isLocalDev ? '<button class="paid-modal-secondary" type="button" data-paid-dev-enable>启用本地测试</button>' : ""}
         <button class="paid-modal-confirm" type="button">知道了</button>
       </div>
     </section>
@@ -2459,11 +2484,6 @@ function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false, is
   backdrop.querySelector(".paid-modal").addEventListener("click", (event) => event.stopPropagation());
   backdrop.querySelector(".paid-modal-close").addEventListener("click", closePaidFeatureModal);
   backdrop.querySelector(".paid-modal-confirm").addEventListener("click", closePaidFeatureModal);
-  backdrop.querySelector("[data-paid-dev-enable]")?.addEventListener("click", () => {
-    setLocalPaidDevAccess(true);
-    closePaidFeatureModal();
-    setPaidTestMode(true);
-  });
   return backdrop;
 }
 
@@ -4599,6 +4619,12 @@ async function copyBattleResultsSummary() {
 
 function bindEvents() {
   els.helpButton.addEventListener("click", openHelpModal);
+  els.appVersion?.addEventListener("click", toggleLocalPaidDevAccess);
+  els.appVersion?.addEventListener("keydown", (event) => {
+    if (!isLocalDevRuntime() || !["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    toggleLocalPaidDevAccess();
+  });
   els.paidInferenceButton?.addEventListener("click", openPaidInferenceFeature);
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.copyTeamButton.addEventListener("click", copyBattleResultsSummary);
@@ -4690,6 +4716,7 @@ async function bootstrap() {
   loadTeam();
   els.allowMissedShotsToggle.checked = state.allowMissedShots;
   syncFilterControls();
+  syncLocalPaidDevAccessControl();
   render();
 }
 
