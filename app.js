@@ -2626,6 +2626,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
     const jackalTargetIds = new Set(jackalLinkState.targetIds);
     const linkOwner = getTeamLinkProvider(teamKey);
     const linkOwnerName = linkOwner ? (isJackal(linkOwner) ? "豺狼链接" : "波莉链接") : "链接";
+    const tauntTargetPositionIndex = getTauntTargetState(teamKey === "defense" ? state.defenseTeam : state.team, teamKey)?.positionIndex ?? null;
     team.forEach((character, index) => {
       const teamResult = resultsByTeam.get(teamKey);
       const finishingPositions = new Set(teamResult && !teamResult.error ? teamResult.finishingPositionIndices : []);
@@ -2636,6 +2637,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const displayMagazine = character ? getDisplayMagazine(character, teamKey) : null;
       const redHoodPierceCount = character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0;
       const isScarletCounterEnabled = character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false;
+      const isTauntTarget = character && index === tauntTargetPositionIndex;
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
@@ -2658,6 +2660,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           <button class="slot-remove" type="button" aria-label="移除 ${escapeHtml(character.name)}">
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
             <span class="slot-copy" aria-hidden="true">
+              ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
               ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
               ${hasQuantumCube ? '<span class="slot-cube-badge"><img src="assets/icons/ui/cubes/quantum-24x24.webp" alt="" /></span>' : ""}
               ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
@@ -2895,17 +2898,34 @@ function updateTeamFinishMarkers(result = null, defenseResult = null) {
     ["defense", new Set(defenseResult && !defenseResult.error ? defenseResult.finishingPositionIndices : [])],
     ["attack", new Set(result && !result.error ? result.finishingPositionIndices : [])],
   ]);
+  const tauntPositionsByTeam = new Map([
+    ["defense", getTauntTargetState(state.defenseTeam, "defense")?.positionIndex ?? null],
+    ["attack", getTauntTargetState(state.team, "attack")?.positionIndex ?? null],
+  ]);
 
   els.teamSlots.querySelectorAll(".team-slot").forEach((slot) => {
     const teamKey = slot.dataset.teamKey || "attack";
     const index = Number(slot.dataset.slotIndex);
     const finishingPositions = finishingPositionsByTeam.get(teamKey) || new Set();
+    const tauntPositionIndex = tauntPositionsByTeam.get(teamKey);
     const character = getTeamState(teamKey)[index];
     const isFinisher = finishingPositions.has(index) && canShowFinishMarker(character);
+    const isTauntTarget = character && index === tauntPositionIndex;
     slot.classList.toggle("is-finisher", isFinisher);
 
     const slotCopy = slot.querySelector(".slot-copy");
     if (!slotCopy) return;
+
+    const existingTauntMark = slotCopy.querySelector(".taunt-mark");
+    if (isTauntTarget && !existingTauntMark) {
+      const mark = document.createElement("span");
+      mark.className = "taunt-mark";
+      mark.textContent = "嘲";
+      slotCopy.prepend(mark);
+    }
+    if (!isTauntTarget && existingTauntMark) {
+      existingTauntMark.remove();
+    }
 
     const existingMark = slotCopy.querySelector(".finish-mark");
     if (isFinisher && !existingMark) {

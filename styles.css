@@ -644,6 +644,24 @@ input:focus {
   transform: translate(-50%, -50%);
 }
 
+.slot-copy .taunt-mark {
+  position: absolute;
+  left: calc(50% - 22px);
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(221, 251, 255, 0.82);
+  border-radius: 999px;
+  color: #fff;
+  background: var(--blue);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
 .row-meta {
   display: flex;
   flex-wrap: wrap;
@@ -2615,6 +2633,13 @@ summary {
     width: 18px;
     height: 18px;
     font-size: 11px;
+  }
+
+  .slot-copy .taunt-mark {
+    left: calc(50% - 16px);
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
   }
 
   .speed-control {
