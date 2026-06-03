@@ -707,6 +707,19 @@ input:focus {
   gap: 6px;
 }
 
+.paid-feature-button {
+  border-color: rgba(240, 196, 92, 0.7);
+  color: #fff7d7;
+  background: rgba(240, 196, 92, 0.12);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.paid-feature-button:hover {
+  border-color: rgba(240, 196, 92, 0.95);
+  background: rgba(240, 196, 92, 0.22);
+}
+
 .icon-toggle,
 .icon-button {
   position: relative;
@@ -1999,6 +2012,105 @@ input:focus {
   gap: 12px;
   padding: 14px;
   overflow: auto;
+}
+
+.paid-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(2px);
+}
+
+.paid-modal {
+  width: min(420px, calc(100vw - 44px));
+  border: 1px solid rgba(240, 196, 92, 0.82);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(38, 31, 18, 0.98), rgba(8, 12, 18, 0.98)),
+    var(--panel);
+  box-shadow:
+    0 0 0 1px rgba(255, 247, 215, 0.1) inset,
+    0 18px 46px rgba(0, 0, 0, 0.52),
+    0 0 28px rgba(240, 196, 92, 0.14);
+}
+
+.paid-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 16px 13px;
+  border-bottom: 1px solid rgba(242, 245, 250, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.paid-modal-head div {
+  display: grid;
+  gap: 3px;
+}
+
+.paid-modal-head strong {
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.paid-modal-kicker {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.paid-modal-close {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(235, 241, 248, 0.34);
+  border-radius: 6px;
+  padding: 0;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.paid-modal-content {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.paid-modal-content p {
+  margin: 0;
+}
+
+.paid-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 16px 15px;
+}
+
+.paid-modal-confirm {
+  min-height: 32px;
+  border: 1px solid rgba(240, 196, 92, 0.82);
+  border-radius: 6px;
+  padding: 0 14px;
+  color: #fff7d7;
+  background: rgba(240, 196, 92, 0.16);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .help-section {

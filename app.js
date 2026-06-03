@@ -183,6 +183,7 @@ const els = {
   resultPanel: document.querySelector("#resultPanel"),
   chargeChart: document.querySelector("#chargeChart"),
   lineupSlots: document.querySelector("#lineupSlots"),
+  paidInferenceButton: document.querySelector("#paidInferenceButton"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
   copyTeamButton: document.querySelector("#copyTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
@@ -2263,6 +2264,64 @@ function openHelpModal() {
   document.querySelector(".help-modal-backdrop")?.remove();
   const modal = createHelpModal();
   if (modal) document.body.append(modal);
+}
+
+function isWechatMiniProgramRuntime() {
+  return window.__wxjs_environment === "miniprogram" || Boolean(window.wx?.miniProgram);
+}
+
+function openWechatMiniProgramPaidPage() {
+  const payPageUrl = "/pages/pay/index?feature=miss-inference";
+  if (!window.wx?.miniProgram?.navigateTo) return false;
+  window.wx.miniProgram.navigateTo({ url: payPageUrl });
+  return true;
+}
+
+function closePaidFeatureModal() {
+  document.querySelector(".paid-modal-backdrop")?.remove();
+}
+
+function createPaidFeatureModal({ isMiniProgram = false, didNavigate = false } = {}) {
+  const backdrop = document.createElement("div");
+  backdrop.className = "paid-modal-backdrop";
+  backdrop.setAttribute("role", "presentation");
+  const message = isMiniProgram
+    ? didNavigate
+      ? "正在跳转到微信小程序付费页。"
+      : "当前处于微信小程序环境，请在小程序付费页开通后使用。"
+    : "该功能仅在微信小程序内开放。请通过微信小程序使用付费功能。";
+  backdrop.innerHTML = `
+    <section class="paid-modal" role="dialog" aria-modal="true" aria-label="付费功能">
+      <div class="paid-modal-head">
+        <div>
+          <span class="paid-modal-kicker">Pro</span>
+          <strong>空枪反推</strong>
+        </div>
+        <button class="paid-modal-close" type="button" aria-label="关闭">X</button>
+      </div>
+      <div class="paid-modal-content">
+        <p>${escapeHtml(message)}</p>
+        <p>网页端暂不提供该付费功能，免费功能仍可正常使用。</p>
+      </div>
+      <div class="paid-modal-actions">
+        <button class="paid-modal-confirm" type="button">知道了</button>
+      </div>
+    </section>
+  `;
+  backdrop.addEventListener("click", (event) => {
+    if (event.target === backdrop) closePaidFeatureModal();
+  });
+  backdrop.querySelector(".paid-modal").addEventListener("click", (event) => event.stopPropagation());
+  backdrop.querySelector(".paid-modal-close").addEventListener("click", closePaidFeatureModal);
+  backdrop.querySelector(".paid-modal-confirm").addEventListener("click", closePaidFeatureModal);
+  return backdrop;
+}
+
+function openPaidInferenceFeature() {
+  const isMiniProgram = isWechatMiniProgramRuntime();
+  const didNavigate = isMiniProgram ? openWechatMiniProgramPaidPage() : false;
+  closePaidFeatureModal();
+  document.body.append(createPaidFeatureModal({ isMiniProgram, didNavigate }));
 }
 
 function getLineupSlotCount(slot) {
@@ -4354,6 +4413,7 @@ async function copyBattleResultsSummary() {
 
 function bindEvents() {
   els.helpButton.addEventListener("click", openHelpModal);
+  els.paidInferenceButton?.addEventListener("click", openPaidInferenceFeature);
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.copyTeamButton.addEventListener("click", copyBattleResultsSummary);
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
@@ -4372,6 +4432,7 @@ function bindEvents() {
   window.addEventListener("resize", scheduleResponsiveRender);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && isHelpModalOpen) closeHelpModal();
+    if (event.key === "Escape") closePaidFeatureModal();
   });
   els.commonToggle.addEventListener("change", (event) => {
     state.filters.common = event.target.checked ? "common" : "all";
