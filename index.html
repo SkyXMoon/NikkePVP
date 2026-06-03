@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="app-version" id="appVersion" aria-label="当前版本">V1.5.60</div>
+    <div class="app-version" id="appVersion" aria-label="当前版本">V1.6.60</div>
     <main class="app-shell">
       <section class="main-stage" aria-label="竞技场充能工具">
         <section class="charge-chart-panel" aria-label="充能关键点图表">
@@ -37,6 +37,13 @@
                     <span class="clear-icon" aria-hidden="true"></span>
                   </button>
                 </div>
+              </div>
+              <div class="battle-power-strip" aria-label="战压换算">
+                <span class="battle-power-value battle-power-defense" id="battlePowerDefense">可防 0</span>
+                <label class="battle-power-input-wrap">
+                  <input id="battlePowerBaseInput" type="text" inputmode="numeric" autocomplete="off" value="0" aria-label="战压基准值" />
+                </label>
+                <span class="battle-power-value battle-power-attack" id="battlePowerAttack">可攻 0</span>
               </div>
               <div class="summary-strip" id="summaryStrip">选择角色后实时计算首轮爆裂</div>
               <div class="team-slots" id="teamSlots"></div>

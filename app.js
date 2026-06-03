@@ -2,6 +2,7 @@ const FRAMES_PER_SECOND = 60;
 const TEAM_SIZE = 5;
 const ENEMY_TEAM_SIZE = 5;
 const LINEUP_SLOT_COUNT = 10;
+const BATTLE_POWER_ADVANTAGE_RATE = 0.154;
 const DEFAULT_RL_TARGET_INDEX = 0;
 const BURST_EPSILON = 1e-6;
 const STORAGE_KEY = "nikke-arena-charge-team-v2";
@@ -165,6 +166,7 @@ const state = {
   activeLineupIndex: 0,
   lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
   allowMissedShots: true,
+  battlePowerBase: 0,
   testMode: false,
   compactAvatarIcons: true,
   activeTeamKey: "attack",
@@ -192,6 +194,9 @@ const els = {
   copyTeamButton: document.querySelector("#copyTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
   allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
+  battlePowerBaseInput: document.querySelector("#battlePowerBaseInput"),
+  battlePowerDefense: document.querySelector("#battlePowerDefense"),
+  battlePowerAttack: document.querySelector("#battlePowerAttack"),
   commonToggle: document.querySelector("#commonToggle"),
   regionToggle: document.querySelector("#regionToggle"),
   compactAvatarToggle: document.querySelector("#compactAvatarToggle"),
@@ -4149,6 +4154,30 @@ function hideChartTooltip() {
   els.chargeChart.querySelectorAll(".chart-hover-guide-x, .chart-hover-guide-y").forEach((line) => line.classList.remove("show"));
 }
 
+function sanitizeBattlePowerBase(value) {
+  const numeric = Number(String(value ?? "").replace(/[^\d.]/g, ""));
+  if (!Number.isFinite(numeric) || numeric <= 0) return 0;
+  return Math.floor(numeric);
+}
+
+function formatBattlePower(value) {
+  return String(Math.max(0, Math.round(value))).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function renderBattlePowerStrip() {
+  const base = sanitizeBattlePowerBase(state.battlePowerBase);
+  const ratio = 1 - BATTLE_POWER_ADVANTAGE_RATE;
+  if (els.battlePowerBaseInput && document.activeElement !== els.battlePowerBaseInput) {
+    els.battlePowerBaseInput.value = base ? String(base) : "0";
+  }
+  if (els.battlePowerDefense) {
+    els.battlePowerDefense.textContent = `可防 ${formatBattlePower(base * ratio)}`;
+  }
+  if (els.battlePowerAttack) {
+    els.battlePowerAttack.textContent = `可攻 ${formatBattlePower(base / ratio)}`;
+  }
+}
+
 function renderSummaryStrip(attackResult, defenseResult) {
   const entries = [
     { teamKey: "defense", result: defenseResult },
@@ -4203,6 +4232,7 @@ function renderResults(battleResults = getBattleResultsSnapshot()) {
 
 function render() {
   renderCharacters();
+  renderBattlePowerStrip();
   invalidateBattleResults();
   const battleResults = getBattleResultsSnapshot();
   renderTeam(battleResults);
@@ -4523,6 +4553,7 @@ function saveTeam() {
       lineupSlots: state.lineupSlots,
       jackalLinks: state.jackalLinks,
       allowMissedShots: state.allowMissedShots,
+      battlePowerBase: state.battlePowerBase,
       compactAvatarIcons: state.compactAvatarIcons,
       filters: state.filters,
       activeTeamKey: state.activeTeamKey,
@@ -4582,6 +4613,7 @@ function loadTeam() {
         saveCurrentLineupSlot();
       }
       state.allowMissedShots = typeof saved.allowMissedShots === "boolean" ? saved.allowMissedShots : true;
+      state.battlePowerBase = sanitizeBattlePowerBase(saved.battlePowerBase);
       state.compactAvatarIcons = saved.compactAvatarIcons !== false;
       state.filters = {
         ...state.filters,
@@ -4626,6 +4658,7 @@ function loadTeam() {
       attack: { enabled: false, ownerId: null, targetIds: [] },
     };
     state.allowMissedShots = true;
+    state.battlePowerBase = 0;
   }
 }
 
@@ -4871,6 +4904,17 @@ function bindEvents() {
     state.allowMissedShots = event.target.checked;
     saveTeam();
     render();
+  });
+  els.battlePowerBaseInput?.addEventListener("focus", (event) => {
+    event.target.select();
+  });
+  els.battlePowerBaseInput?.addEventListener("input", (event) => {
+    state.battlePowerBase = sanitizeBattlePowerBase(event.target.value);
+    saveTeam();
+    renderBattlePowerStrip();
+  });
+  els.battlePowerBaseInput?.addEventListener("blur", () => {
+    renderBattlePowerStrip();
   });
   els.lineupSlots.addEventListener("click", (event) => {
     const button = event.target.closest("[data-lineup-index]");
