@@ -2337,9 +2337,9 @@ function groupNumberRanges(values = []) {
   return ranges.map((range) => (range.start === range.end ? String(range.start) : `${range.start}-${range.end}`));
 }
 
-function inferNoahChargeSpeeds(attackWindows = getTestAttackWindows()) {
+function getNoahChargeSpeedsForAttackWindow(attackWindow) {
   const noah = getCharacterById(TEST_NOAH_ID);
-  if (!noah || attackWindows.length === 0) return [];
+  if (!noah || !attackWindow) return [];
   const candidates = [...FIXED_CHARGE_SPEED_FRAMES_60.keys()].filter((speed) => speed >= 0 && speed <= 46);
   return candidates.filter((speed) => {
     const defenseNoah = { ...noah, chargeSpeedPercent: speed };
@@ -2348,14 +2348,21 @@ function inferNoahChargeSpeeds(attackWindows = getTestAttackWindows()) {
     const intervalFrames = Number(timing.interval) || 0;
     const firstTurnFrame = timing.firstFrame - flightFrames;
     if (intervalFrames <= 0) return false;
-    return attackWindows.every((attackWindow) => {
-      const maxFrame = attackWindow.hitFrame + intervalFrames;
-      for (let turnFrame = firstTurnFrame; turnFrame <= maxFrame; turnFrame += intervalFrames) {
-        if (matchesDodgeWindow(attackWindow, turnFrame)) return true;
-      }
-      return false;
-    });
+    const maxFrame = attackWindow.hitFrame + intervalFrames;
+    for (let turnFrame = firstTurnFrame; turnFrame <= maxFrame; turnFrame += intervalFrames) {
+      if (matchesDodgeWindow(attackWindow, turnFrame)) return true;
+    }
+    return false;
   });
+}
+
+function inferNoahChargeSpeeds(attackWindows = getTestAttackWindows()) {
+  return attackWindows
+    .map((attackWindow) => ({
+      attackWindow,
+      values: getNoahChargeSpeedsForAttackWindow(attackWindow),
+    }))
+    .filter((entry) => entry.values.length > 0);
 }
 
 function getScarletReloadStarts(magazine, maxFrame) {
@@ -2371,14 +2378,21 @@ function getScarletReloadStarts(magazine, maxFrame) {
   return starts;
 }
 
-function inferScarletMagazines(attackWindows = getTestAttackWindows()) {
-  if (attackWindows.length === 0) return [];
-  const maxFrame = Math.max(...attackWindows.map((window) => window.hitFrame)) + 240;
+function getScarletMagazinesForAttackWindow(attackWindow) {
+  if (!attackWindow) return [];
+  const maxFrame = attackWindow.hitFrame + 240;
   return TEST_SCARLET_MAGAZINES.filter((magazine) =>
-    attackWindows.every((attackWindow) =>
-      getScarletReloadStarts(magazine, maxFrame).some((reloadStart) => matchesDodgeWindow(attackWindow, reloadStart)),
-    ),
+    getScarletReloadStarts(magazine, maxFrame).some((reloadStart) => matchesDodgeWindow(attackWindow, reloadStart)),
   );
+}
+
+function inferScarletMagazines(attackWindows = getTestAttackWindows()) {
+  return attackWindows
+    .map((attackWindow) => ({
+      attackWindow,
+      values: getScarletMagazinesForAttackWindow(attackWindow),
+    }))
+    .filter((entry) => entry.values.length > 0);
 }
 
 function getTestInferenceResults() {
@@ -2395,39 +2409,45 @@ function formatTestCandidateValues(values, suffix = "") {
   return groupNumberRanges(values).map((value) => `${value}${suffix}`).join(" / ");
 }
 
+function formatTestCandidateLines(entries = [], label, suffix = "") {
+  if (!entries.length) return ["无匹配"];
+  return entries.map((entry) => {
+    const positionText = `P${entry.attackWindow.positionIndex + 1}`;
+    const valueText = formatTestCandidateValues(entry.values, suffix);
+    return `${positionText}, ${label}${valueText}`;
+  });
+}
+
 function renderTestDefenseRow(inference = getTestInferenceResults()) {
   const row = document.createElement("section");
   row.className = "team-row test-defense-row";
   row.dataset.teamKey = "defense";
   row.setAttribute("aria-label", "空枪反推候选");
-  row.innerHTML = '<div class="team-slots-row test-candidates-row"></div>';
-  const slotsRow = row.querySelector(".team-slots-row");
+  row.innerHTML = '<div class="test-candidates-row"></div>';
+  const slotsRow = row.querySelector(".test-candidates-row");
   const candidates = [
     {
       character: getCharacterById(TEST_NOAH_ID),
-      label: "蓄速",
-      value: formatTestCandidateValues(inference.noahSpeeds, "%"),
+      lines: formatTestCandidateLines(inference.noahSpeeds, "蓄速", "%"),
       hasMatch: inference.noahSpeeds.length > 0,
     },
     {
       character: getCharacterById(TEST_SCARLET_ID),
-      label: "弹容",
-      value: formatTestCandidateValues(inference.scarletMagazines),
+      lines: formatTestCandidateLines(inference.scarletMagazines, "弹容"),
       hasMatch: inference.scarletMagazines.length > 0,
     },
   ];
 
   candidates.forEach((candidate) => {
     const slot = document.createElement("div");
-    slot.className = `team-slot test-candidate filled${getTeamSlotRarityClass(candidate.character)}${candidate.hasMatch ? " has-test-match" : ""}`;
+    slot.className = `test-candidate${candidate.hasMatch ? " has-test-match" : ""}`;
     slot.innerHTML = `
-      <div class="slot-remove" aria-label="${escapeHtml(candidate.character?.name || "")}">
+      <span class="test-candidate-avatar team-slot filled${getTeamSlotRarityClass(candidate.character)}" aria-label="${escapeHtml(candidate.character?.name || "")}">
         <span class="team-avatar">${candidate.character ? getAvatarMarkup(candidate.character) : ""}</span>
-        <span class="test-candidate-result">
-          <span>${escapeHtml(candidate.label)}</span>
-          <strong>${escapeHtml(candidate.value)}</strong>
-        </span>
-      </div>
+      </span>
+      <span class="test-candidate-result">
+        ${candidate.lines.map((line) => `<strong>${escapeHtml(line)}</strong>`).join("")}
+      </span>
     `;
     slotsRow.append(slot);
   });
