@@ -5795,19 +5795,7 @@ async function copyRichImageToClipboard(imageBlobOrPromise, plainText = "", altT
 async function copyCurrentArenaImage() {
   const isPaid = isPaidArenaModeActive();
   const title = isPaid ? `${getPaidArenaModeLabel()} 队伍信息` : "竞技场充能信息";
-  const exportBlock = createExportBlock(
-    title,
-    isPaid ? [els.teamSlots] : [els.chargeChart, els.teamSlots],
-  );
-  try {
-    return await elementToPngBlob(exportBlock);
-  } catch (error) {
-    if (!isTaintedCanvasError(error)) throw error;
-    console.warn("copy export fell back because canvas was tainted", error);
-    return isPaid ? textToPngBlob(title, getArenaCopyText()) : getChargeChartPngBlob();
-  } finally {
-    exportBlock.remove();
-  }
+  return isPaid ? textToPngBlob(title, getArenaCopyText()) : getChargeChartPngBlob();
 }
 
 function isTextEditingElement(element = document.activeElement) {
