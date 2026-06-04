@@ -3145,11 +3145,8 @@ function renderPaidArenaTeams() {
           }
           removePaidArenaCharacter(rowIndex, slotIndex);
         });
-        slot.querySelector(".slot-remove").addEventListener("contextmenu", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          copyArenaImageSummary();
-        });
+        slot.querySelector(".slot-remove").addEventListener("pointerdown", handleCopyContextPointerDown);
+        slot.querySelector(".slot-remove").addEventListener("contextmenu", suppressContextMenu);
         slot.querySelector(".slot-settings-toggle")?.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -3389,11 +3386,8 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           setActiveTeam(teamKey);
           removeCharacter(teamKey, index);
         });
-        slot.querySelector(".slot-remove").addEventListener("contextmenu", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          copyArenaImageSummary();
-        });
+        slot.querySelector(".slot-remove").addEventListener("pointerdown", handleCopyContextPointerDown);
+        slot.querySelector(".slot-remove").addEventListener("contextmenu", suppressContextMenu);
         const settingsToggle = slot.querySelector(".slot-settings-toggle");
         settingsToggle.addEventListener("click", (event) => {
           event.preventDefault();
@@ -4783,6 +4777,7 @@ function renderSummaryStrip(attackResult, defenseResult) {
 
   if (entries.length === 0) {
     els.summaryStrip.textContent = "队伍为空，选择角色后开始计算";
+    els.summaryStrip.onpointerdown = null;
     els.summaryStrip.oncontextmenu = null;
     return;
   }
@@ -4799,10 +4794,8 @@ function renderSummaryStrip(attackResult, defenseResult) {
     )
     .join("");
 
-  els.summaryStrip.oncontextmenu = (event) => {
-    event.preventDefault();
-    copyArenaImageSummary();
-  };
+  els.summaryStrip.onpointerdown = handleCopyContextPointerDown;
+  els.summaryStrip.oncontextmenu = suppressContextMenu;
 }
 
 function renderResults(battleResults = getBattleResultsSnapshot()) {
@@ -5729,24 +5722,28 @@ async function elementToPngBlob(element) {
   }
 }
 
-async function copyRichImageToClipboard(imageBlob, plainText = "", altText = "竞技场充能信息") {
+async function copyRichImageToClipboard(imageBlobOrPromise, plainText = "", altText = "竞技场充能信息") {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
     throw new Error("rich clipboard is not supported");
   }
-  const imageDataUrl = await blobToDataUrl(imageBlob);
-  const html = `
-    <div>
-      <img src="${imageDataUrl}" alt="${escapeHtml(altText)}" style="max-width:100%;height:auto;display:block;" />
-      ${
-        plainText
-          ? `<pre style="white-space:pre-wrap;margin:12px 0 0;font-family:Arial,'Microsoft YaHei',sans-serif;">${escapeHtml(plainText)}</pre>`
-          : ""
-      }
-    </div>
-  `;
+  const imageBlobPromise = Promise.resolve(imageBlobOrPromise);
+  const htmlBlobPromise = imageBlobPromise.then(async (imageBlob) => {
+    const imageDataUrl = await blobToDataUrl(imageBlob);
+    const html = `
+      <div>
+        <img src="${imageDataUrl}" alt="${escapeHtml(altText)}" style="max-width:100%;height:auto;display:block;" />
+        ${
+          plainText
+            ? `<pre style="white-space:pre-wrap;margin:12px 0 0;font-family:Arial,'Microsoft YaHei',sans-serif;">${escapeHtml(plainText)}</pre>`
+            : ""
+        }
+      </div>
+    `;
+    return new Blob([html], { type: "text/html" });
+  });
   await navigator.clipboard.write([
     new ClipboardItem({
-      "text/html": new Blob([html], { type: "text/html" }),
+      "text/html": htmlBlobPromise,
       "text/plain": new Blob([plainText], { type: "text/plain" }),
     }),
   ]);
@@ -5820,10 +5817,15 @@ async function copyArenaImageSummary() {
     return;
   }
   try {
-    const imageBlob = await copyCurrentArenaImage();
-    await copyRichImageToClipboard(imageBlob, text, isPaidArenaModeActive() ? `${getPaidArenaModeLabel()}队伍信息` : "竞技场充能信息");
+    const imageBlobPromise = copyCurrentArenaImage();
+    await copyRichImageToClipboard(
+      imageBlobPromise,
+      text,
+      isPaidArenaModeActive() ? `${getPaidArenaModeLabel()}队伍信息` : "竞技场充能信息",
+    );
     showToast(isPaidArenaModeActive() ? "已复制竞技场队伍图片" : "已复制时间轴和双方队伍图片");
-  } catch {
+  } catch (error) {
+    console.error("copy arena image failed", error);
     try {
       await copyTextToClipboard(text);
       showToast("图片复制失败，已复制文字信息");
@@ -5831,6 +5833,18 @@ async function copyArenaImageSummary() {
       showToast("复制失败，请检查浏览器剪贴板权限");
     }
   }
+}
+
+function handleCopyContextPointerDown(event) {
+  if (event.button !== 2) return;
+  event.preventDefault();
+  event.stopPropagation();
+  copyArenaImageSummary();
+}
+
+function suppressContextMenu(event) {
+  event.preventDefault();
+  event.stopPropagation();
 }
 
 function bindEvents() {
