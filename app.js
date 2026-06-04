@@ -9,6 +9,7 @@ const BURST_EPSILON = 1e-6;
 const STORAGE_KEY = "nikke-arena-charge-team-v2";
 const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const PAID_DEV_ACCESS_KEY = "nikke-paid-dev-access";
+const THEME_STORAGE_KEY = "nikke-arena-theme";
 const LOCAL_PAID_API_URL = "http://localhost:8787/api/paid/miss-inference";
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
 const WEAPON_LABELS = {
@@ -118,6 +119,18 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 ]);
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
+const CHANGELOG_ITEMS = [
+  "新增侧边栏、更新日志、使用说明入口与主题切换",
+  "保持冠军特殊竞技场模式",
+  "补充马斯特国服常用",
+  "补充尼罗牡丹国服常用",
+  "修正布丽德静默轨道头像",
+  "开放冠特竞技场功能",
+  "优化冠特复制提示文案",
+  "修正冠特数据来源方向",
+  "调整冠特充能结果描述",
+  "补充布丽德静默轨道常用角色",
+];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
 async function loadCharacterData() {
@@ -220,6 +233,13 @@ const els = {
   compactAvatarToggle: document.querySelector("#compactAvatarToggle"),
   stageFilterButtons: document.querySelectorAll("[data-stage-filter]"),
   searchInput: document.querySelector("#searchInput"),
+  sidebarMenuButton: document.querySelector("#sidebarMenuButton"),
+  appSidebar: document.querySelector("#appSidebar"),
+  appSidebarBackdrop: document.querySelector("#appSidebarBackdrop"),
+  sidebarCloseButton: document.querySelector("#sidebarCloseButton"),
+  changelogButton: document.querySelector("#changelogButton"),
+  sidebarHelpButton: document.querySelector("#sidebarHelpButton"),
+  themeToggleButton: document.querySelector("#themeToggleButton"),
   helpButton: document.querySelector("#helpButton"),
   toast: document.querySelector("#toast"),
   summaryStrip: document.querySelector("#summaryStrip"),
@@ -235,6 +255,7 @@ let suppressTeamSlotClick = false;
 let resizeRenderId = null;
 let openSlotSettings = null;
 let isHelpModalOpen = false;
+let isSidebarOpen = false;
 const localPaidInferenceState = {
   result: null,
   error: "",
@@ -2486,6 +2507,72 @@ function openHelpModal() {
   document.querySelector(".help-modal-backdrop")?.remove();
   const modal = createHelpModal();
   if (modal) document.body.append(modal);
+}
+
+function closeChangelogModal() {
+  document.querySelector(".changelog-modal-backdrop")?.remove();
+}
+
+function openChangelogModal() {
+  closeChangelogModal();
+  const backdrop = document.createElement("div");
+  backdrop.className = "help-modal-backdrop changelog-modal-backdrop";
+  backdrop.innerHTML = `
+    <section class="help-modal changelog-modal" role="dialog" aria-modal="true" aria-label="更新日志">
+      <div class="help-modal-head">
+        <div>
+          <span class="help-modal-kicker">Log</span>
+          <strong>更新日志</strong>
+        </div>
+        <button class="help-modal-close" type="button" aria-label="关闭更新日志">X</button>
+      </div>
+      <div class="help-modal-content">
+        <article class="help-section">
+          <h2>最近 10 条</h2>
+          <ul>
+            ${CHANGELOG_ITEMS.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+          </ul>
+        </article>
+      </div>
+    </section>
+  `;
+  const modal = backdrop.querySelector(".help-modal");
+  modal.addEventListener("click", (event) => event.stopPropagation());
+  backdrop.addEventListener("click", closeChangelogModal);
+  backdrop.querySelector(".help-modal-close").addEventListener("click", (event) => {
+    event.preventDefault();
+    closeChangelogModal();
+  });
+  document.body.append(backdrop);
+}
+
+function setSidebarOpen(open) {
+  isSidebarOpen = Boolean(open);
+  els.appSidebar?.classList.toggle("is-open", isSidebarOpen);
+  if (els.appSidebar) els.appSidebar.setAttribute("aria-hidden", isSidebarOpen ? "false" : "true");
+  if (els.appSidebarBackdrop) els.appSidebarBackdrop.hidden = !isSidebarOpen;
+}
+
+function normalizeTheme(theme) {
+  return theme === "light" ? "light" : "dark";
+}
+
+function applyTheme(theme) {
+  const nextTheme = normalizeTheme(theme);
+  document.documentElement.dataset.theme = nextTheme;
+  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  els.themeToggleButton?.querySelector(".theme-sun")?.classList.toggle("is-active", nextTheme === "light");
+  els.themeToggleButton?.querySelector(".theme-moon")?.classList.toggle("is-active", nextTheme === "dark");
+  els.themeToggleButton?.setAttribute("aria-label", nextTheme === "light" ? "切换为黑色主题" : "切换为白色主题");
+  els.themeToggleButton?.setAttribute("title", nextTheme === "light" ? "切换为黑色主题" : "切换为白色主题");
+}
+
+function initTheme() {
+  applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || "dark");
+}
+
+function toggleTheme() {
+  applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
 }
 
 function isWechatMiniProgramRuntime() {
@@ -6087,7 +6174,19 @@ function suppressContextMenu(event) {
 }
 
 function bindEvents() {
-  els.helpButton.addEventListener("click", openHelpModal);
+  els.helpButton?.addEventListener("click", openHelpModal);
+  els.sidebarMenuButton?.addEventListener("click", () => setSidebarOpen(true));
+  els.sidebarCloseButton?.addEventListener("click", () => setSidebarOpen(false));
+  els.appSidebarBackdrop?.addEventListener("click", () => setSidebarOpen(false));
+  els.changelogButton?.addEventListener("click", () => {
+    setSidebarOpen(false);
+    openChangelogModal();
+  });
+  els.sidebarHelpButton?.addEventListener("click", () => {
+    setSidebarOpen(false);
+    openHelpModal();
+  });
+  els.themeToggleButton?.addEventListener("click", toggleTheme);
   els.appVersion?.addEventListener("click", toggleLocalPaidDevAccess);
   els.appVersion?.addEventListener("keydown", (event) => {
     if (!isLocalDevRuntime() || !["Enter", " "].includes(event.key)) return;
@@ -6126,6 +6225,8 @@ function bindEvents() {
   window.addEventListener("resize", scheduleResponsiveRender);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && isHelpModalOpen) closeHelpModal();
+    if (event.key === "Escape") closeChangelogModal();
+    if (event.key === "Escape") setSidebarOpen(false);
     if (event.key === "Escape") closePaidFeatureModal();
   });
   els.commonToggle.addEventListener("change", (event) => {
@@ -6194,6 +6295,7 @@ function syncFilterControls() {
 }
 
 async function bootstrap() {
+  initTheme();
   await loadCharacterData();
   bindEvents();
   loadTeam();
