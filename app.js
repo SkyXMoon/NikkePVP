@@ -5573,6 +5573,199 @@ async function getChargeChartPngBlob() {
   }
 }
 
+function getCanvasRoundedRectPath(context, x, y, width, height, radius) {
+  const corner = Math.min(radius, width / 2, height / 2);
+  context.beginPath();
+  context.moveTo(x + corner, y);
+  context.lineTo(x + width - corner, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + corner);
+  context.lineTo(x + width, y + height - corner);
+  context.quadraticCurveTo(x + width, y + height, x + width - corner, y + height);
+  context.lineTo(x + corner, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - corner);
+  context.lineTo(x, y + corner);
+  context.quadraticCurveTo(x, y, x + corner, y);
+  context.closePath();
+}
+
+async function loadExportImage(src) {
+  if (!src) return null;
+  try {
+    const response = await fetch(new URL(src, window.location.href).href);
+    if (!response.ok) throw new Error(`asset request failed: ${response.status}`);
+    const dataUrl = await blobToDataUrl(await response.blob());
+    return await loadImageFromUrl(dataUrl);
+  } catch {
+    return null;
+  }
+}
+
+function getPaidArenaSlotBadgeText(character, chargeSpeed, dataTeamKey) {
+  if (!character) return "";
+  if (canShowFinishMarker(character) && sanitizeChargeSpeed(chargeSpeed) > 0) return `${sanitizeChargeSpeed(chargeSpeed)}%`;
+  const magazine = getDisplayMagazine(character, dataTeamKey);
+  return magazine ? String(magazine) : "";
+}
+
+function drawCanvasText(context, text, x, y, options = {}) {
+  context.save();
+  context.fillStyle = options.color || "#f2f5fa";
+  context.font = `${options.weight || 500} ${options.size || 18}px Arial, "Microsoft YaHei", sans-serif`;
+  context.textAlign = options.align || "left";
+  context.textBaseline = options.baseline || "middle";
+  context.fillText(String(text || ""), x, y);
+  context.restore();
+}
+
+function drawPaidArenaSlot(context, slot, x, y, size) {
+  const { character, universalCharge, image, isFinisher, isTauntTarget, badgeText } = slot;
+  const radius = 7;
+  context.save();
+  context.fillStyle = character ? "#111821" : "#15191f";
+  getCanvasRoundedRectPath(context, x, y, size, size, radius);
+  context.fill();
+  const rarityColor = character?.rarity === "SR" ? "#a65cff" : character ? "#f0c45c" : "#3a4655";
+  context.lineWidth = 3;
+  context.strokeStyle = rarityColor;
+  context.stroke();
+
+  if (image) {
+    context.save();
+    getCanvasRoundedRectPath(context, x + 4, y + 4, size - 8, size - 8, radius - 2);
+    context.clip();
+    const scale = Math.max((size - 8) / image.width, (size - 8) / image.height);
+    const drawWidth = image.width * scale;
+    const drawHeight = image.height * scale;
+    context.drawImage(image, x + 4 + (size - 8 - drawWidth) / 2, y + 4 + (size - 8 - drawHeight) / 2, drawWidth, drawHeight);
+    context.restore();
+  } else if (character) {
+    drawCanvasText(context, character.name.slice(0, 2), x + size / 2, y + size / 2, {
+      align: "center",
+      size: 20,
+      weight: 700,
+      color: "#dfe7f3",
+    });
+  } else {
+    drawCanvasText(context, `P${slot.index + 1}`, x + size / 2, y + size * 0.36, {
+      align: "center",
+      size: 18,
+      weight: 700,
+      color: "#7d8796",
+    });
+    if (universalCharge > 0) {
+      drawCanvasText(context, `充 ${formatNumber(universalCharge, 2)}`, x + size / 2, y + size * 0.68, {
+        align: "center",
+        size: 17,
+        weight: 700,
+        color: "#ff5f63",
+      });
+    }
+  }
+
+  if (character) {
+    if (isTauntTarget) {
+      context.fillStyle = "#ff5f63";
+      context.fillRect(x + 5, y + 5, 22, 22);
+      drawCanvasText(context, "嘲", x + 16, y + 16, { align: "center", size: 15, weight: 800, color: "#ffffff" });
+    }
+    if (isFinisher) {
+      context.fillStyle = "#ff4f5f";
+      context.fillRect(x + 5, y + size - 27, 22, 22);
+      drawCanvasText(context, "定", x + 16, y + size - 16, { align: "center", size: 15, weight: 800, color: "#ffffff" });
+    }
+    if (badgeText) {
+      const badgeWidth = Math.max(30, Math.min(44, String(badgeText).length * 8 + 14));
+      context.fillStyle = "rgba(0, 0, 0, 0.72)";
+      getCanvasRoundedRectPath(context, x + size - badgeWidth - 5, y + size - 25, badgeWidth, 20, 4);
+      context.fill();
+      drawCanvasText(context, badgeText, x + size - badgeWidth / 2 - 5, y + size - 15, {
+        align: "center",
+        size: 13,
+        weight: 800,
+        color: "#f2f5fa",
+      });
+    }
+  }
+  context.restore();
+}
+
+async function paidArenaToPngBlob() {
+  const mode = state.paidArenaMode;
+  const teams = getPaidArenaTeams(mode);
+  const universalRows = getPaidArenaUniversalCharges(mode);
+  const dataTeamKey = getPaidArenaDataTeamKey();
+  const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守数据" : "进攻数据";
+  const title = `${getPaidArenaModeLabel(mode)}（${dataSourceLabel}）`;
+  const width = 860;
+  const padding = 28;
+  const slotSize = 76;
+  const slotGap = 12;
+  const rowGap = 22;
+  const headerHeight = 56;
+  const resultHeight = 28;
+  const rowHeight = slotSize + resultHeight + 14;
+  const height = padding * 2 + headerHeight + teams.length * rowHeight + Math.max(0, teams.length - 1) * rowGap;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#0b0e14";
+  context.fillRect(0, 0, width, height);
+  drawCanvasText(context, title, padding, padding + 18, { size: 24, weight: 800, color: "#f0c45c" });
+
+  const imageCache = new Map();
+  const loadCharacterImage = async (character) => {
+    if (!character?.avatarUrl) return null;
+    if (!imageCache.has(character.avatarUrl)) imageCache.set(character.avatarUrl, loadExportImage(character.avatarUrl));
+    return imageCache.get(character.avatarUrl);
+  };
+
+  let y = padding + headerHeight;
+  for (const [rowIndex, team] of teams.entries()) {
+    const universalCharges = universalRows[rowIndex] || Array(TEAM_SIZE).fill(0);
+    const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
+    const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
+    const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
+    const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey)?.positionIndex ?? null;
+    const rowX = padding;
+    const rowWidth = width - padding * 2;
+
+    context.fillStyle = "#111821";
+    getCanvasRoundedRectPath(context, rowX, y - 10, rowWidth, rowHeight + 12, 8);
+    context.fill();
+    context.strokeStyle = "#263140";
+    context.lineWidth = 1;
+    context.stroke();
+    drawCanvasText(context, `第${rowIndex + 1}队`, rowX + 18, y + slotSize / 2, { size: 18, weight: 800, color: "#dfe7f3" });
+
+    const slotsStartX = rowX + 96;
+    for (let slotIndex = 0; slotIndex < TEAM_SIZE; slotIndex += 1) {
+      const character = team[slotIndex];
+      const chargeSpeed = chargeSpeeds[slotIndex];
+      const slot = {
+        index: slotIndex,
+        character,
+        universalCharge: sanitizeUniversalCharge(universalCharges[slotIndex]),
+        image: await loadCharacterImage(character),
+        isFinisher: finishingPositions.has(slotIndex) && canShowFinishMarker(character),
+        isTauntTarget: character && slotIndex === tauntTargetPositionIndex,
+        badgeText: getPaidArenaSlotBadgeText(character, chargeSpeed, dataTeamKey),
+      };
+      drawPaidArenaSlot(context, slot, slotsStartX + slotIndex * (slotSize + slotGap), y, slotSize);
+    }
+
+    const resultText = getPaidArenaResultText(team, universalCharges, chargeSpeeds, result);
+    const resultY = y + slotSize + 19;
+    context.fillStyle = "#17202b";
+    getCanvasRoundedRectPath(context, slotsStartX, resultY - 13, TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap, 26, 5);
+    context.fill();
+    drawCanvasText(context, resultText, slotsStartX + 12, resultY, { size: 16, weight: 700, color: "#f2f5fa" });
+    y += rowHeight + rowGap;
+  }
+
+  return canvasToPngBlob(canvas);
+}
+
 async function copyBattleResultsWithChart(text) {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
     throw new Error("rich clipboard is not supported");
@@ -5794,8 +5987,7 @@ async function copyRichImageToClipboard(imageBlobOrPromise, plainText = "", altT
 
 async function copyCurrentArenaImage() {
   const isPaid = isPaidArenaModeActive();
-  const title = isPaid ? `${getPaidArenaModeLabel()} 队伍信息` : "竞技场充能信息";
-  return isPaid ? textToPngBlob(title, getArenaCopyText()) : getChargeChartPngBlob();
+  return isPaid ? paidArenaToPngBlob() : getChargeChartPngBlob();
 }
 
 function isTextEditingElement(element = document.activeElement) {
