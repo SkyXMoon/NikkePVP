@@ -5638,6 +5638,8 @@ function absolutizeExportAssetUrls(root) {
 }
 
 async function inlineExportAssetUrls(root) {
+  const transparentImageDataUrl =
+    "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E";
   const inlineImage = async (element, value, applyValue) => {
     if (!value || value.startsWith("data:")) return;
     try {
@@ -5645,7 +5647,7 @@ async function inlineExportAssetUrls(root) {
       if (!response.ok) throw new Error(`asset request failed: ${response.status}`);
       applyValue(await blobToDataUrl(await response.blob()));
     } catch {
-      applyValue(new URL(value, window.location.href).href);
+      applyValue(transparentImageDataUrl);
     }
   };
   const tasks = [
@@ -5722,6 +5724,47 @@ async function elementToPngBlob(element) {
   }
 }
 
+async function textToPngBlob(title, text) {
+  const lines = [title, ...String(text || "").split(/\r?\n/)];
+  const width = 960;
+  const lineHeight = 30;
+  const padding = 28;
+  const height = Math.max(160, padding * 2 + lines.length * lineHeight);
+  const escapeSvgText = (value) =>
+    String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  const svgText = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <rect width="100%" height="100%" fill="#0b0e14"/>
+      ${lines
+        .map((line, index) => {
+          const isTitle = index === 0;
+          return `<text x="${padding}" y="${padding + (index + 1) * lineHeight}" fill="${isTitle ? "#f0c45c" : "#f2f5fa"}" font-size="${isTitle ? 22 : 18}" font-family="Arial, Microsoft YaHei, sans-serif">${escapeSvgText(line)}</text>`;
+        })
+        .join("")}
+    </svg>
+  `;
+  const url = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml;charset=utf-8" }));
+  try {
+    const image = await loadImageFromUrl(url);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0, width, height);
+    return await canvasToPngBlob(canvas);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function isTaintedCanvasError(error) {
+  return error?.name === "SecurityError" || /tainted canvases/i.test(String(error?.message || error));
+}
+
 async function copyRichImageToClipboard(imageBlobOrPromise, plainText = "", altText = "竞技场充能信息") {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
     throw new Error("rich clipboard is not supported");
@@ -5758,6 +5801,10 @@ async function copyCurrentArenaImage() {
   );
   try {
     return await elementToPngBlob(exportBlock);
+  } catch (error) {
+    if (!isTaintedCanvasError(error)) throw error;
+    console.warn("copy export fell back because canvas was tainted", error);
+    return isPaid ? textToPngBlob(title, getArenaCopyText()) : getChargeChartPngBlob();
   } finally {
     exportBlock.remove();
   }
