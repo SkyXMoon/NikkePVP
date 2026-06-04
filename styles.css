@@ -1616,19 +1616,20 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 2px;
   position: absolute;
   left: 50%;
-  bottom: 8px;
-  width: calc(100% - 10px);
-  min-height: 28px;
+  bottom: 1px;
+  z-index: 3;
+  width: auto;
+  min-height: 16px;
   transform: translateX(-50%);
   border: 0;
   border-radius: 0;
   padding: 0;
-  color: #ff4b58;
+  color: #dff7ff;
   background: transparent;
-  font-size: 20px;
+  font-size: 10px;
   font-weight: 900;
   box-sizing: border-box;
 }
@@ -1638,8 +1639,9 @@ input:focus {
   z-index: 2;
   display: grid;
   place-items: center;
-  width: auto;
-  height: auto;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 16px;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -1652,8 +1654,9 @@ input:focus {
 
 .universal-charge-field input {
   position: static;
-  width: min(52px, calc(100% - 34px));
-  min-height: 28px;
+  flex: 0 0 auto;
+  width: 30px;
+  min-height: 16px;
   border: 0;
   border-radius: 0;
   padding: 0;
@@ -2655,18 +2658,23 @@ summary {
   }
 
   .universal-charge-label {
-    width: auto;
-    height: auto;
+    width: 13px;
+    height: 15px;
     font-size: inherit;
   }
 
   .universal-charge-field {
-    bottom: 6px;
-    width: calc(100% - 8px);
-    min-height: 24px;
-    gap: 7px;
+    bottom: 1px;
+    width: auto;
+    min-height: 15px;
+    gap: 1px;
     padding: 0;
-    font-size: 16px;
+    font-size: 9px;
+  }
+
+  .universal-charge-field input {
+    width: 26px;
+    min-height: 15px;
   }
 
   .slot-settings-toggle {
