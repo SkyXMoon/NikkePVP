@@ -5334,8 +5334,6 @@ function loadTeam() {
       } else {
         saveCurrentLineupSlot();
       }
-      state.paidArenaMode = "normal";
-      state.paidArenaActiveRowIndex = Math.max(0, Number(saved.paidArenaActiveRowIndex) || 0);
       state.paidArenaDataTeamKey = normalizeTeamKey(saved.paidArenaDataTeamKey || "attack");
       state.paidArenaTeams = {
         c: normalizePaidArenaTeams(saved.paidArenaTeams?.c, "c"),
@@ -5349,6 +5347,12 @@ function loadTeam() {
         c: normalizePaidArenaChargeSpeeds(saved.paidArenaChargeSpeeds?.c, "c"),
         p: normalizePaidArenaChargeSpeeds(saved.paidArenaChargeSpeeds?.p, "p"),
       };
+      state.paidArenaMode = normalizePaidArenaMode(saved.paidArenaMode);
+      state.paidArenaActiveRowIndex = Math.max(
+        0,
+        Math.min(getPaidArenaTeams().length - 1, Number(saved.paidArenaActiveRowIndex) || 0),
+      );
+      if (isPaidArenaModeActive()) syncPaidArenaChargeSpeedsFromSavedData();
       state.allowMissedShots = typeof saved.allowMissedShots === "boolean" ? saved.allowMissedShots : true;
       state.battlePowerBase = sanitizeBattlePowerBase(saved.battlePowerBase);
       state.compactAvatarIcons = saved.compactAvatarIcons !== false;
