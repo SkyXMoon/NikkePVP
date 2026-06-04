@@ -5644,6 +5644,31 @@ function absolutizeExportAssetUrls(root) {
   });
 }
 
+async function inlineExportAssetUrls(root) {
+  const inlineImage = async (element, value, applyValue) => {
+    if (!value || value.startsWith("data:")) return;
+    try {
+      const response = await fetch(new URL(value, window.location.href).href);
+      if (!response.ok) throw new Error(`asset request failed: ${response.status}`);
+      applyValue(await blobToDataUrl(await response.blob()));
+    } catch {
+      applyValue(new URL(value, window.location.href).href);
+    }
+  };
+  const tasks = [
+    ...Array.from(root.querySelectorAll("img")).map((image) =>
+      inlineImage(image, image.getAttribute("src"), (value) => image.setAttribute("src", value)),
+    ),
+    ...Array.from(root.querySelectorAll("image")).map((image) =>
+      inlineImage(image, image.getAttribute("href") || image.getAttribute("xlink:href"), (value) => {
+        image.setAttribute("href", value);
+        image.setAttributeNS("http://www.w3.org/1999/xlink", "href", value);
+      }),
+    ),
+  ];
+  await Promise.all(tasks);
+}
+
 function createExportBlock(title, elements = []) {
   const block = document.createElement("div");
   block.className = "copy-image-export";
@@ -5674,6 +5699,7 @@ async function elementToPngBlob(element) {
   renderClone.style.left = "auto";
   renderClone.style.top = "auto";
   absolutizeExportAssetUrls(renderClone);
+  await inlineExportAssetUrls(renderClone);
   const html = new XMLSerializer().serializeToString(renderClone);
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
@@ -5703,11 +5729,27 @@ async function elementToPngBlob(element) {
   }
 }
 
-async function copyPngBlobToClipboard(imageBlob) {
+async function copyRichImageToClipboard(imageBlob, plainText = "", altText = "竞技场充能信息") {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
-    throw new Error("image clipboard is not supported");
+    throw new Error("rich clipboard is not supported");
   }
-  await navigator.clipboard.write([new ClipboardItem({ "image/png": imageBlob })]);
+  const imageDataUrl = await blobToDataUrl(imageBlob);
+  const html = `
+    <div>
+      <img src="${imageDataUrl}" alt="${escapeHtml(altText)}" style="max-width:100%;height:auto;display:block;" />
+      ${
+        plainText
+          ? `<pre style="white-space:pre-wrap;margin:12px 0 0;font-family:Arial,'Microsoft YaHei',sans-serif;">${escapeHtml(plainText)}</pre>`
+          : ""
+      }
+    </div>
+  `;
+  await navigator.clipboard.write([
+    new ClipboardItem({
+      "text/html": new Blob([html], { type: "text/html" }),
+      "text/plain": new Blob([plainText], { type: "text/plain" }),
+    }),
+  ]);
 }
 
 async function copyCurrentArenaImage() {
@@ -5718,8 +5760,7 @@ async function copyCurrentArenaImage() {
     isPaid ? [els.teamSlots] : [els.chargeChart, els.teamSlots],
   );
   try {
-    const blob = await elementToPngBlob(exportBlock);
-    await copyPngBlobToClipboard(blob);
+    return await elementToPngBlob(exportBlock);
   } finally {
     exportBlock.remove();
   }
@@ -5779,7 +5820,8 @@ async function copyArenaImageSummary() {
     return;
   }
   try {
-    await copyCurrentArenaImage();
+    const imageBlob = await copyCurrentArenaImage();
+    await copyRichImageToClipboard(imageBlob, text, isPaidArenaModeActive() ? `${getPaidArenaModeLabel()}队伍信息` : "竞技场充能信息");
     showToast(isPaidArenaModeActive() ? "已复制竞技场队伍图片" : "已复制时间轴和双方队伍图片");
   } catch {
     try {
