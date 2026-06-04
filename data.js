@@ -3119,7 +3119,7 @@ const CHARACTERS = [
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/36.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2024/10/5/646530.png",
-    "isCommon": false,
+    "isCommon": true,
     "weapon": "AR",
     "weaponCn": "步枪",
     "burstGen": 0.45,
@@ -3148,7 +3148,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 17.91,
