@@ -1555,13 +1555,14 @@ input:focus {
 
 .position {
   position: absolute;
-  left: 4px;
+  left: 50%;
   top: 4px;
   z-index: 2;
   display: grid;
   place-items: center;
   width: 28px;
   height: 24px;
+  transform: translateX(-50%);
   border-radius: 4px;
   color: var(--gold);
   background: rgba(7, 9, 13, 0.82);
@@ -1612,14 +1613,16 @@ input:focus {
 }
 
 .universal-charge-field {
-  display: grid;
-  place-items: center;
-  align-content: center;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
   position: relative;
   width: 100%;
   height: 100%;
   border: 1px dashed var(--line);
   border-radius: 5px;
+  padding: 0 4px 5px;
   color: var(--quiet);
   background: #0b0e14;
   font-size: 11px;
@@ -1628,14 +1631,12 @@ input:focus {
 }
 
 .universal-charge-label {
-  position: absolute;
-  right: 4px;
-  top: 4px;
+  position: static;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 24px;
+  width: 20px;
+  height: 18px;
   padding: 0;
   border: 1px solid rgba(77, 163, 255, 0.42);
   border-radius: 4px;
@@ -1647,11 +1648,8 @@ input:focus {
 }
 
 .universal-charge-field input {
-  position: absolute;
-  left: 50%;
-  bottom: 5px;
-  transform: translateX(-50%);
-  width: min(48px, 72%);
+  position: static;
+  width: min(44px, 66%);
   min-height: 18px;
   border: 1px solid rgba(77, 163, 255, 0.42);
   border-radius: 3px;
@@ -2645,18 +2643,17 @@ summary {
   }
 
   .position {
-    left: 1px;
+    left: 50%;
     top: 3px;
     width: 24px;
     height: 21px;
+    transform: translateX(-50%);
     font-size: 10px;
   }
 
   .universal-charge-label {
-    right: 1px;
-    top: 3px;
-    width: 24px;
-    height: 21px;
+    width: 18px;
+    height: 17px;
     font-size: 10px;
   }
 
