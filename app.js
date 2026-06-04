@@ -5700,10 +5700,13 @@ async function paidArenaToPngBlob() {
   const dataTeamKey = getPaidArenaDataTeamKey();
   const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守数据" : "进攻数据";
   const title = `${getPaidArenaModeLabel(mode)}（${dataSourceLabel}）`;
-  const width = 860;
   const padding = 28;
   const slotSize = 76;
   const slotGap = 12;
+  const teamLabelWidth = 96;
+  const teamSlotsWidth = TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap;
+  const rowInnerRightPadding = 24;
+  const width = padding * 2 + teamLabelWidth + teamSlotsWidth + rowInnerRightPadding;
   const rowGap = 22;
   const headerHeight = 56;
   const resultHeight = 28;
@@ -5742,7 +5745,7 @@ async function paidArenaToPngBlob() {
     context.stroke();
     drawCanvasText(context, `第${rowIndex + 1}队`, rowX + 18, y + slotSize / 2, { size: 18, weight: 800, color: "#dfe7f3" });
 
-    const slotsStartX = rowX + 96;
+    const slotsStartX = rowX + teamLabelWidth;
     for (let slotIndex = 0; slotIndex < TEAM_SIZE; slotIndex += 1) {
       const character = team[slotIndex];
       const chargeSpeed = chargeSpeeds[slotIndex];
@@ -5761,7 +5764,7 @@ async function paidArenaToPngBlob() {
     const resultText = getPaidArenaResultText(team, universalCharges, chargeSpeeds, result);
     const resultY = y + slotSize + 19;
     context.fillStyle = "#17202b";
-    getCanvasRoundedRectPath(context, slotsStartX, resultY - 13, TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap, 26, 5);
+    getCanvasRoundedRectPath(context, slotsStartX, resultY - 13, teamSlotsWidth, 26, 5);
     context.fill();
     drawCanvasText(context, resultText, slotsStartX + 12, resultY, { size: 16, weight: 700, color: "#f2f5fa" });
     y += rowHeight + rowGap;
