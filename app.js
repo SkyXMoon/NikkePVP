@@ -172,6 +172,10 @@ const state = {
     c: createEmptyPaidArenaTeams("c"),
     p: createEmptyPaidArenaTeams("p"),
   },
+  paidArenaUniversalCharges: {
+    c: createEmptyPaidArenaUniversalCharges("c"),
+    p: createEmptyPaidArenaUniversalCharges("p"),
+  },
   allowMissedShots: true,
   battlePowerBase: 0,
   testMode: false,
@@ -1386,11 +1390,13 @@ function simulateBurst(
   opponentTurnDodgeTimeline = [],
   stunWindows = [],
   opponentTauntTarget = null,
+  universalChargeOverride = null,
 ) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
     .filter((member) => member.character);
-  const universalMembers = getUniversalChargeState(teamKey)
+  const universalCharges = Array.isArray(universalChargeOverride) ? universalChargeOverride : getUniversalChargeState(teamKey);
+  const universalMembers = universalCharges
     .map((charge, positionIndex) => ({
       positionIndex,
       charge: sanitizeUniversalCharge(charge),
@@ -2451,6 +2457,11 @@ function createEmptyPaidArenaTeams(mode) {
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(null));
 }
 
+function createEmptyPaidArenaUniversalCharges(mode) {
+  const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
+  return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(0));
+}
+
 function normalizePaidArenaMode(mode) {
   return mode === "c" || mode === "p" ? mode : "normal";
 }
@@ -2469,18 +2480,43 @@ function getPaidArenaTeams(mode = state.paidArenaMode) {
   return state.paidArenaTeams[normalizedMode];
 }
 
+function getPaidArenaUniversalCharges(mode = state.paidArenaMode) {
+  const normalizedMode = normalizePaidArenaMode(mode);
+  if (normalizedMode === "normal") return [];
+  if (!Array.isArray(state.paidArenaUniversalCharges?.[normalizedMode])) {
+    state.paidArenaUniversalCharges[normalizedMode] = createEmptyPaidArenaUniversalCharges(normalizedMode);
+  }
+  state.paidArenaUniversalCharges[normalizedMode] = normalizePaidArenaUniversalCharges(
+    state.paidArenaUniversalCharges[normalizedMode],
+    normalizedMode,
+  );
+  return state.paidArenaUniversalCharges[normalizedMode];
+}
+
 function normalizePaidArenaTeams(savedTeams = [], mode = "c") {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, (_, rowIndex) =>
     Array.from({ length: TEAM_SIZE }, (_, slotIndex) => {
       const savedValue = savedTeams?.[rowIndex]?.[slotIndex] ?? null;
-      return typeof savedValue === "string" ? getCharacterById(savedValue) : savedValue?.id ? getCharacterById(savedValue.id) : null;
+      if (typeof savedValue === "string" || typeof savedValue === "number") return getCharacterById(savedValue);
+      return savedValue?.id ? getCharacterById(savedValue.id) : null;
     }),
+  );
+}
+
+function normalizePaidArenaUniversalCharges(savedCharges = [], mode = "c") {
+  const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
+  return Array.from({ length: teamCount }, (_, rowIndex) =>
+    Array.from({ length: TEAM_SIZE }, (_, slotIndex) => sanitizeUniversalCharge(savedCharges?.[rowIndex]?.[slotIndex])),
   );
 }
 
 function serializePaidArenaTeams(mode) {
   return getPaidArenaTeams(mode).map((team) => team.map((character) => character?.id || null));
+}
+
+function serializePaidArenaUniversalCharges(mode) {
+  return getPaidArenaUniversalCharges(mode).map((teamCharges) => [...teamCharges]);
 }
 
 function getPaidArenaPickedIds(mode = state.paidArenaMode) {
@@ -2732,17 +2768,27 @@ function syncPaidFeatureButtons() {
   }
 }
 
+function getPaidArenaResultText(team, universalCharges, result = null) {
+  const rowResult = result || simulateBurst(team, "attack", [], [], [], [], null, universalCharges);
+  if (!rowResult) return "未配置";
+  if (rowResult.error) return rowResult.error;
+  return `${getStandardChargeBand(rowResult.fullFrame)}（${rowResult.fullFrame}F）`;
+}
+
 function renderPaidArenaTeams() {
   const fragment = document.createDocumentFragment();
   const teams = getPaidArenaTeams();
+  const universalChargeRows = getPaidArenaUniversalCharges();
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
 
   teams.forEach((team, rowIndex) => {
+    const universalCharges = universalChargeRows[rowIndex] || Array(TEAM_SIZE).fill(0);
+    const result = simulateBurst(team, "attack", [], [], [], [], null, universalCharges);
     const row = document.createElement("section");
     row.className = `team-row paid-arena-row${state.paidArenaActiveRowIndex === rowIndex ? " is-active" : ""}`;
     row.dataset.paidArenaRowIndex = String(rowIndex);
     row.setAttribute("aria-label", `${state.paidArenaMode.toUpperCase()}${rowIndex + 1}`);
-    row.innerHTML = '<div class="team-slots-row"></div>';
+    row.innerHTML = '<div class="team-slots-row"></div><div class="paid-arena-result-bar"></div>';
     row.addEventListener("click", () => {
       state.paidArenaActiveRowIndex = rowIndex;
       saveTeam();
@@ -2751,8 +2797,9 @@ function renderPaidArenaTeams() {
 
     const slotsRow = row.querySelector(".team-slots-row");
     team.forEach((character, slotIndex) => {
+      const universalChargeValue = sanitizeUniversalCharge(universalCharges[slotIndex]);
       const slot = document.createElement("div");
-      slot.className = `team-slot paid-arena-slot${character ? " filled" : ""}${getTeamSlotRarityClass(character)}`;
+      slot.className = `team-slot paid-arena-slot${character ? " filled" : ""}${!character && universalChargeValue > 0 ? " has-universal" : ""}${getTeamSlotRarityClass(character)}`;
       slot.dataset.paidArenaRowIndex = String(rowIndex);
       slot.dataset.slotIndex = String(slotIndex);
       slot.innerHTML = character
@@ -2764,6 +2811,10 @@ function renderPaidArenaTeams() {
         : `
           <div class="slot-empty">
             <span class="position">P${slotIndex + 1}</span>
+            <label class="universal-charge-field" aria-label="P${slotIndex + 1}万能充能值">
+              <span class="universal-charge-label">充</span>
+              <input type="text" inputmode="decimal" value="${universalChargeValue || ""}" placeholder="0" data-paid-arena-universal-index="${slotIndex}" />
+            </label>
           </div>
         `;
 
@@ -2779,9 +2830,24 @@ function renderPaidArenaTeams() {
           event.stopPropagation();
           removePaidArenaCharacter(rowIndex, slotIndex);
         });
+      } else {
+        const universalInput = slot.querySelector("[data-paid-arena-universal-index]");
+        universalInput.addEventListener("click", (event) => event.stopPropagation());
+        universalInput.addEventListener("focus", (event) => event.target.select());
+        universalInput.addEventListener("input", (event) => {
+          event.stopPropagation();
+          state.paidArenaActiveRowIndex = rowIndex;
+          universalCharges[slotIndex] = sanitizeUniversalCharge(event.target.value);
+          slot.classList.toggle("has-universal", universalCharges[slotIndex] > 0);
+          resultBar.textContent = getPaidArenaResultText(team, universalCharges);
+          saveTeam();
+        });
       }
       slotsRow.append(slot);
     });
+
+    const resultBar = row.querySelector(".paid-arena-result-bar");
+    resultBar.textContent = getPaidArenaResultText(team, universalCharges, result);
 
     fragment.append(row);
   });
@@ -4522,21 +4588,25 @@ function addPaidArenaCharacter(character) {
   if (!teams.length) return;
   const rowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
   const team = teams[rowIndex];
+  const universalCharges = getPaidArenaUniversalCharges()[rowIndex] || Array(TEAM_SIZE).fill(0);
   const emptyIndex = team.findIndex((member) => !member);
   if (emptyIndex === -1) {
     showToast(`${state.paidArenaMode.toUpperCase()}${rowIndex + 1}已满，请先移除一个槽位。`);
     return;
   }
   team[emptyIndex] = character;
+  universalCharges[emptyIndex] = 0;
   saveTeam();
   render();
 }
 
 function removePaidArenaCharacter(rowIndex, slotIndex) {
   const teams = getPaidArenaTeams();
+  const universalCharges = getPaidArenaUniversalCharges();
   const team = teams[rowIndex];
   if (!team || slotIndex < 0 || slotIndex >= TEAM_SIZE) return;
   team[slotIndex] = null;
+  if (universalCharges[rowIndex]) universalCharges[rowIndex][slotIndex] = 0;
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(rowIndex) || 0));
   saveTeam();
   render();
@@ -4674,6 +4744,7 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
 function clearTeam() {
   if (isPaidArenaModeActive()) {
     state.paidArenaTeams[state.paidArenaMode] = createEmptyPaidArenaTeams(state.paidArenaMode);
+    state.paidArenaUniversalCharges[state.paidArenaMode] = createEmptyPaidArenaUniversalCharges(state.paidArenaMode);
     state.paidArenaActiveRowIndex = 0;
     saveTeam();
     render();
@@ -4804,6 +4875,10 @@ function saveTeam() {
         c: serializePaidArenaTeams("c"),
         p: serializePaidArenaTeams("p"),
       },
+      paidArenaUniversalCharges: {
+        c: serializePaidArenaUniversalCharges("c"),
+        p: serializePaidArenaUniversalCharges("p"),
+      },
       jackalLinks: state.jackalLinks,
       allowMissedShots: state.allowMissedShots,
       battlePowerBase: state.battlePowerBase,
@@ -4865,13 +4940,16 @@ function loadTeam() {
       } else {
         saveCurrentLineupSlot();
       }
-      state.paidArenaMode = normalizePaidArenaMode(saved.paidArenaMode);
+      state.paidArenaMode = "normal";
       state.paidArenaActiveRowIndex = Math.max(0, Number(saved.paidArenaActiveRowIndex) || 0);
       state.paidArenaTeams = {
         c: normalizePaidArenaTeams(saved.paidArenaTeams?.c, "c"),
         p: normalizePaidArenaTeams(saved.paidArenaTeams?.p, "p"),
       };
-      if (isPaidArenaModeActive() && !hasLocalPaidDevAccess()) state.paidArenaMode = "normal";
+      state.paidArenaUniversalCharges = {
+        c: normalizePaidArenaUniversalCharges(saved.paidArenaUniversalCharges?.c, "c"),
+        p: normalizePaidArenaUniversalCharges(saved.paidArenaUniversalCharges?.p, "p"),
+      };
       state.allowMissedShots = typeof saved.allowMissedShots === "boolean" ? saved.allowMissedShots : true;
       state.battlePowerBase = sanitizeBattlePowerBase(saved.battlePowerBase);
       state.compactAvatarIcons = saved.compactAvatarIcons !== false;
@@ -4918,6 +4996,10 @@ function loadTeam() {
     state.paidArenaTeams = {
       c: createEmptyPaidArenaTeams("c"),
       p: createEmptyPaidArenaTeams("p"),
+    };
+    state.paidArenaUniversalCharges = {
+      c: createEmptyPaidArenaUniversalCharges("c"),
+      p: createEmptyPaidArenaUniversalCharges("p"),
     };
     state.jackalLinks = {
       defense: { enabled: false, ownerId: null, targetIds: [] },
