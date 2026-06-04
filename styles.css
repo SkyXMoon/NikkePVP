@@ -2430,6 +2430,32 @@ input:focus {
   cursor: copy;
 }
 
+.copy-image-export {
+  box-sizing: border-box;
+  border: 1px solid rgba(242, 245, 250, 0.12);
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--text);
+  background: #0b0e14;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+}
+
+.copy-image-title {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.copy-image-section {
+  margin-top: 8px;
+}
+
+.copy-image-section:first-of-type {
+  margin-top: 0;
+}
+
 .sub-metrics {
   display: grid;
   grid-template-columns: 1fr 1fr;

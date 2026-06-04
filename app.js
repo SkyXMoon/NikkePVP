@@ -3104,6 +3104,11 @@ function renderPaidArenaTeams() {
           }
           removePaidArenaCharacter(rowIndex, slotIndex);
         });
+        slot.querySelector(".slot-remove").addEventListener("contextmenu", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          copyArenaImageSummary();
+        });
         slot.querySelector(".slot-settings-toggle")?.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -3346,7 +3351,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
         slot.querySelector(".slot-remove").addEventListener("contextmenu", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          copyBattleResultsSummary();
+          copyArenaImageSummary();
         });
         const settingsToggle = slot.querySelector(".slot-settings-toggle");
         settingsToggle.addEventListener("click", (event) => {
@@ -4755,7 +4760,7 @@ function renderSummaryStrip(attackResult, defenseResult) {
 
   els.summaryStrip.oncontextmenu = (event) => {
     event.preventDefault();
-    copyBattleResultsSummary();
+    copyArenaImageSummary();
   };
 }
 
@@ -5556,6 +5561,114 @@ async function copyBattleResultsWithChart(text) {
   ]);
 }
 
+function copyFormValuesForExport(root) {
+  root.querySelectorAll("input").forEach((input) => {
+    if (input.type === "checkbox" || input.type === "radio") {
+      if (input.checked) {
+        input.setAttribute("checked", "");
+      } else {
+        input.removeAttribute("checked");
+      }
+      return;
+    }
+    input.setAttribute("value", input.value || "");
+  });
+}
+
+function getExportStyles() {
+  return Array.from(document.styleSheets)
+    .map((sheet) => {
+      try {
+        return Array.from(sheet.cssRules || []).map((rule) => rule.cssText).join("\n");
+      } catch {
+        return "";
+      }
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+function createExportBlock(title, elements = []) {
+  const block = document.createElement("div");
+  block.className = "copy-image-export";
+  block.style.position = "fixed";
+  block.style.left = "-10000px";
+  block.style.top = "0";
+  block.style.width = `${Math.max(720, Math.ceil(Math.max(...elements.map((element) => element?.scrollWidth || element?.getBoundingClientRect?.().width || 0), 0)))}px`;
+  block.innerHTML = `<div class="copy-image-title">${escapeHtml(title)}</div>`;
+  elements.filter(Boolean).forEach((element) => {
+    const clone = element.cloneNode(true);
+    clone.querySelectorAll(".chart-hover-tooltip, .chart-hover-guide-x, .chart-hover-guide-y, .slot-settings-backdrop").forEach((node) => node.remove());
+    clone.classList.add("copy-image-section");
+    clone.style.width = "100%";
+    copyFormValuesForExport(clone);
+    block.append(clone);
+  });
+  document.body.append(block);
+  return block;
+}
+
+async function elementToPngBlob(element) {
+  const rect = element.getBoundingClientRect();
+  const width = Math.max(1, Math.ceil(rect.width));
+  const height = Math.max(1, Math.ceil(rect.height));
+  const renderClone = element.cloneNode(true);
+  renderClone.style.position = "static";
+  renderClone.style.left = "auto";
+  renderClone.style.top = "auto";
+  const html = new XMLSerializer().serializeToString(renderClone);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <foreignObject width="100%" height="100%">
+        <div xmlns="http://www.w3.org/1999/xhtml">
+          <style>${getExportStyles()}</style>
+          ${html}
+        </div>
+      </foreignObject>
+    </svg>
+  `;
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+  try {
+    const image = await loadImageFromUrl(url);
+    const scale = Math.min(2, window.devicePixelRatio || 1);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(width * scale);
+    canvas.height = Math.ceil(height * scale);
+    const context = canvas.getContext("2d");
+    context.scale(scale, scale);
+    context.fillStyle = "#0b0e14";
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+    return await canvasToPngBlob(canvas);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function copyPngBlobToClipboard(imageBlob, plainText = "") {
+  if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+    throw new Error("image clipboard is not supported");
+  }
+  const payload = { "image/png": imageBlob };
+  if (plainText) payload["text/plain"] = new Blob([plainText], { type: "text/plain" });
+  await navigator.clipboard.write([new ClipboardItem(payload)]);
+}
+
+async function copyCurrentArenaImage() {
+  const isPaid = isPaidArenaModeActive();
+  const title = isPaid ? `${getPaidArenaModeLabel()} 队伍信息` : "竞技场充能信息";
+  const exportBlock = createExportBlock(
+    title,
+    isPaid ? [els.teamSlots] : [els.chargeChart, els.teamSlots],
+  );
+  try {
+    const blob = await elementToPngBlob(exportBlock);
+    await copyPngBlobToClipboard(blob, getBattleResultsCopyText());
+  } finally {
+    exportBlock.remove();
+  }
+}
+
 function isTextEditingElement(element = document.activeElement) {
   if (!element) return false;
   const tagName = element.tagName?.toLowerCase();
@@ -5603,6 +5716,25 @@ async function copyBattleResultsSummary() {
   }
 }
 
+async function copyArenaImageSummary() {
+  const text = getBattleResultsCopyText();
+  if (!text && !isPaidArenaModeActive()) {
+    showToast("队伍为空，无法复制结果");
+    return;
+  }
+  try {
+    await copyCurrentArenaImage();
+    showToast(isPaidArenaModeActive() ? "已复制竞技场队伍图片" : "已复制时间轴和双方队伍图片");
+  } catch {
+    try {
+      await copyTextToClipboard(text);
+      showToast("图片复制失败，已复制文字信息");
+    } catch {
+      showToast("复制失败，请检查浏览器剪贴板权限");
+    }
+  }
+}
+
 function bindEvents() {
   els.helpButton.addEventListener("click", openHelpModal);
   els.appVersion?.addEventListener("click", toggleLocalPaidDevAccess);
@@ -5615,7 +5747,7 @@ function bindEvents() {
   els.paidCModeButton?.addEventListener("click", () => openPaidArenaFeature("c"));
   els.paidPModeButton?.addEventListener("click", () => openPaidArenaFeature("p"));
   els.clearTeamButton.addEventListener("click", clearTeam);
-  els.copyTeamButton.addEventListener("click", copyBattleResultsSummary);
+  els.copyTeamButton.addEventListener("click", copyArenaImageSummary);
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
   els.allowMissedShotsToggle.addEventListener("change", (event) => {
     state.allowMissedShots = event.target.checked;
