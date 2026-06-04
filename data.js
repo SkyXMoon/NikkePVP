@@ -13291,7 +13291,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 8.73,
