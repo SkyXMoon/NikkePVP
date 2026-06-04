@@ -2139,8 +2139,9 @@ function getSlotSettingsContext() {
     const rowIndex = Number(openSlotSettings.rowIndex);
     const index = Number(openSlotSettings.index);
     const teams = getPaidArenaTeams(mode);
-    const chargeSpeeds = getPaidArenaChargeSpeeds(mode)[rowIndex];
-    const character = teams[rowIndex]?.[index] || null;
+    const team = teams[rowIndex];
+    const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, getPaidArenaDataTeamKey());
+    const character = team?.[index] || null;
     if (!character || !chargeSpeeds) return null;
     return {
       character,
@@ -2604,17 +2605,20 @@ function getPaidArenaDataTeamKey() {
   return normalizeTeamKey(state.paidArenaDataTeamKey);
 }
 
+function getPaidArenaTeamChargeSpeeds(team, dataTeamKey = getPaidArenaDataTeamKey()) {
+  return Array.from({ length: TEAM_SIZE }, (_, slotIndex) => {
+    const character = team?.[slotIndex];
+    return character ? getSavedCharacterChargeSpeed(character, dataTeamKey) : 0;
+  });
+}
+
 function syncPaidArenaChargeSpeedsFromSavedData(mode = state.paidArenaMode) {
   const normalizedMode = normalizePaidArenaMode(mode);
   if (normalizedMode === "normal") return;
   const dataTeamKey = getPaidArenaDataTeamKey();
   const teams = getPaidArenaTeams(normalizedMode);
-  const chargeSpeedRows = getPaidArenaChargeSpeeds(normalizedMode);
   teams.forEach((team, rowIndex) => {
-    chargeSpeedRows[rowIndex] = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => {
-      const character = team[slotIndex];
-      return character ? getSavedCharacterChargeSpeed(character, dataTeamKey) : 0;
-    });
+    getPaidArenaChargeSpeeds(normalizedMode)[rowIndex] = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
   });
 }
 
@@ -2932,14 +2936,13 @@ function renderPaidArenaTeams() {
   const fragment = document.createDocumentFragment();
   const teams = getPaidArenaTeams();
   const universalChargeRows = getPaidArenaUniversalCharges();
-  const chargeSpeedRows = getPaidArenaChargeSpeeds();
   const dataTeamKey = getPaidArenaDataTeamKey();
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
   fragment.append(createPaidArenaDataSourceBar());
 
   teams.forEach((team, rowIndex) => {
     const universalCharges = universalChargeRows[rowIndex] || Array(TEAM_SIZE).fill(0);
-    const chargeSpeeds = chargeSpeedRows[rowIndex] || Array(TEAM_SIZE).fill(0);
+    const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
     const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
     const row = document.createElement("section");
     row.className = `team-row paid-arena-row${state.paidArenaActiveRowIndex === rowIndex ? " is-active" : ""}`;
