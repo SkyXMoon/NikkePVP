@@ -229,6 +229,7 @@ const els = {
 
 let draggedTeamIndex = null;
 let draggedTeamKey = null;
+let draggedPaidArenaRowIndex = null;
 let pointerTeamDrag = null;
 let suppressTeamSlotClick = false;
 let resizeRenderId = null;
@@ -1778,7 +1779,10 @@ function updatePointerTeamDragTarget(clientX, clientY) {
 
   if (
     !targetSlot ||
-    (targetSlot.dataset.teamKey === pointerTeamDrag.teamKey && Number(targetSlot.dataset.slotIndex) === pointerTeamDrag.index)
+    (pointerTeamDrag.paidArena
+      ? Number(targetSlot.dataset.paidArenaRowIndex) === pointerTeamDrag.rowIndex &&
+        Number(targetSlot.dataset.slotIndex) === pointerTeamDrag.index
+      : targetSlot.dataset.teamKey === pointerTeamDrag.teamKey && Number(targetSlot.dataset.slotIndex) === pointerTeamDrag.index)
   ) {
     pointerTeamDrag.target = null;
     return;
@@ -1794,16 +1798,19 @@ function startPointerTeamDrag(event, slot, teamKey, index) {
   pointerTeamDrag.slot = slot;
   draggedTeamIndex = index;
   draggedTeamKey = teamKey;
+  draggedPaidArenaRowIndex = pointerTeamDrag.rowIndex ?? null;
   slot.classList.add("is-dragging");
   updatePointerTeamDragTarget(event.clientX, event.clientY);
 }
 
-function handleTeamSlotPointerDown(event, slot, character, teamKey, index) {
+function handleTeamSlotPointerDown(event, slot, character, teamKey, index, options = {}) {
   if (!character || event.pointerType === "mouse" || isTeamSlotDragControl(event.target)) return;
   pointerTeamDrag = {
     pointerId: event.pointerId,
     teamKey,
     index,
+    paidArena: Boolean(options.paidArena),
+    rowIndex: Number.isInteger(options.rowIndex) ? options.rowIndex : null,
     slot,
     startX: event.clientX,
     startY: event.clientY,
@@ -1832,6 +1839,7 @@ function finishPointerTeamDrag(event) {
   clearPointerTeamDragClasses();
   draggedTeamIndex = null;
   draggedTeamKey = null;
+  draggedPaidArenaRowIndex = null;
 
   if (!drag.active) return;
   suppressTeamSlotClick = true;
@@ -1839,7 +1847,11 @@ function finishPointerTeamDrag(event) {
     suppressTeamSlotClick = false;
   }, 0);
   if (!drag.target) return;
-  moveTeamSlot(drag.teamKey, drag.index, drag.target.dataset.teamKey, Number(drag.target.dataset.slotIndex));
+  if (drag.paidArena) {
+    movePaidArenaSlot(drag.rowIndex, drag.index, Number(drag.target.dataset.paidArenaRowIndex), Number(drag.target.dataset.slotIndex));
+  } else {
+    moveTeamSlot(drag.teamKey, drag.index, drag.target.dataset.teamKey, Number(drag.target.dataset.slotIndex));
+  }
 }
 
 function getWeaponIcon(character) {
@@ -2949,6 +2961,8 @@ function renderPaidArenaTeams() {
     const universalCharges = universalChargeRows[rowIndex] || Array(TEAM_SIZE).fill(0);
     const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
     const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
+    const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
+    const tauntTargetPositionIndex = getTauntTargetState(team, "attack")?.positionIndex ?? null;
     const row = document.createElement("section");
     row.className = `team-row paid-arena-row${state.paidArenaActiveRowIndex === rowIndex ? " is-active" : ""}`;
     row.dataset.paidArenaRowIndex = String(rowIndex);
@@ -2969,6 +2983,8 @@ function renderPaidArenaTeams() {
         openSlotSettings?.paidArenaMode === state.paidArenaMode &&
         Number(openSlotSettings.rowIndex) === rowIndex &&
         Number(openSlotSettings.index) === slotIndex;
+      const isFinisher = finishingPositions.has(slotIndex) && canShowFinishMarker(character);
+      const isTauntTarget = character && slotIndex === tauntTargetPositionIndex;
       const displayMagazine = character ? getDisplayMagazine(character, dataTeamKey) : null;
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
@@ -2978,9 +2994,10 @@ function renderPaidArenaTeams() {
             : "";
       const hasQuantumCube = character && getSavedCharacterQuantumCube(character, dataTeamKey);
       const slot = document.createElement("div");
-      slot.className = `team-slot paid-arena-slot${character ? " filled" : ""}${!character && universalChargeValue > 0 ? " has-universal" : ""}${getTeamSlotRarityClass(character)}`;
+      slot.className = `team-slot paid-arena-slot${character ? " filled" : ""}${!character && universalChargeValue > 0 ? " has-universal" : ""}${getTeamSlotRarityClass(character)}${isFinisher ? " is-finisher" : ""}`;
       slot.dataset.paidArenaRowIndex = String(rowIndex);
       slot.dataset.slotIndex = String(slotIndex);
+      slot.draggable = Boolean(character);
       slot.innerHTML = character
         ? `
           <button class="slot-remove" type="button" aria-label="移除 ${escapeHtml(character.name)}">
@@ -3003,6 +3020,8 @@ function renderPaidArenaTeams() {
         copyLayer.className = "slot-copy";
         copyLayer.setAttribute("aria-hidden", "true");
         copyLayer.innerHTML = `
+          ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
+          ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
           ${hasQuantumCube ? '<span class="slot-cube-badge"><img src="assets/icons/ui/cubes/quantum-24x24.webp" alt="" /></span>' : ""}
           ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
         `;
@@ -3019,14 +3038,70 @@ function renderPaidArenaTeams() {
 
       slot.addEventListener("click", (event) => {
         event.stopPropagation();
+        if (suppressTeamSlotClick) return;
         state.paidArenaActiveRowIndex = rowIndex;
         saveTeam();
         render();
       });
 
+      slot.addEventListener("dragstart", (event) => {
+        if (!character || isTeamSlotDragControl(event.target)) {
+          event.preventDefault();
+          return;
+        }
+        draggedTeamIndex = slotIndex;
+        draggedTeamKey = "paidArena";
+        draggedPaidArenaRowIndex = rowIndex;
+        slot.classList.add("is-dragging");
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", `paidArena:${rowIndex}:${slotIndex}`);
+        setTeamSlotDragImage(event, slot);
+      });
+
+      slot.addEventListener("dragend", () => {
+        draggedTeamIndex = null;
+        draggedTeamKey = null;
+        draggedPaidArenaRowIndex = null;
+        els.teamSlots.querySelectorAll(".team-slot").forEach((teamSlot) => {
+          teamSlot.classList.remove("is-dragging", "is-drop-target");
+        });
+      });
+
+      slot.addEventListener("dragover", (event) => {
+        if (draggedTeamIndex === null) return;
+        if (draggedTeamKey === "paidArena" && draggedPaidArenaRowIndex === rowIndex && draggedTeamIndex === slotIndex) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        slot.classList.add("is-drop-target");
+      });
+
+      slot.addEventListener("dragleave", () => {
+        slot.classList.remove("is-drop-target");
+      });
+
+      slot.addEventListener("drop", (event) => {
+        event.preventDefault();
+        slot.classList.remove("is-drop-target");
+        const [, sourceRowText, sourceIndexText] = String(
+          event.dataTransfer.getData("text/plain") || `paidArena:${draggedPaidArenaRowIndex}:${draggedTeamIndex}`,
+        ).split(":");
+        movePaidArenaSlot(Number(sourceRowText), Number(sourceIndexText), rowIndex, slotIndex);
+      });
+
+      slot.addEventListener("pointerdown", (event) =>
+        handleTeamSlotPointerDown(event, slot, character, "paidArena", slotIndex, { paidArena: true, rowIndex }),
+      );
+      slot.addEventListener("pointermove", handleTeamSlotPointerMove);
+      slot.addEventListener("pointerup", finishPointerTeamDrag);
+      slot.addEventListener("pointercancel", finishPointerTeamDrag);
+
       if (character) {
         slot.querySelector(".slot-remove").addEventListener("click", (event) => {
           event.stopPropagation();
+          if (suppressTeamSlotClick) {
+            event.preventDefault();
+            return;
+          }
           removePaidArenaCharacter(rowIndex, slotIndex);
         });
         slot.querySelector(".slot-settings-toggle")?.addEventListener("click", (event) => {
@@ -3042,6 +3117,11 @@ function renderPaidArenaTeams() {
               };
           saveTeam();
           render();
+        });
+        slot.querySelector(".slot-settings-toggle")?.addEventListener("pointerdown", (event) => event.stopPropagation());
+        slot.querySelector(".slot-settings-toggle")?.addEventListener("dragstart", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
         });
       } else {
         const universalInput = slot.querySelector("[data-paid-arena-universal-index]");
@@ -4829,6 +4909,54 @@ function removePaidArenaCharacter(rowIndex, slotIndex) {
   if (universalCharges[rowIndex]) universalCharges[rowIndex][slotIndex] = 0;
   if (chargeSpeeds[rowIndex]) chargeSpeeds[rowIndex][slotIndex] = 0;
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(rowIndex) || 0));
+  openSlotSettings = null;
+  saveTeam();
+  render();
+}
+
+function movePaidArenaSlot(fromRowIndex, fromIndex, toRowIndex, toIndex) {
+  const teams = getPaidArenaTeams();
+  const universalRows = getPaidArenaUniversalCharges();
+  const speedRows = getPaidArenaChargeSpeeds();
+  const fromTeam = teams[fromRowIndex];
+  const toTeam = teams[toRowIndex];
+  if (
+    !fromTeam ||
+    !toTeam ||
+    (fromRowIndex === toRowIndex && fromIndex === toIndex) ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= TEAM_SIZE ||
+    toIndex >= TEAM_SIZE ||
+    !fromTeam[fromIndex]
+  ) {
+    return;
+  }
+
+  const fromCharacter = fromTeam[fromIndex];
+  const fromUniversalCharge = universalRows[fromRowIndex]?.[fromIndex] || 0;
+  const fromSpeed = speedRows[fromRowIndex]?.[fromIndex] || 0;
+
+  if (toTeam[toIndex]) {
+    [fromTeam[fromIndex], toTeam[toIndex]] = [toTeam[toIndex], fromTeam[fromIndex]];
+    [universalRows[fromRowIndex][fromIndex], universalRows[toRowIndex][toIndex]] = [
+      universalRows[toRowIndex][toIndex],
+      universalRows[fromRowIndex][fromIndex],
+    ];
+    [speedRows[fromRowIndex][fromIndex], speedRows[toRowIndex][toIndex]] = [
+      speedRows[toRowIndex][toIndex],
+      speedRows[fromRowIndex][fromIndex],
+    ];
+  } else {
+    toTeam[toIndex] = fromCharacter;
+    universalRows[toRowIndex][toIndex] = fromUniversalCharge;
+    speedRows[toRowIndex][toIndex] = fromSpeed;
+    fromTeam[fromIndex] = null;
+    universalRows[fromRowIndex][fromIndex] = 0;
+    speedRows[fromRowIndex][fromIndex] = 0;
+  }
+
+  state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(toRowIndex) || 0));
   openSlotSettings = null;
   saveTeam();
   render();
