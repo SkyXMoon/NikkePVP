@@ -2531,7 +2531,6 @@ function toggleLocalPaidDevAccess() {
   const nextEnabled = !hasLocalPaidDevAccess();
   setLocalPaidDevAccess(nextEnabled);
   if (!nextEnabled && state.testMode) setPaidTestMode(false);
-  if (!nextEnabled && isPaidArenaModeActive()) setPaidArenaMode("normal");
   syncLocalPaidDevAccessControl();
   showToast(nextEnabled ? "已启用本地付费测试" : "已关闭本地付费测试");
 }
@@ -2909,13 +2908,8 @@ function setPaidArenaMode(mode) {
 function openPaidArenaFeature(mode) {
   const nextMode = normalizePaidArenaMode(mode);
   if (nextMode === "normal") return;
-  if (hasLocalPaidDevAccess()) {
-    closePaidFeatureModal();
-    setPaidArenaMode(state.paidArenaMode === nextMode ? "normal" : nextMode);
-    return;
-  }
   closePaidFeatureModal();
-  document.body.append(createPaidFeatureModal(getPaidArenaFeatureTitle(nextMode)));
+  setPaidArenaMode(state.paidArenaMode === nextMode ? "normal" : nextMode);
 }
 
 function getLineupSlotCount(slot) {
