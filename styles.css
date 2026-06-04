@@ -2892,6 +2892,52 @@ input:focus {
   background: rgba(217, 53, 74, 0.72);
 }
 
+:root[data-theme="light"] .icon-toggle,
+:root[data-theme="light"] .icon-button {
+  color: var(--muted);
+  border-color: rgba(84, 103, 126, 0.24);
+  background: rgba(232, 239, 248, 0.72);
+}
+
+:root[data-theme="light"] .icon-toggle:hover,
+:root[data-theme="light"] .icon-button:hover {
+  color: var(--text);
+  border-color: rgba(12, 153, 170, 0.58);
+  background: rgba(12, 153, 170, 0.12);
+}
+
+:root[data-theme="light"] .paid-feature-button {
+  color: #7b5715;
+  border-color: rgba(180, 132, 33, 0.42);
+  background: rgba(180, 132, 33, 0.1);
+}
+
+:root[data-theme="light"] .paid-feature-button:hover {
+  color: #5c3e0c;
+  border-color: rgba(180, 132, 33, 0.7);
+  background: rgba(180, 132, 33, 0.16);
+}
+
+:root[data-theme="light"] .paid-feature-button.is-active,
+:root[data-theme="light"] .test-mode-button.is-active,
+:root[data-theme="light"] .miss-toggle:has(input:checked) {
+  color: #ffffff;
+  border-color: rgba(34, 111, 198, 0.82);
+  background: rgba(34, 111, 198, 0.78);
+}
+
+:root[data-theme="light"] .character-tile.is-picked {
+  color: var(--text);
+}
+
+:root[data-theme="light"] .character-tile.is-picked .tile-check {
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .character-tile.is-picked .tile-avatar::after {
+  background: rgba(34, 111, 198, 0.12);
+}
+
 .speed-control {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

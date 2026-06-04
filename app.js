@@ -120,6 +120,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正浅色主题低对比文字",
   "完善浅色主题弹窗与图表样式",
   "恢复右上角说明入口并完善主题覆盖",
   "新增侧边栏、更新日志、使用说明入口与主题切换",
@@ -129,7 +130,6 @@ const CHANGELOG_ITEMS = [
   "修正布丽德静默轨道头像",
   "开放冠特竞技场功能",
   "优化冠特复制提示文案",
-  "修正冠特数据来源方向",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
