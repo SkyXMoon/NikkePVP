@@ -120,6 +120,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "移动端复制改为原生分享图片",
   "修正复制图片内容与提示主题",
   "修正浅色主题低对比文字",
   "完善浅色主题弹窗与图表样式",
@@ -129,7 +130,6 @@ const CHANGELOG_ITEMS = [
   "补充马斯特国服常用",
   "补充尼罗牡丹国服常用",
   "修正布丽德静默轨道头像",
-  "开放冠特竞技场功能",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -2626,6 +2626,10 @@ function closePaidFeatureModal() {
   document.querySelector(".paid-modal-backdrop")?.remove();
 }
 
+function isMobileCopyChoiceRuntime() {
+  return window.matchMedia?.("(pointer: coarse)")?.matches || window.matchMedia?.("(max-width: 760px)")?.matches;
+}
+
 function getLocalPaidInferencePayload() {
   return {
     attackTeam: state.team.map((character) => character?.id || null),
@@ -3230,7 +3234,7 @@ function renderPaidArenaTeams() {
           removePaidArenaCharacter(rowIndex, slotIndex);
         });
         slot.querySelector(".slot-remove").addEventListener("pointerdown", handleCopyContextPointerDown);
-        slot.querySelector(".slot-remove").addEventListener("contextmenu", suppressContextMenu);
+        slot.querySelector(".slot-remove").addEventListener("contextmenu", handleCopyContextMenu);
         slot.querySelector(".slot-settings-toggle")?.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -3472,7 +3476,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           removeCharacter(teamKey, index);
         });
         slot.querySelector(".slot-remove").addEventListener("pointerdown", handleCopyContextPointerDown);
-        slot.querySelector(".slot-remove").addEventListener("contextmenu", suppressContextMenu);
+        slot.querySelector(".slot-remove").addEventListener("contextmenu", handleCopyContextMenu);
         const settingsToggle = slot.querySelector(".slot-settings-toggle");
         settingsToggle.addEventListener("click", (event) => {
           event.preventDefault();
@@ -4880,7 +4884,7 @@ function renderSummaryStrip(attackResult, defenseResult) {
     .join("");
 
   els.summaryStrip.onpointerdown = handleCopyContextPointerDown;
-  els.summaryStrip.oncontextmenu = suppressContextMenu;
+  els.summaryStrip.oncontextmenu = handleCopyContextMenu;
 }
 
 function renderResults(battleResults = getBattleResultsSnapshot()) {
@@ -6129,11 +6133,57 @@ async function copyArenaImageSummary() {
   }
 }
 
+async function shareArenaImageSummary() {
+  const text = getArenaCopyText();
+  if (!text && !isPaidArenaModeActive()) {
+    showToast("队伍为空，无法分享结果");
+    return;
+  }
+  try {
+    const imageBlob = await copyCurrentArenaImage();
+    const file = new File([imageBlob], `nikke-pvp-${Date.now()}.png`, { type: "image/png" });
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: "NIKKE PVP",
+      });
+      showToast("已打开分享");
+      return;
+    }
+    await copyRichImageToClipboard(imageBlob);
+    showToast("当前浏览器不支持分享，已复制图片");
+  } catch (error) {
+    if (error?.name === "AbortError") return;
+    console.error("share arena image failed", error);
+    try {
+      await copyArenaImageSummary();
+    } catch {
+      showToast("分享失败，请检查浏览器权限");
+    }
+  }
+}
+
+function handleCopyButtonClick() {
+  if (isMobileCopyChoiceRuntime()) {
+    shareArenaImageSummary();
+    return;
+  }
+  copyArenaImageSummary();
+}
+
 function handleCopyContextPointerDown(event) {
   if (event.button !== 2) return;
   event.preventDefault();
   event.stopPropagation();
   copyArenaImageSummary();
+}
+
+function handleCopyContextMenu(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  if (isMobileCopyChoiceRuntime()) {
+    shareArenaImageSummary();
+  }
 }
 
 function suppressContextMenu(event) {
@@ -6165,7 +6215,7 @@ function bindEvents() {
   els.paidCModeButton?.addEventListener("click", () => openPaidArenaFeature("c"));
   els.paidPModeButton?.addEventListener("click", () => openPaidArenaFeature("p"));
   els.clearTeamButton.addEventListener("click", clearTeam);
-  els.copyTeamButton.addEventListener("click", copyArenaImageSummary);
+  els.copyTeamButton.addEventListener("click", handleCopyButtonClick);
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
   els.allowMissedShotsToggle.addEventListener("change", (event) => {
     state.allowMissedShots = event.target.checked;
