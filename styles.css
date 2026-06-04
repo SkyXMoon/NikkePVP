@@ -1481,6 +1481,44 @@ input:focus {
   text-align: center;
 }
 
+.paid-arena-data-source-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 1px solid rgba(242, 245, 250, 0.1);
+  border-radius: 6px;
+  padding: 5px 7px;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.16);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.paid-arena-data-source-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.paid-arena-data-source-actions button {
+  border: 1px solid rgba(242, 245, 250, 0.14);
+  border-radius: 5px;
+  padding: 3px 7px;
+  color: var(--muted);
+  background: rgba(242, 245, 250, 0.04);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.paid-arena-data-source-actions button.is-active {
+  border-color: rgba(77, 163, 255, 0.8);
+  color: var(--text);
+  background: rgba(77, 163, 255, 0.18);
+}
+
 
 .team-slot {
   position: relative;

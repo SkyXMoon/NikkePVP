@@ -168,6 +168,7 @@ const state = {
   lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
   paidArenaMode: "normal",
   paidArenaActiveRowIndex: 0,
+  paidArenaDataTeamKey: "attack",
   paidArenaTeams: {
     c: createEmptyPaidArenaTeams("c"),
     p: createEmptyPaidArenaTeams("p"),
@@ -2145,7 +2146,7 @@ function getSlotSettingsContext() {
       character,
       chargeSpeeds,
       index,
-      teamKey: "attack",
+      teamKey: getPaidArenaDataTeamKey(),
       simulationTeamKey: "attack",
       title: `${getPaidArenaModeLabel(mode)} ${rowIndex + 1} P${index + 1}`,
       isPaidArena: true,
@@ -2177,6 +2178,14 @@ function refreshSlotSettingsChanges(context) {
   invalidateBattleResults();
   updateTeamFinishMarkers(renderResults());
   refreshBattleResults();
+}
+
+function applySavedChargeSpeedToNormalTeam(character, teamKey) {
+  const team = getTeamState(teamKey);
+  const chargeSpeeds = getChargeSpeedState(teamKey);
+  const slotIndex = team.findIndex((member) => member && member.id === character?.id);
+  if (slotIndex === -1) return;
+  chargeSpeeds[slotIndex] = getSavedCharacterChargeSpeed(character, teamKey);
 }
 
 function createSlotSettingsModal() {
@@ -2274,6 +2283,7 @@ function createSlotSettingsModal() {
       if (chargeSpeeds[index] === speed) return;
       chargeSpeeds[index] = speed;
       saveCharacterChargeSpeed(character, speed, teamKey);
+      applySavedChargeSpeedToNormalTeam(character, teamKey);
       updateSpeedFramePreview();
       refreshSlotSettingsChanges(context);
     };
@@ -2323,6 +2333,7 @@ function createSlotSettingsModal() {
     event.preventDefault();
     chargeSpeeds[index] = 0;
     resetCharacterChargeSpeed(character, teamKey);
+    applySavedChargeSpeedToNormalTeam(character, teamKey);
     resetCharacterQuantumCube(character, teamKey);
     resetCharacterMagazine(character, teamKey);
     saveTeam();
@@ -2589,6 +2600,52 @@ function serializePaidArenaChargeSpeeds(mode) {
   return getPaidArenaChargeSpeeds(mode).map((teamSpeeds) => [...teamSpeeds]);
 }
 
+function getPaidArenaDataTeamKey() {
+  return normalizeTeamKey(state.paidArenaDataTeamKey);
+}
+
+function syncPaidArenaChargeSpeedsFromSavedData(mode = state.paidArenaMode) {
+  const normalizedMode = normalizePaidArenaMode(mode);
+  if (normalizedMode === "normal") return;
+  const dataTeamKey = getPaidArenaDataTeamKey();
+  const teams = getPaidArenaTeams(normalizedMode);
+  const chargeSpeedRows = getPaidArenaChargeSpeeds(normalizedMode);
+  teams.forEach((team, rowIndex) => {
+    chargeSpeedRows[rowIndex] = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => {
+      const character = team[slotIndex];
+      return character ? getSavedCharacterChargeSpeed(character, dataTeamKey) : 0;
+    });
+  });
+}
+
+function setPaidArenaDataTeamKey(teamKey) {
+  state.paidArenaDataTeamKey = normalizeTeamKey(teamKey);
+  syncPaidArenaChargeSpeedsFromSavedData();
+  openSlotSettings = null;
+  saveTeam();
+  render();
+}
+
+function simulatePaidArenaBurst(team, chargeSpeeds = [], universalCharges = []) {
+  const dataTeamKey = getPaidArenaDataTeamKey();
+  const previousChargeSpeeds = state.chargeSpeeds;
+  const previousQuantumCubes = state.characterQuantumCubes.attack;
+  const previousMagazines = state.characterMagazines.attack;
+  const previousRedHoodPierceCounts = state.characterRedHoodPierceCounts.attack;
+  state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeChargeSpeed(chargeSpeeds[index]));
+  state.characterQuantumCubes.attack = getCharacterQuantumCubeMemory(dataTeamKey);
+  state.characterMagazines.attack = getCharacterMagazineMemory(dataTeamKey);
+  state.characterRedHoodPierceCounts.attack = getCharacterRedHoodPierceCountMemory(dataTeamKey);
+  try {
+    return simulateBurst(team, "attack", [], [], [], [], null, universalCharges);
+  } finally {
+    state.chargeSpeeds = previousChargeSpeeds;
+    state.characterQuantumCubes.attack = previousQuantumCubes;
+    state.characterMagazines.attack = previousMagazines;
+    state.characterRedHoodPierceCounts.attack = previousRedHoodPierceCounts;
+  }
+}
+
 function getPaidArenaPickedIds(mode = state.paidArenaMode) {
   return new Set(getPaidArenaTeams(mode).flat().filter(Boolean).map((character) => character.id));
 }
@@ -2777,6 +2834,7 @@ function setPaidArenaMode(mode) {
       0,
       Math.min(getPaidArenaTeams().length - 1, Number(state.paidArenaActiveRowIndex) || 0),
     );
+    syncPaidArenaChargeSpeedsFromSavedData();
   }
   openSlotSettings = null;
   hideChartTooltip();
@@ -2843,10 +2901,31 @@ function syncPaidFeatureButtons() {
 }
 
 function getPaidArenaResultText(team, universalCharges, chargeSpeeds = [], result = null) {
-  const rowResult = result || simulateBurst(team, "attack", chargeSpeeds, [], [], [], null, universalCharges);
+  const rowResult = result || simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
   if (!rowResult) return "未配置";
   if (rowResult.error) return rowResult.error;
   return `${getStandardChargeBand(rowResult.fullFrame)}（${rowResult.fullFrame}F）`;
+}
+
+function createPaidArenaDataSourceBar() {
+  const dataTeamKey = getPaidArenaDataTeamKey();
+  const bar = document.createElement("div");
+  bar.className = "paid-arena-data-source-bar";
+  bar.innerHTML = `
+    <span>使用角色已保存的${dataTeamKey === "defense" ? "防守" : "进攻"}数据；在此修改会同步回该数据。</span>
+    <div class="paid-arena-data-source-actions" role="group" aria-label="选择角色设置数据来源">
+      <button class="${dataTeamKey === "attack" ? "is-active" : ""}" type="button" data-paid-data-source="attack">进攻数据</button>
+      <button class="${dataTeamKey === "defense" ? "is-active" : ""}" type="button" data-paid-data-source="defense">防守数据</button>
+    </div>
+  `;
+  bar.querySelectorAll("[data-paid-data-source]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setPaidArenaDataTeamKey(button.dataset.paidDataSource);
+    });
+  });
+  return bar;
 }
 
 function renderPaidArenaTeams() {
@@ -2854,12 +2933,14 @@ function renderPaidArenaTeams() {
   const teams = getPaidArenaTeams();
   const universalChargeRows = getPaidArenaUniversalCharges();
   const chargeSpeedRows = getPaidArenaChargeSpeeds();
+  const dataTeamKey = getPaidArenaDataTeamKey();
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
+  fragment.append(createPaidArenaDataSourceBar());
 
   teams.forEach((team, rowIndex) => {
     const universalCharges = universalChargeRows[rowIndex] || Array(TEAM_SIZE).fill(0);
     const chargeSpeeds = chargeSpeedRows[rowIndex] || Array(TEAM_SIZE).fill(0);
-    const result = simulateBurst(team, "attack", chargeSpeeds, [], [], [], null, universalCharges);
+    const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
     const row = document.createElement("section");
     row.className = `team-row paid-arena-row${state.paidArenaActiveRowIndex === rowIndex ? " is-active" : ""}`;
     row.dataset.paidArenaRowIndex = String(rowIndex);
@@ -2880,14 +2961,14 @@ function renderPaidArenaTeams() {
         openSlotSettings?.paidArenaMode === state.paidArenaMode &&
         Number(openSlotSettings.rowIndex) === rowIndex &&
         Number(openSlotSettings.index) === slotIndex;
-      const displayMagazine = character ? getDisplayMagazine(character, "attack") : null;
+      const displayMagazine = character ? getDisplayMagazine(character, dataTeamKey) : null;
       const sideBadgeText =
         character && canShowFinishMarker(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
           : displayMagazine
             ? String(displayMagazine)
             : "";
-      const hasQuantumCube = character && getSavedCharacterQuantumCube(character, "attack");
+      const hasQuantumCube = character && getSavedCharacterQuantumCube(character, dataTeamKey);
       const slot = document.createElement("div");
       slot.className = `team-slot paid-arena-slot${character ? " filled" : ""}${!character && universalChargeValue > 0 ? " has-universal" : ""}${getTeamSlotRarityClass(character)}`;
       slot.dataset.paidArenaRowIndex = String(rowIndex);
@@ -4724,7 +4805,7 @@ function addPaidArenaCharacter(character) {
   }
   team[emptyIndex] = character;
   universalCharges[emptyIndex] = 0;
-  chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, "attack");
+  chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, getPaidArenaDataTeamKey());
   openSlotSettings = null;
   saveTeam();
   render();
@@ -5006,6 +5087,7 @@ function saveTeam() {
       lineupSlots: state.lineupSlots,
       paidArenaMode: state.paidArenaMode,
       paidArenaActiveRowIndex: state.paidArenaActiveRowIndex,
+      paidArenaDataTeamKey: state.paidArenaDataTeamKey,
       paidArenaTeams: {
         c: serializePaidArenaTeams("c"),
         p: serializePaidArenaTeams("p"),
@@ -5081,6 +5163,7 @@ function loadTeam() {
       }
       state.paidArenaMode = "normal";
       state.paidArenaActiveRowIndex = Math.max(0, Number(saved.paidArenaActiveRowIndex) || 0);
+      state.paidArenaDataTeamKey = normalizeTeamKey(saved.paidArenaDataTeamKey || "attack");
       state.paidArenaTeams = {
         c: normalizePaidArenaTeams(saved.paidArenaTeams?.c, "c"),
         p: normalizePaidArenaTeams(saved.paidArenaTeams?.p, "p"),
@@ -5136,6 +5219,7 @@ function loadTeam() {
     state.lineupSlots = Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot());
     state.paidArenaMode = "normal";
     state.paidArenaActiveRowIndex = 0;
+    state.paidArenaDataTeamKey = "attack";
     state.paidArenaTeams = {
       c: createEmptyPaidArenaTeams("c"),
       p: createEmptyPaidArenaTeams("p"),
