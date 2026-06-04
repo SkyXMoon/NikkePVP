@@ -7368,7 +7368,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "电击",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 14.71,
@@ -13631,7 +13632,8 @@ const CHARACTERS = [
     "classType": "防御",
     "element": "燃烧",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 8.39,
