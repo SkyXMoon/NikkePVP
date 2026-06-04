@@ -2969,7 +2969,8 @@ function getPaidArenaResultText(team, universalCharges, chargeSpeeds = [], resul
   const rowResult = result || simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
   if (!rowResult) return "未配置";
   if (rowResult.error) return rowResult.error;
-  return `${getStandardChargeBand(rowResult.fullFrame)}（${rowResult.fullFrame}F）`;
+  const frame = rowResult.fullFrame;
+  return `等于${formatNumber(frame / 76, 2)}RL(${frame}F)等于${formatNumber(frame / 42 + 1, 2)}SG`;
 }
 
 function createPaidArenaDataSourceBar() {
