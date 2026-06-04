@@ -120,6 +120,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正复制图片内容与提示主题",
   "修正浅色主题低对比文字",
   "完善浅色主题弹窗与图表样式",
   "恢复右上角说明入口并完善主题覆盖",
@@ -129,7 +130,6 @@ const CHANGELOG_ITEMS = [
   "补充尼罗牡丹国服常用",
   "修正布丽德静默轨道头像",
   "开放冠特竞技场功能",
-  "优化冠特复制提示文案",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -5868,18 +5868,9 @@ async function copyBattleResultsWithChart(text) {
   }
 
   const imageBlob = await getChargeChartPngBlob();
-  const imageDataUrl = await blobToDataUrl(imageBlob);
-  const html = `
-    <div>
-      <img src="${imageDataUrl}" alt="充能时间轴" style="max-width:100%;height:auto;display:block;" />
-      <pre style="white-space:pre-wrap;margin:12px 0 0;font-family:Arial,'Microsoft YaHei',sans-serif;">${escapeHtml(text)}</pre>
-    </div>
-  `;
-
   await navigator.clipboard.write([
     new ClipboardItem({
-      "text/html": new Blob([html], { type: "text/html" }),
-      "text/plain": new Blob([text], { type: "text/plain" }),
+      "image/png": imageBlob,
     }),
   ]);
 }
@@ -6054,33 +6045,14 @@ function isTaintedCanvasError(error) {
   return error?.name === "SecurityError" || /tainted canvases/i.test(String(error?.message || error));
 }
 
-async function copyRichImageToClipboard(imageBlobOrPromise, plainText = "", altText = "竞技场充能信息") {
+async function copyRichImageToClipboard(imageBlobOrPromise) {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
     throw new Error("rich clipboard is not supported");
   }
-  const imageBlobPromise = Promise.resolve(imageBlobOrPromise);
-  const htmlBlobPromise = imageBlobPromise.then(async (imageBlob) => {
-    const imageDataUrl = await blobToDataUrl(imageBlob);
-    const html = `
-      <div>
-        <img src="${imageDataUrl}" alt="${escapeHtml(altText)}" style="max-width:100%;height:auto;display:block;" />
-        ${
-          plainText
-            ? `<pre style="white-space:pre-wrap;margin:12px 0 0;font-family:Arial,'Microsoft YaHei',sans-serif;">${escapeHtml(plainText)}</pre>`
-            : ""
-        }
-      </div>
-    `;
-    return new Blob([html], { type: "text/html" });
-  });
-  const clipboardPayload = {
-    "text/html": htmlBlobPromise,
-  };
-  if (plainText) {
-    clipboardPayload["text/plain"] = new Blob([plainText], { type: "text/plain" });
-  }
   await navigator.clipboard.write([
-    new ClipboardItem(clipboardPayload),
+    new ClipboardItem({
+      "image/png": Promise.resolve(imageBlobOrPromise),
+    }),
   ]);
 }
 
@@ -6144,11 +6116,7 @@ async function copyArenaImageSummary() {
   }
   try {
     const imageBlobPromise = copyCurrentArenaImage();
-    await copyRichImageToClipboard(
-      imageBlobPromise,
-      isPaidArenaModeActive() ? "" : text,
-      isPaidArenaModeActive() ? `${getPaidArenaModeLabel()}队伍信息` : "竞技场充能信息",
-    );
+    await copyRichImageToClipboard(imageBlobPromise);
     showToast(isPaidArenaModeActive() ? "已复制竞技场队伍图片" : "已复制时间轴和双方队伍图片");
   } catch (error) {
     console.error("copy arena image failed", error);

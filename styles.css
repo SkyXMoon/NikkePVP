@@ -3118,6 +3118,13 @@ summary {
   transform: translateY(0);
 }
 
+:root[data-theme="light"] .toast {
+  border-color: rgba(12, 153, 170, 0.34);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 28px rgba(28, 43, 62, 0.18);
+}
+
 @media (max-width: 1180px) {
   .content-grid {
     grid-template-columns: 1fr;
