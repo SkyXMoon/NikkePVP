@@ -2160,7 +2160,7 @@ function getSlotSettingsContext() {
       chargeSpeeds,
       index,
       teamKey: getPaidArenaDataTeamKey(),
-      simulationTeamKey: "attack",
+      simulationTeamKey: getPaidArenaDataTeamKey(),
       title: `${getPaidArenaModeLabel(mode)} ${rowIndex + 1} P${index + 1}`,
       isPaidArena: true,
     };
@@ -2650,20 +2650,33 @@ function setPaidArenaDataTeamKey(teamKey) {
 function simulatePaidArenaBurst(team, chargeSpeeds = [], universalCharges = []) {
   const dataTeamKey = getPaidArenaDataTeamKey();
   const previousChargeSpeeds = state.chargeSpeeds;
+  const previousDefenseChargeSpeeds = state.defenseChargeSpeeds;
   const previousQuantumCubes = state.characterQuantumCubes.attack;
+  const previousDefenseQuantumCubes = state.characterQuantumCubes.defense;
   const previousMagazines = state.characterMagazines.attack;
+  const previousDefenseMagazines = state.characterMagazines.defense;
   const previousRedHoodPierceCounts = state.characterRedHoodPierceCounts.attack;
-  state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeChargeSpeed(chargeSpeeds[index]));
-  state.characterQuantumCubes.attack = getCharacterQuantumCubeMemory(dataTeamKey);
-  state.characterMagazines.attack = getCharacterMagazineMemory(dataTeamKey);
-  state.characterRedHoodPierceCounts.attack = getCharacterRedHoodPierceCountMemory(dataTeamKey);
+  const previousDefenseRedHoodPierceCounts = state.characterRedHoodPierceCounts.defense;
+  const normalizedChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeChargeSpeed(chargeSpeeds[index]));
+  if (dataTeamKey === "defense") {
+    state.defenseChargeSpeeds = normalizedChargeSpeeds;
+  } else {
+    state.chargeSpeeds = normalizedChargeSpeeds;
+  }
+  state.characterQuantumCubes[dataTeamKey] = getCharacterQuantumCubeMemory(dataTeamKey);
+  state.characterMagazines[dataTeamKey] = getCharacterMagazineMemory(dataTeamKey);
+  state.characterRedHoodPierceCounts[dataTeamKey] = getCharacterRedHoodPierceCountMemory(dataTeamKey);
   try {
-    return simulateBurst(team, "attack", [], [], [], [], null, universalCharges);
+    return simulateBurst(team, dataTeamKey, [], [], [], [], null, universalCharges);
   } finally {
     state.chargeSpeeds = previousChargeSpeeds;
+    state.defenseChargeSpeeds = previousDefenseChargeSpeeds;
     state.characterQuantumCubes.attack = previousQuantumCubes;
+    state.characterQuantumCubes.defense = previousDefenseQuantumCubes;
     state.characterMagazines.attack = previousMagazines;
+    state.characterMagazines.defense = previousDefenseMagazines;
     state.characterRedHoodPierceCounts.attack = previousRedHoodPierceCounts;
+    state.characterRedHoodPierceCounts.defense = previousDefenseRedHoodPierceCounts;
   }
 }
 
@@ -2962,7 +2975,7 @@ function renderPaidArenaTeams() {
     const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
     const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
     const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
-    const tauntTargetPositionIndex = getTauntTargetState(team, "attack")?.positionIndex ?? null;
+    const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey)?.positionIndex ?? null;
     const row = document.createElement("section");
     row.className = `team-row paid-arena-row${state.paidArenaActiveRowIndex === rowIndex ? " is-active" : ""}`;
     row.dataset.paidArenaRowIndex = String(rowIndex);
