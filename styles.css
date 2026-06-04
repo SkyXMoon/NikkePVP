@@ -1565,8 +1565,8 @@ input:focus {
   transform: translateX(-50%);
   border-radius: 4px;
   color: var(--gold);
-  background: rgba(7, 9, 13, 0.82);
-  border: 1px solid rgba(229, 184, 93, 0.42);
+  background: transparent;
+  border: 0;
   font-size: 12px;
   font-weight: 900;
 }
@@ -1621,7 +1621,7 @@ input:focus {
   left: 50%;
   bottom: 1px;
   z-index: 3;
-  width: auto;
+  width: calc(100% - 6px);
   min-height: 16px;
   transform: translateX(-50%);
   border: 0;
@@ -1640,7 +1640,7 @@ input:focus {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 14px;
+  width: 50%;
   height: 16px;
   padding: 0;
   border: 0;
@@ -1655,11 +1655,11 @@ input:focus {
 .universal-charge-field input {
   position: static;
   flex: 0 0 auto;
-  width: 30px;
+  width: 50%;
   min-height: 16px;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
+  border: 1px solid rgba(77, 163, 255, 0.42);
+  border-radius: 3px;
+  padding: 0 2px;
   color: inherit;
   background: transparent;
   font-size: inherit;
@@ -2658,14 +2658,14 @@ summary {
   }
 
   .universal-charge-label {
-    width: 13px;
+    width: 50%;
     height: 15px;
     font-size: inherit;
   }
 
   .universal-charge-field {
     bottom: 1px;
-    width: auto;
+    width: calc(100% - 4px);
     min-height: 15px;
     gap: 1px;
     padding: 0;
@@ -2673,7 +2673,7 @@ summary {
   }
 
   .universal-charge-field input {
-    width: 26px;
+    width: 50%;
     min-height: 15px;
   }
 
