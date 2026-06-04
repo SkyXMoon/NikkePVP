@@ -815,6 +815,15 @@ input:focus {
   background: rgba(77, 163, 255, 0.18);
 }
 
+.team-action-text {
+  display: inline-grid;
+  place-items: center;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .icon-toggle,
 .icon-button {
   position: relative;
