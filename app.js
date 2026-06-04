@@ -2602,6 +2602,11 @@ function serializePaidArenaChargeSpeeds(mode) {
 }
 
 function getPaidArenaDataTeamKey() {
+  const selectedTeamKey = normalizeTeamKey(state.paidArenaDataTeamKey);
+  return selectedTeamKey === "defense" ? "attack" : "defense";
+}
+
+function getPaidArenaSelectedDataTeamKey() {
   return normalizeTeamKey(state.paidArenaDataTeamKey);
 }
 
@@ -2912,7 +2917,7 @@ function getPaidArenaResultText(team, universalCharges, chargeSpeeds = [], resul
 }
 
 function createPaidArenaDataSourceBar() {
-  const dataTeamKey = getPaidArenaDataTeamKey();
+  const dataTeamKey = getPaidArenaSelectedDataTeamKey();
   const bar = document.createElement("div");
   bar.className = "paid-arena-data-source-bar";
   bar.innerHTML = `
