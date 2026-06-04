@@ -2,7 +2,7 @@ const FRAMES_PER_SECOND = 60;
 const TEAM_SIZE = 5;
 const ENEMY_TEAM_SIZE = 5;
 const LINEUP_SLOT_COUNT = 10;
-const PAID_ARENA_TEAM_COUNTS = { c: 3, p: 5 };
+const PAID_ARENA_TEAM_COUNTS = { c: 5, p: 3 };
 const BATTLE_POWER_ADVANTAGE_RATE = 0.154;
 const DEFAULT_RL_TARGET_INDEX = 0;
 const BURST_EPSILON = 1e-6;
@@ -2595,7 +2595,7 @@ function renderTestDefenseRow() {
   return row;
 }
 
-function createPaidFeatureModal() {
+function createPaidFeatureModal(title = "空枪反推") {
   const backdrop = document.createElement("div");
   backdrop.className = "paid-modal-backdrop";
   backdrop.setAttribute("role", "presentation");
@@ -2604,7 +2604,7 @@ function createPaidFeatureModal() {
       <div class="paid-modal-head">
         <div>
           <span class="paid-modal-kicker">Pro</span>
-          <strong>空枪反推</strong>
+          <strong>${escapeHtml(title)}</strong>
         </div>
         <button class="paid-modal-close" type="button" aria-label="关闭">X</button>
       </div>
@@ -2651,7 +2651,11 @@ function openPaidInferenceFeature() {
     return;
   }
   closePaidFeatureModal();
-  document.body.append(createPaidFeatureModal());
+  document.body.append(createPaidFeatureModal("空枪反推"));
+}
+
+function getPaidArenaFeatureTitle(mode) {
+  return mode === "c" ? "冠军竞技场" : "特殊竞技场";
 }
 
 function setPaidArenaMode(mode) {
@@ -2679,7 +2683,7 @@ function openPaidArenaFeature(mode) {
     return;
   }
   closePaidFeatureModal();
-  document.body.append(createPaidFeatureModal());
+  document.body.append(createPaidFeatureModal(getPaidArenaFeatureTitle(nextMode)));
 }
 
 function getLineupSlotCount(slot) {
@@ -4509,13 +4513,13 @@ function clearTeamLegacy() {
 }
 
 function addPaidArenaCharacter(character) {
-  const teams = getPaidArenaTeams();
-  if (!teams.length) return;
   const existing = findPaidArenaCharacter(character);
   if (existing) {
     removePaidArenaCharacter(existing.rowIndex, existing.slotIndex);
     return;
   }
+  const teams = getPaidArenaTeams();
+  if (!teams.length) return;
   const rowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
   const team = teams[rowIndex];
   const emptyIndex = team.findIndex((member) => !member);
