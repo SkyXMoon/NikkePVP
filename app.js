@@ -5590,8 +5590,12 @@ function getCanvasRoundedRectPath(context, x, y, width, height, radius) {
 
 async function loadExportImage(src) {
   if (!src) return null;
+  const absoluteUrl = new URL(src, window.location.href).href;
   try {
-    const response = await fetch(new URL(src, window.location.href).href);
+    if (window.location.protocol === "file:") {
+      return await loadImageFromUrl(absoluteUrl);
+    }
+    const response = await fetch(absoluteUrl);
     if (!response.ok) throw new Error(`asset request failed: ${response.status}`);
     const dataUrl = await blobToDataUrl(await response.blob());
     return await loadImageFromUrl(dataUrl);
@@ -5977,11 +5981,14 @@ async function copyRichImageToClipboard(imageBlobOrPromise, plainText = "", altT
     `;
     return new Blob([html], { type: "text/html" });
   });
+  const clipboardPayload = {
+    "text/html": htmlBlobPromise,
+  };
+  if (plainText) {
+    clipboardPayload["text/plain"] = new Blob([plainText], { type: "text/plain" });
+  }
   await navigator.clipboard.write([
-    new ClipboardItem({
-      "text/html": htmlBlobPromise,
-      "text/plain": new Blob([plainText], { type: "text/plain" }),
-    }),
+    new ClipboardItem(clipboardPayload),
   ]);
 }
 
@@ -6047,7 +6054,7 @@ async function copyArenaImageSummary() {
     const imageBlobPromise = copyCurrentArenaImage();
     await copyRichImageToClipboard(
       imageBlobPromise,
-      text,
+      isPaidArenaModeActive() ? "" : text,
       isPaidArenaModeActive() ? `${getPaidArenaModeLabel()}队伍信息` : "竞技场充能信息",
     );
     showToast(isPaidArenaModeActive() ? "已复制竞技场队伍图片" : "已复制时间轴和双方队伍图片");
