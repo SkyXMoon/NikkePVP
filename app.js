@@ -120,6 +120,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "复制图片增加站点网址",
   "放大普通竞技场复制图片",
   "优化普通竞技场复制图片版式",
   "移动端复制改为原生分享图片",
@@ -129,7 +130,6 @@ const CHANGELOG_ITEMS = [
   "恢复右上角说明入口并完善主题覆盖",
   "新增侧边栏、更新日志、使用说明入口与主题切换",
   "保持冠军特殊竞技场模式",
-  "补充马斯特国服常用",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -5714,6 +5714,22 @@ function drawCanvasText(context, text, x, y, options = {}) {
   context.restore();
 }
 
+function getExportSiteUrl() {
+  const fallbackUrl = "https://nikke.skyxmoon.workers.dev";
+  if (window.location.protocol !== "http:" && window.location.protocol !== "https:") return fallbackUrl;
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return fallbackUrl;
+  return window.location.origin;
+}
+
+function drawExportSiteUrl(context, width, padding, y) {
+  drawCanvasText(context, getExportSiteUrl(), width - padding, y, {
+    align: "right",
+    size: 14,
+    weight: 700,
+    color: "#7f8a99",
+  });
+}
+
 function drawPaidArenaSlot(context, slot, x, y, size) {
   const { character, universalCharge, image, isFinisher, isTauntTarget, badgeText } = slot;
   const radius = 7;
@@ -5812,6 +5828,7 @@ async function paidArenaToPngBlob() {
   context.fillStyle = "#0b0e14";
   context.fillRect(0, 0, width, height);
   drawCanvasText(context, title, padding, padding + 18, { size: 24, weight: 800, color: "#f0c45c" });
+  drawExportSiteUrl(context, width, padding, padding + 18);
 
   const imageCache = new Map();
   const loadCharacterImage = async (character) => {
@@ -5906,6 +5923,7 @@ async function normalArenaToPngBlob() {
   const context = canvas.getContext("2d");
   context.fillStyle = "#0b0e14";
   context.fillRect(0, 0, width, height);
+  drawExportSiteUrl(context, width, padding, Math.max(18, padding - 12));
 
   context.drawImage(chartImage, padding, chartY, contentWidth, chartHeight);
 
