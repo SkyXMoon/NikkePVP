@@ -389,6 +389,34 @@ function getBattleResultsCopyText(battleResults = getBattleResultsSnapshot()) {
     .join("\n\n");
 }
 
+function getPaidArenaCopyText() {
+  if (!isPaidArenaModeActive()) return "";
+  const teams = getPaidArenaTeams();
+  const universalRows = getPaidArenaUniversalCharges();
+  const dataTeamKey = getPaidArenaDataTeamKey();
+  const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守数据" : "进攻数据";
+  const rows = teams.map((team, rowIndex) => {
+    const universalCharges = universalRows[rowIndex] || Array(TEAM_SIZE).fill(0);
+    const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
+    const members = Array.from({ length: TEAM_SIZE }, (_, index) => {
+      const character = team[index];
+      const universalCharge = sanitizeUniversalCharge(universalCharges[index]);
+      if (character) {
+        const chargeSpeed = sanitizeChargeSpeed(chargeSpeeds[index]);
+        if (chargeSpeed > 0 && canShowFinishMarker(character)) return `${character.name}(${chargeSpeed})`;
+        return character.name;
+      }
+      return universalCharge > 0 ? `充${formatNumber(universalCharge, 2)}%` : "空";
+    }).join("，");
+    return `第${rowIndex + 1}队：${members}\n${getPaidArenaResultText(team, universalCharges, chargeSpeeds)}`;
+  });
+  return [`${getPaidArenaModeLabel()}（${dataSourceLabel}）`, ...rows].join("\n\n");
+}
+
+function getArenaCopyText() {
+  return isPaidArenaModeActive() ? getPaidArenaCopyText() : getBattleResultsCopyText();
+}
+
 function normalizeTeamKey(teamKey = state.activeTeamKey) {
   return teamKey === "defense" ? "defense" : "attack";
 }
@@ -5601,6 +5629,21 @@ function getExportStyles() {
     .join("\n");
 }
 
+function absolutizeExportAssetUrls(root) {
+  root.querySelectorAll("img").forEach((image) => {
+    const src = image.getAttribute("src");
+    if (!src) return;
+    image.setAttribute("src", new URL(src, window.location.href).href);
+  });
+  root.querySelectorAll("image").forEach((image) => {
+    const href = image.getAttribute("href") || image.getAttribute("xlink:href");
+    if (!href) return;
+    const absoluteHref = new URL(href, window.location.href).href;
+    image.setAttribute("href", absoluteHref);
+    image.setAttributeNS("http://www.w3.org/1999/xlink", "href", absoluteHref);
+  });
+}
+
 function createExportBlock(title, elements = []) {
   const block = document.createElement("div");
   block.className = "copy-image-export";
@@ -5615,6 +5658,7 @@ function createExportBlock(title, elements = []) {
     clone.classList.add("copy-image-section");
     clone.style.width = "100%";
     copyFormValuesForExport(clone);
+    absolutizeExportAssetUrls(clone);
     block.append(clone);
   });
   document.body.append(block);
@@ -5629,6 +5673,7 @@ async function elementToPngBlob(element) {
   renderClone.style.position = "static";
   renderClone.style.left = "auto";
   renderClone.style.top = "auto";
+  absolutizeExportAssetUrls(renderClone);
   const html = new XMLSerializer().serializeToString(renderClone);
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
@@ -5658,13 +5703,11 @@ async function elementToPngBlob(element) {
   }
 }
 
-async function copyPngBlobToClipboard(imageBlob, plainText = "") {
+async function copyPngBlobToClipboard(imageBlob) {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
     throw new Error("image clipboard is not supported");
   }
-  const payload = { "image/png": imageBlob };
-  if (plainText) payload["text/plain"] = new Blob([plainText], { type: "text/plain" });
-  await navigator.clipboard.write([new ClipboardItem(payload)]);
+  await navigator.clipboard.write([new ClipboardItem({ "image/png": imageBlob })]);
 }
 
 async function copyCurrentArenaImage() {
@@ -5676,7 +5719,7 @@ async function copyCurrentArenaImage() {
   );
   try {
     const blob = await elementToPngBlob(exportBlock);
-    await copyPngBlobToClipboard(blob, getBattleResultsCopyText());
+    await copyPngBlobToClipboard(blob);
   } finally {
     exportBlock.remove();
   }
@@ -5730,7 +5773,7 @@ async function copyBattleResultsSummary() {
 }
 
 async function copyArenaImageSummary() {
-  const text = getBattleResultsCopyText();
+  const text = getArenaCopyText();
   if (!text && !isPaidArenaModeActive()) {
     showToast("队伍为空，无法复制结果");
     return;
