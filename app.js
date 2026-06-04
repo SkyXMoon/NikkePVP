@@ -120,6 +120,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "复制图片网址改为当前访问入口",
   "复制图片增加站点网址",
   "放大普通竞技场复制图片",
   "优化普通竞技场复制图片版式",
@@ -129,7 +130,6 @@ const CHANGELOG_ITEMS = [
   "完善浅色主题弹窗与图表样式",
   "恢复右上角说明入口并完善主题覆盖",
   "新增侧边栏、更新日志、使用说明入口与主题切换",
-  "保持冠军特殊竞技场模式",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -5717,7 +5717,6 @@ function drawCanvasText(context, text, x, y, options = {}) {
 function getExportSiteUrl() {
   const fallbackUrl = "https://nikke.skyxmoon.workers.dev";
   if (window.location.protocol !== "http:" && window.location.protocol !== "https:") return fallbackUrl;
-  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return fallbackUrl;
   return window.location.origin;
 }
 
