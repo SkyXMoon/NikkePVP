@@ -1567,7 +1567,7 @@ input:focus {
   color: var(--gold);
   background: transparent;
   border: 0;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 900;
 }
 
@@ -2654,7 +2654,7 @@ summary {
     width: 24px;
     height: 21px;
     transform: translateX(-50%);
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .universal-charge-label {
