@@ -120,6 +120,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "优化普通竞技场复制图片版式",
   "移动端复制改为原生分享图片",
   "修正复制图片内容与提示主题",
   "修正浅色主题低对比文字",
@@ -129,7 +130,6 @@ const CHANGELOG_ITEMS = [
   "保持冠军特殊竞技场模式",
   "补充马斯特国服常用",
   "补充尼罗牡丹国服常用",
-  "修正布丽德静默轨道头像",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -5866,6 +5866,102 @@ async function paidArenaToPngBlob() {
   return canvasToPngBlob(canvas);
 }
 
+function getNormalArenaResultLabel(result) {
+  if (!result || result.error) return "未完成";
+  return `${getStandardChargeBand(result.fullFrame)}（${result.fullFrame}F）`;
+}
+
+async function normalArenaToPngBlob() {
+  const battleResults = getBattleResultsSnapshot();
+  const { defenseResult, attackResult } = battleResults;
+  const defenseTeam = state.defenseTeam;
+  const attackTeam = state.team;
+  const defenseUniversalCharges = state.defenseUniversalCharges;
+  const attackUniversalCharges = state.universalCharges;
+  const defenseChargeSpeeds = state.defenseChargeSpeeds;
+  const attackChargeSpeeds = state.chargeSpeeds;
+  const defenseFinishers = new Set(defenseResult && !defenseResult.error ? defenseResult.finishingPositionIndices : []);
+  const attackFinishers = new Set(attackResult && !attackResult.error ? attackResult.finishingPositionIndices : []);
+  const defenseTauntTarget = getTauntTargetState(defenseTeam, "defense", defenseChargeSpeeds)?.positionIndex ?? null;
+  const attackTauntTarget = getTauntTargetState(attackTeam, "attack", attackChargeSpeeds)?.positionIndex ?? null;
+  const padding = 28;
+  const slotSize = 76;
+  const slotGap = 10;
+  const teamWidth = TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap;
+  const vsWidth = 72;
+  const contentWidth = teamWidth * 2 + vsWidth;
+  const chartBlob = await getChargeChartPngBlob();
+  const chartImage = await loadImageFromUrl(await blobToDataUrl(chartBlob));
+  const chartHeight = Math.round(contentWidth * (chartImage.height / chartImage.width));
+  const chartY = padding;
+  const infoY = chartY + chartHeight + 30;
+  const infoHeight = 46;
+  const teamsY = infoY + infoHeight + 28;
+  const labelY = teamsY - 18;
+  const height = teamsY + slotSize + padding;
+  const width = contentWidth + padding * 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#0b0e14";
+  context.fillRect(0, 0, width, height);
+
+  context.drawImage(chartImage, padding, chartY, contentWidth, chartHeight);
+
+  const defenseX = padding;
+  const attackX = padding + teamWidth + vsWidth;
+  const vsX = padding + teamWidth + vsWidth / 2;
+
+  const drawInfoPill = (x, teamKey, result) => {
+    const color = teamKey === "defense" ? "#4da3ff" : "#e43f4f";
+    context.fillStyle = teamKey === "defense" ? "rgba(77, 163, 255, 0.14)" : "rgba(228, 63, 79, 0.14)";
+    getCanvasRoundedRectPath(context, x, infoY, teamWidth, infoHeight, 7);
+    context.fill();
+    context.strokeStyle = teamKey === "defense" ? "rgba(77, 163, 255, 0.58)" : "rgba(228, 63, 79, 0.58)";
+    context.lineWidth = 1;
+    context.stroke();
+    drawCanvasText(context, TEAM_LABELS[teamKey], x + 14, infoY + 15, { size: 13, weight: 800, color });
+    drawCanvasText(context, getNormalArenaResultLabel(result), x + 14, infoY + 32, { size: 16, weight: 800, color: "#f2f5fa" });
+  };
+
+  drawInfoPill(defenseX, "defense", defenseResult);
+  drawCanvasText(context, "VS", vsX, infoY + infoHeight / 2, { align: "center", size: 24, weight: 900, color: "#f0c45c" });
+  drawInfoPill(attackX, "attack", attackResult);
+
+  drawCanvasText(context, "防守队", defenseX, labelY, { size: 16, weight: 900, color: "#9dccff" });
+  drawCanvasText(context, "VS", vsX, teamsY + slotSize / 2, { align: "center", size: 28, weight: 900, color: "#f0c45c" });
+  drawCanvasText(context, "进攻队", attackX + teamWidth, labelY, { align: "right", size: 16, weight: 900, color: "#ff9ba5" });
+
+  const imageCache = new Map();
+  const loadCharacterImage = async (character) => {
+    if (!character?.avatarUrl) return null;
+    if (!imageCache.has(character.avatarUrl)) imageCache.set(character.avatarUrl, loadExportImage(character.avatarUrl));
+    return imageCache.get(character.avatarUrl);
+  };
+
+  const drawTeam = async (team, teamKey, x, universalCharges, chargeSpeeds, finishers, tauntTarget) => {
+    for (let index = 0; index < TEAM_SIZE; index += 1) {
+      const character = team[index];
+      const slot = {
+        index,
+        character,
+        universalCharge: sanitizeUniversalCharge(universalCharges[index]),
+        image: await loadCharacterImage(character),
+        isFinisher: finishers.has(index) && canShowFinishMarker(character),
+        isTauntTarget: character && index === tauntTarget,
+        badgeText: getPaidArenaSlotBadgeText(character, sanitizeChargeSpeed(chargeSpeeds[index]), teamKey),
+      };
+      drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), teamsY, slotSize);
+    }
+  };
+
+  await drawTeam(defenseTeam, "defense", defenseX, defenseUniversalCharges, defenseChargeSpeeds, defenseFinishers, defenseTauntTarget);
+  await drawTeam(attackTeam, "attack", attackX, attackUniversalCharges, attackChargeSpeeds, attackFinishers, attackTauntTarget);
+
+  return canvasToPngBlob(canvas);
+}
+
 async function copyBattleResultsWithChart(text) {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
     throw new Error("rich clipboard is not supported");
@@ -6062,7 +6158,7 @@ async function copyRichImageToClipboard(imageBlobOrPromise) {
 
 async function copyCurrentArenaImage() {
   const isPaid = isPaidArenaModeActive();
-  return isPaid ? paidArenaToPngBlob() : getChargeChartPngBlob();
+  return isPaid ? paidArenaToPngBlob() : normalArenaToPngBlob();
 }
 
 function isTextEditingElement(element = document.activeElement) {
