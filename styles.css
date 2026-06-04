@@ -1616,19 +1616,19 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 12px;
   position: absolute;
   left: 50%;
-  bottom: 4px;
-  width: calc(100% - 8px);
-  min-height: 22px;
+  bottom: 8px;
+  width: calc(100% - 10px);
+  min-height: 28px;
   transform: translateX(-50%);
-  border: 1px dashed var(--line);
-  border-radius: 5px;
-  padding: 2px 3px;
-  color: var(--quiet);
-  background: #0b0e14;
-  font-size: 11px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: #ff4b58;
+  background: transparent;
+  font-size: 20px;
   font-weight: 900;
   box-sizing: border-box;
 }
@@ -1638,30 +1638,30 @@ input:focus {
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 18px;
+  width: auto;
+  height: auto;
   padding: 0;
-  border: 1px solid rgba(77, 163, 255, 0.42);
-  border-radius: 4px;
-  color: #dff7ff;
-  background: rgba(7, 9, 13, 0.78);
-  font-size: 12px;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  font-size: inherit;
   font-weight: 900;
   line-height: 1;
 }
 
 .universal-charge-field input {
   position: static;
-  width: min(44px, calc(100% - 24px));
-  min-height: 18px;
-  border: 1px solid rgba(77, 163, 255, 0.42);
-  border-radius: 3px;
-  padding: 1px 3px;
-  color: var(--text);
-  background: rgba(7, 9, 13, 0.8);
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1.1;
+  width: min(52px, calc(100% - 34px));
+  min-height: 28px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font-size: inherit;
+  font-weight: 900;
+  line-height: 1;
   text-align: center;
   outline: none;
 }
@@ -2655,17 +2655,18 @@ summary {
   }
 
   .universal-charge-label {
-    width: 18px;
-    height: 17px;
-    font-size: 10px;
+    width: auto;
+    height: auto;
+    font-size: inherit;
   }
 
   .universal-charge-field {
-    bottom: 3px;
-    width: calc(100% - 6px);
-    min-height: 21px;
-    gap: 2px;
-    padding: 2px;
+    bottom: 6px;
+    width: calc(100% - 8px);
+    min-height: 24px;
+    gap: 7px;
+    padding: 0;
+    font-size: 16px;
   }
 
   .slot-settings-toggle {
