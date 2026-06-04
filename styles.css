@@ -1614,15 +1614,18 @@ input:focus {
 
 .universal-charge-field {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   gap: 3px;
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: calc(100% - 8px);
+  min-height: 22px;
+  transform: translateX(-50%);
   border: 1px dashed var(--line);
   border-radius: 5px;
-  padding: 0 4px 5px;
+  padding: 2px 3px;
   color: var(--quiet);
   background: #0b0e14;
   font-size: 11px;
@@ -1649,7 +1652,7 @@ input:focus {
 
 .universal-charge-field input {
   position: static;
-  width: min(44px, 66%);
+  width: min(44px, calc(100% - 24px));
   min-height: 18px;
   border: 1px solid rgba(77, 163, 255, 0.42);
   border-radius: 3px;
@@ -2655,6 +2658,14 @@ summary {
     width: 18px;
     height: 17px;
     font-size: 10px;
+  }
+
+  .universal-charge-field {
+    bottom: 3px;
+    width: calc(100% - 6px);
+    min-height: 21px;
+    gap: 2px;
+    padding: 2px;
   }
 
   .slot-settings-toggle {
