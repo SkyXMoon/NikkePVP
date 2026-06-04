@@ -1191,11 +1191,14 @@ function isTauntCharacter(character) {
   return isNoah(character) || isNoise(character);
 }
 
-function getTauntTargetState(team = [], teamKey = "attack") {
+function getTauntTargetState(team = [], teamKey = "attack", chargeSpeedsOverride = null) {
   const candidates = team
     .map((character, positionIndex) => {
       if (!character || !isTauntCharacter(character)) return null;
       const slotCharacter = characterForSlot(character, positionIndex, teamKey);
+      if (Array.isArray(chargeSpeedsOverride)) {
+        slotCharacter.chargeSpeedPercent = sanitizeChargeSpeed(chargeSpeedsOverride[positionIndex]);
+      }
       const timing = getChargeFrames(slotCharacter, positionIndex, teamKey);
       return {
         positionIndex,
@@ -1205,7 +1208,7 @@ function getTauntTargetState(team = [], teamKey = "attack") {
     })
     .filter(Boolean);
   if (!candidates.length) return null;
-  candidates.sort((a, b) => b.chargeFrames - a.chargeFrames || b.positionIndex - a.positionIndex);
+  candidates.sort((a, b) => b.chargeFrames - a.chargeFrames || b.activationFrame - a.activationFrame || b.positionIndex - a.positionIndex);
   return candidates[0];
 }
 
@@ -3003,7 +3006,7 @@ function renderPaidArenaTeams() {
     const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
     const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
     const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
-    const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey)?.positionIndex ?? null;
+    const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey, chargeSpeeds)?.positionIndex ?? null;
     const row = document.createElement("section");
     row.className = `team-row paid-arena-row${state.paidArenaActiveRowIndex === rowIndex ? " is-active" : ""}`;
     row.dataset.paidArenaRowIndex = String(rowIndex);
@@ -3234,7 +3237,8 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
     const jackalTargetIds = new Set(jackalLinkState.targetIds);
     const linkOwner = getTeamLinkProvider(teamKey);
     const linkOwnerName = linkOwner ? (isJackal(linkOwner) ? "豺狼链接" : "波莉链接") : "链接";
-    const tauntTargetPositionIndex = getTauntTargetState(teamKey === "defense" ? state.defenseTeam : state.team, teamKey)?.positionIndex ?? null;
+    const tauntTargetPositionIndex =
+      getTauntTargetState(teamKey === "defense" ? state.defenseTeam : state.team, teamKey, chargeSpeeds)?.positionIndex ?? null;
     team.forEach((character, index) => {
       const teamResult = resultsByTeam.get(teamKey);
       const finishingPositions = new Set(teamResult && !teamResult.error ? teamResult.finishingPositionIndices : []);
@@ -3504,8 +3508,8 @@ function updateTeamFinishMarkers(result = null, defenseResult = null) {
     ["attack", new Set(result && !result.error ? result.finishingPositionIndices : [])],
   ]);
   const tauntPositionsByTeam = new Map([
-    ["defense", getTauntTargetState(state.defenseTeam, "defense")?.positionIndex ?? null],
-    ["attack", getTauntTargetState(state.team, "attack")?.positionIndex ?? null],
+    ["defense", getTauntTargetState(state.defenseTeam, "defense", state.defenseChargeSpeeds)?.positionIndex ?? null],
+    ["attack", getTauntTargetState(state.team, "attack", state.chargeSpeeds)?.positionIndex ?? null],
   ]);
 
   els.teamSlots.querySelectorAll(".team-slot").forEach((slot) => {
@@ -3867,8 +3871,8 @@ function getResultSignature(result) {
 function computeBattleResults() {
   const attackStunWindows = getStunWindowsForTeam("attack");
   const defenseStunWindows = getStunWindowsForTeam("defense");
-  const defenseTauntTarget = getTauntTargetState(state.defenseTeam, "defense");
-  const attackTauntTarget = getTauntTargetState(state.team, "attack");
+  const defenseTauntTarget = getTauntTargetState(state.defenseTeam, "defense", state.defenseChargeSpeeds);
+  const attackTauntTarget = getTauntTargetState(state.team, "attack", state.chargeSpeeds);
   let attackResult = simulateBurst(state.team, "attack", [], [], [], attackStunWindows, defenseTauntTarget);
   let defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], [], defenseStunWindows, attackTauntTarget);
 
@@ -5733,7 +5737,7 @@ async function paidArenaToPngBlob() {
     const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
     const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
     const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
-    const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey)?.positionIndex ?? null;
+    const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey, chargeSpeeds)?.positionIndex ?? null;
     const rowX = padding;
     const rowWidth = width - padding * 2;
 
