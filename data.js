@@ -6397,7 +6397,7 @@ const CHARACTERS = [
     "name": "布丽德:静默轨道",
     "enName": "Brid",
     "rarity": "SSR",
-    "avatarUrl": "assets/avatars/characters/73.png",
+    "avatarUrl": "assets/avatars/characters/5160.webp",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/11/11/65222.png",
     "isCommon": true,
     "weapon": "SG",
