@@ -4806,7 +4806,7 @@ function renderResults(battleResults = getBattleResultsSnapshot()) {
   if (isPaidArenaModeActive()) {
     const teams = getPaidArenaTeams();
     const pickedCount = teams.flat().filter(Boolean).length;
-    els.summaryStrip.textContent = `${getPaidArenaModeLabel()}：${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复`;
+    els.summaryStrip.textContent = `${getPaidArenaModeLabel()}：${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复\n移动端长按，桌面端右键可复制队伍图片`;
     els.resultPanel.innerHTML = "";
     renderChargeChart(null, null);
     return null;
