@@ -2694,6 +2694,10 @@ function getPaidArenaFeatureTitle(mode) {
   return mode === "c" ? "冠军竞技场" : "特殊竞技场";
 }
 
+function getPaidArenaModeLabel(mode = state.paidArenaMode) {
+  return mode === "c" ? "冠军竞技场" : mode === "p" ? "特殊竞技场" : "";
+}
+
 function setPaidArenaMode(mode) {
   const nextMode = normalizePaidArenaMode(mode);
   state.paidArenaMode = nextMode;
@@ -2787,7 +2791,7 @@ function renderPaidArenaTeams() {
     const row = document.createElement("section");
     row.className = `team-row paid-arena-row${state.paidArenaActiveRowIndex === rowIndex ? " is-active" : ""}`;
     row.dataset.paidArenaRowIndex = String(rowIndex);
-    row.setAttribute("aria-label", `${state.paidArenaMode.toUpperCase()}${rowIndex + 1}`);
+    row.setAttribute("aria-label", `${getPaidArenaModeLabel()}第${rowIndex + 1}队`);
     row.innerHTML = '<div class="team-slots-row"></div><div class="paid-arena-result-bar"></div>';
     row.addEventListener("click", () => {
       state.paidArenaActiveRowIndex = rowIndex;
@@ -4467,7 +4471,7 @@ function renderResults(battleResults = getBattleResultsSnapshot()) {
   if (isPaidArenaModeActive()) {
     const teams = getPaidArenaTeams();
     const pickedCount = teams.flat().filter(Boolean).length;
-    els.summaryStrip.textContent = `${state.paidArenaMode.toUpperCase()}场：${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复`;
+    els.summaryStrip.textContent = `${getPaidArenaModeLabel()}：${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复`;
     els.resultPanel.innerHTML = "";
     renderChargeChart(null, null);
     return null;
@@ -4591,7 +4595,7 @@ function addPaidArenaCharacter(character) {
   const universalCharges = getPaidArenaUniversalCharges()[rowIndex] || Array(TEAM_SIZE).fill(0);
   const emptyIndex = team.findIndex((member) => !member);
   if (emptyIndex === -1) {
-    showToast(`${state.paidArenaMode.toUpperCase()}${rowIndex + 1}已满，请先移除一个槽位。`);
+    showToast(`${getPaidArenaModeLabel()}第${rowIndex + 1}队已满，请先移除一个槽位。`);
     return;
   }
   team[emptyIndex] = character;
