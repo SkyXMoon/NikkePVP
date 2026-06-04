@@ -6399,7 +6399,7 @@ const CHARACTERS = [
     "rarity": "SSR",
     "avatarUrl": "assets/avatars/characters/73.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/11/11/65222.png",
-    "isCommon": false,
+    "isCommon": true,
     "weapon": "SG",
     "weaponCn": "霰弹枪",
     "burstGen": 2,
