@@ -2250,7 +2250,8 @@ const CHARACTERS = [
     "classType": "火力",
     "element": "铁甲",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 63.11,

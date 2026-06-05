@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "拉普拉斯珍藏加入国服",
   "修正国际服拉普拉斯额外伤害",
   "调整说明页复制分享位置",
   "修正蓄速词条3.45%",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "调整冠军竞技场RL弹道规则",
   "献祭标记显示献祭帧数",
   "隐藏非蓄力角色蓄速魔方",
-  "献祭设置增加重置默认",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
