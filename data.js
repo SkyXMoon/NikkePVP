@@ -1096,30 +1096,24 @@ const CHARACTERS = [
     "rarity": "SR",
     "avatarUrl": "assets/avatars/characters/13.png",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2023/8/6/849095.png",
-    "isCommon": false,
+    "isCommon": true,
     "weapon": "RL",
     "weaponCn": "发射器",
     "burstGen": 1.15,
     "burstCoefficient": 0.0115,
     "chargeSpeedPercent": 0,
     "rlExplosionRange": 1,
-    "firstFrameOverride": null,
-    "attackIntervalFrames": null,
+    "firstFrameOverride": 0,
+    "attackIntervalFrames": 42,
     "projectileFlightFrames": null,
-    "turnFrames": null,
+    "turnFrames": 0,
     "timing": {
-      "chargeFrames": 60,
-      "firstFrame": 76,
-      "intervalFrames": 76,
+      "chargeFrames": 0,
+      "firstFrame": 0,
+      "intervalFrames": 42,
       "projectileFlightFrames": null,
-      "projectileFlightFramesByPosition": {
-        "P1": 16,
-        "P2": 16,
-        "P3": 14,
-        "P4": 14,
-        "P5": 14
-      },
-      "turnFrames": 16
+      "projectileFlightFramesByPosition": null,
+      "turnFrames": 0
     },
     "hasPenetration": false,
     "hasExtraDamage": false,
@@ -1131,13 +1125,14 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "铁甲",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 75,
       "magazine": 6,
       "reloadSeconds": 2.5,
-      "chargeSeconds": 1,
+      "chargeSeconds": 0,
       "maxCharge": null
     },
     "scenario": {
@@ -1176,7 +1171,7 @@ const CHARACTERS = [
       "attack": "↗",
       "defense": "↙"
     },
-    "notes": "发射器；系数 0.0115；RL爆炸范围 1",
+    "notes": "发射器；系数 0.0115；RL爆炸范围 1；发射节奏按SG：0F首发，42F间隔",
     "source": "NIKKE PVP 充能计算器 v2.3.20（更新20260516）.xlsx"
   },
   {

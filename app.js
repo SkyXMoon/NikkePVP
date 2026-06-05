@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "更新国服帕斯卡",
   "修复冠特万能充能输入",
   "新增方案拖拽复制",
   "更新分享按钮说明",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "更新页面使用说明",
   "修正手填蓄速魔方联动",
   "支持手填最终蓄速",
-  "优化魔方与蓄速下拉样式",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
