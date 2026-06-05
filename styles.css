@@ -2516,11 +2516,24 @@ input:focus {
 }
 
 .slot-settings-speed-total {
-  min-width: 34px;
+  width: 38px;
+  min-height: 28px;
+  border: 1px solid rgba(71, 200, 212, 0.36);
+  border-radius: 6px;
+  padding: 0 4px;
   color: var(--cyan);
+  background: rgba(71, 200, 212, 0.08);
   text-align: center;
   font-size: 11px;
   font-weight: 900;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.slot-settings-speed-total::-webkit-inner-spin-button,
+.slot-settings-speed-total::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
 }
 
 .slot-settings-frame-preview {
@@ -3046,6 +3059,12 @@ input:focus {
 :root[data-theme="light"] .slot-settings-speed-entry option {
   color: #17202c;
   background: #ffffff;
+}
+
+:root[data-theme="light"] .slot-settings-speed-total {
+  color: #0d668d;
+  border-color: rgba(12, 153, 170, 0.32);
+  background: rgba(255, 255, 255, 0.82);
 }
 
 :root[data-theme="light"] .settings-cube-option {

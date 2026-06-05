@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "支持手填最终蓄速",
   "优化魔方与蓄速下拉样式",
   "新增蓄速魔方选择",
   "更新蓄力速度词条计算",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "放大复制图片站点网址",
   "复制图片网址改为当前访问入口",
   "复制图片增加站点网址",
-  "放大普通竞技场复制图片",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -663,6 +663,10 @@ function calculateChargeSpeedFromEntriesAndCube(entries = [], cubeType = CUBE_TY
   return calculateChargeSpeedFromEntries(entries) + getChargeSpeedCubeBonus(cubeType);
 }
 
+function hasChargeSpeedEntries(entries = []) {
+  return normalizeChargeSpeedEntries(entries).some((entry) => entry > 0);
+}
+
 function formatChargeSpeedEntry(value) {
   return `${sanitizeChargeSpeedEntry(value).toFixed(2)}%`;
 }
@@ -754,7 +758,10 @@ function saveCharacterCubeType(character, cubeType, teamKey = state.activeTeamKe
     cubeMemory[character.id] = normalizedCubeType;
     quantumMemory[character.id] = normalizedCubeType === CUBE_TYPE_QUANTUM;
   }
-  saveCharacterChargeSpeedEntries(character, getSavedCharacterChargeSpeedEntries(character, teamKey), teamKey);
+  const entries = getSavedCharacterChargeSpeedEntries(character, teamKey);
+  if (hasChargeSpeedEntries(entries) || getSavedCharacterChargeSpeed(character, teamKey) === 0) {
+    saveCharacterChargeSpeedEntries(character, entries, teamKey);
+  }
 }
 
 function getSavedCharacterMagazine(character, teamKey = state.activeTeamKey) {
@@ -2446,7 +2453,7 @@ function createSlotSettingsModal() {
               <div class="slot-settings-speed-entry-list">
                 ${chargeSpeedEntrySelects}
               </div>
-              <span class="slot-settings-speed-total">${chargeSpeedValue}%</span>
+              <input class="slot-settings-speed-total" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" aria-label="最终蓄力速度" />
               <span class="slot-settings-frame-preview">${formatFrameCount(chargeSpeedPreviewFrame)}F</span>
             </div>
           `
@@ -2512,11 +2519,17 @@ function createSlotSettingsModal() {
       sanitizeCubeType(backdrop.querySelector(".slot-settings-cube-type:checked")?.value || getSavedCharacterCubeType(character, teamKey));
     const updateSpeedFramePreview = () => {
       const speed = calculateChargeSpeedFromEntriesAndCube(getCurrentSpeedEntries(), getCurrentCubeType());
-      if (speedTotal) speedTotal.textContent = `${speed}%`;
+      if (speedTotal) speedTotal.value = speed;
       if (speedFramePreview) {
         const frame = getChargeSpeedPreviewFrame(character, index, simulationTeamKey, speed);
         speedFramePreview.textContent = `${formatFrameCount(frame)}F`;
       }
+    };
+    const updateManualSpeedFramePreview = () => {
+      if (!speedFramePreview) return;
+      const speed = sanitizeChargeSpeed(speedTotal?.value);
+      const frame = getChargeSpeedPreviewFrame(character, index, simulationTeamKey, speed);
+      speedFramePreview.textContent = `${formatFrameCount(frame)}F`;
     };
     const commitSpeedValue = () => {
       const entries = getCurrentSpeedEntries();
@@ -2540,6 +2553,38 @@ function createSlotSettingsModal() {
         commitSpeedValue();
       });
     });
+    if (speedTotal) {
+      const commitManualSpeedValue = () => {
+        const speed = sanitizeChargeSpeed(speedTotal.value);
+        speedTotal.value = speed;
+        const emptyEntries = normalizeChargeSpeedEntries();
+        speedEntrySelects.forEach((select) => {
+          select.value = "0.00";
+        });
+        getCharacterChargeSpeedEntryMemory(teamKey)[character.id] = emptyEntries;
+        saveCharacterChargeSpeed(character, speed, teamKey);
+        if (chargeSpeeds[index] === speed) {
+          saveTeam();
+          updateManualSpeedFramePreview();
+          return;
+        }
+        chargeSpeeds[index] = speed;
+        applySavedChargeSpeedToNormalTeam(character, teamKey);
+        updateManualSpeedFramePreview();
+        refreshSlotSettingsChanges(context);
+      };
+      speedTotal.addEventListener("pointerdown", (event) => event.stopPropagation());
+      speedTotal.addEventListener("focus", (event) => event.target.select());
+      speedTotal.addEventListener("click", (event) => event.target.select());
+      speedTotal.addEventListener("dragstart", (event) => event.stopPropagation());
+      speedTotal.addEventListener("input", updateManualSpeedFramePreview);
+      speedTotal.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        speedTotal.blur();
+      });
+      speedTotal.addEventListener("blur", commitManualSpeedValue);
+    }
   }
 
   const magazineInput = backdrop.querySelector(".slot-settings-magazine");
