@@ -120,6 +120,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "放大复制图片站点网址",
   "复制图片网址改为当前访问入口",
   "复制图片增加站点网址",
   "放大普通竞技场复制图片",
@@ -5723,7 +5724,7 @@ function getExportSiteUrl() {
 function drawExportSiteUrl(context, width, padding, y) {
   drawCanvasText(context, getExportSiteUrl(), width - padding, y, {
     align: "right",
-    size: 14,
+    size: 17,
     weight: 700,
     color: "#7f8a99",
   });
