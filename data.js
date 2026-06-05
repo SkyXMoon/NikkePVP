@@ -2360,7 +2360,33 @@ const CHARACTERS = [
     },
     "hasPenetration": false,
     "hasExtraDamage": false,
-    "delayedExtraHits": [],
+    "delayedExtraHits": [
+      {
+        "delayFrames": 12,
+        "segments": 1,
+        "label": "额外伤害"
+      },
+      {
+        "delayFrames": 18,
+        "segments": 1,
+        "label": "额外伤害"
+      },
+      {
+        "delayFrames": 24,
+        "segments": 1,
+        "label": "额外伤害"
+      },
+      {
+        "delayFrames": 30,
+        "segments": 1,
+        "label": "额外伤害"
+      },
+      {
+        "delayFrames": 36,
+        "segments": 1,
+        "label": "额外伤害"
+      }
+    ],
     "hitCountExtraEvents": [],
     "flatBurstBonus": 0,
     "company": "朝圣者",

@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "更新莉贝雷利奥额外伤害逻辑",
   "重装白雪不受蓄速影响",
   "优化SR和RL充能组成说明",
   "优化白雪公主重型武装充能组成说明",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "调整说明页复制分享位置",
   "修正蓄速词条3.45%",
   "调整诺雅诺伊斯同速嘲讽优先级",
-  "角色复制信息补充枪种",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
