@@ -121,7 +121,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [45, 32],
   [46, 32],
 ]);
-const CHARGE_SPEED_ENTRY_OPTIONS = [0, 1.98, 2.28, 2.57, 2.86, 3.16, 3.54, 3.75, 4.04, 4.33, 4.63, 4.92, 5.21, 5.51, 5.8, 6.09];
+const CHARGE_SPEED_ENTRY_OPTIONS = [0, 1.98, 2.28, 2.57, 2.86, 3.16, 3.45, 3.75, 4.04, 4.33, 4.63, 4.92, 5.21, 5.51, 5.8, 6.09];
 const CHARGE_SPEED_ENTRY_COUNT = 4;
 const CUBE_TYPE_NONE = "none";
 const CUBE_TYPE_CHARGE_SPEED = "charge-speed";
@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正蓄速词条3.45%",
   "调整诺雅诺伊斯同速嘲讽优先级",
   "角色复制信息补充枪种",
   "新增首次访问帮助引导",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "献祭设置增加重置默认",
   "修复献祭输入并显示充能轴",
   "冠军和特殊竞技场支持罗珊娜献祭",
-  "新增罗珊娜献祭功能",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
