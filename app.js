@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正手填蓄速魔方联动",
   "支持手填最终蓄速",
   "优化魔方与蓄速下拉样式",
   "新增蓄速魔方选择",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "完善浅色主题队伍角标",
   "放大复制图片站点网址",
   "复制图片网址改为当前访问入口",
-  "复制图片增加站点网址",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -748,6 +748,8 @@ function getCubeIconSrc(cubeType) {
 
 function saveCharacterCubeType(character, cubeType, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
+  const previousCubeType = getSavedCharacterCubeType(character, teamKey);
+  const previousChargeSpeed = getSavedCharacterChargeSpeed(character, teamKey);
   const normalizedCubeType = sanitizeCubeType(cubeType);
   const cubeMemory = getCharacterCubeTypeMemory(teamKey);
   const quantumMemory = getCharacterQuantumCubeMemory(teamKey);
@@ -761,6 +763,9 @@ function saveCharacterCubeType(character, cubeType, teamKey = state.activeTeamKe
   const entries = getSavedCharacterChargeSpeedEntries(character, teamKey);
   if (hasChargeSpeedEntries(entries) || getSavedCharacterChargeSpeed(character, teamKey) === 0) {
     saveCharacterChargeSpeedEntries(character, entries, teamKey);
+  } else {
+    const bonusDelta = getChargeSpeedCubeBonus(normalizedCubeType) - getChargeSpeedCubeBonus(previousCubeType);
+    saveCharacterChargeSpeed(character, Math.max(0, previousChargeSpeed + bonusDelta), teamKey);
   }
 }
 
