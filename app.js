@@ -127,6 +127,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "献祭标记显示献祭帧数",
   "隐藏非蓄力角色蓄速魔方",
   "献祭设置增加重置默认",
   "修复献祭输入并显示充能轴",
@@ -136,7 +137,6 @@ const CHANGELOG_ITEMS = [
   "启用nameCode头像回退",
   "整理nameCode头像数据",
   "隐藏帕斯卡蓄速设置",
-  "更新国服帕斯卡",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -2209,6 +2209,12 @@ function getIconMarkup(src, label, className) {
   return `<span class="tile-icon ${className}"><img src="${escapeHtml(src)}" alt="${escapeHtml(label)}" loading="lazy" /></span>`;
 }
 
+function getSacrificeMarkMarkup(frame) {
+  const sacrificeFrame = sanitizeSacrificeFrame(frame);
+  if (sacrificeFrame === null) return "";
+  return `<span class="sacrifice-mark"><span>祭</span><small>${sacrificeFrame}F</small></span>`;
+}
+
 function isSlotSettingsOpen(teamKey, index) {
   return openSlotSettings?.teamKey === teamKey && openSlotSettings.index === index;
 }
@@ -3696,8 +3702,9 @@ function renderPaidArenaTeams() {
         Number(openSlotSettings.index) === slotIndex;
       const isFinisher = finishingPositions.has(slotIndex) && canShowFinishMarker(character);
       const isTauntTarget = character && slotIndex === tauntTargetPositionIndex;
+      const sacrificeFrame = sanitizeSacrificeFrame(sacrificeFrames[slotIndex]);
       const isSacrificedTarget =
-        character && teamHasRosanna && !isRosanna(character) && sanitizeSacrificeFrame(sacrificeFrames[slotIndex]) !== null;
+        character && teamHasRosanna && !isRosanna(character) && sacrificeFrame !== null;
       const displayMagazine = character ? getDisplayMagazine(character, dataTeamKey) : null;
       const sideBadgeText =
         character && canEditChargeSpeed(character) && chargeSpeedValue > 0
@@ -3734,7 +3741,7 @@ function renderPaidArenaTeams() {
         copyLayer.setAttribute("aria-hidden", "true");
         copyLayer.innerHTML = `
           ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
-          ${isSacrificedTarget ? '<span class="sacrifice-mark">祭</span>' : ""}
+          ${isSacrificedTarget ? getSacrificeMarkMarkup(sacrificeFrame) : ""}
           ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
           ${cubeIconSrc ? `<span class="slot-cube-badge"><img src="${cubeIconSrc}" alt="" /></span>` : ""}
           ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
@@ -3971,8 +3978,9 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const displayMagazine = character ? getDisplayMagazine(character, teamKey) : null;
       const redHoodPierceCount = character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0;
       const isScarletCounterEnabled = character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false;
+      const sacrificeFrame = sanitizeSacrificeFrame(rosannaSacrificeFrames[index]);
       const isSacrificedTarget =
-        character && teamHasRosanna && !isRosanna(character) && sanitizeSacrificeFrame(rosannaSacrificeFrames[index]) !== null;
+        character && teamHasRosanna && !isRosanna(character) && sacrificeFrame !== null;
       const isTauntTarget = character && index === tauntTargetPositionIndex;
       const sideBadgeText =
         character && canEditChargeSpeed(character) && chargeSpeedValue > 0
@@ -3997,7 +4005,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
             <span class="slot-copy" aria-hidden="true">
               ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
-              ${isSacrificedTarget ? '<span class="sacrifice-mark">祭</span>' : ""}
+              ${isSacrificedTarget ? getSacrificeMarkMarkup(sacrificeFrame) : ""}
               ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
               ${cubeIconSrc ? `<span class="slot-cube-badge"><img src="${cubeIconSrc}" alt="" /></span>` : ""}
               ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
@@ -6590,7 +6598,7 @@ function drawExportSiteUrl(context, width, padding, y) {
 }
 
 function drawPaidArenaSlot(context, slot, x, y, size) {
-  const { character, universalCharge, image, isFinisher, isTauntTarget, isSacrificedTarget, badgeText } = slot;
+  const { character, universalCharge, image, isFinisher, isTauntTarget, isSacrificedTarget, sacrificeFrame, badgeText } = slot;
   const radius = 7;
   context.save();
   context.fillStyle = character ? "#111821" : "#15191f";
@@ -6647,9 +6655,12 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
       drawCanvasText(context, "嘲", x + 16, y + 16, { align: "center", size: 15, weight: 800, color: "#ffffff" });
     }
     if (isSacrificedTarget) {
+      const frameText = `${sanitizeSacrificeFrame(sacrificeFrame)}F`;
       context.fillStyle = "#d9354a";
-      context.fillRect(x + 5, y + 5, 22, 22);
-      drawCanvasText(context, "祭", x + 16, y + 16, { align: "center", size: 15, weight: 800, color: "#ffffff" });
+      getCanvasRoundedRectPath(context, x + 5, y + 5, 32, 34, 5);
+      context.fill();
+      drawCanvasText(context, "祭", x + 21, y + 16, { align: "center", size: 14, weight: 800, color: "#ffffff" });
+      drawCanvasText(context, frameText, x + 21, y + 30, { align: "center", size: 9, weight: 800, color: "#ffffff" });
     }
     if (isFinisher) {
       context.fillStyle = "#ff4f5f";
@@ -6733,6 +6744,7 @@ async function paidArenaToPngBlob() {
     for (let slotIndex = 0; slotIndex < TEAM_SIZE; slotIndex += 1) {
       const character = team[slotIndex];
       const chargeSpeed = chargeSpeeds[slotIndex];
+      const sacrificeFrame = sanitizeSacrificeFrame(sacrificeFrames[slotIndex]);
       const slot = {
         index: slotIndex,
         character,
@@ -6740,8 +6752,8 @@ async function paidArenaToPngBlob() {
         image: await loadCharacterImage(character),
         isFinisher: finishingPositions.has(slotIndex) && canShowFinishMarker(character),
         isTauntTarget: character && slotIndex === tauntTargetPositionIndex,
-        isSacrificedTarget:
-          character && teamHasRosanna && !isRosanna(character) && sanitizeSacrificeFrame(sacrificeFrames[slotIndex]) !== null,
+        isSacrificedTarget: character && teamHasRosanna && !isRosanna(character) && sacrificeFrame !== null,
+        sacrificeFrame,
         badgeText: getPaidArenaSlotBadgeText(character, chargeSpeed, dataTeamKey),
       };
       drawPaidArenaSlot(context, slot, slotsStartX + slotIndex * (slotSize + slotGap), y, slotSize);
@@ -6840,6 +6852,7 @@ async function normalArenaToPngBlob() {
     const teamHasRosanna = team.some((member) => member && isRosanna(member));
     for (let index = 0; index < TEAM_SIZE; index += 1) {
       const character = team[index];
+      const sacrificeFrame = sanitizeSacrificeFrame(sacrificeFrames[index]);
       const slot = {
         index,
         character,
@@ -6847,8 +6860,8 @@ async function normalArenaToPngBlob() {
         image: await loadCharacterImage(character),
         isFinisher: finishers.has(index) && canShowFinishMarker(character),
         isTauntTarget: character && index === tauntTarget,
-        isSacrificedTarget:
-          character && teamHasRosanna && !isRosanna(character) && sanitizeSacrificeFrame(sacrificeFrames[index]) !== null,
+        isSacrificedTarget: character && teamHasRosanna && !isRosanna(character) && sacrificeFrame !== null,
+        sacrificeFrame,
         badgeText: getPaidArenaSlotBadgeText(character, sanitizeChargeSpeed(chargeSpeeds[index]), teamKey),
       };
       drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), teamsY, slotSize);

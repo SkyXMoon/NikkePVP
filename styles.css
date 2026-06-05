@@ -1219,16 +1219,29 @@ input:focus {
   left: 4px;
   top: 4px;
   z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 21px;
-  height: 21px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  min-height: 29px;
+  padding: 2px 3px;
   border: 1px solid rgba(255, 217, 220, 0.82);
   border-radius: 6px;
   color: #fff;
   background: #d9354a;
-  font-size: 13px;
   font-weight: 900;
+  line-height: 1;
+}
+
+.slot-copy .sacrifice-mark span {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.slot-copy .sacrifice-mark small {
+  margin-top: 1px;
+  font-size: 8px;
   line-height: 1;
 }
 
