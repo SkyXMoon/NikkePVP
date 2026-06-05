@@ -127,6 +127,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "冠军和特殊竞技场支持罗珊娜献祭",
   "新增罗珊娜献祭功能",
   "优化缺头像占位显示",
   "启用nameCode头像回退",
@@ -136,7 +137,6 @@ const CHANGELOG_ITEMS = [
   "修复冠特万能充能输入",
   "新增方案拖拽复制",
   "更新分享按钮说明",
-  "复制按钮改为分享图标",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -210,6 +210,10 @@ const state = {
   paidArenaChargeSpeeds: {
     c: createEmptyPaidArenaChargeSpeeds("c"),
     p: createEmptyPaidArenaChargeSpeeds("p"),
+  },
+  paidArenaRosannaSacrificeFrames: {
+    c: createEmptyPaidArenaRosannaSacrificeFrames("c"),
+    p: createEmptyPaidArenaRosannaSacrificeFrames("p"),
   },
   allowMissedShots: true,
   battlePowerBase: 0,
@@ -442,10 +446,12 @@ function getPaidArenaCopyText() {
   if (!isPaidArenaModeActive()) return "";
   const teams = getPaidArenaTeams();
   const universalRows = getPaidArenaUniversalCharges();
+  const sacrificeRows = getPaidArenaRosannaSacrificeFrames();
   const dataTeamKey = getPaidArenaDataTeamKey();
   const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守数据" : "进攻数据";
   const rows = teams.map((team, rowIndex) => {
     const universalCharges = universalRows[rowIndex] || Array(TEAM_SIZE).fill(0);
+    const sacrificeFrames = sacrificeRows[rowIndex] || Array(TEAM_SIZE).fill(null);
     const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
     const members = Array.from({ length: TEAM_SIZE }, (_, index) => {
       const character = team[index];
@@ -457,7 +463,7 @@ function getPaidArenaCopyText() {
       }
       return universalCharge > 0 ? `充${formatNumber(universalCharge, 2)}%` : "空";
     }).join("，");
-    return `第${rowIndex + 1}队：${members}\n${getPaidArenaResultText(team, universalCharges, chargeSpeeds)}`;
+    return `第${rowIndex + 1}队：${members}\n${getPaidArenaResultText(team, universalCharges, chargeSpeeds, null, sacrificeFrames)}`;
   });
   return [`${getPaidArenaModeLabel()}（${dataSourceLabel}）`, ...rows].join("\n\n");
 }
@@ -2202,7 +2208,12 @@ function isSlotSettingsOpen(teamKey, index) {
 }
 
 function isRosannaSacrificeSettingsOpen(teamKey, index) {
-  return openRosannaSacrificeSettings?.teamKey === teamKey && openRosannaSacrificeSettings.index === index;
+  return (
+    openRosannaSacrificeSettings &&
+    !openRosannaSacrificeSettings.paidArenaMode &&
+    openRosannaSacrificeSettings.teamKey === teamKey &&
+    openRosannaSacrificeSettings.index === index
+  );
 }
 
 function toggleSlotSettings(teamKey, index) {
@@ -2212,6 +2223,21 @@ function toggleSlotSettings(teamKey, index) {
 
 function toggleRosannaSacrificeSettings(teamKey, index) {
   openRosannaSacrificeSettings = isRosannaSacrificeSettingsOpen(teamKey, index) ? null : { teamKey, index };
+  openSlotSettings = null;
+}
+
+function isPaidArenaRosannaSacrificeSettingsOpen(mode, rowIndex, index) {
+  return (
+    openRosannaSacrificeSettings?.paidArenaMode === normalizePaidArenaMode(mode) &&
+    Number(openRosannaSacrificeSettings.rowIndex) === Number(rowIndex) &&
+    Number(openRosannaSacrificeSettings.index) === Number(index)
+  );
+}
+
+function togglePaidArenaRosannaSacrificeSettings(mode, rowIndex, index) {
+  openRosannaSacrificeSettings = isPaidArenaRosannaSacrificeSettingsOpen(mode, rowIndex, index)
+    ? null
+    : { paidArenaMode: normalizePaidArenaMode(mode), rowIndex, index };
   openSlotSettings = null;
 }
 
@@ -2758,16 +2784,25 @@ function createSlotSettingsModal() {
 
 function createRosannaSacrificeModal() {
   if (!openRosannaSacrificeSettings) return null;
-  const teamKey = normalizeTeamKey(openRosannaSacrificeSettings.teamKey);
+  const paidArenaMode = normalizePaidArenaMode(openRosannaSacrificeSettings.paidArenaMode);
+  const isPaidArena = paidArenaMode !== "normal";
+  const teamKey = isPaidArena ? getPaidArenaDataTeamKey() : normalizeTeamKey(openRosannaSacrificeSettings.teamKey);
+  const rowIndex = Number(openRosannaSacrificeSettings.rowIndex) || 0;
   const index = Number(openRosannaSacrificeSettings.index);
-  const team = getTeamState(teamKey);
+  const team = (isPaidArena ? getPaidArenaTeams(paidArenaMode)[rowIndex] : getTeamState(teamKey)) || [];
   const rosanna = team[index];
   if (!rosanna || !isRosanna(rosanna)) {
     openRosannaSacrificeSettings = null;
     return null;
   }
 
-  const sacrificeFrames = getRosannaSacrificeFrameState(teamKey);
+  const sacrificeFrames = isPaidArena
+    ? getPaidArenaRosannaSacrificeFrames(paidArenaMode)[rowIndex]
+    : getRosannaSacrificeFrameState(teamKey);
+  if (!sacrificeFrames) {
+    openRosannaSacrificeSettings = null;
+    return null;
+  }
   sacrificeFrames[index] = null;
   const targetRows = team
     .map((character, positionIndex) => ({ character, positionIndex }))
@@ -2779,7 +2814,7 @@ function createRosannaSacrificeModal() {
     <section class="slot-settings-modal rosanna-sacrifice-modal" role="dialog" aria-modal="true" aria-label="罗珊娜献祭设置">
       <div class="slot-settings-modal-head">
         <div>
-          <span class="slot-settings-team">${escapeHtml(TEAM_LABELS[teamKey])}</span>
+          <span class="slot-settings-team">${escapeHtml(isPaidArena ? `${getPaidArenaModeLabel(paidArenaMode)} P${rowIndex + 1}` : TEAM_LABELS[teamKey])}</span>
           <strong>罗珊娜献祭</strong>
         </div>
         <button class="slot-settings-close" type="button" aria-label="关闭献祭设置">X</button>
@@ -3103,6 +3138,11 @@ function createEmptyPaidArenaChargeSpeeds(mode) {
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(0));
 }
 
+function createEmptyPaidArenaRosannaSacrificeFrames(mode) {
+  const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
+  return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(null));
+}
+
 function normalizePaidArenaMode(mode) {
   return mode === "c" || mode === "p" ? mode : "normal";
 }
@@ -3147,6 +3187,19 @@ function getPaidArenaChargeSpeeds(mode = state.paidArenaMode) {
   return state.paidArenaChargeSpeeds[normalizedMode];
 }
 
+function getPaidArenaRosannaSacrificeFrames(mode = state.paidArenaMode) {
+  const normalizedMode = normalizePaidArenaMode(mode);
+  if (normalizedMode === "normal") return [];
+  if (!Array.isArray(state.paidArenaRosannaSacrificeFrames?.[normalizedMode])) {
+    state.paidArenaRosannaSacrificeFrames[normalizedMode] = createEmptyPaidArenaRosannaSacrificeFrames(normalizedMode);
+  }
+  state.paidArenaRosannaSacrificeFrames[normalizedMode] = normalizePaidArenaRosannaSacrificeFrames(
+    state.paidArenaRosannaSacrificeFrames[normalizedMode],
+    normalizedMode,
+  );
+  return state.paidArenaRosannaSacrificeFrames[normalizedMode];
+}
+
 function normalizePaidArenaTeams(savedTeams = [], mode = "c") {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, (_, rowIndex) =>
@@ -3172,6 +3225,13 @@ function normalizePaidArenaChargeSpeeds(savedSpeeds = [], mode = "c") {
   );
 }
 
+function normalizePaidArenaRosannaSacrificeFrames(savedFrames = [], mode = "c") {
+  const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
+  return Array.from({ length: teamCount }, (_, rowIndex) =>
+    Array.from({ length: TEAM_SIZE }, (_, slotIndex) => sanitizeSacrificeFrame(savedFrames?.[rowIndex]?.[slotIndex])),
+  );
+}
+
 function serializePaidArenaTeams(mode) {
   return getPaidArenaTeams(mode).map((team) => team.map((character) => character?.id || null));
 }
@@ -3182,6 +3242,10 @@ function serializePaidArenaUniversalCharges(mode) {
 
 function serializePaidArenaChargeSpeeds(mode) {
   return getPaidArenaChargeSpeeds(mode).map((teamSpeeds) => [...teamSpeeds]);
+}
+
+function serializePaidArenaRosannaSacrificeFrames(mode) {
+  return getPaidArenaRosannaSacrificeFrames(mode).map((teamFrames) => [...teamFrames]);
 }
 
 function getPaidArenaDataTeamKey() {
@@ -3217,7 +3281,7 @@ function setPaidArenaDataTeamKey(teamKey) {
   render();
 }
 
-function simulatePaidArenaBurst(team, chargeSpeeds = [], universalCharges = []) {
+function simulatePaidArenaBurst(team, chargeSpeeds = [], universalCharges = [], sacrificeFrames = Array(TEAM_SIZE).fill(null)) {
   const dataTeamKey = getPaidArenaDataTeamKey();
   const previousChargeSpeeds = state.chargeSpeeds;
   const previousDefenseChargeSpeeds = state.defenseChargeSpeeds;
@@ -3237,7 +3301,7 @@ function simulatePaidArenaBurst(team, chargeSpeeds = [], universalCharges = []) 
   state.characterMagazines[dataTeamKey] = getCharacterMagazineMemory(dataTeamKey);
   state.characterRedHoodPierceCounts[dataTeamKey] = getCharacterRedHoodPierceCountMemory(dataTeamKey);
   try {
-    return simulateBurst(team, dataTeamKey, [], [], [], [], null, universalCharges, [], Array(TEAM_SIZE).fill(null));
+    return simulateBurst(team, dataTeamKey, [], [], [], [], null, universalCharges, [], sacrificeFrames);
   } finally {
     state.chargeSpeeds = previousChargeSpeeds;
     state.defenseChargeSpeeds = previousDefenseChargeSpeeds;
@@ -3533,8 +3597,8 @@ function syncPaidFeatureButtons() {
   }
 }
 
-function getPaidArenaResultText(team, universalCharges, chargeSpeeds = [], result = null) {
-  const rowResult = result || simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
+function getPaidArenaResultText(team, universalCharges, chargeSpeeds = [], result = null, sacrificeFrames = Array(TEAM_SIZE).fill(null)) {
+  const rowResult = result || simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames);
   if (!rowResult) return "未配置";
   if (rowResult.error) return rowResult.error;
   const frame = rowResult.fullFrame;
@@ -3566,16 +3630,22 @@ function renderPaidArenaTeams() {
   const fragment = document.createDocumentFragment();
   const teams = getPaidArenaTeams();
   const universalChargeRows = getPaidArenaUniversalCharges();
+  const sacrificeRows = getPaidArenaRosannaSacrificeFrames();
   const dataTeamKey = getPaidArenaDataTeamKey();
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
   fragment.append(createPaidArenaDataSourceBar());
 
   teams.forEach((team, rowIndex) => {
     const universalCharges = universalChargeRows[rowIndex] || Array(TEAM_SIZE).fill(0);
+    const sacrificeFrames = sacrificeRows[rowIndex] || Array(TEAM_SIZE).fill(null);
     const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
-    const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
+    const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames);
     const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
     const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey, chargeSpeeds)?.positionIndex ?? null;
+    const teamHasRosanna = team.some((member) => member && isRosanna(member));
+    const hasSacrificeTarget = team.some(
+      (member, index) => member && !isRosanna(member) && sanitizeSacrificeFrame(sacrificeFrames[index]) !== null,
+    );
     const row = document.createElement("section");
     row.className = `team-row paid-arena-row${state.paidArenaActiveRowIndex === rowIndex ? " is-active" : ""}`;
     row.dataset.paidArenaRowIndex = String(rowIndex);
@@ -3599,6 +3669,8 @@ function renderPaidArenaTeams() {
         Number(openSlotSettings.index) === slotIndex;
       const isFinisher = finishingPositions.has(slotIndex) && canShowFinishMarker(character);
       const isTauntTarget = character && slotIndex === tauntTargetPositionIndex;
+      const isSacrificedTarget =
+        character && teamHasRosanna && !isRosanna(character) && sanitizeSacrificeFrame(sacrificeFrames[slotIndex]) !== null;
       const displayMagazine = character ? getDisplayMagazine(character, dataTeamKey) : null;
       const sideBadgeText =
         character && canEditChargeSpeed(character) && chargeSpeedValue > 0
@@ -3635,6 +3707,7 @@ function renderPaidArenaTeams() {
         copyLayer.setAttribute("aria-hidden", "true");
         copyLayer.innerHTML = `
           ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
+          ${isSacrificedTarget ? '<span class="sacrifice-mark">祭</span>' : ""}
           ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
           ${cubeIconSrc ? `<span class="slot-cube-badge"><img src="${cubeIconSrc}" alt="" /></span>` : ""}
           ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
@@ -3648,6 +3721,18 @@ function renderPaidArenaTeams() {
         settingsButton.title = "设置";
         settingsButton.innerHTML = '<img src="assets/icons/ui/settings.svg" alt="" aria-hidden="true" />';
         slot.append(settingsButton);
+
+        if (isRosanna(character)) {
+          const sacrificeButton = document.createElement("button");
+          sacrificeButton.className = `slot-sacrifice-toggle${
+            isPaidArenaRosannaSacrificeSettingsOpen(state.paidArenaMode, rowIndex, slotIndex) || hasSacrificeTarget ? " is-active" : ""
+          }`;
+          sacrificeButton.type = "button";
+          sacrificeButton.setAttribute("aria-label", `设置 ${character.name} 献祭`);
+          sacrificeButton.title = "罗珊娜献祭";
+          sacrificeButton.innerHTML = '<img src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />';
+          slot.append(sacrificeButton);
+        }
       }
 
       slot.addEventListener("click", (event) => {
@@ -3740,6 +3825,19 @@ function renderPaidArenaTeams() {
           event.preventDefault();
           event.stopPropagation();
         });
+        slot.querySelector(".slot-sacrifice-toggle")?.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          state.paidArenaActiveRowIndex = rowIndex;
+          togglePaidArenaRosannaSacrificeSettings(state.paidArenaMode, rowIndex, slotIndex);
+          saveTeam();
+          render();
+        });
+        slot.querySelector(".slot-sacrifice-toggle")?.addEventListener("pointerdown", (event) => event.stopPropagation());
+        slot.querySelector(".slot-sacrifice-toggle")?.addEventListener("dragstart", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
       } else {
         const universalInput = slot.querySelector("[data-paid-arena-universal-index]");
         universalInput.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -3755,7 +3853,7 @@ function renderPaidArenaTeams() {
           state.paidArenaActiveRowIndex = rowIndex;
           universalCharges[slotIndex] = sanitizeUniversalCharge(event.target.value);
           slot.classList.toggle("has-universal", universalCharges[slotIndex] > 0);
-          resultBar.textContent = getPaidArenaResultText(team, universalCharges, chargeSpeeds);
+          resultBar.textContent = getPaidArenaResultText(team, universalCharges, chargeSpeeds, null, sacrificeFrames);
         });
         universalInput.addEventListener("keydown", (event) => {
           event.stopPropagation();
@@ -3768,7 +3866,7 @@ function renderPaidArenaTeams() {
           universalCharges[slotIndex] = value;
           event.target.value = value || "";
           slot.classList.toggle("has-universal", value > 0);
-          resultBar.textContent = getPaidArenaResultText(team, universalCharges, chargeSpeeds);
+          resultBar.textContent = getPaidArenaResultText(team, universalCharges, chargeSpeeds, null, sacrificeFrames);
           saveTeam();
         });
       }
@@ -3776,13 +3874,15 @@ function renderPaidArenaTeams() {
     });
 
     const resultBar = row.querySelector(".paid-arena-result-bar");
-    resultBar.textContent = getPaidArenaResultText(team, universalCharges, chargeSpeeds, result);
+    resultBar.textContent = getPaidArenaResultText(team, universalCharges, chargeSpeeds, result, sacrificeFrames);
 
     fragment.append(row);
   });
 
   const settingsModal = createSlotSettingsModal();
   if (settingsModal) fragment.append(settingsModal);
+  const sacrificeModal = createRosannaSacrificeModal();
+  if (sacrificeModal) fragment.append(sacrificeModal);
 
   els.teamSlots.replaceChildren(fragment);
 }
@@ -3812,6 +3912,9 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
     const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
     const rosannaSacrificeFrames = getRosannaSacrificeFrameState(teamKey);
     const teamHasRosanna = team.some((member) => member && isRosanna(member));
+    const hasSacrificeTarget = team.some(
+      (member, index) => member && !isRosanna(member) && sanitizeSacrificeFrame(rosannaSacrificeFrames[index]) !== null,
+    );
     const row = document.createElement("section");
     row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
     row.dataset.teamKey = teamKey;
@@ -3898,7 +4001,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           ${
             isRosanna(character)
               ? `
-                <button class="slot-sacrifice-toggle${isRosannaSacrificeSettingsOpen(teamKey, index) ? " is-active" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)} 献祭" title="罗珊娜献祭">
+                <button class="slot-sacrifice-toggle${isRosannaSacrificeSettingsOpen(teamKey, index) || hasSacrificeTarget ? " is-active" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)} 献祭" title="罗珊娜献祭">
                   <img src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />
                 </button>
               `
@@ -5571,6 +5674,7 @@ function addPaidArenaCharacter(character) {
   const team = teams[rowIndex];
   const universalCharges = getPaidArenaUniversalCharges()[rowIndex] || Array(TEAM_SIZE).fill(0);
   const chargeSpeeds = getPaidArenaChargeSpeeds()[rowIndex] || Array(TEAM_SIZE).fill(0);
+  const sacrificeFrames = getPaidArenaRosannaSacrificeFrames()[rowIndex] || Array(TEAM_SIZE).fill(null);
   const emptyIndex = team.findIndex((member) => !member);
   if (emptyIndex === -1) {
     showToast(`${getPaidArenaModeLabel()}第${rowIndex + 1}队已满，请先移除一个槽位。`);
@@ -5579,6 +5683,7 @@ function addPaidArenaCharacter(character) {
   team[emptyIndex] = character;
   universalCharges[emptyIndex] = 0;
   chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, getPaidArenaDataTeamKey());
+  sacrificeFrames[emptyIndex] = null;
   openSlotSettings = null;
   openRosannaSacrificeSettings = null;
   saveTeam();
@@ -5589,11 +5694,13 @@ function removePaidArenaCharacter(rowIndex, slotIndex) {
   const teams = getPaidArenaTeams();
   const universalCharges = getPaidArenaUniversalCharges();
   const chargeSpeeds = getPaidArenaChargeSpeeds();
+  const sacrificeRows = getPaidArenaRosannaSacrificeFrames();
   const team = teams[rowIndex];
   if (!team || slotIndex < 0 || slotIndex >= TEAM_SIZE) return;
   team[slotIndex] = null;
   if (universalCharges[rowIndex]) universalCharges[rowIndex][slotIndex] = 0;
   if (chargeSpeeds[rowIndex]) chargeSpeeds[rowIndex][slotIndex] = 0;
+  if (sacrificeRows[rowIndex]) sacrificeRows[rowIndex][slotIndex] = null;
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(rowIndex) || 0));
   openSlotSettings = null;
   openRosannaSacrificeSettings = null;
@@ -5605,6 +5712,7 @@ function movePaidArenaSlot(fromRowIndex, fromIndex, toRowIndex, toIndex) {
   const teams = getPaidArenaTeams();
   const universalRows = getPaidArenaUniversalCharges();
   const speedRows = getPaidArenaChargeSpeeds();
+  const sacrificeRows = getPaidArenaRosannaSacrificeFrames();
   const fromTeam = teams[fromRowIndex];
   const toTeam = teams[toRowIndex];
   if (
@@ -5623,6 +5731,7 @@ function movePaidArenaSlot(fromRowIndex, fromIndex, toRowIndex, toIndex) {
   const fromCharacter = fromTeam[fromIndex];
   const fromUniversalCharge = universalRows[fromRowIndex]?.[fromIndex] || 0;
   const fromSpeed = speedRows[fromRowIndex]?.[fromIndex] || 0;
+  const fromSacrificeFrame = sacrificeRows[fromRowIndex]?.[fromIndex] ?? null;
 
   if (toTeam[toIndex]) {
     [fromTeam[fromIndex], toTeam[toIndex]] = [toTeam[toIndex], fromTeam[fromIndex]];
@@ -5634,13 +5743,19 @@ function movePaidArenaSlot(fromRowIndex, fromIndex, toRowIndex, toIndex) {
       speedRows[toRowIndex][toIndex],
       speedRows[fromRowIndex][fromIndex],
     ];
+    [sacrificeRows[fromRowIndex][fromIndex], sacrificeRows[toRowIndex][toIndex]] = [
+      sacrificeRows[toRowIndex][toIndex],
+      sacrificeRows[fromRowIndex][fromIndex],
+    ];
   } else {
     toTeam[toIndex] = fromCharacter;
     universalRows[toRowIndex][toIndex] = fromUniversalCharge;
     speedRows[toRowIndex][toIndex] = fromSpeed;
+    sacrificeRows[toRowIndex][toIndex] = fromSacrificeFrame;
     fromTeam[fromIndex] = null;
     universalRows[fromRowIndex][fromIndex] = 0;
     speedRows[fromRowIndex][fromIndex] = 0;
+    sacrificeRows[fromRowIndex][fromIndex] = null;
   }
 
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(toRowIndex) || 0));
@@ -5797,6 +5912,7 @@ function clearTeam() {
     state.paidArenaTeams[state.paidArenaMode] = createEmptyPaidArenaTeams(state.paidArenaMode);
     state.paidArenaUniversalCharges[state.paidArenaMode] = createEmptyPaidArenaUniversalCharges(state.paidArenaMode);
     state.paidArenaChargeSpeeds[state.paidArenaMode] = createEmptyPaidArenaChargeSpeeds(state.paidArenaMode);
+    state.paidArenaRosannaSacrificeFrames[state.paidArenaMode] = createEmptyPaidArenaRosannaSacrificeFrames(state.paidArenaMode);
     state.paidArenaActiveRowIndex = 0;
     openSlotSettings = null;
     openRosannaSacrificeSettings = null;
@@ -6012,6 +6128,10 @@ function saveTeam() {
         c: serializePaidArenaChargeSpeeds("c"),
         p: serializePaidArenaChargeSpeeds("p"),
       },
+      paidArenaRosannaSacrificeFrames: {
+        c: serializePaidArenaRosannaSacrificeFrames("c"),
+        p: serializePaidArenaRosannaSacrificeFrames("p"),
+      },
       jackalLinks: state.jackalLinks,
       allowMissedShots: state.allowMissedShots,
       battlePowerBase: state.battlePowerBase,
@@ -6096,6 +6216,10 @@ function loadTeam() {
         c: normalizePaidArenaChargeSpeeds(saved.paidArenaChargeSpeeds?.c, "c"),
         p: normalizePaidArenaChargeSpeeds(saved.paidArenaChargeSpeeds?.p, "p"),
       };
+      state.paidArenaRosannaSacrificeFrames = {
+        c: normalizePaidArenaRosannaSacrificeFrames(saved.paidArenaRosannaSacrificeFrames?.c, "c"),
+        p: normalizePaidArenaRosannaSacrificeFrames(saved.paidArenaRosannaSacrificeFrames?.p, "p"),
+      };
       state.paidArenaMode = normalizePaidArenaMode(saved.paidArenaMode);
       state.paidArenaActiveRowIndex = Math.max(
         0,
@@ -6161,6 +6285,10 @@ function loadTeam() {
     state.paidArenaChargeSpeeds = {
       c: createEmptyPaidArenaChargeSpeeds("c"),
       p: createEmptyPaidArenaChargeSpeeds("p"),
+    };
+    state.paidArenaRosannaSacrificeFrames = {
+      c: createEmptyPaidArenaRosannaSacrificeFrames("c"),
+      p: createEmptyPaidArenaRosannaSacrificeFrames("p"),
     };
     state.jackalLinks = {
       defense: { enabled: false, ownerId: null, targetIds: [] },
@@ -6478,6 +6606,7 @@ async function paidArenaToPngBlob() {
   const mode = state.paidArenaMode;
   const teams = getPaidArenaTeams(mode);
   const universalRows = getPaidArenaUniversalCharges(mode);
+  const sacrificeRows = getPaidArenaRosannaSacrificeFrames(mode);
   const dataTeamKey = getPaidArenaDataTeamKey();
   const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守数据" : "进攻数据";
   const title = `${getPaidArenaModeLabel(mode)}（${dataSourceLabel}）`;
@@ -6513,10 +6642,12 @@ async function paidArenaToPngBlob() {
   let y = padding + headerHeight;
   for (const [rowIndex, team] of teams.entries()) {
     const universalCharges = universalRows[rowIndex] || Array(TEAM_SIZE).fill(0);
+    const sacrificeFrames = sacrificeRows[rowIndex] || Array(TEAM_SIZE).fill(null);
     const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
-    const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges);
+    const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames);
     const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
     const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey, chargeSpeeds)?.positionIndex ?? null;
+    const teamHasRosanna = team.some((member) => member && isRosanna(member));
     const rowX = padding;
     const rowWidth = width - padding * 2;
 
@@ -6539,12 +6670,14 @@ async function paidArenaToPngBlob() {
         image: await loadCharacterImage(character),
         isFinisher: finishingPositions.has(slotIndex) && canShowFinishMarker(character),
         isTauntTarget: character && slotIndex === tauntTargetPositionIndex,
+        isSacrificedTarget:
+          character && teamHasRosanna && !isRosanna(character) && sanitizeSacrificeFrame(sacrificeFrames[slotIndex]) !== null,
         badgeText: getPaidArenaSlotBadgeText(character, chargeSpeed, dataTeamKey),
       };
       drawPaidArenaSlot(context, slot, slotsStartX + slotIndex * (slotSize + slotGap), y, slotSize);
     }
 
-    const resultText = getPaidArenaResultText(team, universalCharges, chargeSpeeds, result);
+    const resultText = getPaidArenaResultText(team, universalCharges, chargeSpeeds, result, sacrificeFrames);
     const resultY = y + slotSize + 19;
     context.fillStyle = "#17202b";
     getCanvasRoundedRectPath(context, slotsStartX, resultY - 13, teamSlotsWidth, 26, 5);
