@@ -358,6 +358,10 @@ input[type="number"]::-webkit-outer-spin-button {
   background: rgba(23, 32, 44, 0.72);
 }
 
+:root[data-theme="light"] .team-avatar {
+  background: linear-gradient(145deg, #f9fbff, #dce7f2);
+}
+
 :root[data-theme="light"] .character-hover-tooltip,
 :root[data-theme="light"] .chart-hover-tooltip {
   border-color: rgba(84, 103, 126, 0.26);
@@ -403,9 +407,76 @@ input[type="number"]::-webkit-outer-spin-button {
 :root[data-theme="light"] .slot-link-target,
 :root[data-theme="light"] .slot-pierce-count,
 :root[data-theme="light"] .slot-counter-toggle {
-  color: #17202c;
-  border-color: rgba(84, 103, 126, 0.3);
-  background: rgba(255, 255, 255, 0.86);
+  color: #263447;
+  border-color: rgba(84, 103, 126, 0.38);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 5px rgba(28, 43, 62, 0.22);
+}
+
+:root[data-theme="light"] .slot-link-toggle img,
+:root[data-theme="light"] .slot-link-target img,
+:root[data-theme="light"] .slot-counter-toggle img,
+:root[data-theme="light"] .slot-pierce-icon {
+  filter: none;
+}
+
+:root[data-theme="light"] .slot-link-toggle.is-active,
+:root[data-theme="light"] .slot-pierce-count.is-active,
+:root[data-theme="light"] .slot-counter-toggle.is-active {
+  color: #ffffff;
+  border-color: rgba(34, 111, 198, 0.82);
+  background: rgba(34, 111, 198, 0.9);
+}
+
+:root[data-theme="light"] .slot-link-target.is-selected {
+  color: #ffffff;
+  border-color: rgba(201, 43, 64, 0.72);
+  background: rgba(217, 53, 74, 0.88);
+}
+
+:root[data-theme="light"] .slot-link-target span {
+  color: #263447;
+}
+
+:root[data-theme="light"] .slot-link-target.is-selected span,
+:root[data-theme="light"] .slot-link-toggle.is-active img,
+:root[data-theme="light"] .slot-link-target.is-selected img,
+:root[data-theme="light"] .slot-counter-toggle.is-active img,
+:root[data-theme="light"] .slot-pierce-count.is-active .slot-pierce-icon {
+  color: #ffffff;
+  filter: brightness(0) invert(1);
+}
+
+:root[data-theme="light"] .slot-settings-toggle {
+  filter: drop-shadow(0 2px 4px rgba(28, 43, 62, 0.26));
+}
+
+:root[data-theme="light"] .slot-settings-toggle:hover,
+:root[data-theme="light"] .slot-settings-toggle.is-open {
+  filter: drop-shadow(0 0 7px rgba(12, 153, 170, 0.72)) drop-shadow(0 2px 4px rgba(28, 43, 62, 0.26));
+}
+
+:root[data-theme="light"] .slot-cube-badge {
+  filter: drop-shadow(0 2px 3px rgba(28, 43, 62, 0.28));
+}
+
+:root[data-theme="light"] .slot-copy .finish-mark {
+  color: #ffffff;
+  border-color: rgba(255, 225, 229, 0.88);
+  background: #d9354a;
+  box-shadow: 0 2px 5px rgba(201, 43, 64, 0.22);
+}
+
+:root[data-theme="light"] .slot-copy .taunt-mark {
+  color: #ffffff;
+  border-color: rgba(221, 245, 255, 0.9);
+  background: #226fc6;
+  box-shadow: 0 2px 5px rgba(34, 111, 198, 0.24);
+}
+
+:root[data-theme="light"] .slot-pierce-value {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(28, 43, 62, 0.75);
 }
 
 :root[data-theme="light"] .app-help-button {
