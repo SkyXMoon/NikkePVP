@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "调整说明页复制分享位置",
   "修正蓄速词条3.45%",
   "调整诺雅诺伊斯同速嘲讽优先级",
   "角色复制信息补充枪种",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "隐藏非蓄力角色蓄速魔方",
   "献祭设置增加重置默认",
   "修复献祭输入并显示充能轴",
-  "冠军和特殊竞技场支持罗珊娜献祭",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -3045,6 +3045,12 @@ function createHelpModal(options = {}) {
       ],
     },
   ];
+  const copyShareIndex = sections.findIndex((section) => section.title === "复制与分享");
+  if (copyShareIndex > 1) {
+    const [copyShareSection] = sections.splice(copyShareIndex, 1);
+    sections.splice(1, 0, copyShareSection);
+  }
+
   const backdrop = document.createElement("div");
   backdrop.className = "help-modal-backdrop";
   if (options.intro) backdrop.dataset.intro = "true";
