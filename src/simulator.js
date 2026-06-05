@@ -70,6 +70,7 @@ const LITTLE_MERMAID_STUN_FRAME = 196;
 const LITTLE_MERMAID_STUN_DURATION_FRAMES = 180;
 const LITTLE_MERMAID_STUN_TARGET_INDEX = 0;
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 0;
+const VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES = 12;
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 22;
 const CINDERELLA_INITIAL_CHARGE_SEQUENCE = [4, 2, 2, 2, 4, 4];
 const CINDERELLA_LOOP_CHARGE_SEQUENCE = [2, 2, 2, 2, 4, 4];
@@ -164,6 +165,10 @@ function isCinderella(character) {
   return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
 }
 
+function isVestiTacticalUpgrade(character) {
+  return character?.id === 87 || character?.enName === "Vesti: Tactical Upgrade" || String(character?.slug || "").includes("战术升级");
+}
+
 function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = []) {
   return (
     character?.weapon === "SR" &&
@@ -224,6 +229,7 @@ function applyChargeSpeedIntervalFrames(baseChargeFrames, fixedFrames, chargeSpe
 
 function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
   if (isCinderella(character)) return CINDERELLA_PROJECTILE_FLIGHT_FRAMES;
+  if (isVestiTacticalUpgrade(character)) return VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES;
   if (Number.isFinite(character.projectileFlightFrames)) return character.projectileFlightFrames;
   if (normalizeTeamKey(teamKey) === "defense") {
     if (positionIndex <= 1) return 16;

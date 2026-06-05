@@ -53,6 +53,8 @@ const LITTLE_MERMAID_TIMELINE_EVENT = {
   frame: LITTLE_MERMAID_STUN_FRAME,
 };
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 0;
+const VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES = 12;
+const CHAMPION_ARENA_RL_PROJECTILE_FLIGHT_FRAMES = [16, 16, 16, 14, 14];
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 22;
 const CINDERELLA_INITIAL_CHARGE_SEQUENCE = [4, 2, 2, 2, 4, 4];
 const CINDERELLA_LOOP_CHARGE_SEQUENCE = [2, 2, 2, 2, 4, 4];
@@ -127,6 +129,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "调整冠军竞技场RL弹道规则",
   "献祭标记显示献祭帧数",
   "隐藏非蓄力角色蓄速魔方",
   "献祭设置增加重置默认",
@@ -136,7 +139,6 @@ const CHANGELOG_ITEMS = [
   "优化缺头像占位显示",
   "启用nameCode头像回退",
   "整理nameCode头像数据",
-  "隐藏帕斯卡蓄速设置",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -927,6 +929,14 @@ function isCinderella(character) {
   return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
 }
 
+function isVestiTacticalUpgrade(character) {
+  return (
+    character?.id === 87 ||
+    character?.enName === "Vesti: Tactical Upgrade" ||
+    (String(character?.slug || "").includes("贝斯蒂") && String(character?.slug || "").includes("战术升级"))
+  );
+}
+
 function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = []) {
   return (
     character?.weapon === "SR" &&
@@ -946,6 +956,10 @@ function getCinderellaChargeMultiplier(shotNumber = 1) {
 
 function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
   if (isCinderella(character)) return CINDERELLA_PROJECTILE_FLIGHT_FRAMES;
+  if (isVestiTacticalUpgrade(character)) return VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES;
+  if (state.paidArenaMode === "c") {
+    return CHAMPION_ARENA_RL_PROJECTILE_FLIGHT_FRAMES[Math.max(0, Math.min(TEAM_SIZE - 1, positionIndex))] ?? 16;
+  }
   if (Number.isFinite(character.projectileFlightFrames)) return character.projectileFlightFrames;
   if (normalizeTeamKey(teamKey) === "defense") {
     if (positionIndex <= 1) return 16;
