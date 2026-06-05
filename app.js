@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "启用nameCode头像回退",
   "整理nameCode头像数据",
   "隐藏帕斯卡蓄速设置",
   "更新国服帕斯卡",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "复制按钮改为分享图标",
   "修复iOS悬停信息残留",
   "加入国服婴宁",
-  "更新页面使用说明",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1917,10 +1917,15 @@ function getRegionLabel(character) {
 }
 
 function getAvatarMarkup(character) {
-  if (character.avatarUrl) {
-    return `<img src="${escapeHtml(character.avatarUrl)}" alt="${escapeHtml(character.name)}" loading="lazy" referrerpolicy="no-referrer" />`;
+  const avatarUrl = getCharacterAvatarUrl(character);
+  if (avatarUrl) {
+    return `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(character.name)}" loading="lazy" referrerpolicy="no-referrer" />`;
   }
   return `<span>${escapeHtml(character.weapon)}</span>`;
+}
+
+function getCharacterAvatarUrl(character) {
+  return character?.avatarUrl || character?.nameCodeAvatarUrl || "";
 }
 
 function getTimingLabel(character) {
@@ -6261,9 +6266,10 @@ async function paidArenaToPngBlob() {
 
   const imageCache = new Map();
   const loadCharacterImage = async (character) => {
-    if (!character?.avatarUrl) return null;
-    if (!imageCache.has(character.avatarUrl)) imageCache.set(character.avatarUrl, loadExportImage(character.avatarUrl));
-    return imageCache.get(character.avatarUrl);
+    const avatarUrl = getCharacterAvatarUrl(character);
+    if (!avatarUrl) return null;
+    if (!imageCache.has(avatarUrl)) imageCache.set(avatarUrl, loadExportImage(avatarUrl));
+    return imageCache.get(avatarUrl);
   };
 
   let y = padding + headerHeight;
@@ -6382,9 +6388,10 @@ async function normalArenaToPngBlob() {
 
   const imageCache = new Map();
   const loadCharacterImage = async (character) => {
-    if (!character?.avatarUrl) return null;
-    if (!imageCache.has(character.avatarUrl)) imageCache.set(character.avatarUrl, loadExportImage(character.avatarUrl));
-    return imageCache.get(character.avatarUrl);
+    const avatarUrl = getCharacterAvatarUrl(character);
+    if (!avatarUrl) return null;
+    if (!imageCache.has(avatarUrl)) imageCache.set(avatarUrl, loadExportImage(avatarUrl));
+    return imageCache.get(avatarUrl);
   };
 
   const drawTeam = async (team, teamKey, x, universalCharges, chargeSpeeds, finishers, tauntTarget) => {
