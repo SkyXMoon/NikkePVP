@@ -65,6 +65,7 @@ const CHART_HEIGHT = 660;
 const CHART_MIN_WIDTH = 320;
 const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
+const ROSANNA_SACRIFICE_CHARGE = 36.54;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
 const MISS_DODGE_WINDOW_FRAMES = 6;
@@ -126,6 +127,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "新增罗珊娜献祭功能",
   "优化缺头像占位显示",
   "启用nameCode头像回退",
   "整理nameCode头像数据",
@@ -135,7 +137,6 @@ const CHANGELOG_ITEMS = [
   "新增方案拖拽复制",
   "更新分享按钮说明",
   "复制按钮改为分享图标",
-  "修复iOS悬停信息残留",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -158,11 +159,13 @@ const state = {
   defenseUniversalCharges: Array(TEAM_SIZE).fill(0),
   defenseRedHoodPierceCounts: Array(TEAM_SIZE).fill(0),
   defenseScarletCounterEnabled: Array(TEAM_SIZE).fill(true),
+  defenseRosannaSacrificeFrames: Array(TEAM_SIZE).fill(null),
   team: Array(TEAM_SIZE).fill(null),
   chargeSpeeds: Array(TEAM_SIZE).fill(0),
   universalCharges: Array(TEAM_SIZE).fill(0),
   redHoodPierceCounts: Array(TEAM_SIZE).fill(0),
   scarletCounterEnabled: Array(TEAM_SIZE).fill(true),
+  rosannaSacrificeFrames: Array(TEAM_SIZE).fill(null),
   characterChargeSpeeds: {
     defense: {},
     attack: {},
@@ -270,6 +273,7 @@ let suppressTeamSlotClick = false;
 let suppressLineupClick = false;
 let resizeRenderId = null;
 let openSlotSettings = null;
+let openRosannaSacrificeSettings = null;
 let isHelpModalOpen = false;
 let isSidebarOpen = false;
 const localPaidInferenceState = {
@@ -501,16 +505,28 @@ function sanitizeScarletCounterEnabled(value) {
   return value !== false;
 }
 
+function sanitizeSacrificeFrame(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const frame = Math.floor(Number(value));
+  return Number.isFinite(frame) && frame >= 0 && frame <= CHART_MAX_FRAME ? frame : null;
+}
+
+function getRosannaSacrificeFrameState(teamKey = state.activeTeamKey) {
+  return normalizeTeamKey(teamKey) === "defense" ? state.defenseRosannaSacrificeFrames : state.rosannaSacrificeFrames;
+}
+
 function createEmptyLineupSlot() {
   return {
     defenseTeam: Array(TEAM_SIZE).fill(null),
     defenseUniversalCharges: Array(TEAM_SIZE).fill(0),
     defenseRedHoodPierceCounts: Array(TEAM_SIZE).fill(0),
     defenseScarletCounterEnabled: Array(TEAM_SIZE).fill(true),
+    defenseRosannaSacrificeFrames: Array(TEAM_SIZE).fill(null),
     team: Array(TEAM_SIZE).fill(null),
     universalCharges: Array(TEAM_SIZE).fill(0),
     redHoodPierceCounts: Array(TEAM_SIZE).fill(0),
     scarletCounterEnabled: Array(TEAM_SIZE).fill(true),
+    rosannaSacrificeFrames: Array(TEAM_SIZE).fill(null),
     jackalLinks: {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
@@ -524,10 +540,12 @@ function serializeLineupSlot() {
     defenseUniversalCharges: [...state.defenseUniversalCharges],
     defenseRedHoodPierceCounts: [...state.defenseRedHoodPierceCounts],
     defenseScarletCounterEnabled: [...state.defenseScarletCounterEnabled],
+    defenseRosannaSacrificeFrames: [...state.defenseRosannaSacrificeFrames],
     team: state.team.map((character) => character?.id || null),
     universalCharges: [...state.universalCharges],
     redHoodPierceCounts: [...state.redHoodPierceCounts],
     scarletCounterEnabled: [...state.scarletCounterEnabled],
+    rosannaSacrificeFrames: [...state.rosannaSacrificeFrames],
     jackalLinks: {
       defense: { ...normalizeJackalLink("defense"), targetIds: [...normalizeJackalLink("defense").targetIds] },
       attack: { ...normalizeJackalLink("attack"), targetIds: [...normalizeJackalLink("attack").targetIds] },
@@ -542,10 +560,12 @@ function normalizeLineupSlot(slot = {}) {
     defenseUniversalCharges: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(slot.defenseUniversalCharges?.[index])),
     defenseRedHoodPierceCounts: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeRedHoodPierceCount(slot.defenseRedHoodPierceCounts?.[index])),
     defenseScarletCounterEnabled: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeScarletCounterEnabled(slot.defenseScarletCounterEnabled?.[index])),
+    defenseRosannaSacrificeFrames: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeSacrificeFrame(slot.defenseRosannaSacrificeFrames?.[index])),
     team: Array.from({ length: TEAM_SIZE }, (_, index) => slot.team?.[index] ?? empty.team[index]),
     universalCharges: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(slot.universalCharges?.[index])),
     redHoodPierceCounts: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeRedHoodPierceCount(slot.redHoodPierceCounts?.[index])),
     scarletCounterEnabled: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeScarletCounterEnabled(slot.scarletCounterEnabled?.[index])),
+    rosannaSacrificeFrames: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeSacrificeFrame(slot.rosannaSacrificeFrames?.[index])),
     jackalLinks: {
       defense: {
         enabled: Boolean(slot.jackalLinks?.defense?.enabled),
@@ -579,10 +599,12 @@ function loadLineupSlot(index) {
   state.defenseUniversalCharges = [...slot.defenseUniversalCharges];
   state.defenseRedHoodPierceCounts = [...slot.defenseRedHoodPierceCounts];
   state.defenseScarletCounterEnabled = [...slot.defenseScarletCounterEnabled];
+  state.defenseRosannaSacrificeFrames = [...slot.defenseRosannaSacrificeFrames];
   state.team = Array.from({ length: TEAM_SIZE }, (_, slotIndex) => getCharacterById(slot.team[slotIndex]));
   state.universalCharges = [...slot.universalCharges];
   state.redHoodPierceCounts = [...slot.redHoodPierceCounts];
   state.scarletCounterEnabled = [...slot.scarletCounterEnabled];
+  state.rosannaSacrificeFrames = [...slot.rosannaSacrificeFrames];
   applySavedTeamChargeSpeeds("defense");
   applySavedTeamChargeSpeeds("attack");
   applySavedTeamRedHoodPierceCounts("defense");
@@ -1611,6 +1633,26 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   };
 }
 
+function getRosannaSacrificeEventsForTeam(team = [], teamKey = "attack", sacrificeFrameOverride = null) {
+  if (!team.some((character) => character && isRosanna(character))) return [];
+  const sacrificeFrames = Array.isArray(sacrificeFrameOverride)
+    ? sacrificeFrameOverride
+    : getRosannaSacrificeFrameState(teamKey);
+  return team
+    .map((character, positionIndex) => ({
+      character,
+      positionIndex,
+      frame: sanitizeSacrificeFrame(sacrificeFrames[positionIndex]),
+    }))
+    .filter((event) => event.character && !isRosanna(event.character) && event.frame !== null)
+    .map((event) => ({
+      ...event,
+      chargeValue: ROSANNA_SACRIFICE_CHARGE,
+      label: "罗珊娜献祭",
+    }))
+    .sort((a, b) => a.frame - b.frame || a.positionIndex - b.positionIndex);
+}
+
 function simulateBurst(
   team,
   teamKey = "attack",
@@ -1621,6 +1663,7 @@ function simulateBurst(
   opponentTauntTarget = null,
   universalChargeOverride = null,
   opponentTeam = [],
+  sacrificeFrameOverride = null,
 ) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
@@ -1666,6 +1709,7 @@ function simulateBurst(
   let totalCharge = 0;
   let currentFrame = 0;
   let pendingExtraEvents = [];
+  let sacrificeEvents = getRosannaSacrificeEventsForTeam(team, teamKey, sacrificeFrameOverride);
   let currentFrameContributors = new Set(universalMembers.map((member) => member.positionIndex));
   const timeline = [];
   if (universalMembers.length) {
@@ -1692,11 +1736,13 @@ function simulateBurst(
   }
 
   while (totalCharge < 100 - BURST_EPSILON && currentFrame <= 10000) {
-    if (events.length === 0 && pendingExtraEvents.length === 0 && specialChargeEvents.length === 0) break;
-    const nextAttackFrame = Math.min(...events.map((event) => event.nextFrame));
+    const activeAttackEvents = events.filter((event) => !event.sacrificed);
+    if (activeAttackEvents.length === 0 && pendingExtraEvents.length === 0 && specialChargeEvents.length === 0 && sacrificeEvents.length === 0) break;
+    const nextAttackFrame = activeAttackEvents.length ? Math.min(...activeAttackEvents.map((event) => event.nextFrame)) : Infinity;
     const nextExtraFrame = pendingExtraEvents.length ? Math.min(...pendingExtraEvents.map((event) => event.frame)) : Infinity;
     const nextSpecialFrame = specialChargeEvents.length ? Math.min(...specialChargeEvents.map((event) => event.frame)) : Infinity;
-    currentFrame = Math.min(nextAttackFrame, nextExtraFrame, nextSpecialFrame);
+    const nextSacrificeFrame = sacrificeEvents.length ? Math.min(...sacrificeEvents.map((event) => event.frame)) : Infinity;
+    currentFrame = Math.min(nextAttackFrame, nextExtraFrame, nextSpecialFrame, nextSacrificeFrame);
     currentFrameContributors = new Set();
     const contributions = new Map();
     const getContributionKey = (event, showOnMember, label = "") =>
@@ -1738,11 +1784,30 @@ function simulateBurst(
       });
     };
 
+    const activeSacrifices = sacrificeEvents.filter((event) => event.frame === currentFrame);
+    sacrificeEvents = sacrificeEvents.filter((event) => event.frame !== currentFrame);
+    activeSacrifices.forEach((sacrifice) => {
+      const owner = events.find((event) => event.positionIndex === sacrifice.positionIndex);
+      if (!owner || owner.sacrificed) return;
+      totalCharge += sacrifice.chargeValue;
+      owner.totalCharge += sacrifice.chargeValue;
+      owner.sacrificed = true;
+      owner.sacrificeFrame = currentFrame;
+      owner.sacrificeCharge = sacrifice.chargeValue;
+      addContribution(owner, sacrifice.chargeValue, sacrifice.label, 0, false);
+    });
+    if (activeSacrifices.length) {
+      const sacrificedIds = new Set(
+        events.filter((event) => event.sacrificed).map((event) => event.character.id),
+      );
+      pendingExtraEvents = pendingExtraEvents.filter((event) => !sacrificedIds.has(event.character?.id));
+    }
+
     const activeSpecials = specialChargeEvents.filter((event) => event.frame === currentFrame);
     specialChargeEvents = specialChargeEvents.filter((event) => event.frame !== currentFrame);
     activeSpecials.forEach((special) => {
       const owner = events.find((event) => event.positionIndex === special.positionIndex);
-      if (!owner) return;
+      if (!owner || owner.sacrificed) return;
       totalCharge += special.chargeValue;
       owner.totalCharge += special.chargeValue;
       addContribution(owner, special.chargeValue, special.label, 0, false);
@@ -1751,22 +1816,21 @@ function simulateBurst(
     const activeExtras = pendingExtraEvents.filter((event) => event.frame === currentFrame);
     pendingExtraEvents = pendingExtraEvents.filter((event) => event.frame !== currentFrame);
     activeExtras.forEach((extra) => {
-      totalCharge += extra.chargeValue;
       const owner = events.find((event) => event.character.id === extra.character.id);
-      if (owner) {
-        owner.totalCharge += extra.chargeValue;
-        owner.attackChargeTotal += extra.chargeValue;
-        addContribution(owner, extra.chargeValue, extra.label || getDelayedExtraLabel(owner.character));
-        if (extra.repeatFrames) {
-          pendingExtraEvents.push({
-            ...extra,
-            frame: currentFrame + extra.repeatFrames,
-          });
-        }
+      if (!owner || owner.sacrificed) return;
+      totalCharge += extra.chargeValue;
+      owner.totalCharge += extra.chargeValue;
+      owner.attackChargeTotal += extra.chargeValue;
+      addContribution(owner, extra.chargeValue, extra.label || getDelayedExtraLabel(owner.character));
+      if (extra.repeatFrames) {
+        pendingExtraEvents.push({
+          ...extra,
+          frame: currentFrame + extra.repeatFrames,
+        });
       }
     });
 
-    const activeEvents = events.filter((event) => event.nextFrame === currentFrame);
+    const activeEvents = events.filter((event) => !event.sacrificed && event.nextFrame === currentFrame);
     activeEvents.forEach((event) => {
       const shotCount = getAttackShotCount(event);
       const attackSequenceNumber = event.hitFrames.length + 1;
@@ -1995,7 +2059,7 @@ function setTeamSlotDragImage(event, slot) {
 function isTeamSlotDragControl(target) {
   return Boolean(
     target?.closest?.(
-      ".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .universal-charge-field",
+      ".slot-settings-toggle, .slot-link-toggle, .slot-link-target, .slot-pierce-count, .slot-counter-toggle, .slot-sacrifice-toggle, .universal-charge-field",
     ),
   );
 }
@@ -2137,8 +2201,18 @@ function isSlotSettingsOpen(teamKey, index) {
   return openSlotSettings?.teamKey === teamKey && openSlotSettings.index === index;
 }
 
+function isRosannaSacrificeSettingsOpen(teamKey, index) {
+  return openRosannaSacrificeSettings?.teamKey === teamKey && openRosannaSacrificeSettings.index === index;
+}
+
 function toggleSlotSettings(teamKey, index) {
   openSlotSettings = isSlotSettingsOpen(teamKey, index) ? null : { teamKey, index };
+  openRosannaSacrificeSettings = null;
+}
+
+function toggleRosannaSacrificeSettings(teamKey, index) {
+  openRosannaSacrificeSettings = isRosannaSacrificeSettingsOpen(teamKey, index) ? null : { teamKey, index };
+  openSlotSettings = null;
 }
 
 function getJackalLinkState(teamKey = state.activeTeamKey) {
@@ -2208,6 +2282,7 @@ function toggleJackalLink(teamKey, owner) {
   linkState.ownerId = linkState.enabled ? owner.id : null;
   if (!linkState.enabled) linkState.targetIds = [];
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -2223,6 +2298,7 @@ function toggleJackalLinkTarget(teamKey, character) {
   }
   linkState.targetIds = [...targetSet].slice(0, 2);
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -2680,6 +2756,88 @@ function createSlotSettingsModal() {
   return backdrop;
 }
 
+function createRosannaSacrificeModal() {
+  if (!openRosannaSacrificeSettings) return null;
+  const teamKey = normalizeTeamKey(openRosannaSacrificeSettings.teamKey);
+  const index = Number(openRosannaSacrificeSettings.index);
+  const team = getTeamState(teamKey);
+  const rosanna = team[index];
+  if (!rosanna || !isRosanna(rosanna)) {
+    openRosannaSacrificeSettings = null;
+    return null;
+  }
+
+  const sacrificeFrames = getRosannaSacrificeFrameState(teamKey);
+  sacrificeFrames[index] = null;
+  const targetRows = team
+    .map((character, positionIndex) => ({ character, positionIndex }))
+    .filter((entry) => entry.character && entry.positionIndex !== index);
+  const backdrop = document.createElement("div");
+  backdrop.className = "slot-settings-backdrop";
+  backdrop.setAttribute("role", "presentation");
+  backdrop.innerHTML = `
+    <section class="slot-settings-modal rosanna-sacrifice-modal" role="dialog" aria-modal="true" aria-label="罗珊娜献祭设置">
+      <div class="slot-settings-modal-head">
+        <div>
+          <span class="slot-settings-team">${escapeHtml(TEAM_LABELS[teamKey])}</span>
+          <strong>罗珊娜献祭</strong>
+        </div>
+        <button class="slot-settings-close" type="button" aria-label="关闭献祭设置">X</button>
+      </div>
+      <div class="rosanna-sacrifice-list">
+        ${
+          targetRows.length
+            ? targetRows
+                .map(({ character, positionIndex }) => {
+                  const frame = sanitizeSacrificeFrame(sacrificeFrames[positionIndex]);
+                  return `
+                    <label class="rosanna-sacrifice-row">
+                      <span class="rosanna-sacrifice-avatar">${getAvatarMarkup(character)}</span>
+                      <span class="rosanna-sacrifice-name">P${positionIndex + 1} ${escapeHtml(character.name)}</span>
+                      <input class="rosanna-sacrifice-frame" type="number" min="0" max="${CHART_MAX_FRAME}" step="1" value="${frame ?? ""}" placeholder="空" data-sacrifice-index="${positionIndex}" />
+                      <span>F</span>
+                    </label>
+                  `;
+                })
+                .join("")
+            : '<p class="rosanna-sacrifice-empty">暂无可献祭角色</p>'
+        }
+      </div>
+    </section>
+  `;
+
+  const close = () => {
+    openRosannaSacrificeSettings = null;
+    saveTeam();
+    render();
+  };
+  backdrop.addEventListener("click", (event) => {
+    if (event.target === backdrop) close();
+  });
+  const modal = backdrop.querySelector(".slot-settings-modal");
+  modal.addEventListener("click", (event) => event.stopPropagation());
+  modal.addEventListener("pointerdown", (event) => event.stopPropagation());
+  modal.addEventListener("mousedown", (event) => event.stopPropagation());
+  modal.addEventListener("dragstart", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  backdrop.querySelector(".slot-settings-close").addEventListener("click", (event) => {
+    event.preventDefault();
+    close();
+  });
+  backdrop.querySelectorAll(".rosanna-sacrifice-frame").forEach((input) => {
+    input.addEventListener("focus", () => input.select());
+    input.addEventListener("input", (event) => {
+      const positionIndex = Number(event.target.dataset.sacrificeIndex);
+      sacrificeFrames[positionIndex] = sanitizeSacrificeFrame(event.target.value);
+      saveTeam();
+    });
+  });
+
+  return backdrop;
+}
+
 function closeHelpModal() {
   isHelpModalOpen = false;
   document.querySelector(".help-modal-backdrop")?.remove();
@@ -3079,7 +3237,7 @@ function simulatePaidArenaBurst(team, chargeSpeeds = [], universalCharges = []) 
   state.characterMagazines[dataTeamKey] = getCharacterMagazineMemory(dataTeamKey);
   state.characterRedHoodPierceCounts[dataTeamKey] = getCharacterRedHoodPierceCountMemory(dataTeamKey);
   try {
-    return simulateBurst(team, dataTeamKey, [], [], [], [], null, universalCharges);
+    return simulateBurst(team, dataTeamKey, [], [], [], [], null, universalCharges, [], Array(TEAM_SIZE).fill(null));
   } finally {
     state.chargeSpeeds = previousChargeSpeeds;
     state.defenseChargeSpeeds = previousDefenseChargeSpeeds;
@@ -3652,6 +3810,8 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
     const universalCharges = getUniversalChargeState(teamKey);
     const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
     const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
+    const rosannaSacrificeFrames = getRosannaSacrificeFrameState(teamKey);
+    const teamHasRosanna = team.some((member) => member && isRosanna(member));
     const row = document.createElement("section");
     row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
     row.dataset.teamKey = teamKey;
@@ -3681,6 +3841,8 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const displayMagazine = character ? getDisplayMagazine(character, teamKey) : null;
       const redHoodPierceCount = character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0;
       const isScarletCounterEnabled = character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false;
+      const isSacrificedTarget =
+        character && teamHasRosanna && !isRosanna(character) && sanitizeSacrificeFrame(rosannaSacrificeFrames[index]) !== null;
       const isTauntTarget = character && index === tauntTargetPositionIndex;
       const sideBadgeText =
         character && canEditChargeSpeed(character) && chargeSpeedValue > 0
@@ -3705,6 +3867,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
             <span class="slot-copy" aria-hidden="true">
               ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
+              ${isSacrificedTarget ? '<span class="sacrifice-mark">祭</span>' : ""}
               ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
               ${cubeIconSrc ? `<span class="slot-cube-badge"><img src="${cubeIconSrc}" alt="" /></span>` : ""}
               ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
@@ -3727,6 +3890,15 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             isScarlet(character)
               ? `
                 <button class="slot-counter-toggle${isScarletCounterEnabled ? " is-active" : ""}" type="button" aria-label="${isScarletCounterEnabled ? "关闭" : "开启"} ${escapeHtml(character.name)} 反击" title="红莲反击：${isScarletCounterEnabled ? "开启" : "关闭"}">
+                  <img src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />
+                </button>
+              `
+              : ""
+          }
+          ${
+            isRosanna(character)
+              ? `
+                <button class="slot-sacrifice-toggle${isRosannaSacrificeSettingsOpen(teamKey, index) ? " is-active" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)} 献祭" title="罗珊娜献祭">
                   <img src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />
                 </button>
               `
@@ -3872,6 +4044,21 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             event.stopPropagation();
           });
         }
+        const sacrificeToggle = slot.querySelector(".slot-sacrifice-toggle");
+        if (sacrificeToggle) {
+          sacrificeToggle.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setActiveTeam(teamKey);
+            toggleRosannaSacrificeSettings(teamKey, index);
+            render();
+          });
+          sacrificeToggle.addEventListener("pointerdown", (event) => event.stopPropagation());
+          sacrificeToggle.addEventListener("dragstart", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          });
+        }
         const linkToggle = slot.querySelector(".slot-link-toggle");
         if (linkToggle) {
           linkToggle.addEventListener("click", (event) => {
@@ -3925,6 +4112,8 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
 
   const settingsModal = createSlotSettingsModal();
   if (settingsModal) fragment.append(settingsModal);
+  const sacrificeModal = createRosannaSacrificeModal();
+  if (sacrificeModal) fragment.append(sacrificeModal);
 
   els.teamSlots.replaceChildren(fragment);
 }
@@ -4987,11 +5176,13 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const jackalLinkTotal = getSpecialContributionTotal(group.result, entry.frame, "豺狼链接");
         const scarletCounterTotal = getSpecialContributionTotal(group.result, entry.frame, "红莲反击");
         const universalChargeTotal = getSpecialContributionTotal(group.result, entry.frame, "万能充能");
+        const rosannaSacrificeTotal = getSpecialContributionTotal(group.result, entry.frame, "罗珊娜献祭");
         const characterChargeLines = getCumulativeContributionLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
           `累计总充能：${formatNumber(entry.totalCharge, 2)}%`,
           ...(universalChargeTotal > BURST_EPSILON ? [`万能充能：${formatNumber(universalChargeTotal, 2)}%`] : []),
+          ...(rosannaSacrificeTotal > BURST_EPSILON ? [`罗珊娜献祭充能：${formatNumber(rosannaSacrificeTotal, 2)}%`] : []),
           ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${formatNumber(jackalLinkTotal, 2)}%`] : []),
           ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${formatNumber(scarletCounterTotal, 2)}%`] : []),
           ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
@@ -5363,6 +5554,7 @@ function clearTeamLegacy() {
   state.universalCharges = Array(TEAM_SIZE).fill(0);
   state.redHoodPierceCounts = Array(TEAM_SIZE).fill(0);
   state.scarletCounterEnabled = Array(TEAM_SIZE).fill(true);
+  state.rosannaSacrificeFrames = Array(TEAM_SIZE).fill(null);
   saveTeam();
   render();
 }
@@ -5388,6 +5580,7 @@ function addPaidArenaCharacter(character) {
   universalCharges[emptyIndex] = 0;
   chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, getPaidArenaDataTeamKey());
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -5403,6 +5596,7 @@ function removePaidArenaCharacter(rowIndex, slotIndex) {
   if (chargeSpeeds[rowIndex]) chargeSpeeds[rowIndex][slotIndex] = 0;
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(rowIndex) || 0));
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -5451,6 +5645,7 @@ function movePaidArenaSlot(fromRowIndex, fromIndex, toRowIndex, toIndex) {
 
   state.paidArenaActiveRowIndex = Math.max(0, Math.min(teams.length - 1, Number(toRowIndex) || 0));
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -5465,6 +5660,7 @@ function addCharacter(character) {
   const universalCharges = getUniversalChargeState();
   const redHoodPierceCounts = getRedHoodPierceCountState();
   const scarletCounterEnabled = getScarletCounterEnabledState();
+  const sacrificeFrames = getRosannaSacrificeFrameState();
   if (team.some((member) => member && member.id === character.id)) {
     showToast(`${character.name} 已在${TEAM_LABELS[state.activeTeamKey]}中`);
     return;
@@ -5481,7 +5677,9 @@ function addCharacter(character) {
   universalCharges[emptyIndex] = 0;
   redHoodPierceCounts[emptyIndex] = isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, state.activeTeamKey) : 0;
   scarletCounterEnabled[emptyIndex] = true;
+  sacrificeFrames[emptyIndex] = null;
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -5511,13 +5709,16 @@ function removeCharacter(teamKey, index) {
   const universalCharges = getUniversalChargeState(teamKey);
   const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
   const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
+  const sacrificeFrames = getRosannaSacrificeFrameState(teamKey);
   team[index] = null;
   chargeSpeeds[index] = 0;
   universalCharges[index] = 0;
   redHoodPierceCounts[index] = 0;
   scarletCounterEnabled[index] = true;
+  sacrificeFrames[index] = null;
   normalizeJackalLink(teamKey);
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -5533,6 +5734,8 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
   const toPierceCounts = getRedHoodPierceCountState(toTeamKey);
   const fromCounterEnabled = getScarletCounterEnabledState(fromTeamKey);
   const toCounterEnabled = getScarletCounterEnabledState(toTeamKey);
+  const fromSacrificeFrames = getRosannaSacrificeFrameState(fromTeamKey);
+  const toSacrificeFrames = getRosannaSacrificeFrameState(toTeamKey);
 
   if (
     (fromTeamKey === toTeamKey && fromIndex === toIndex) ||
@@ -5550,6 +5753,7 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
   const fromUniversalCharge = fromUniversalCharges[fromIndex];
   const fromPierceCount = fromPierceCounts[fromIndex];
   const fromCounterState = fromCounterEnabled[fromIndex];
+  const fromSacrificeFrame = fromSacrificeFrames[fromIndex];
 
   if (toTeam[toIndex]) {
     [fromTeam[fromIndex], toTeam[toIndex]] = [toTeam[toIndex], fromTeam[fromIndex]];
@@ -5557,6 +5761,7 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
     [fromUniversalCharges[fromIndex], toUniversalCharges[toIndex]] = [toUniversalCharges[toIndex], fromUniversalCharges[fromIndex]];
     [fromPierceCounts[fromIndex], toPierceCounts[toIndex]] = [toPierceCounts[toIndex], fromPierceCounts[fromIndex]];
     [fromCounterEnabled[fromIndex], toCounterEnabled[toIndex]] = [toCounterEnabled[toIndex], fromCounterEnabled[fromIndex]];
+    [fromSacrificeFrames[fromIndex], toSacrificeFrames[toIndex]] = [toSacrificeFrames[toIndex], fromSacrificeFrames[fromIndex]];
     rememberTeamSlotChargeSpeed(fromTeamKey, fromIndex);
     rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
     rememberTeamSlotRedHoodPierceCount(fromTeamKey, fromIndex);
@@ -5567,11 +5772,13 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
     toUniversalCharges[toIndex] = fromUniversalCharge;
     toPierceCounts[toIndex] = fromPierceCount;
     toCounterEnabled[toIndex] = fromCounterState;
+    toSacrificeFrames[toIndex] = fromSacrificeFrame;
     fromTeam[fromIndex] = null;
     fromSpeeds[fromIndex] = 0;
     fromUniversalCharges[fromIndex] = 0;
     fromPierceCounts[fromIndex] = 0;
     fromCounterEnabled[fromIndex] = true;
+    fromSacrificeFrames[fromIndex] = null;
     rememberTeamSlotChargeSpeed(toTeamKey, toIndex);
     rememberTeamSlotRedHoodPierceCount(toTeamKey, toIndex);
   }
@@ -5580,6 +5787,7 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
   normalizeJackalLink(fromTeamKey);
   normalizeJackalLink(toTeamKey);
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -5591,6 +5799,7 @@ function clearTeam() {
     state.paidArenaChargeSpeeds[state.paidArenaMode] = createEmptyPaidArenaChargeSpeeds(state.paidArenaMode);
     state.paidArenaActiveRowIndex = 0;
     openSlotSettings = null;
+    openRosannaSacrificeSettings = null;
     saveTeam();
     render();
     return;
@@ -5600,13 +5809,16 @@ function clearTeam() {
   state.defenseUniversalCharges = Array(TEAM_SIZE).fill(0);
   state.defenseRedHoodPierceCounts = Array(TEAM_SIZE).fill(0);
   state.defenseScarletCounterEnabled = Array(TEAM_SIZE).fill(true);
+  state.defenseRosannaSacrificeFrames = Array(TEAM_SIZE).fill(null);
   state.team = Array(TEAM_SIZE).fill(null);
   state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
   state.universalCharges = Array(TEAM_SIZE).fill(0);
   state.redHoodPierceCounts = Array(TEAM_SIZE).fill(0);
   state.scarletCounterEnabled = Array(TEAM_SIZE).fill(true);
+  state.rosannaSacrificeFrames = Array(TEAM_SIZE).fill(null);
   normalizeJackalLinks();
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -5621,6 +5833,7 @@ function swapBattleTeams() {
   [state.defenseUniversalCharges, state.universalCharges] = [state.universalCharges, state.defenseUniversalCharges];
   [state.defenseRedHoodPierceCounts, state.redHoodPierceCounts] = [state.redHoodPierceCounts, state.defenseRedHoodPierceCounts];
   [state.defenseScarletCounterEnabled, state.scarletCounterEnabled] = [state.scarletCounterEnabled, state.defenseScarletCounterEnabled];
+  [state.defenseRosannaSacrificeFrames, state.rosannaSacrificeFrames] = [state.rosannaSacrificeFrames, state.defenseRosannaSacrificeFrames];
   [state.jackalLinks.defense, state.jackalLinks.attack] = [state.jackalLinks.attack, state.jackalLinks.defense];
 
   applySavedTeamChargeSpeeds("defense");
@@ -5629,6 +5842,7 @@ function swapBattleTeams() {
   applySavedTeamRedHoodPierceCounts("attack");
   normalizeJackalLinks();
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -5640,6 +5854,7 @@ function switchLineupSlot(index) {
   state.activeLineupIndex = nextIndex;
   loadLineupSlot(nextIndex);
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   render();
 }
@@ -5671,6 +5886,7 @@ function copyLineupSlotTo(sourceIndex, targetIndex) {
   state.activeLineupIndex = normalizedTargetIndex;
   loadLineupSlot(normalizedTargetIndex);
   openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
   saveTeam();
   showToast(`已将方案 ${normalizedSourceIndex + 1} 复制到方案 ${normalizedTargetIndex + 1}`);
   render();
@@ -5766,11 +5982,13 @@ function saveTeam() {
       defenseUniversalCharges: [...state.defenseUniversalCharges],
       defenseRedHoodPierceCounts: [...state.defenseRedHoodPierceCounts],
       defenseScarletCounterEnabled: [...state.defenseScarletCounterEnabled],
+      defenseRosannaSacrificeFrames: [...state.defenseRosannaSacrificeFrames],
       team: state.team.map((character) => character?.id || null),
       chargeSpeeds: state.chargeSpeeds,
       universalCharges: [...state.universalCharges],
       redHoodPierceCounts: [...state.redHoodPierceCounts],
       scarletCounterEnabled: [...state.scarletCounterEnabled],
+      rosannaSacrificeFrames: [...state.rosannaSacrificeFrames],
       characterChargeSpeeds: state.characterChargeSpeeds,
       characterChargeSpeedEntries: state.characterChargeSpeedEntries,
       characterCubeTypes: state.characterCubeTypes,
@@ -5815,11 +6033,13 @@ function loadTeam() {
       state.defenseUniversalCharges = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(saved.defenseUniversalCharges?.[index]));
       state.defenseRedHoodPierceCounts = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeRedHoodPierceCount(saved.defenseRedHoodPierceCounts?.[index]));
       state.defenseScarletCounterEnabled = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeScarletCounterEnabled(saved.defenseScarletCounterEnabled?.[index]));
+      state.defenseRosannaSacrificeFrames = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeSacrificeFrame(saved.defenseRosannaSacrificeFrames?.[index]));
       state.team = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(saved.team?.[index]));
       state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => Number(saved.chargeSpeeds?.[index]) || 0);
       state.universalCharges = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeUniversalCharge(saved.universalCharges?.[index]));
       state.redHoodPierceCounts = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeRedHoodPierceCount(saved.redHoodPierceCounts?.[index]));
       state.scarletCounterEnabled = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeScarletCounterEnabled(saved.scarletCounterEnabled?.[index]));
+      state.rosannaSacrificeFrames = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeSacrificeFrame(saved.rosannaSacrificeFrames?.[index]));
       state.characterChargeSpeeds = {
         defense: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.defense),
         attack: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.attack),
@@ -5913,11 +6133,13 @@ function loadTeam() {
     state.defenseUniversalCharges = Array(TEAM_SIZE).fill(0);
     state.defenseRedHoodPierceCounts = Array(TEAM_SIZE).fill(0);
     state.defenseScarletCounterEnabled = Array(TEAM_SIZE).fill(true);
+    state.defenseRosannaSacrificeFrames = Array(TEAM_SIZE).fill(null);
     state.team = Array(TEAM_SIZE).fill(null);
     state.chargeSpeeds = Array(TEAM_SIZE).fill(0);
     state.universalCharges = Array(TEAM_SIZE).fill(0);
     state.redHoodPierceCounts = Array(TEAM_SIZE).fill(0);
     state.scarletCounterEnabled = Array(TEAM_SIZE).fill(true);
+    state.rosannaSacrificeFrames = Array(TEAM_SIZE).fill(null);
     state.characterChargeSpeeds = { defense: {}, attack: {} };
     state.characterChargeSpeedEntries = { defense: {}, attack: {} };
     state.characterCubeTypes = { defense: {}, attack: {} };
@@ -6170,7 +6392,7 @@ function drawExportSiteUrl(context, width, padding, y) {
 }
 
 function drawPaidArenaSlot(context, slot, x, y, size) {
-  const { character, universalCharge, image, isFinisher, isTauntTarget, badgeText } = slot;
+  const { character, universalCharge, image, isFinisher, isTauntTarget, isSacrificedTarget, badgeText } = slot;
   const radius = 7;
   context.save();
   context.fillStyle = character ? "#111821" : "#15191f";
@@ -6225,6 +6447,11 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
       context.fillStyle = "#ff5f63";
       context.fillRect(x + 5, y + 5, 22, 22);
       drawCanvasText(context, "嘲", x + 16, y + 16, { align: "center", size: 15, weight: 800, color: "#ffffff" });
+    }
+    if (isSacrificedTarget) {
+      context.fillStyle = "#d9354a";
+      context.fillRect(x + 5, y + 5, 22, 22);
+      drawCanvasText(context, "祭", x + 16, y + 16, { align: "center", size: 15, weight: 800, color: "#ffffff" });
     }
     if (isFinisher) {
       context.fillStyle = "#ff4f5f";
@@ -6406,6 +6633,8 @@ async function normalArenaToPngBlob() {
   };
 
   const drawTeam = async (team, teamKey, x, universalCharges, chargeSpeeds, finishers, tauntTarget) => {
+    const sacrificeFrames = getRosannaSacrificeFrameState(teamKey);
+    const teamHasRosanna = team.some((member) => member && isRosanna(member));
     for (let index = 0; index < TEAM_SIZE; index += 1) {
       const character = team[index];
       const slot = {
@@ -6415,6 +6644,8 @@ async function normalArenaToPngBlob() {
         image: await loadCharacterImage(character),
         isFinisher: finishers.has(index) && canShowFinishMarker(character),
         isTauntTarget: character && index === tauntTarget,
+        isSacrificedTarget:
+          character && teamHasRosanna && !isRosanna(character) && sanitizeSacrificeFrame(sacrificeFrames[index]) !== null,
         badgeText: getPaidArenaSlotBadgeText(character, sanitizeChargeSpeed(chargeSpeeds[index]), teamKey),
       };
       drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), teamsY, slotSize);
