@@ -127,6 +127,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "隐藏非蓄力角色蓄速魔方",
   "献祭设置增加重置默认",
   "修复献祭输入并显示充能轴",
   "冠军和特殊竞技场支持罗珊娜献祭",
@@ -136,7 +137,6 @@ const CHANGELOG_ITEMS = [
   "整理nameCode头像数据",
   "隐藏帕斯卡蓄速设置",
   "更新国服帕斯卡",
-  "修复冠特万能充能输入",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -697,6 +697,12 @@ function sanitizeCubeType(value) {
   return [CUBE_TYPE_CHARGE_SPEED, CUBE_TYPE_QUANTUM].includes(value) ? value : CUBE_TYPE_NONE;
 }
 
+function sanitizeCharacterCubeType(character, value) {
+  const cubeType = sanitizeCubeType(value);
+  if (cubeType === CUBE_TYPE_CHARGE_SPEED && !canEditChargeSpeed(character)) return CUBE_TYPE_NONE;
+  return cubeType;
+}
+
 function getChargeSpeedCubeBonus(cubeType) {
   return sanitizeCubeType(cubeType) === CUBE_TYPE_CHARGE_SPEED ? Math.round(CHARGE_SPEED_CUBE_VALUE) : 0;
 }
@@ -776,7 +782,7 @@ function resetCharacterQuantumCube(character, teamKey = state.activeTeamKey) {
 
 function getSavedCharacterCubeType(character, teamKey = state.activeTeamKey) {
   if (!character?.id) return CUBE_TYPE_NONE;
-  const cubeType = sanitizeCubeType(getCharacterCubeTypeMemory(teamKey)[character.id]);
+  const cubeType = sanitizeCharacterCubeType(character, getCharacterCubeTypeMemory(teamKey)[character.id]);
   if (cubeType !== CUBE_TYPE_NONE) return cubeType;
   return Boolean(getCharacterQuantumCubeMemory(teamKey)[character.id]) ? CUBE_TYPE_QUANTUM : CUBE_TYPE_NONE;
 }
@@ -792,7 +798,7 @@ function saveCharacterCubeType(character, cubeType, teamKey = state.activeTeamKe
   if (!character?.id) return;
   const previousCubeType = getSavedCharacterCubeType(character, teamKey);
   const previousChargeSpeed = getSavedCharacterChargeSpeed(character, teamKey);
-  const normalizedCubeType = sanitizeCubeType(cubeType);
+  const normalizedCubeType = sanitizeCharacterCubeType(character, cubeType);
   const cubeMemory = getCharacterCubeTypeMemory(teamKey);
   const quantumMemory = getCharacterQuantumCubeMemory(teamKey);
   if (normalizedCubeType === CUBE_TYPE_NONE) {
@@ -2581,6 +2587,7 @@ function createSlotSettingsModal() {
     )
     .join("");
   const cubeType = getSavedCharacterCubeType(character, teamKey);
+  const showChargeSpeedCubeOption = showChargeSpeedSettings;
   const isScarletSettings = state.allowMissedShots && isScarlet(character);
   const magazineValue = getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
   const backdrop = document.createElement("div");
@@ -2626,10 +2633,16 @@ function createSlotSettingsModal() {
           <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_NONE}"${cubeType === CUBE_TYPE_NONE ? " checked" : ""} />
           <span>无魔方</span>
         </label>
-        <label class="settings-cube-option is-icon-only" title="蓄速魔方 +${CHARGE_SPEED_CUBE_VALUE.toFixed(2)}%">
-          <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_CHARGE_SPEED}"${cubeType === CUBE_TYPE_CHARGE_SPEED ? " checked" : ""} />
-          <img class="settings-check-icon" src="assets/icons/ui/cubes/charge-speed.png" alt="" aria-hidden="true" />
-        </label>
+        ${
+          showChargeSpeedCubeOption
+            ? `
+              <label class="settings-cube-option is-icon-only" title="蓄速魔方 +${CHARGE_SPEED_CUBE_VALUE.toFixed(2)}%">
+                <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_CHARGE_SPEED}"${cubeType === CUBE_TYPE_CHARGE_SPEED ? " checked" : ""} />
+                <img class="settings-check-icon" src="assets/icons/ui/cubes/charge-speed.png" alt="" aria-hidden="true" />
+              </label>
+            `
+            : ""
+        }
         <label class="settings-cube-option is-icon-only" title="量子魔方">
           <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_QUANTUM}"${cubeType === CUBE_TYPE_QUANTUM ? " checked" : ""} />
           <img class="settings-check-icon" src="assets/icons/ui/cubes/quantum.png" alt="" aria-hidden="true" />
