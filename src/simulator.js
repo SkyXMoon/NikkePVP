@@ -141,6 +141,14 @@ function isRedHood(character) {
   return character?.id === 111 || character?.name === "小红帽" || character?.slug === "小红帽";
 }
 
+function isSnowWhiteHeavyArms(character) {
+  return character?.id === 3 || character?.enName === "Snow White: Heavy Arms";
+}
+
+function canApplyChargeSpeed(character) {
+  return Boolean(character) && ["RL", "SR"].includes(character.weapon) && !isSnowWhiteHeavyArms(character);
+}
+
 function isJackal(character) {
   return character?.name === "豺狼" || character?.slug === "豺狼";
 }
@@ -241,7 +249,7 @@ function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack
 }
 
 function getChargeFrames(character, positionIndex, teamKey = "attack") {
-  const speed = Number(character.chargeSpeedPercent) || 0;
+  const speed = canApplyChargeSpeed(character) ? Number(character.chargeSpeedPercent) || 0 : 0;
 
   if (character.weapon === "MG") {
     return {
@@ -678,11 +686,14 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const savedMagazine = isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
+  const chargeSpeedPercent = canApplyChargeSpeed(character)
+    ? Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0
+    : 0;
   return {
     ...character,
     hasPenetration: isRedHood(character) ? false : character.hasPenetration,
     stats: savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats,
-    chargeSpeedPercent: Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
+    chargeSpeedPercent,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
     redHoodPierceCount: isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, teamKey) : 0,
   };

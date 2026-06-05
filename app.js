@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "重装白雪不受蓄速影响",
   "优化SR和RL充能组成说明",
   "优化白雪公主重型武装充能组成说明",
   "更新白雪公主重型武装充能逻辑",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "修正蓄速词条3.45%",
   "调整诺雅诺伊斯同速嘲讽优先级",
   "角色复制信息补充枪种",
-  "新增首次访问帮助引导",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -364,8 +364,16 @@ function isPascal(character) {
   return character?.name === "帕斯卡" || character?.enName === "Pascal";
 }
 
+function isSnowWhiteHeavyArms(character) {
+  return character?.id === 3 || character?.enName === "Snow White: Heavy Arms";
+}
+
+function canApplyChargeSpeed(character) {
+  return canShowFinishMarker(character) && !isPascal(character) && !isSnowWhiteHeavyArms(character);
+}
+
 function canEditChargeSpeed(character) {
-  return canShowFinishMarker(character) && !isPascal(character);
+  return canApplyChargeSpeed(character);
 }
 
 function formatSeconds(value) {
@@ -975,7 +983,7 @@ function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack
 }
 
 function getChargeFrames(character, positionIndex, teamKey = "attack") {
-  const speed = Number(character.chargeSpeedPercent) || 0;
+  const speed = canApplyChargeSpeed(character) ? Number(character.chargeSpeedPercent) || 0 : 0;
 
   if (character.weapon === "MG") {
     return {
@@ -1684,11 +1692,14 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
   const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
+  const chargeSpeedPercent = canApplyChargeSpeed(character)
+    ? Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0
+    : 0;
   return {
     ...character,
     hasPenetration: isRedHood(character) ? false : character.hasPenetration,
     stats: getEffectiveCharacterStats(character, teamKey),
-    chargeSpeedPercent: Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
+    chargeSpeedPercent,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
     redHoodPierceCount: isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[positionIndex]) : 0,
     scarletCounterEnabled: isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[positionIndex]) : false,
