@@ -2487,6 +2487,37 @@ input:focus {
   -webkit-appearance: none;
 }
 
+.settings-speed-entries {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
+.slot-settings-speed-entry-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+}
+
+.slot-settings-speed-entry {
+  min-width: 0;
+  min-height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 3px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.slot-settings-speed-total {
+  min-width: 34px;
+  color: var(--cyan);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+}
+
 .slot-settings-frame-preview {
   min-width: 34px;
   padding: 3px 6px;
@@ -2947,6 +2978,11 @@ input:focus {
 :root[data-theme="light"] .slot-settings-frame-preview {
   border-color: rgba(12, 153, 170, 0.32);
   background: rgba(12, 153, 170, 0.1);
+}
+
+:root[data-theme="light"] .slot-settings-speed-entry {
+  border-color: rgba(84, 103, 126, 0.28);
+  background: rgba(255, 255, 255, 0.82);
 }
 
 :root[data-theme="light"] .settings-check-icon {

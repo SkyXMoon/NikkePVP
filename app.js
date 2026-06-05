@@ -117,9 +117,12 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [45, 32],
   [46, 32],
 ]);
+const CHARGE_SPEED_ENTRY_OPTIONS = [0, 1.98, 2.28, 2.57, 2.86, 3.16, 3.54, 3.75, 4.04, 4.33, 4.63, 4.92, 5.21, 5.51, 5.8, 6.09];
+const CHARGE_SPEED_ENTRY_COUNT = 4;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "更新蓄力速度词条计算",
   "补充P5灰姑娘狙击特例",
   "修正浅色主题失效图标",
   "完善浅色主题队伍角标",
@@ -129,8 +132,6 @@ const CHANGELOG_ITEMS = [
   "放大普通竞技场复制图片",
   "优化普通竞技场复制图片版式",
   "移动端复制改为原生分享图片",
-  "修正复制图片内容与提示主题",
-  "修正浅色主题低对比文字",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -159,6 +160,10 @@ const state = {
   redHoodPierceCounts: Array(TEAM_SIZE).fill(0),
   scarletCounterEnabled: Array(TEAM_SIZE).fill(true),
   characterChargeSpeeds: {
+    defense: {},
+    attack: {},
+  },
+  characterChargeSpeedEntries: {
     defense: {},
     attack: {},
   },
@@ -575,6 +580,14 @@ function getCharacterChargeSpeedMemory(teamKey = state.activeTeamKey) {
   return state.characterChargeSpeeds[normalizedTeamKey];
 }
 
+function getCharacterChargeSpeedEntryMemory(teamKey = state.activeTeamKey) {
+  const normalizedTeamKey = normalizeTeamKey(teamKey);
+  if (!state.characterChargeSpeedEntries[normalizedTeamKey]) {
+    state.characterChargeSpeedEntries[normalizedTeamKey] = {};
+  }
+  return state.characterChargeSpeedEntries[normalizedTeamKey];
+}
+
 function getCharacterQuantumCubeMemory(teamKey = state.activeTeamKey) {
   const normalizedTeamKey = normalizeTeamKey(teamKey);
   if (!state.characterQuantumCubes[normalizedTeamKey]) {
@@ -603,6 +616,29 @@ function sanitizeChargeSpeed(value) {
   return Math.max(0, Number(value) || 0);
 }
 
+function sanitizeChargeSpeedEntry(value) {
+  const numeric = Number(value) || 0;
+  return CHARGE_SPEED_ENTRY_OPTIONS.find((option) => Math.abs(option - numeric) < 0.001) ?? 0;
+}
+
+function normalizeChargeSpeedEntries(entries = []) {
+  return Array.from({ length: CHARGE_SPEED_ENTRY_COUNT }, (_, index) => sanitizeChargeSpeedEntry(entries?.[index]));
+}
+
+function calculateChargeSpeedFromEntries(entries = []) {
+  const normalizedEntries = normalizeChargeSpeedEntries(entries).filter((value) => value > 0);
+  const grouped = new Map();
+  normalizedEntries.forEach((value) => {
+    const key = value.toFixed(2);
+    grouped.set(key, (grouped.get(key) || 0) + value);
+  });
+  return [...grouped.values()].reduce((sum, value) => sum + Math.round(value), 0);
+}
+
+function formatChargeSpeedEntry(value) {
+  return `${sanitizeChargeSpeedEntry(value).toFixed(2)}%`;
+}
+
 function sanitizeMagazine(value) {
   const magazine = Math.floor(Number(value) || 0);
   if (magazine === 20) return 20;
@@ -628,9 +664,24 @@ function saveCharacterChargeSpeed(character, value, teamKey = state.activeTeamKe
   getCharacterChargeSpeedMemory(teamKey)[character.id] = sanitizeChargeSpeed(value);
 }
 
+function getSavedCharacterChargeSpeedEntries(character, teamKey = state.activeTeamKey) {
+  if (!character?.id) return normalizeChargeSpeedEntries();
+  const entries = getCharacterChargeSpeedEntryMemory(teamKey)[character.id];
+  return normalizeChargeSpeedEntries(entries);
+}
+
+function saveCharacterChargeSpeedEntries(character, entries, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  const normalizedEntries = normalizeChargeSpeedEntries(entries);
+  const speed = calculateChargeSpeedFromEntries(normalizedEntries);
+  getCharacterChargeSpeedEntryMemory(teamKey)[character.id] = normalizedEntries;
+  saveCharacterChargeSpeed(character, speed, teamKey);
+}
+
 function resetCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
   delete getCharacterChargeSpeedMemory(teamKey)[character.id];
+  delete getCharacterChargeSpeedEntryMemory(teamKey)[character.id];
 }
 
 function getSavedCharacterQuantumCube(character, teamKey = state.activeTeamKey) {
@@ -2299,8 +2350,21 @@ function createSlotSettingsModal() {
 
   const { character, chargeSpeeds, index, teamKey, simulationTeamKey } = context;
   const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
+  const chargeSpeedEntries = getSavedCharacterChargeSpeedEntries(character, teamKey);
   const canEditChargeSpeed = canShowFinishMarker(character);
   const chargeSpeedPreviewFrame = getChargeSpeedPreviewFrame(character, index, simulationTeamKey, chargeSpeedValue);
+  const chargeSpeedEntryOptions = CHARGE_SPEED_ENTRY_OPTIONS.map(
+    (option) => `<option value="${option.toFixed(2)}">${formatChargeSpeedEntry(option)}</option>`,
+  ).join("");
+  const chargeSpeedEntrySelects = chargeSpeedEntries
+    .map(
+      (entry, entryIndex) => `
+        <select class="slot-settings-speed-entry" data-speed-entry-index="${entryIndex}" aria-label="蓄力速度词条 ${entryIndex + 1}">
+          ${chargeSpeedEntryOptions.replace(`value="${entry.toFixed(2)}"`, `value="${entry.toFixed(2)}" selected`)}
+        </select>
+      `,
+    )
+    .join("");
   const quantumCubeEnabled = getSavedCharacterQuantumCube(character, teamKey);
   const isScarletSettings = state.allowMissedShots && isScarlet(character);
   const magazineValue = getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
@@ -2319,12 +2383,14 @@ function createSlotSettingsModal() {
       ${
         canEditChargeSpeed
           ? `
-            <label class="settings-field">
-        <span>蓄速</span>
-        <input class="slot-settings-input" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" />
-        <span>%</span>
-        <span class="slot-settings-frame-preview">${formatFrameCount(chargeSpeedPreviewFrame)}F</span>
-            </label>
+            <div class="settings-field settings-speed-entries">
+              <span>蓄速</span>
+              <div class="slot-settings-speed-entry-list">
+                ${chargeSpeedEntrySelects}
+              </div>
+              <span class="slot-settings-speed-total">${chargeSpeedValue}%</span>
+              <span class="slot-settings-frame-preview">${formatFrameCount(chargeSpeedPreviewFrame)}F</span>
+            </div>
           `
           : ""
       }
@@ -2369,37 +2435,41 @@ function createSlotSettingsModal() {
     render();
   });
 
-  const speedInput = backdrop.querySelector(".slot-settings-input");
-  if (speedInput) {
+  const speedEntrySelects = [...backdrop.querySelectorAll(".slot-settings-speed-entry")];
+  if (speedEntrySelects.length) {
     const speedFramePreview = backdrop.querySelector(".slot-settings-frame-preview");
+    const speedTotal = backdrop.querySelector(".slot-settings-speed-total");
+    const getCurrentSpeedEntries = () => speedEntrySelects.map((select) => sanitizeChargeSpeedEntry(select.value));
     const updateSpeedFramePreview = () => {
-      if (!speedFramePreview) return;
-      const frame = getChargeSpeedPreviewFrame(character, index, simulationTeamKey, speedInput.value);
-      speedFramePreview.textContent = `${formatFrameCount(frame)}F`;
+      const speed = calculateChargeSpeedFromEntries(getCurrentSpeedEntries());
+      if (speedTotal) speedTotal.textContent = `${speed}%`;
+      if (speedFramePreview) {
+        const frame = getChargeSpeedPreviewFrame(character, index, simulationTeamKey, speed);
+        speedFramePreview.textContent = `${formatFrameCount(frame)}F`;
+      }
     };
     const commitSpeedValue = () => {
-      const speed = sanitizeChargeSpeed(speedInput.value);
-      speedInput.value = speed;
-      if (chargeSpeeds[index] === speed) return;
+      const entries = getCurrentSpeedEntries();
+      const speed = calculateChargeSpeedFromEntries(entries);
+      saveCharacterChargeSpeedEntries(character, entries, teamKey);
+      if (chargeSpeeds[index] === speed) {
+        saveTeam();
+        updateSpeedFramePreview();
+        return;
+      }
       chargeSpeeds[index] = speed;
-      saveCharacterChargeSpeed(character, speed, teamKey);
       applySavedChargeSpeedToNormalTeam(character, teamKey);
       updateSpeedFramePreview();
       refreshSlotSettingsChanges(context);
     };
-    speedInput.addEventListener("pointerdown", (event) => event.stopPropagation());
-    speedInput.addEventListener("focus", (event) => event.target.select());
-    speedInput.addEventListener("click", (event) => event.target.select());
-    speedInput.addEventListener("dragstart", (event) => event.stopPropagation());
-    speedInput.addEventListener("input", () => {
-      updateSpeedFramePreview();
+    speedEntrySelects.forEach((select) => {
+      select.addEventListener("pointerdown", (event) => event.stopPropagation());
+      select.addEventListener("dragstart", (event) => event.stopPropagation());
+      select.addEventListener("change", () => {
+        updateSpeedFramePreview();
+        commitSpeedValue();
+      });
     });
-    speedInput.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter") return;
-      event.preventDefault();
-      speedInput.blur();
-    });
-    speedInput.addEventListener("blur", commitSpeedValue);
   }
 
   const magazineInput = backdrop.querySelector(".slot-settings-magazine");
@@ -5336,6 +5406,14 @@ function normalizeSavedCharacterChargeSpeeds(savedSpeeds = {}) {
   );
 }
 
+function normalizeSavedCharacterChargeSpeedEntries(savedEntries = {}) {
+  return Object.fromEntries(
+    Object.entries(savedEntries || {})
+      .map(([characterId, entries]) => [characterId, normalizeChargeSpeedEntries(entries)])
+      .filter(([characterId]) => getCharacterById(characterId)),
+  );
+}
+
 function normalizeSavedCharacterFlags(savedFlags = {}) {
   return Object.fromEntries(
     Object.entries(savedFlags || {})
@@ -5393,6 +5471,7 @@ function saveTeam() {
       redHoodPierceCounts: [...state.redHoodPierceCounts],
       scarletCounterEnabled: [...state.scarletCounterEnabled],
       characterChargeSpeeds: state.characterChargeSpeeds,
+      characterChargeSpeedEntries: state.characterChargeSpeedEntries,
       characterQuantumCubes: state.characterQuantumCubes,
       characterMagazines: state.characterMagazines,
       characterRedHoodPierceCounts: state.characterRedHoodPierceCounts,
@@ -5442,6 +5521,10 @@ function loadTeam() {
       state.characterChargeSpeeds = {
         defense: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.defense),
         attack: normalizeSavedCharacterChargeSpeeds(saved.characterChargeSpeeds?.attack),
+      };
+      state.characterChargeSpeedEntries = {
+        defense: normalizeSavedCharacterChargeSpeedEntries(saved.characterChargeSpeedEntries?.defense),
+        attack: normalizeSavedCharacterChargeSpeedEntries(saved.characterChargeSpeedEntries?.attack),
       };
       state.characterQuantumCubes = {
         defense: normalizeSavedCharacterFlags(saved.characterQuantumCubes?.defense),
@@ -5530,6 +5613,7 @@ function loadTeam() {
     state.redHoodPierceCounts = Array(TEAM_SIZE).fill(0);
     state.scarletCounterEnabled = Array(TEAM_SIZE).fill(true);
     state.characterChargeSpeeds = { defense: {}, attack: {} };
+    state.characterChargeSpeedEntries = { defense: {}, attack: {} };
     state.characterQuantumCubes = { defense: {}, attack: {} };
     state.characterMagazines = { defense: {}, attack: {} };
     state.activeLineupIndex = 0;
