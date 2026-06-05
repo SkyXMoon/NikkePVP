@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "恢复移动端图表点击提示",
   "更新莉贝雷利奥额外伤害逻辑",
   "重装白雪不受蓄速影响",
   "优化SR和RL充能组成说明",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "修正国际服拉普拉斯额外伤害",
   "调整说明页复制分享位置",
   "修正蓄速词条3.45%",
-  "调整诺雅诺伊斯同速嘲讽优先级",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -5622,11 +5622,12 @@ function getChartGuideLine(className) {
   return line;
 }
 
-function showNearestChartTooltip(event) {
-  if (!canUseHoverTooltip()) {
+function showNearestChartTooltip(event, options = {}) {
+  if (!options.force && !canUseHoverTooltip()) {
     hideChartTooltip();
     return;
   }
+  if (!Number.isFinite(event?.clientX) || !Number.isFinite(event?.clientY)) return;
   const svg = els.chargeChart.querySelector("svg");
   if (!svg) return;
 
@@ -5678,6 +5679,10 @@ function showNearestChartTooltip(event) {
   const tooltipHeight = tooltip.offsetHeight || 120;
   const preferredTop = pointY + tooltipHeight + 18 > chartBox.height ? pointY - tooltipHeight - 14 : pointY - 18;
   tooltip.style.top = `${Math.min(Math.max(preferredTop, 8), Math.max(chartBox.height - tooltipHeight - 8, 8))}px`;
+}
+
+function showChartTooltipByInteraction(event) {
+  showNearestChartTooltip(event, { force: true });
 }
 
 function hideChartTooltip() {
@@ -7366,6 +7371,8 @@ function bindEvents() {
     switchLineupSlot(Number(button.dataset.lineupIndex));
   });
   els.chargeChart.addEventListener("mousemove", showNearestChartTooltip);
+  els.chargeChart.addEventListener("pointerdown", showChartTooltipByInteraction);
+  els.chargeChart.addEventListener("click", showChartTooltipByInteraction);
   els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
   document.addEventListener("touchstart", hideFloatingTooltips, { capture: true, passive: true });
   document.addEventListener(
