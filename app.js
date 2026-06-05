@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "隐藏帕斯卡蓄速设置",
   "更新国服帕斯卡",
   "修复冠特万能充能输入",
   "新增方案拖拽复制",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "加入国服婴宁",
   "更新页面使用说明",
   "修正手填蓄速魔方联动",
-  "支持手填最终蓄速",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -337,7 +337,7 @@ function getTeamPositionText(finishingPositionIndices = [], teamKey = "attack") 
         return universalCharge > 0 ? `P${index + 1}万能(${universalCharge})` : "空位";
       }
       const chargeSpeed = Number(chargeSpeeds[index]) || Number(character.chargeSpeedPercent) || 0;
-      const isChargeWeapon = character.weapon === "RL" || character.weapon === "SR";
+      const isChargeWeapon = canEditChargeSpeed(character);
       const prefix = finishingPositions.has(index) && canShowFinishMarker(character) ? "*" : "";
       const name = `${prefix}${character.name}`;
       return isChargeWeapon && chargeSpeed > 0 ? `${name}(${chargeSpeed})` : name;
@@ -347,6 +347,14 @@ function getTeamPositionText(finishingPositionIndices = [], teamKey = "attack") 
 
 function canShowFinishMarker(character) {
   return character && ["RL", "SR"].includes(character.weapon);
+}
+
+function isPascal(character) {
+  return character?.name === "帕斯卡" || character?.enName === "Pascal";
+}
+
+function canEditChargeSpeed(character) {
+  return canShowFinishMarker(character) && !isPascal(character);
 }
 
 function formatSeconds(value) {
@@ -440,7 +448,7 @@ function getPaidArenaCopyText() {
       const universalCharge = sanitizeUniversalCharge(universalCharges[index]);
       if (character) {
         const chargeSpeed = sanitizeChargeSpeed(chargeSpeeds[index]);
-        if (chargeSpeed > 0 && canShowFinishMarker(character)) return `${character.name}(${chargeSpeed})`;
+        if (chargeSpeed > 0 && canEditChargeSpeed(character)) return `${character.name}(${chargeSpeed})`;
         return character.name;
       }
       return universalCharge > 0 ? `充${formatNumber(universalCharge, 2)}%` : "空";
@@ -1931,7 +1939,7 @@ function getTimingLabel(character) {
 }
 
 function getChargeSpeedPreviewFrame(character, positionIndex = 0, teamKey = "attack", chargeSpeed = 0) {
-  if (!character || !canShowFinishMarker(character)) return null;
+  if (!character || !canEditChargeSpeed(character)) return null;
   const previewCharacter = {
     ...character,
     chargeSpeedPercent: sanitizeChargeSpeed(chargeSpeed),
@@ -2446,7 +2454,7 @@ function createSlotSettingsModal() {
   const { character, chargeSpeeds, index, teamKey, simulationTeamKey } = context;
   const chargeSpeedValue = sanitizeChargeSpeed(chargeSpeeds[index]);
   const chargeSpeedEntries = getSavedCharacterChargeSpeedEntries(character, teamKey);
-  const canEditChargeSpeed = canShowFinishMarker(character);
+  const showChargeSpeedSettings = canEditChargeSpeed(character);
   const chargeSpeedPreviewFrame = getChargeSpeedPreviewFrame(character, index, simulationTeamKey, chargeSpeedValue);
   const chargeSpeedEntryOptions = CHARGE_SPEED_ENTRY_OPTIONS.map(
     (option) => `<option value="${option.toFixed(2)}">${formatChargeSpeedEntry(option)}</option>`,
@@ -2476,7 +2484,7 @@ function createSlotSettingsModal() {
         <button class="slot-settings-close" type="button" aria-label="关闭设置">X</button>
       </div>
       ${
-        canEditChargeSpeed
+        showChargeSpeedSettings
           ? `
             <div class="settings-field settings-speed-entries">
               <span>蓄速</span>
@@ -3425,7 +3433,7 @@ function renderPaidArenaTeams() {
       const isTauntTarget = character && slotIndex === tauntTargetPositionIndex;
       const displayMagazine = character ? getDisplayMagazine(character, dataTeamKey) : null;
       const sideBadgeText =
-        character && canShowFinishMarker(character) && chargeSpeedValue > 0
+        character && canEditChargeSpeed(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
           : displayMagazine
             ? String(displayMagazine)
@@ -3665,7 +3673,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       const isScarletCounterEnabled = character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false;
       const isTauntTarget = character && index === tauntTargetPositionIndex;
       const sideBadgeText =
-        character && canShowFinishMarker(character) && chargeSpeedValue > 0
+        character && canEditChargeSpeed(character) && chargeSpeedValue > 0
           ? `${chargeSpeedValue}%`
           : displayMagazine
             ? String(displayMagazine)
@@ -6121,7 +6129,7 @@ async function loadExportImage(src) {
 
 function getPaidArenaSlotBadgeText(character, chargeSpeed, dataTeamKey) {
   if (!character) return "";
-  if (canShowFinishMarker(character) && sanitizeChargeSpeed(chargeSpeed) > 0) return `${sanitizeChargeSpeed(chargeSpeed)}%`;
+  if (canEditChargeSpeed(character) && sanitizeChargeSpeed(chargeSpeed) > 0) return `${sanitizeChargeSpeed(chargeSpeed)}%`;
   const magazine = getDisplayMagazine(character, dataTeamKey);
   return magazine ? String(magazine) : "";
 }
