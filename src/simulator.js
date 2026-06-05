@@ -406,9 +406,10 @@ function getDelayedExtraEvents(event, currentFrame, hitProfile = null) {
   }));
 }
 
-function getAttackContributionLabel(character, shotCount = 1) {
-  if (character?.id === 3) return "命中+穿透";
-  return shotCount > 1 ? `${shotCount}发命中` : "命中";
+function getAttackContributionLabel(character, shotCount = 1, shotNumber = null) {
+  if (character.weapon === "RL") return `爆炸命中${character.hasExtraDamage ? "+额外伤害" : ""}`;
+  if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${character.hasExtraDamage ? "+额外伤害" : ""}`;
+  return `命中${character.hasExtraDamage ? "+额外伤害" : ""}`;
 }
 
 function getHitCountExtraCharge(event) {
@@ -893,7 +894,7 @@ function simulateBurst(
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
       event.attackChargeTotal += chargeValue;
-      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount));
+      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount, chargeShotNumber));
       const currentContribution = contributions.get(getContributionKey(event, true));
       if (currentContribution) currentContribution.counterHits += hitProfile.totalHits - 1;
       addPositionHits(event, receivedPositionHits);

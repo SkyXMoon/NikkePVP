@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "优化SR和RL充能组成说明",
   "优化白雪公主重型武装充能组成说明",
   "更新白雪公主重型武装充能逻辑",
   "拉普拉斯珍藏加入国服",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "调整诺雅诺伊斯同速嘲讽优先级",
   "角色复制信息补充枪种",
   "新增首次访问帮助引导",
-  "调整冠军竞技场RL弹道规则",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1093,9 +1093,12 @@ function getChargeHitMultiplier(character, shotNumber = null) {
   return 1 + getPenetrationExtraHitCount(character, shotNumber);
 }
 
-function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character)) {
+function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character), shotNumber = null) {
   if (isCinderella(character)) return `命中：${CINDERELLA_TARGET_HIT_COUNT} hit；充能倍率：4/2/2/2/4/4，之后 2/2/2/2/4/4 循环`;
-  return `命中：${hitMultiplier} hit`;
+  const hasExtraDamage = hasEffectiveExtraDamage(character);
+  if (character.weapon === "RL") return `爆炸命中${hasExtraDamage ? "+额外伤害" : ""}`;
+  if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${hasExtraDamage ? "+额外伤害" : ""}`;
+  return `命中${hasExtraDamage ? "+额外伤害" : ""}`;
 }
 
 function getChargeValue(character, shotNumber = null) {
@@ -1426,13 +1429,12 @@ function getAttackHitProfile(
 }
 
 function getAttackContributionLabel(character, shotCount = 1, shotNumber = null, hitProfile = null) {
-  if (character?.id === 3) return "命中+穿透";
   if (hitProfile?.p5CinderellaDecoy) {
     const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
     return `命中：${actualHitMultiplier} hit`;
   }
-  if (character.weapon === "MG" && shotCount > 1) return `命中：${shotCount} hit`;
-  return getChargeHitLabel(character, getChargeHitMultiplier(character, shotNumber));
+  if (character.weapon === "MG" && shotCount > 1) return "命中";
+  return getChargeHitLabel(character, getChargeHitMultiplier(character, shotNumber), shotNumber);
 }
 
 function isReloadingAtFrame(positionIndex, frame, reloadTimeline = []) {
