@@ -127,6 +127,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "献祭设置增加重置默认",
   "修复献祭输入并显示充能轴",
   "冠军和特殊竞技场支持罗珊娜献祭",
   "新增罗珊娜献祭功能",
@@ -136,7 +137,6 @@ const CHANGELOG_ITEMS = [
   "隐藏帕斯卡蓄速设置",
   "更新国服帕斯卡",
   "修复冠特万能充能输入",
-  "新增方案拖拽复制",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -2838,6 +2838,7 @@ function createRosannaSacrificeModal() {
             : '<p class="rosanna-sacrifice-empty">暂无可献祭角色</p>'
         }
       </div>
+      <button class="slot-settings-reset rosanna-sacrifice-reset" type="button">重置默认</button>
     </section>
   `;
 
@@ -2863,6 +2864,14 @@ function createRosannaSacrificeModal() {
   });
   const getCurrentSacrificeFrames = () =>
     isPaidArena ? getPaidArenaRosannaSacrificeFrames(paidArenaMode)[rowIndex] : getRosannaSacrificeFrameState(teamKey);
+  backdrop.querySelector(".rosanna-sacrifice-reset").addEventListener("click", (event) => {
+    event.preventDefault();
+    const currentFrames = getCurrentSacrificeFrames();
+    if (!currentFrames) return;
+    currentFrames.fill(null);
+    saveTeam();
+    render();
+  });
   backdrop.addEventListener("input", (event) => {
     if (!event.target.matches(".rosanna-sacrifice-frame")) return;
     const positionIndex = Number(event.target.dataset.sacrificeIndex);
