@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修复冠特万能充能输入",
   "新增方案拖拽复制",
   "更新分享按钮说明",
   "复制按钮改为分享图标",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "修正手填蓄速魔方联动",
   "支持手填最终蓄速",
   "优化魔方与蓄速下拉样式",
-  "新增蓄速魔方选择",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -3405,7 +3405,8 @@ function renderPaidArenaTeams() {
     row.dataset.paidArenaRowIndex = String(rowIndex);
     row.setAttribute("aria-label", `${getPaidArenaModeLabel()}第${rowIndex + 1}队`);
     row.innerHTML = '<div class="team-slots-row"></div><div class="paid-arena-result-bar"></div>';
-    row.addEventListener("click", () => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest(".universal-charge-field")) return;
       state.paidArenaActiveRowIndex = rowIndex;
       saveTeam();
       render();
@@ -3475,6 +3476,7 @@ function renderPaidArenaTeams() {
 
       slot.addEventListener("click", (event) => {
         event.stopPropagation();
+        if (event.target.closest(".universal-charge-field")) return;
         if (suppressTeamSlotClick) return;
         state.paidArenaActiveRowIndex = rowIndex;
         saveTeam();
@@ -3564,13 +3566,32 @@ function renderPaidArenaTeams() {
         });
       } else {
         const universalInput = slot.querySelector("[data-paid-arena-universal-index]");
+        universalInput.addEventListener("pointerdown", (event) => event.stopPropagation());
+        universalInput.addEventListener("mousedown", (event) => event.stopPropagation());
+        universalInput.addEventListener("touchstart", (event) => event.stopPropagation(), { passive: true });
         universalInput.addEventListener("click", (event) => event.stopPropagation());
-        universalInput.addEventListener("focus", (event) => event.target.select());
+        universalInput.addEventListener("focus", (event) => {
+          event.stopPropagation();
+          event.target.select();
+        });
         universalInput.addEventListener("input", (event) => {
           event.stopPropagation();
           state.paidArenaActiveRowIndex = rowIndex;
           universalCharges[slotIndex] = sanitizeUniversalCharge(event.target.value);
           slot.classList.toggle("has-universal", universalCharges[slotIndex] > 0);
+          resultBar.textContent = getPaidArenaResultText(team, universalCharges, chargeSpeeds);
+        });
+        universalInput.addEventListener("keydown", (event) => {
+          event.stopPropagation();
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          event.target.blur();
+        });
+        universalInput.addEventListener("blur", (event) => {
+          const value = sanitizeUniversalCharge(event.target.value);
+          universalCharges[slotIndex] = value;
+          event.target.value = value || "";
+          slot.classList.toggle("has-universal", value > 0);
           resultBar.textContent = getPaidArenaResultText(team, universalCharges, chargeSpeeds);
           saveTeam();
         });
