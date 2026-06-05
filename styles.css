@@ -2836,6 +2836,30 @@ input:focus {
     0 0 32px rgba(71, 200, 212, 0.18);
 }
 
+.help-modal-backdrop.is-closing-to-help {
+  pointer-events: none;
+  animation: helpBackdropFadeOut 320ms ease forwards;
+}
+
+.help-modal-backdrop.is-closing-to-help .help-modal {
+  transform-origin: var(--help-close-origin-x, 100%) var(--help-close-origin-y, 0%);
+  animation: helpModalShrinkToButton 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes helpBackdropFadeOut {
+  to {
+    background: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0);
+  }
+}
+
+@keyframes helpModalShrinkToButton {
+  to {
+    transform: scale(0.04);
+    opacity: 0;
+  }
+}
+
 .help-modal-head {
   display: flex;
   align-items: flex-start;

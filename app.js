@@ -10,6 +10,7 @@ const STORAGE_KEY = "nikke-arena-charge-team-v2";
 const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const PAID_DEV_ACCESS_KEY = "nikke-paid-dev-access";
 const THEME_STORAGE_KEY = "nikke-arena-theme";
+const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const LOCAL_PAID_API_URL = "http://localhost:8787/api/paid/miss-inference";
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
 const WEAPON_LABELS = {
@@ -129,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "新增首次访问帮助引导",
   "调整冠军竞技场RL弹道规则",
   "献祭标记显示献祭帧数",
   "隐藏非蓄力角色蓄速魔方",
@@ -138,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "新增罗珊娜献祭功能",
   "优化缺头像占位显示",
   "启用nameCode头像回退",
-  "整理nameCode头像数据",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -2920,12 +2921,52 @@ function createRosannaSacrificeModal() {
   return backdrop;
 }
 
-function closeHelpModal() {
-  isHelpModalOpen = false;
-  document.querySelector(".help-modal-backdrop")?.remove();
+function hasSeenHelpIntro() {
+  return localStorage.getItem(HELP_INTRO_STORAGE_KEY) === "1";
 }
 
-function createHelpModal() {
+function markHelpIntroSeen() {
+  localStorage.setItem(HELP_INTRO_STORAGE_KEY, "1");
+}
+
+function getHelpButtonCenter() {
+  const rect = els.helpButton?.getBoundingClientRect();
+  if (!rect) return { x: window.innerWidth - 30, y: 30 };
+  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+}
+
+function animateHelpIntroClose(backdrop) {
+  const modal = backdrop?.querySelector(".help-modal");
+  if (!backdrop || !modal) {
+    backdrop?.remove();
+    return;
+  }
+  const modalRect = modal.getBoundingClientRect();
+  const target = getHelpButtonCenter();
+  const originX = target.x - modalRect.left;
+  const originY = target.y - modalRect.top;
+  modal.style.setProperty("--help-close-origin-x", `${originX}px`);
+  modal.style.setProperty("--help-close-origin-y", `${originY}px`);
+  backdrop.classList.add("is-closing-to-help");
+  const removeBackdrop = () => backdrop.remove();
+  backdrop.addEventListener("animationend", removeBackdrop, { once: true });
+  window.setTimeout(removeBackdrop, 360);
+}
+
+function closeHelpModal() {
+  isHelpModalOpen = false;
+  const backdrop = document.querySelector(".help-modal-backdrop");
+  if (!backdrop) return;
+  const isIntro = backdrop.dataset.intro === "true";
+  if (isIntro) {
+    markHelpIntroSeen();
+    animateHelpIntroClose(backdrop);
+    return;
+  }
+  backdrop.remove();
+}
+
+function createHelpModal(options = {}) {
   if (!isHelpModalOpen) return null;
   const sections = [
     {
@@ -2999,6 +3040,7 @@ function createHelpModal() {
   ];
   const backdrop = document.createElement("div");
   backdrop.className = "help-modal-backdrop";
+  if (options.intro) backdrop.dataset.intro = "true";
   backdrop.innerHTML = `
     <section class="help-modal" role="dialog" aria-modal="true" aria-label="页面说明">
       <div class="help-modal-head">
@@ -3034,11 +3076,16 @@ function createHelpModal() {
   return backdrop;
 }
 
-function openHelpModal() {
+function openHelpModal(options = {}) {
   isHelpModalOpen = true;
   document.querySelector(".help-modal-backdrop")?.remove();
-  const modal = createHelpModal();
+  const modal = createHelpModal(options);
   if (modal) document.body.append(modal);
+}
+
+function showInitialHelpIntro() {
+  if (hasSeenHelpIntro()) return;
+  window.requestAnimationFrame(() => openHelpModal({ intro: true }));
 }
 
 function closeChangelogModal() {
@@ -7358,6 +7405,7 @@ async function bootstrap() {
   syncFilterControls();
   syncLocalPaidDevAccessControl();
   render();
+  showInitialHelpIntro();
 }
 
 bootstrap().catch((error) => {
