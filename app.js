@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "角色复制信息补充枪种",
   "新增首次访问帮助引导",
   "调整冠军竞技场RL弹道规则",
   "献祭标记显示献祭帧数",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "冠军和特殊竞技场支持罗珊娜献祭",
   "新增罗珊娜献祭功能",
   "优化缺头像占位显示",
-  "启用nameCode头像回退",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1178,7 +1178,7 @@ function getChargeBreakdown(character) {
 
 function getCharacterDetailText(character) {
   return [
-    `${getCharacterDisplayName(character)}（${character.rarity || "SSR"}）`,
+    `${getCharacterDisplayName(character)}（${character.rarity || "SSR"}）（${character.weapon || "-"}）`,
     `最终单发充能：${formatNumber(getChargeValue(character), 2)}%`,
     ...getChargeWeaponDetailLines(character),
     getChargeBreakdown(character),
