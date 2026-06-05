@@ -2353,10 +2353,10 @@ const CHARACTERS = [
     "timing": {
       "chargeFrames": 90,
       "firstFrame": 90,
-      "intervalFrames": 106,
+      "intervalFrames": 90,
       "projectileFlightFrames": null,
       "projectileFlightFramesByPosition": null,
-      "turnFrames": 16
+      "turnFrames": 0
     },
     "hasPenetration": false,
     "hasExtraDamage": false,
