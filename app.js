@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正国际服拉普拉斯额外伤害",
   "调整说明页复制分享位置",
   "修正蓄速词条3.45%",
   "调整诺雅诺伊斯同速嘲讽优先级",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "献祭标记显示献祭帧数",
   "隐藏非蓄力角色蓄速魔方",
   "献祭设置增加重置默认",
-  "修复献祭输入并显示充能轴",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -930,6 +930,10 @@ function isCinderella(character) {
   return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
 }
 
+function isLaplace(character) {
+  return character?.id === 33 || character?.name === "拉普拉斯" || character?.slug === "拉普拉斯";
+}
+
 function isVestiTacticalUpgrade(character) {
   return (
     character?.id === 87 ||
@@ -1077,6 +1081,11 @@ function getBaseChargeUnit(character) {
   return character.weapon === "SG" ? baseCharge / 10 : baseCharge;
 }
 
+function hasEffectiveExtraDamage(character) {
+  if (isLaplace(character) && state.filters.region === "global") return false;
+  return Boolean(character.hasExtraDamage);
+}
+
 function getChargeHitMultiplier(character, shotNumber = null) {
   if (isCinderella(character)) return getCinderellaChargeMultiplier(shotNumber);
   if (character.weapon === "RL") return getRlHitSegments(character);
@@ -1091,7 +1100,7 @@ function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(cha
 
 function getChargeValue(character, shotNumber = null) {
   const coverMultiplier = getChargeHitMultiplier(character, shotNumber);
-  const extraMultiplier = character.hasExtraDamage ? 2 : 1;
+  const extraMultiplier = hasEffectiveExtraDamage(character) ? 2 : 1;
   return getBaseChargeUnit(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
@@ -1099,7 +1108,7 @@ function getAttackChargeValue(character, shotNumber = null, hitProfile = null, s
   if (!hitProfile || isCinderella(character)) return getChargeValue(character, shotNumber) * shotCount;
   if (hitProfile.p5CinderellaDecoy && character.flatBurstBonus) return (character.flatBurstBonus || 0) * shotCount;
   const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
-  const extraMultiplier = character.hasExtraDamage ? 2 : 1;
+  const extraMultiplier = hasEffectiveExtraDamage(character) ? 2 : 1;
   const flatBonus = (character.flatBurstBonus || 0) * shotCount;
   return getBaseChargeUnit(character) * actualHitMultiplier * extraMultiplier + flatBonus;
 }
@@ -1113,7 +1122,7 @@ function isHarran(character) {
 }
 
 function getHarranPoisonChargeValue(character) {
-  return getBaseChargeUnit(character) * (character.hasExtraDamage ? 2 : 1);
+  return getBaseChargeUnit(character) * (hasEffectiveExtraDamage(character) ? 2 : 1);
 }
 
 function getHarranPoisonEvent(event, currentFrame) {
@@ -1132,7 +1141,7 @@ function getHarranPoisonEvent(event, currentFrame) {
 
 function getChargeBreakdown(character) {
   const hitMultiplier = getChargeHitMultiplier(character);
-  const extraMultiplier = character.hasExtraDamage ? 2 : 1;
+  const extraMultiplier = hasEffectiveExtraDamage(character) ? 2 : 1;
   const hitLabel = getChargeHitLabel(character, hitMultiplier);
   const baseChargeUnit = getBaseChargeUnit(character);
   const effectiveBurstGen = getEffectiveBurstGen(character);
@@ -1143,7 +1152,7 @@ function getChargeBreakdown(character) {
     hitLabel,
   ];
 
-  if (character.hasExtraDamage) lines.push("额外伤害 ×2");
+  if (hasEffectiveExtraDamage(character)) lines.push("额外伤害 ×2");
   if (isRedHood(character)) lines.push(`攻击蓄速：每次攻击 +${formatNumber(RED_HOOD_CHARGE_SPEED_PER_ATTACK, 2)}%，最多 ${RED_HOOD_MAX_CHARGE_SPEED_STACKS} 层`);
   if (flatBonus) lines.push(`固定补充 +${formatNumber(flatBonus, 2)}%`);
   if (character.hitCountExtraEvents?.length) {
@@ -1266,7 +1275,7 @@ function getDelayedExtraEvents(event, currentFrame) {
     character: event.character,
     positionIndex: event.positionIndex,
     frame: currentFrame + extra.delayFrames,
-    chargeValue: getBaseChargeUnit(event.character) * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
+    chargeValue: getBaseChargeUnit(event.character) * extra.segments * (hasEffectiveExtraDamage(event.character) ? 2 : 1),
     source: "delayed",
   }));
 }
@@ -1291,7 +1300,7 @@ function getTriggeredHitCountExtraEvents(event) {
 }
 
 function getHitCountExtraChargeValue(event, extra) {
-  const extraMultiplier = event.character.hasExtraDamage ? 2 : 1;
+  const extraMultiplier = hasEffectiveExtraDamage(event.character) ? 2 : 1;
   return getBaseChargeUnit(event.character) * extra.segments * extraMultiplier;
 }
 
@@ -2059,7 +2068,7 @@ function getChargeSpeedPreviewFrame(character, positionIndex = 0, teamKey = "att
 function getTagMarkup(character) {
   const tags = [];
   if (character.hasPenetration && !isRedHood(character)) tags.push("穿透");
-  if (character.hasExtraDamage) tags.push("额外伤害");
+  if (hasEffectiveExtraDamage(character)) tags.push("额外伤害");
   if (character.flatBurstBonus) tags.push(`固定 +${character.flatBurstBonus}`);
   if (character.weapon === "RL") tags.push(`RL ${getRlHitSegments(character)} hit`);
   return tags.map((tag) => `<span class="pill">${escapeHtml(tag)}</span>`).join("");
