@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "优化白雪公主重型武装充能组成说明",
   "更新白雪公主重型武装充能逻辑",
   "拉普拉斯珍藏加入国服",
   "修正国际服拉普拉斯额外伤害",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "角色复制信息补充枪种",
   "新增首次访问帮助引导",
   "调整冠军竞技场RL弹道规则",
-  "献祭标记显示献祭帧数",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1426,6 +1426,7 @@ function getAttackHitProfile(
 }
 
 function getAttackContributionLabel(character, shotCount = 1, shotNumber = null, hitProfile = null) {
+  if (character?.id === 3) return "命中+穿透";
   if (hitProfile?.p5CinderellaDecoy) {
     const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
     return `命中：${actualHitMultiplier} hit`;

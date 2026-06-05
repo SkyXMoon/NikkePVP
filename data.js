@@ -221,33 +221,33 @@ const CHARACTERS = [
       {
         "delayFrames": 6,
         "segments": 1,
-        "label": "重武额外"
+        "label": "依次攻击"
       },
       {
         "delayFrames": 12,
         "segments": 5,
         "targetMode": "all",
-        "label": "重武全体"
+        "label": "全体攻击"
       },
       {
         "delayFrames": 20,
         "segments": 1,
-        "label": "重武持续"
+        "label": "依次攻击"
       },
       {
         "delayFrames": 28,
         "segments": 1,
-        "label": "重武持续"
+        "label": "依次攻击"
       },
       {
         "delayFrames": 36,
         "segments": 1,
-        "label": "重武持续"
+        "label": "依次攻击"
       },
       {
         "delayFrames": 44,
         "segments": 1,
-        "label": "重武持续"
+        "label": "依次攻击"
       }
     ],
     "hitCountExtraEvents": [],

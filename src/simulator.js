@@ -406,6 +406,11 @@ function getDelayedExtraEvents(event, currentFrame, hitProfile = null) {
   }));
 }
 
+function getAttackContributionLabel(character, shotCount = 1) {
+  if (character?.id === 3) return "命中+穿透";
+  return shotCount > 1 ? `${shotCount}发命中` : "命中";
+}
+
 function getHitCountExtraCharge(event) {
   return (event.character.hitCountExtraEvents || [])
     .filter((extra) => extra.hit === event.hits)
@@ -888,7 +893,7 @@ function simulateBurst(
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
       event.attackChargeTotal += chargeValue;
-      addContribution(event, chargeValue, shotCount > 1 ? `${shotCount}发命中` : "命中");
+      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount));
       const currentContribution = contributions.get(getContributionKey(event, true));
       if (currentContribution) currentContribution.counterHits += hitProfile.totalHits - 1;
       addPositionHits(event, receivedPositionHits);
