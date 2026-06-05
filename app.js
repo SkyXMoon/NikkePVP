@@ -120,6 +120,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正浅色主题失效图标",
   "完善浅色主题队伍角标",
   "放大复制图片站点网址",
   "复制图片网址改为当前访问入口",
@@ -130,7 +131,6 @@ const CHANGELOG_ITEMS = [
   "修正复制图片内容与提示主题",
   "修正浅色主题低对比文字",
   "完善浅色主题弹窗与图表样式",
-  "恢复右上角说明入口并完善主题覆盖",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 

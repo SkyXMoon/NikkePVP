@@ -417,7 +417,7 @@ input[type="number"]::-webkit-outer-spin-button {
 :root[data-theme="light"] .slot-link-target img,
 :root[data-theme="light"] .slot-counter-toggle img,
 :root[data-theme="light"] .slot-pierce-icon {
-  filter: none;
+  filter: brightness(0) saturate(1) opacity(0.74);
 }
 
 :root[data-theme="light"] .slot-link-toggle.is-active,
