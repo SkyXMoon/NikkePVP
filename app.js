@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "新增方案拖拽复制",
   "更新分享按钮说明",
   "复制按钮改为分享图标",
   "修复iOS悬停信息残留",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "支持手填最终蓄速",
   "优化魔方与蓄速下拉样式",
   "新增蓄速魔方选择",
-  "更新蓄力速度词条计算",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -264,8 +264,10 @@ const els = {
 let draggedTeamIndex = null;
 let draggedTeamKey = null;
 let draggedPaidArenaRowIndex = null;
+let draggedLineupIndex = null;
 let pointerTeamDrag = null;
 let suppressTeamSlotClick = false;
+let suppressLineupClick = false;
 let resizeRenderId = null;
 let openSlotSettings = null;
 let isHelpModalOpen = false;
@@ -553,6 +555,10 @@ function normalizeLineupSlot(slot = {}) {
 
 function normalizeLineupSlots(savedSlots = []) {
   return Array.from({ length: LINEUP_SLOT_COUNT }, (_, index) => normalizeLineupSlot(savedSlots[index]));
+}
+
+function cloneLineupSlot(slot = {}) {
+  return normalizeLineupSlot(JSON.parse(JSON.stringify(normalizeLineupSlot(slot))));
 }
 
 function saveCurrentLineupSlot() {
@@ -3295,8 +3301,42 @@ function renderLineupSlots() {
     button.type = "button";
     button.className = `lineup-slot-button${index === state.activeLineupIndex ? " is-active" : ""}${count ? " has-lineup" : ""}`;
     button.dataset.lineupIndex = index;
+    button.draggable = true;
     button.textContent = String(index + 1);
-    button.title = `方案 ${index + 1}${count ? ` · ${count}/10` : " · 空"}`;
+    button.title = `方案 ${index + 1}${count ? ` · ${count}/10` : " · 空"}，可拖动复制到其他方案`;
+    button.addEventListener("dragstart", (event) => {
+      draggedLineupIndex = index;
+      button.classList.add("is-dragging");
+      event.dataTransfer.effectAllowed = "copy";
+      event.dataTransfer.setData("text/plain", String(index));
+    });
+    button.addEventListener("dragend", () => {
+      draggedLineupIndex = null;
+      els.lineupSlots.querySelectorAll(".lineup-slot-button").forEach((slotButton) => {
+        slotButton.classList.remove("is-dragging", "is-drop-target");
+      });
+    });
+    button.addEventListener("dragover", (event) => {
+      const sourceIndex = getDraggedLineupSourceIndex(event);
+      if (sourceIndex === null || sourceIndex === index) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      button.classList.add("is-drop-target");
+    });
+    button.addEventListener("dragleave", () => {
+      button.classList.remove("is-drop-target");
+    });
+    button.addEventListener("drop", (event) => {
+      event.preventDefault();
+      const sourceIndex = getDraggedLineupSourceIndex(event);
+      button.classList.remove("is-drop-target");
+      suppressLineupClick = true;
+      setTimeout(() => {
+        suppressLineupClick = false;
+      }, 0);
+      if (sourceIndex === null) return;
+      copyLineupSlotTo(sourceIndex, index);
+    });
     fragment.append(button);
   });
   els.lineupSlots.replaceChildren(fragment);
@@ -5565,6 +5605,45 @@ function switchLineupSlot(index) {
   render();
 }
 
+function copyLineupSlotTo(sourceIndex, targetIndex) {
+  const normalizedSourceIndex = Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(sourceIndex) || 0));
+  const normalizedTargetIndex = Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(targetIndex) || 0));
+  if (normalizedSourceIndex === normalizedTargetIndex) return;
+
+  saveCurrentLineupSlot();
+  const sourceSlot = cloneLineupSlot(state.lineupSlots[normalizedSourceIndex]);
+  if (getLineupSlotCount(sourceSlot) === 0) {
+    showToast(`方案 ${normalizedSourceIndex + 1} 为空，无法复制`);
+    renderLineupSlots();
+    return;
+  }
+  const targetSlot = normalizeLineupSlot(state.lineupSlots[normalizedTargetIndex]);
+  const targetCount = getLineupSlotCount(targetSlot);
+
+  if (targetCount > 0) {
+    const confirmed = window.confirm(`方案 ${normalizedTargetIndex + 1} 已有队伍，是否覆盖？`);
+    if (!confirmed) {
+      renderLineupSlots();
+      return;
+    }
+  }
+
+  state.lineupSlots[normalizedTargetIndex] = sourceSlot;
+  state.activeLineupIndex = normalizedTargetIndex;
+  loadLineupSlot(normalizedTargetIndex);
+  openSlotSettings = null;
+  saveTeam();
+  showToast(`已将方案 ${normalizedSourceIndex + 1} 复制到方案 ${normalizedTargetIndex + 1}`);
+  render();
+}
+
+function getDraggedLineupSourceIndex(event) {
+  const dataValue = event?.dataTransfer?.getData("text/plain");
+  const candidate = dataValue === "" || dataValue === null || dataValue === undefined ? draggedLineupIndex : Number(dataValue);
+  if (!Number.isInteger(candidate) || candidate < 0 || candidate >= LINEUP_SLOT_COUNT) return null;
+  return candidate;
+}
+
 function normalizeSavedCharacterChargeSpeeds(savedSpeeds = {}) {
   return Object.fromEntries(
     Object.entries(savedSpeeds || {})
@@ -6669,6 +6748,10 @@ function bindEvents() {
     renderBattlePowerStrip();
   });
   els.lineupSlots.addEventListener("click", (event) => {
+    if (suppressLineupClick) {
+      event.preventDefault();
+      return;
+    }
     const button = event.target.closest("[data-lineup-index]");
     if (!button) return;
     switchLineupSlot(Number(button.dataset.lineupIndex));
