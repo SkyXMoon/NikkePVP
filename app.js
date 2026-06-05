@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "优化魔方与蓄速下拉样式",
   "新增蓄速魔方选择",
   "更新蓄力速度词条计算",
   "补充P5灰姑娘狙击特例",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "复制图片网址改为当前访问入口",
   "复制图片增加站点网址",
   "放大普通竞技场复制图片",
-  "优化普通竞技场复制图片版式",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -2467,17 +2467,15 @@ function createSlotSettingsModal() {
         <span>魔方</span>
         <label class="settings-cube-option">
           <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_NONE}"${cubeType === CUBE_TYPE_NONE ? " checked" : ""} />
-          <span>不选</span>
+          <span>无魔方</span>
         </label>
-        <label class="settings-cube-option">
+        <label class="settings-cube-option is-icon-only" title="蓄速魔方 +${CHARGE_SPEED_CUBE_VALUE.toFixed(2)}%">
           <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_CHARGE_SPEED}"${cubeType === CUBE_TYPE_CHARGE_SPEED ? " checked" : ""} />
           <img class="settings-check-icon" src="assets/icons/ui/cubes/charge-speed.png" alt="" aria-hidden="true" />
-          <span>蓄速 +${CHARGE_SPEED_CUBE_VALUE.toFixed(2)}%</span>
         </label>
-        <label class="settings-cube-option">
+        <label class="settings-cube-option is-icon-only" title="量子魔方">
           <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_QUANTUM}"${cubeType === CUBE_TYPE_QUANTUM ? " checked" : ""} />
           <img class="settings-check-icon" src="assets/icons/ui/cubes/quantum.png" alt="" aria-hidden="true" />
-          <span>量子遗迹</span>
         </label>
       </div>
       <button class="slot-settings-reset" type="button">重置默认</button>
