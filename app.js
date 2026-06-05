@@ -120,6 +120,7 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "补充P5灰姑娘狙击特例",
   "修正浅色主题失效图标",
   "完善浅色主题队伍角标",
   "放大复制图片站点网址",
@@ -130,7 +131,6 @@ const CHANGELOG_ITEMS = [
   "移动端复制改为原生分享图片",
   "修正复制图片内容与提示主题",
   "修正浅色主题低对比文字",
-  "完善浅色主题弹窗与图表样式",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -758,6 +758,14 @@ function isCinderella(character) {
   return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
 }
 
+function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = []) {
+  return (
+    character?.weapon === "SR" &&
+    targetPositionIndex === ENEMY_TEAM_SIZE - 1 &&
+    isCinderella(opponentTeam?.[targetPositionIndex])
+  );
+}
+
 function getCinderellaChargeMultiplier(shotNumber = 1) {
   const normalizedShotNumber = Math.max(1, Math.floor(Number(shotNumber) || 1));
   if (normalizedShotNumber <= CINDERELLA_INITIAL_CHARGE_SEQUENCE.length) {
@@ -905,6 +913,7 @@ function getChargeValue(character, shotNumber = null) {
 
 function getAttackChargeValue(character, shotNumber = null, hitProfile = null, shotCount = 1) {
   if (!hitProfile || isCinderella(character)) return getChargeValue(character, shotNumber) * shotCount;
+  if (hitProfile.p5CinderellaDecoy && character.flatBurstBonus) return (character.flatBurstBonus || 0) * shotCount;
   const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
   const flatBonus = (character.flatBurstBonus || 0) * shotCount;
@@ -1143,17 +1152,26 @@ function getTargetPositionIndex(character, teamKey = "attack") {
   return rule === "↖" || rule === "↘" ? ENEMY_TEAM_SIZE - 1 : DEFAULT_RL_TARGET_INDEX;
 }
 
-function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotNumber = null, targetPositionIndexOverride = null) {
+function getAttackHitProfile(
+  character,
+  shotCount = 1,
+  teamKey = "attack",
+  shotNumber = null,
+  targetPositionIndexOverride = null,
+  opponentTeam = [],
+) {
   const shotHits = getCounterHitCount(character, shotCount);
   const targetPositionIndex = Number.isInteger(targetPositionIndexOverride)
     ? Math.max(0, Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndexOverride))
     : getTargetPositionIndex(character, teamKey);
+  const p5CinderellaDecoy = isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam);
 
   if (isCinderella(character)) {
     return {
       totalHits: shotHits,
       bodyHits: [[targetPositionIndex, shotCount]],
       targetHits: [[targetPositionIndex, CINDERELLA_TARGET_HIT_COUNT]],
+      p5CinderellaDecoy: false,
     };
   }
 
@@ -1166,15 +1184,18 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotN
       totalHits: shotHits,
       bodyHits,
       targetHits: bodyHits.map(([positionIndex, hitCount]) => [positionIndex, hitCount * 2]),
+      p5CinderellaDecoy: false,
     };
   }
 
   const penetrationExtraHits = getPenetrationExtraHitCount(character, shotNumber);
   if (penetrationExtraHits > 0) {
+    const effectivePenetrationExtraHits = p5CinderellaDecoy ? 0 : penetrationExtraHits;
     return {
-      totalHits: shotHits * (1 + penetrationExtraHits),
+      totalHits: shotHits * (1 + effectivePenetrationExtraHits),
       bodyHits: [[targetPositionIndex, shotCount]],
-      targetHits: [[targetPositionIndex, shotCount * (1 + penetrationExtraHits)]],
+      targetHits: [[targetPositionIndex, shotCount * (1 + effectivePenetrationExtraHits)]],
+      p5CinderellaDecoy,
     };
   }
 
@@ -1182,10 +1203,15 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotN
     totalHits: shotHits,
     bodyHits: [[targetPositionIndex, shotHits]],
     targetHits: [[targetPositionIndex, shotHits]],
+    p5CinderellaDecoy,
   };
 }
 
-function getAttackContributionLabel(character, shotCount = 1, shotNumber = null) {
+function getAttackContributionLabel(character, shotCount = 1, shotNumber = null, hitProfile = null) {
+  if (hitProfile?.p5CinderellaDecoy) {
+    const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
+    return `命中：${actualHitMultiplier} hit`;
+  }
   if (character.weapon === "MG" && shotCount > 1) return `命中：${shotCount} hit`;
   return getChargeHitLabel(character, getChargeHitMultiplier(character, shotNumber));
 }
@@ -1450,6 +1476,7 @@ function simulateBurst(
   stunWindows = [],
   opponentTauntTarget = null,
   universalChargeOverride = null,
+  opponentTeam = [],
 ) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
@@ -1651,13 +1678,20 @@ function simulateBurst(
         return;
       }
 
-      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber, tauntedTargetPositionIndex);
+      const hitProfile = getAttackHitProfile(
+        event.character,
+        shotCount,
+        teamKey,
+        chargeShotNumber,
+        tauntedTargetPositionIndex,
+        opponentTeam,
+      );
       const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
       const chargeValue = getAttackChargeValue(event.character, chargeShotNumber, hitProfile, shotCount);
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
       event.attackChargeTotal += chargeValue;
-      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount, chargeShotNumber));
+      addContribution(event, chargeValue, getAttackContributionLabel(event.character, shotCount, chargeShotNumber, hitProfile));
       const currentContribution = contributions.get(getContributionKey(event, true));
       if (currentContribution) {
         const receivedHitTotal = receivedPositionHits.reduce((sum, [, hitCount]) => sum + hitCount, 0);
@@ -3959,8 +3993,18 @@ function computeBattleResults() {
   const defenseStunWindows = getStunWindowsForTeam("defense");
   const defenseTauntTarget = getTauntTargetState(state.defenseTeam, "defense", state.defenseChargeSpeeds);
   const attackTauntTarget = getTauntTargetState(state.team, "attack", state.chargeSpeeds);
-  let attackResult = simulateBurst(state.team, "attack", [], [], [], attackStunWindows, defenseTauntTarget);
-  let defenseResult = simulateBurst(state.defenseTeam, "defense", [], [], [], defenseStunWindows, attackTauntTarget);
+  let attackResult = simulateBurst(state.team, "attack", [], [], [], attackStunWindows, defenseTauntTarget, null, state.defenseTeam);
+  let defenseResult = simulateBurst(
+    state.defenseTeam,
+    "defense",
+    [],
+    [],
+    [],
+    defenseStunWindows,
+    attackTauntTarget,
+    null,
+    state.team,
+  );
 
   for (let index = 0; index < 8; index += 1) {
     const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
@@ -3973,6 +4017,8 @@ function computeBattleResults() {
       defenseResult?.turnDodgeTimeline || [],
       attackStunWindows,
       defenseTauntTarget,
+      null,
+      state.defenseTeam,
     );
     const nextDefenseResult = simulateBurst(
       state.defenseTeam,
@@ -3982,6 +4028,8 @@ function computeBattleResults() {
       attackResult?.turnDodgeTimeline || [],
       defenseStunWindows,
       attackTauntTarget,
+      null,
+      state.team,
     );
     const stable =
       getResultSignature(nextAttackResult) === getResultSignature(attackResult) &&

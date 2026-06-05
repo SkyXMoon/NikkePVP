@@ -121,6 +121,17 @@ function getSavedCharacterMagazine(character, teamKey = "attack") {
   return null;
 }
 
+function sanitizeRedHoodPierceCount(value) {
+  const count = Math.floor(Number(value) || 0);
+  if (count <= 0) return 0;
+  if (count >= 2) return 2;
+  return 1;
+}
+
+function getSavedCharacterRedHoodPierceCount(character, teamKey = "attack") {
+  return sanitizeRedHoodPierceCount(runtimeState.characterRedHoodPierceCounts?.[normalizeTeamKey(teamKey)]?.[character.id]);
+}
+
 function isScarlet(character) {
   return character?.name === "红莲" || character?.slug === "红莲";
 }
@@ -151,6 +162,14 @@ function isLittleMermaid(character) {
 
 function isCinderella(character) {
   return character?.name === "灰姑娘" || character?.slug === "灰姑娘";
+}
+
+function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = []) {
+  return (
+    character?.weapon === "SR" &&
+    targetPositionIndex === ENEMY_TEAM_SIZE - 1 &&
+    isCinderella(opponentTeam?.[targetPositionIndex])
+  );
 }
 
 function getCinderellaChargeMultiplier(shotNumber = 1) {
@@ -325,6 +344,17 @@ function getChargeValue(character, shotNumber = null) {
   return getEffectiveBurstGen(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
+function getAttackChargeValue(character, shotNumber = null, hitProfile = null, shotCount = 1) {
+  if (!hitProfile || isCinderella(character)) return getChargeValue(character, shotNumber) * shotCount;
+  if (hitProfile.p5CinderellaDecoy && character.flatBurstBonus) return (character.flatBurstBonus || 0) * shotCount;
+  const actualHitMultiplier = (hitProfile.targetHits || hitProfile.positionHits || []).reduce(
+    (sum, [, hitCount]) => sum + (Number(hitCount) || 0),
+    0,
+  );
+  const extraMultiplier = character.hasExtraDamage ? 2 : 1;
+  return getEffectiveBurstGen(character) * actualHitMultiplier * extraMultiplier + (character.flatBurstBonus || 0) * shotCount;
+}
+
 function isHarran(character) {
   return character?.id === 57 || character?.slug === "哈兰" || character?.name === "哈兰";
 }
@@ -381,20 +411,32 @@ function getCounterHitCount(character, shotCount = 1) {
   return shotCount;
 }
 
+function getPenetrationExtraHitCount(character, shotNumber = null) {
+  if (!character) return 0;
+  if (isRedHood(character)) {
+    const pierceCount = sanitizeRedHoodPierceCount(character.redHoodPierceCount);
+    if (Number.isFinite(Number(shotNumber))) return Number(shotNumber) > 0 && Number(shotNumber) <= pierceCount ? 1 : 0;
+    return pierceCount > 0 ? 1 : 0;
+  }
+  return character.hasPenetration ? 1 : 0;
+}
+
 function getTargetPositionIndex(character, teamKey = "attack") {
   const rule = character.targetRule?.[normalizeTeamKey(teamKey)] || "→";
   return rule === "↖" || rule === "↘" ? ENEMY_TEAM_SIZE - 1 : DEFAULT_RL_TARGET_INDEX;
 }
 
-function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotNumber = null) {
+function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotNumber = null, opponentTeam = []) {
   const shotHits = getCounterHitCount(character, shotCount);
   const targetPositionIndex = getTargetPositionIndex(character, teamKey);
+  const p5CinderellaDecoy = isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam);
 
   if (isCinderella(character)) {
     return {
       totalHits: shotHits,
       positionHits: [[targetPositionIndex, shotCount]],
       targetHits: [[targetPositionIndex, CINDERELLA_TARGET_HIT_COUNT]],
+      p5CinderellaDecoy: false,
     };
   }
 
@@ -405,22 +447,36 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotN
     return {
       totalHits: shotHits,
       positionHits: Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]),
+      p5CinderellaDecoy: false,
     };
   }
 
-  if (character.hasPenetration) {
+  const penetrationExtraHits = getPenetrationExtraHitCount(character, shotNumber);
+  if (penetrationExtraHits > 0) {
+    if (p5CinderellaDecoy) {
+      return {
+        totalHits: shotHits,
+        positionHits: [[targetPositionIndex, shotCount]],
+        targetHits: [[targetPositionIndex, shotCount]],
+        p5CinderellaDecoy,
+      };
+    }
     return {
-      totalHits: shotHits,
+      totalHits: shotHits * (1 + penetrationExtraHits),
       positionHits: [
         [targetPositionIndex, shotCount],
         [targetPositionIndex === ENEMY_TEAM_SIZE - 1 ? targetPositionIndex - 1 : targetPositionIndex + 1, shotCount],
       ],
+      targetHits: [[targetPositionIndex, shotCount * (1 + penetrationExtraHits)]],
+      p5CinderellaDecoy,
     };
   }
 
   return {
     totalHits: shotHits,
     positionHits: [[targetPositionIndex, shotHits]],
+    targetHits: [[targetPositionIndex, shotHits]],
+    p5CinderellaDecoy,
   };
 }
 
@@ -600,9 +656,11 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
   const savedMagazine = isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
   return {
     ...character,
+    hasPenetration: isRedHood(character) ? false : character.hasPenetration,
     stats: savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats,
     chargeSpeedPercent: Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
+    redHoodPierceCount: isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, teamKey) : 0,
   };
 }
 
@@ -628,6 +686,7 @@ function simulateBurst(
   opponentReloadTimeline = [],
   opponentTurnDodgeTimeline = [],
   stunWindows = [],
+  opponentTeam = [],
 ) {
   const members = team
     .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
@@ -804,9 +863,9 @@ function simulateBurst(
         return;
       }
 
-      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber);
+      const hitProfile = getAttackHitProfile(event.character, shotCount, teamKey, chargeShotNumber, opponentTeam);
       const receivedPositionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, opponentReloadTimeline);
-      const chargeValue = getChargeValue(event.character, chargeShotNumber) * shotCount;
+      const chargeValue = getAttackChargeValue(event.character, chargeShotNumber, hitProfile, shotCount);
       totalCharge += chargeValue;
       event.totalCharge += chargeValue;
       event.attackChargeTotal += chargeValue;
@@ -1005,8 +1064,8 @@ export function computeBattleResultsFromPayload(payload = {}, characters = []) {
   runtimeState = normalizePayload(payload, characters);
   const attackStunWindows = getStunWindowsForTeam("attack");
   const defenseStunWindows = getStunWindowsForTeam("defense");
-  let attackResult = simulateBurst(runtimeState.team, "attack", [], [], [], attackStunWindows);
-  let defenseResult = simulateBurst(runtimeState.defenseTeam, "defense", [], [], [], defenseStunWindows);
+  let attackResult = simulateBurst(runtimeState.team, "attack", [], [], [], attackStunWindows, runtimeState.defenseTeam);
+  let defenseResult = simulateBurst(runtimeState.defenseTeam, "defense", [], [], [], defenseStunWindows, runtimeState.team);
 
   for (let index = 0; index < 8; index += 1) {
     const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
@@ -1018,6 +1077,7 @@ export function computeBattleResultsFromPayload(payload = {}, characters = []) {
       defenseResult?.reloadTimeline || [],
       defenseResult?.turnDodgeTimeline || [],
       attackStunWindows,
+      runtimeState.defenseTeam,
     );
     const nextDefenseResult = simulateBurst(
       runtimeState.defenseTeam,
@@ -1026,6 +1086,7 @@ export function computeBattleResultsFromPayload(payload = {}, characters = []) {
       attackResult?.reloadTimeline || [],
       attackResult?.turnDodgeTimeline || [],
       defenseStunWindows,
+      runtimeState.team,
     );
     const stable = getResultSignature(nextAttackResult) === getResultSignature(attackResult) && getResultSignature(nextDefenseResult) === getResultSignature(defenseResult);
     attackResult = nextAttackResult;
