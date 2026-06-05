@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修复iOS悬停信息残留",
   "加入国服婴宁",
   "更新页面使用说明",
   "修正手填蓄速魔方联动",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "更新蓄力速度词条计算",
   "补充P5灰姑娘狙击特例",
   "修正浅色主题失效图标",
-  "完善浅色主题队伍角标",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1188,6 +1188,15 @@ function hideCharacterTooltip() {
   document.querySelector(".character-hover-tooltip")?.classList.remove("show");
 }
 
+function canUseHoverTooltip() {
+  return window.matchMedia?.("(hover: hover) and (pointer: fine)")?.matches ?? true;
+}
+
+function hideFloatingTooltips() {
+  hideCharacterTooltip();
+  hideChartTooltip();
+}
+
 function getDelayedExtraEvents(event, currentFrame) {
   if (isHarran(event.character)) return [];
   return (event.character.delayedExtraHits || []).map((extra) => ({
@@ -2238,12 +2247,22 @@ function renderCharacters() {
       <span class="tile-charge">${formatNumber(getChargeValue(character), 1)}</span>
       <span class="tile-check" aria-hidden="true">✓</span>
     `;
-    tile.addEventListener("mouseenter", () => showCharacterTooltip(character, index, tile));
-    tile.addEventListener("mousemove", () => positionCharacterTooltip(tile));
+    tile.addEventListener("mouseenter", () => {
+      if (canUseHoverTooltip()) showCharacterTooltip(character, index, tile);
+    });
+    tile.addEventListener("mousemove", () => {
+      if (canUseHoverTooltip()) positionCharacterTooltip(tile);
+    });
     tile.addEventListener("mouseleave", hideCharacterTooltip);
-    tile.addEventListener("focus", () => showCharacterTooltip(character, index, tile));
+    tile.addEventListener("focus", () => {
+      if (canUseHoverTooltip()) showCharacterTooltip(character, index, tile);
+    });
     tile.addEventListener("blur", hideCharacterTooltip);
-    tile.addEventListener("click", () => toggleCharacter(character));
+    tile.addEventListener("touchstart", hideCharacterTooltip, { passive: true });
+    tile.addEventListener("click", () => {
+      hideCharacterTooltip();
+      toggleCharacter(character);
+    });
     tile.addEventListener("contextmenu", (event) => {
       event.preventDefault();
       copyCharacterDetails(character);
@@ -5038,6 +5057,10 @@ function getChartGuideLine(className) {
 }
 
 function showNearestChartTooltip(event) {
+  if (!canUseHoverTooltip()) {
+    hideChartTooltip();
+    return;
+  }
   const svg = els.chargeChart.querySelector("svg");
   if (!svg) return;
 
@@ -6652,7 +6675,18 @@ function bindEvents() {
   });
   els.chargeChart.addEventListener("mousemove", showNearestChartTooltip);
   els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
+  document.addEventListener("touchstart", hideFloatingTooltips, { capture: true, passive: true });
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
+      if (event.pointerType && event.pointerType !== "mouse") hideFloatingTooltips();
+    },
+    { capture: true, passive: true },
+  );
+  window.addEventListener("scroll", hideFloatingTooltips, { passive: true });
+  window.addEventListener("orientationchange", hideFloatingTooltips);
   window.addEventListener("resize", scheduleResponsiveRender);
+  window.addEventListener("resize", hideFloatingTooltips);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && isHelpModalOpen) closeHelpModal();
     if (event.key === "Escape") closeChangelogModal();
