@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "优化缺头像占位显示",
   "启用nameCode头像回退",
   "整理nameCode头像数据",
   "隐藏帕斯卡蓄速设置",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "更新分享按钮说明",
   "复制按钮改为分享图标",
   "修复iOS悬停信息残留",
-  "加入国服婴宁",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1921,7 +1921,12 @@ function getAvatarMarkup(character) {
   if (avatarUrl) {
     return `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(character.name)}" loading="lazy" referrerpolicy="no-referrer" />`;
   }
-  return `<span>${escapeHtml(character.weapon)}</span>`;
+  return `
+    <span class="avatar-fallback">
+      <span class="avatar-fallback-name">${escapeHtml(character.name)}</span>
+      <span class="avatar-fallback-weapon">${escapeHtml(character.weapon)}</span>
+    </span>
+  `;
 }
 
 function getCharacterAvatarUrl(character) {
@@ -6186,11 +6191,17 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
     context.drawImage(image, x + 4 + (size - 8 - drawWidth) / 2, y + 4 + (size - 8 - drawHeight) / 2, drawWidth, drawHeight);
     context.restore();
   } else if (character) {
-    drawCanvasText(context, character.name.slice(0, 2), x + size / 2, y + size / 2, {
+    drawCanvasText(context, character.name, x + size / 2, y + size * 0.43, {
       align: "center",
-      size: 20,
+      size: 15,
       weight: 700,
       color: "#dfe7f3",
+    });
+    drawCanvasText(context, character.weapon, x + size / 2, y + size * 0.64, {
+      align: "center",
+      size: 13,
+      weight: 700,
+      color: "#8f9aaa",
     });
   } else {
     drawCanvasText(context, `P${slot.index + 1}`, x + size / 2, y + size * 0.36, {
