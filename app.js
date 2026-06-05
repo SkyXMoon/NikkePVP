@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "整理nameCode头像数据",
   "隐藏帕斯卡蓄速设置",
   "更新国服帕斯卡",
   "修复冠特万能充能输入",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "修复iOS悬停信息残留",
   "加入国服婴宁",
   "更新页面使用说明",
-  "修正手填蓄速魔方联动",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
