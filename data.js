@@ -215,9 +215,41 @@ const CHARACTERS = [
       "projectileFlightFramesByPosition": null,
       "turnFrames": 16
     },
-    "hasPenetration": false,
+    "hasPenetration": true,
     "hasExtraDamage": false,
-    "delayedExtraHits": [],
+    "delayedExtraHits": [
+      {
+        "delayFrames": 6,
+        "segments": 1,
+        "label": "重武额外"
+      },
+      {
+        "delayFrames": 12,
+        "segments": 5,
+        "targetMode": "all",
+        "label": "重武全体"
+      },
+      {
+        "delayFrames": 20,
+        "segments": 1,
+        "label": "重武持续"
+      },
+      {
+        "delayFrames": 28,
+        "segments": 1,
+        "label": "重武持续"
+      },
+      {
+        "delayFrames": 36,
+        "segments": 1,
+        "label": "重武持续"
+      },
+      {
+        "delayFrames": 44,
+        "segments": 1,
+        "label": "重武持续"
+      }
+    ],
     "hitCountExtraEvents": [],
     "flatBurstBonus": 0,
     "company": "朝圣者",

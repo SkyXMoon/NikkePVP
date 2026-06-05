@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "更新白雪公主重型武装充能逻辑",
   "拉普拉斯珍藏加入国服",
   "修正国际服拉普拉斯额外伤害",
   "调整说明页复制分享位置",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "新增首次访问帮助引导",
   "调整冠军竞技场RL弹道规则",
   "献祭标记显示献祭帧数",
-  "隐藏非蓄力角色蓄速魔方",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1269,15 +1269,31 @@ function hideFloatingTooltips() {
   hideChartTooltip();
 }
 
-function getDelayedExtraEvents(event, currentFrame) {
+function getDelayedExtraPositionHits(extra, hitProfile = null) {
+  const segments = Math.max(0, Number(extra?.segments) || 0);
+  if (segments <= 0) return [];
+  if (extra?.targetMode === "all") {
+    return Array.from({ length: ENEMY_TEAM_SIZE }, (_, positionIndex) => [positionIndex, 1]);
+  }
+  const targetPositionIndex = hitProfile?.bodyHits?.[0]?.[0] ?? hitProfile?.targetHits?.[0]?.[0] ?? DEFAULT_RL_TARGET_INDEX;
+  return [[targetPositionIndex, segments]];
+}
+
+function getDelayedExtraEvents(event, currentFrame, hitProfile = null) {
   if (isHarran(event.character)) return [];
-  return (event.character.delayedExtraHits || []).map((extra) => ({
-    character: event.character,
-    positionIndex: event.positionIndex,
-    frame: currentFrame + extra.delayFrames,
-    chargeValue: getBaseChargeUnit(event.character) * extra.segments * (hasEffectiveExtraDamage(event.character) ? 2 : 1),
-    source: "delayed",
-  }));
+  return (event.character.delayedExtraHits || []).map((extra) => {
+    const positionHits = getDelayedExtraPositionHits(extra, hitProfile);
+    return {
+      character: event.character,
+      positionIndex: event.positionIndex,
+      frame: currentFrame + extra.delayFrames,
+      chargeValue: getBaseChargeUnit(event.character) * extra.segments * (hasEffectiveExtraDamage(event.character) ? 2 : 1),
+      positionHits,
+      targetHits: positionHits,
+      source: "delayed",
+      label: extra.label,
+    };
+  });
 }
 
 function getMagazineEmptyExtraEvent(event, reloadEvent) {
@@ -1865,6 +1881,8 @@ function simulateBurst(
       owner.totalCharge += extra.chargeValue;
       owner.attackChargeTotal += extra.chargeValue;
       addContribution(owner, extra.chargeValue, extra.label || getDelayedExtraLabel(owner.character));
+      addPositionHits(owner, extra.positionHits || []);
+      addTargetHits(owner, extra.targetHits || []);
       if (extra.repeatFrames) {
         pendingExtraEvents.push({
           ...extra,
@@ -1958,7 +1976,7 @@ function simulateBurst(
       pendingExtraEvents.push(...getDelayedHitCountExtraEvents(event, currentFrame));
       const harranPoisonEvent = getHarranPoisonEvent(event, currentFrame);
       if (harranPoisonEvent) pendingExtraEvents.push(harranPoisonEvent);
-      pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
+      pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame, hitProfile));
       const reloadEvent = advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
       const magazineEmptyExtra = getMagazineEmptyExtraEvent(event, reloadEvent);
       if (magazineEmptyExtra) pendingExtraEvents.push(magazineEmptyExtra);

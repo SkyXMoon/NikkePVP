@@ -383,14 +383,26 @@ function getHarranPoisonEvent(event, currentFrame) {
   };
 }
 
-function getDelayedExtraEvents(event, currentFrame) {
+function getDelayedExtraPositionHits(extra, hitProfile = null) {
+  const segments = Math.max(0, Number(extra?.segments) || 0);
+  if (segments <= 0) return [];
+  if (extra?.targetMode === "all") {
+    return Array.from({ length: ENEMY_TEAM_SIZE }, (_, positionIndex) => [positionIndex, 1]);
+  }
+  const targetPositionIndex = hitProfile?.positionHits?.[0]?.[0] ?? hitProfile?.targetHits?.[0]?.[0] ?? DEFAULT_RL_TARGET_INDEX;
+  return [[targetPositionIndex, segments]];
+}
+
+function getDelayedExtraEvents(event, currentFrame, hitProfile = null) {
   if (isHarran(event.character)) return [];
   return (event.character.delayedExtraHits || []).map((extra) => ({
     character: event.character,
     positionIndex: event.positionIndex,
     frame: currentFrame + extra.delayFrames,
     chargeValue: getEffectiveBurstGen(event.character) * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
+    positionHits: getDelayedExtraPositionHits(extra, hitProfile),
     source: "delayed",
+    label: extra.label,
   }));
 }
 
@@ -814,6 +826,7 @@ function simulateBurst(
         owner.totalCharge += extra.chargeValue;
         owner.attackChargeTotal += extra.chargeValue;
         addContribution(owner, extra.chargeValue, extra.label || "延迟额外");
+        addPositionHits(owner, extra.positionHits || []);
         if (extra.repeatFrames) {
           pendingExtraEvents.push({
             ...extra,
@@ -886,7 +899,7 @@ function simulateBurst(
       addContribution(event, hitCountExtraCharge, "额外触发");
       const harranPoisonEvent = getHarranPoisonEvent(event, currentFrame);
       if (harranPoisonEvent) pendingExtraEvents.push(harranPoisonEvent);
-      pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame));
+      pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame, hitProfile));
       advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
     });
 
