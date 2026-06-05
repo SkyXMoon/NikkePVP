@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "调整诺雅诺伊斯同速嘲讽优先级",
   "角色复制信息补充枪种",
   "新增首次访问帮助引导",
   "调整冠军竞技场RL弹道规则",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "修复献祭输入并显示充能轴",
   "冠军和特殊竞技场支持罗珊娜献祭",
   "新增罗珊娜献祭功能",
-  "优化缺头像占位显示",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1445,11 +1445,18 @@ function getTauntTargetState(team = [], teamKey = "attack", chargeSpeedsOverride
         positionIndex,
         chargeFrames: Number(timing.chargeFrames) || 0,
         activationFrame: Number(timing.firstFrame) || 0,
+        priority: isNoah(character) ? 1 : 0,
       };
     })
     .filter(Boolean);
   if (!candidates.length) return null;
-  candidates.sort((a, b) => b.chargeFrames - a.chargeFrames || b.activationFrame - a.activationFrame || b.positionIndex - a.positionIndex);
+  candidates.sort(
+    (a, b) =>
+      b.chargeFrames - a.chargeFrames ||
+      b.priority - a.priority ||
+      b.activationFrame - a.activationFrame ||
+      b.positionIndex - a.positionIndex,
+  );
   return candidates[0];
 }
 
