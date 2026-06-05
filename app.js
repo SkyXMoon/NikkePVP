@@ -119,9 +119,14 @@ const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
 ]);
 const CHARGE_SPEED_ENTRY_OPTIONS = [0, 1.98, 2.28, 2.57, 2.86, 3.16, 3.54, 3.75, 4.04, 4.33, 4.63, 4.92, 5.21, 5.51, 5.8, 6.09];
 const CHARGE_SPEED_ENTRY_COUNT = 4;
+const CUBE_TYPE_NONE = "none";
+const CUBE_TYPE_CHARGE_SPEED = "charge-speed";
+const CUBE_TYPE_QUANTUM = "quantum";
+const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "新增蓄速魔方选择",
   "更新蓄力速度词条计算",
   "补充P5灰姑娘狙击特例",
   "修正浅色主题失效图标",
@@ -131,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "复制图片增加站点网址",
   "放大普通竞技场复制图片",
   "优化普通竞技场复制图片版式",
-  "移动端复制改为原生分享图片",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -168,6 +172,10 @@ const state = {
     attack: {},
   },
   characterQuantumCubes: {
+    defense: {},
+    attack: {},
+  },
+  characterCubeTypes: {
     defense: {},
     attack: {},
   },
@@ -596,6 +604,14 @@ function getCharacterQuantumCubeMemory(teamKey = state.activeTeamKey) {
   return state.characterQuantumCubes[normalizedTeamKey];
 }
 
+function getCharacterCubeTypeMemory(teamKey = state.activeTeamKey) {
+  const normalizedTeamKey = normalizeTeamKey(teamKey);
+  if (!state.characterCubeTypes[normalizedTeamKey]) {
+    state.characterCubeTypes[normalizedTeamKey] = {};
+  }
+  return state.characterCubeTypes[normalizedTeamKey];
+}
+
 function getCharacterMagazineMemory(teamKey = state.activeTeamKey) {
   const normalizedTeamKey = normalizeTeamKey(teamKey);
   if (!state.characterMagazines[normalizedTeamKey]) {
@@ -633,6 +649,18 @@ function calculateChargeSpeedFromEntries(entries = []) {
     grouped.set(key, (grouped.get(key) || 0) + value);
   });
   return [...grouped.values()].reduce((sum, value) => sum + Math.round(value), 0);
+}
+
+function sanitizeCubeType(value) {
+  return [CUBE_TYPE_CHARGE_SPEED, CUBE_TYPE_QUANTUM].includes(value) ? value : CUBE_TYPE_NONE;
+}
+
+function getChargeSpeedCubeBonus(cubeType) {
+  return sanitizeCubeType(cubeType) === CUBE_TYPE_CHARGE_SPEED ? Math.round(CHARGE_SPEED_CUBE_VALUE) : 0;
+}
+
+function calculateChargeSpeedFromEntriesAndCube(entries = [], cubeType = CUBE_TYPE_NONE) {
+  return calculateChargeSpeedFromEntries(entries) + getChargeSpeedCubeBonus(cubeType);
 }
 
 function formatChargeSpeedEntry(value) {
@@ -673,7 +701,7 @@ function getSavedCharacterChargeSpeedEntries(character, teamKey = state.activeTe
 function saveCharacterChargeSpeedEntries(character, entries, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
   const normalizedEntries = normalizeChargeSpeedEntries(entries);
-  const speed = calculateChargeSpeedFromEntries(normalizedEntries);
+  const speed = calculateChargeSpeedFromEntriesAndCube(normalizedEntries, getSavedCharacterCubeType(character, teamKey));
   getCharacterChargeSpeedEntryMemory(teamKey)[character.id] = normalizedEntries;
   saveCharacterChargeSpeed(character, speed, teamKey);
 }
@@ -686,17 +714,47 @@ function resetCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
 
 function getSavedCharacterQuantumCube(character, teamKey = state.activeTeamKey) {
   if (!character?.id) return false;
-  return Boolean(getCharacterQuantumCubeMemory(teamKey)[character.id]);
+  return getSavedCharacterCubeType(character, teamKey) === CUBE_TYPE_QUANTUM;
 }
 
 function saveCharacterQuantumCube(character, enabled, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
-  getCharacterQuantumCubeMemory(teamKey)[character.id] = Boolean(enabled);
+  saveCharacterCubeType(character, enabled ? CUBE_TYPE_QUANTUM : CUBE_TYPE_NONE, teamKey);
 }
 
 function resetCharacterQuantumCube(character, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
   delete getCharacterQuantumCubeMemory(teamKey)[character.id];
+  delete getCharacterCubeTypeMemory(teamKey)[character.id];
+}
+
+function getSavedCharacterCubeType(character, teamKey = state.activeTeamKey) {
+  if (!character?.id) return CUBE_TYPE_NONE;
+  const cubeType = sanitizeCubeType(getCharacterCubeTypeMemory(teamKey)[character.id]);
+  if (cubeType !== CUBE_TYPE_NONE) return cubeType;
+  return Boolean(getCharacterQuantumCubeMemory(teamKey)[character.id]) ? CUBE_TYPE_QUANTUM : CUBE_TYPE_NONE;
+}
+
+function getCubeIconSrc(cubeType) {
+  const normalizedCubeType = sanitizeCubeType(cubeType);
+  if (normalizedCubeType === CUBE_TYPE_CHARGE_SPEED) return "assets/icons/ui/cubes/charge-speed.png";
+  if (normalizedCubeType === CUBE_TYPE_QUANTUM) return "assets/icons/ui/cubes/quantum.png";
+  return "";
+}
+
+function saveCharacterCubeType(character, cubeType, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  const normalizedCubeType = sanitizeCubeType(cubeType);
+  const cubeMemory = getCharacterCubeTypeMemory(teamKey);
+  const quantumMemory = getCharacterQuantumCubeMemory(teamKey);
+  if (normalizedCubeType === CUBE_TYPE_NONE) {
+    delete cubeMemory[character.id];
+    delete quantumMemory[character.id];
+  } else {
+    cubeMemory[character.id] = normalizedCubeType;
+    quantumMemory[character.id] = normalizedCubeType === CUBE_TYPE_QUANTUM;
+  }
+  saveCharacterChargeSpeedEntries(character, getSavedCharacterChargeSpeedEntries(character, teamKey), teamKey);
 }
 
 function getSavedCharacterMagazine(character, teamKey = state.activeTeamKey) {
@@ -2365,7 +2423,7 @@ function createSlotSettingsModal() {
       `,
     )
     .join("");
-  const quantumCubeEnabled = getSavedCharacterQuantumCube(character, teamKey);
+  const cubeType = getSavedCharacterCubeType(character, teamKey);
   const isScarletSettings = state.allowMissedShots && isScarlet(character);
   const magazineValue = getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
   const backdrop = document.createElement("div");
@@ -2405,11 +2463,23 @@ function createSlotSettingsModal() {
           `
           : ""
       }
-      <label class="settings-check-field">
-        <img class="settings-check-icon" src="assets/icons/ui/cubes/quantum-24x24.webp" alt="" aria-hidden="true" />
-        <span>启用量子遗迹魔方</span>
-        <input class="slot-settings-quantum-cube" type="checkbox"${quantumCubeEnabled ? " checked" : ""} />
-      </label>
+      <div class="settings-cube-field" role="radiogroup" aria-label="魔方选择">
+        <span>魔方</span>
+        <label class="settings-cube-option">
+          <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_NONE}"${cubeType === CUBE_TYPE_NONE ? " checked" : ""} />
+          <span>不选</span>
+        </label>
+        <label class="settings-cube-option">
+          <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_CHARGE_SPEED}"${cubeType === CUBE_TYPE_CHARGE_SPEED ? " checked" : ""} />
+          <img class="settings-check-icon" src="assets/icons/ui/cubes/charge-speed.png" alt="" aria-hidden="true" />
+          <span>蓄速 +${CHARGE_SPEED_CUBE_VALUE.toFixed(2)}%</span>
+        </label>
+        <label class="settings-cube-option">
+          <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_QUANTUM}"${cubeType === CUBE_TYPE_QUANTUM ? " checked" : ""} />
+          <img class="settings-check-icon" src="assets/icons/ui/cubes/quantum.png" alt="" aria-hidden="true" />
+          <span>量子遗迹</span>
+        </label>
+      </div>
       <button class="slot-settings-reset" type="button">重置默认</button>
     </section>
   `;
@@ -2440,8 +2510,10 @@ function createSlotSettingsModal() {
     const speedFramePreview = backdrop.querySelector(".slot-settings-frame-preview");
     const speedTotal = backdrop.querySelector(".slot-settings-speed-total");
     const getCurrentSpeedEntries = () => speedEntrySelects.map((select) => sanitizeChargeSpeedEntry(select.value));
+    const getCurrentCubeType = () =>
+      sanitizeCubeType(backdrop.querySelector(".slot-settings-cube-type:checked")?.value || getSavedCharacterCubeType(character, teamKey));
     const updateSpeedFramePreview = () => {
-      const speed = calculateChargeSpeedFromEntries(getCurrentSpeedEntries());
+      const speed = calculateChargeSpeedFromEntriesAndCube(getCurrentSpeedEntries(), getCurrentCubeType());
       if (speedTotal) speedTotal.textContent = `${speed}%`;
       if (speedFramePreview) {
         const frame = getChargeSpeedPreviewFrame(character, index, simulationTeamKey, speed);
@@ -2450,7 +2522,7 @@ function createSlotSettingsModal() {
     };
     const commitSpeedValue = () => {
       const entries = getCurrentSpeedEntries();
-      const speed = calculateChargeSpeedFromEntries(entries);
+      const speed = calculateChargeSpeedFromEntriesAndCube(entries, getCurrentCubeType());
       saveCharacterChargeSpeedEntries(character, entries, teamKey);
       if (chargeSpeeds[index] === speed) {
         saveTeam();
@@ -2492,11 +2564,15 @@ function createSlotSettingsModal() {
     });
   }
 
-  const quantumCubeInput = backdrop.querySelector(".slot-settings-quantum-cube");
-  quantumCubeInput.addEventListener("change", (event) => {
-    saveCharacterQuantumCube(character, event.target.checked, teamKey);
-    saveTeam();
-    render();
+  backdrop.querySelectorAll(".slot-settings-cube-type").forEach((input) => {
+    input.addEventListener("change", (event) => {
+      if (!event.target.checked) return;
+      saveCharacterCubeType(character, event.target.value, teamKey);
+      chargeSpeeds[index] = getSavedCharacterChargeSpeed(character, teamKey);
+      applySavedChargeSpeedToNormalTeam(character, teamKey);
+      refreshSlotSettingsChanges(context);
+      render();
+    });
   });
 
   backdrop.querySelector(".slot-settings-reset").addEventListener("click", (event) => {
@@ -2540,8 +2616,8 @@ function createHelpModal() {
     {
       title: "角色设置",
       items: [
-        "点击头像右上角齿轮，可设置蓄力速度、量子遗迹魔方、红莲弹容等角色专属参数。",
-        "蓄速、量子魔方、弹容按进攻/防守分别保存；切换方案时会沿用该角色在对应队伍侧的保存值。",
+        "点击头像右上角齿轮，可设置蓄力速度词条、蓄速/量子魔方、红莲弹容等角色专属参数。",
+        "蓄速词条、魔方、弹容按进攻/防守分别保存；切换方案时会沿用该角色在对应队伍侧的保存值。",
         "红莲弹容只在开启“计算空枪”时参与计算；未开启时按不缺弹处理。",
       ],
     },
@@ -3226,7 +3302,7 @@ function renderPaidArenaTeams() {
           : displayMagazine
             ? String(displayMagazine)
             : "";
-      const hasQuantumCube = character && getSavedCharacterQuantumCube(character, dataTeamKey);
+      const cubeIconSrc = character ? getCubeIconSrc(getSavedCharacterCubeType(character, dataTeamKey)) : "";
       const slot = document.createElement("div");
       slot.className = `team-slot paid-arena-slot${character ? " filled" : ""}${!character && universalChargeValue > 0 ? " has-universal" : ""}${getTeamSlotRarityClass(character)}${isFinisher ? " is-finisher" : ""}`;
       slot.dataset.paidArenaRowIndex = String(rowIndex);
@@ -3256,7 +3332,7 @@ function renderPaidArenaTeams() {
         copyLayer.innerHTML = `
           ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
           ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
-          ${hasQuantumCube ? '<span class="slot-cube-badge"><img src="assets/icons/ui/cubes/quantum-24x24.webp" alt="" /></span>' : ""}
+          ${cubeIconSrc ? `<span class="slot-cube-badge"><img src="${cubeIconSrc}" alt="" /></span>` : ""}
           ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
         `;
         removeButton?.append(copyLayer);
@@ -3446,7 +3522,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           : displayMagazine
             ? String(displayMagazine)
             : "";
-      const hasQuantumCube = character && getSavedCharacterQuantumCube(character, teamKey);
+      const cubeIconSrc = character ? getCubeIconSrc(getSavedCharacterCubeType(character, teamKey)) : "";
       const isJackalOwner = character && isLinkProvider(character);
       const isActiveLinkOwner = character && isJackalConnecting && jackalLinkState.ownerId === character.id;
       const isJackalTarget = character && jackalTargetIds.has(character.id);
@@ -3464,7 +3540,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             <span class="slot-copy" aria-hidden="true">
               ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
               ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
-              ${hasQuantumCube ? '<span class="slot-cube-badge"><img src="assets/icons/ui/cubes/quantum-24x24.webp" alt="" /></span>' : ""}
+              ${cubeIconSrc ? `<span class="slot-cube-badge"><img src="${cubeIconSrc}" alt="" /></span>` : ""}
               ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
             </span>
           </button>
@@ -5422,6 +5498,22 @@ function normalizeSavedCharacterFlags(savedFlags = {}) {
   );
 }
 
+function normalizeSavedCharacterCubeTypes(savedCubeTypes = {}, savedQuantumFlags = {}) {
+  const characterIds = new Set([...Object.keys(savedCubeTypes || {}), ...Object.keys(savedQuantumFlags || {})]);
+  return Object.fromEntries(
+    [...characterIds]
+      .map((characterId) => {
+        const cubeType = Object.prototype.hasOwnProperty.call(savedCubeTypes || {}, characterId)
+          ? sanitizeCubeType(savedCubeTypes[characterId])
+          : Boolean(savedQuantumFlags?.[characterId])
+            ? CUBE_TYPE_QUANTUM
+            : CUBE_TYPE_NONE;
+        return [characterId, cubeType];
+      })
+      .filter(([characterId, cubeType]) => getCharacterById(characterId) && cubeType !== CUBE_TYPE_NONE),
+  );
+}
+
 function normalizeSavedCharacterMagazines(savedMagazines = {}) {
   return Object.fromEntries(
     Object.entries(savedMagazines || {})
@@ -5472,6 +5564,7 @@ function saveTeam() {
       scarletCounterEnabled: [...state.scarletCounterEnabled],
       characterChargeSpeeds: state.characterChargeSpeeds,
       characterChargeSpeedEntries: state.characterChargeSpeedEntries,
+      characterCubeTypes: state.characterCubeTypes,
       characterQuantumCubes: state.characterQuantumCubes,
       characterMagazines: state.characterMagazines,
       characterRedHoodPierceCounts: state.characterRedHoodPierceCounts,
@@ -5525,6 +5618,10 @@ function loadTeam() {
       state.characterChargeSpeedEntries = {
         defense: normalizeSavedCharacterChargeSpeedEntries(saved.characterChargeSpeedEntries?.defense),
         attack: normalizeSavedCharacterChargeSpeedEntries(saved.characterChargeSpeedEntries?.attack),
+      };
+      state.characterCubeTypes = {
+        defense: normalizeSavedCharacterCubeTypes(saved.characterCubeTypes?.defense, saved.characterQuantumCubes?.defense),
+        attack: normalizeSavedCharacterCubeTypes(saved.characterCubeTypes?.attack, saved.characterQuantumCubes?.attack),
       };
       state.characterQuantumCubes = {
         defense: normalizeSavedCharacterFlags(saved.characterQuantumCubes?.defense),
@@ -5614,6 +5711,7 @@ function loadTeam() {
     state.scarletCounterEnabled = Array(TEAM_SIZE).fill(true);
     state.characterChargeSpeeds = { defense: {}, attack: {} };
     state.characterChargeSpeedEntries = { defense: {}, attack: {} };
+    state.characterCubeTypes = { defense: {}, attack: {} };
     state.characterQuantumCubes = { defense: {}, attack: {} };
     state.characterMagazines = { defense: {}, attack: {} };
     state.activeLineupIndex = 0;
