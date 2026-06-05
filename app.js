@@ -127,6 +127,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修复献祭输入并显示充能轴",
   "冠军和特殊竞技场支持罗珊娜献祭",
   "新增罗珊娜献祭功能",
   "优化缺头像占位显示",
@@ -136,7 +137,6 @@ const CHANGELOG_ITEMS = [
   "更新国服帕斯卡",
   "修复冠特万能充能输入",
   "新增方案拖拽复制",
-  "更新分享按钮说明",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -2861,13 +2861,18 @@ function createRosannaSacrificeModal() {
     event.preventDefault();
     close();
   });
+  const getCurrentSacrificeFrames = () =>
+    isPaidArena ? getPaidArenaRosannaSacrificeFrames(paidArenaMode)[rowIndex] : getRosannaSacrificeFrameState(teamKey);
+  backdrop.addEventListener("input", (event) => {
+    if (!event.target.matches(".rosanna-sacrifice-frame")) return;
+    const positionIndex = Number(event.target.dataset.sacrificeIndex);
+    const currentFrames = getCurrentSacrificeFrames();
+    if (!currentFrames) return;
+    currentFrames[positionIndex] = sanitizeSacrificeFrame(event.target.value);
+    saveTeam();
+  });
   backdrop.querySelectorAll(".rosanna-sacrifice-frame").forEach((input) => {
     input.addEventListener("focus", () => input.select());
-    input.addEventListener("input", (event) => {
-      const positionIndex = Number(event.target.dataset.sacrificeIndex);
-      sacrificeFrames[positionIndex] = sanitizeSacrificeFrame(event.target.value);
-      saveTeam();
-    });
   });
 
   return backdrop;
@@ -4687,6 +4692,10 @@ async function fetchBattleResultsFromWorker() {
 }
 
 function refreshBattleResults() {
+  if (isPaidArenaModeActive()) {
+    state.battleResults = computeBattleResults();
+    return;
+  }
   if (!shouldUseWorkerCalculation()) {
     state.battleResults = computeBattleResults();
     return;
@@ -4711,6 +4720,19 @@ function refreshBattleResults() {
 
 function invalidateBattleResults() {
   state.battleResults = null;
+}
+
+function getActivePaidArenaChartResult() {
+  if (!isPaidArenaModeActive()) return null;
+  const mode = state.paidArenaMode;
+  const teams = getPaidArenaTeams(mode);
+  if (!teams.length) return null;
+  const rowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
+  const team = teams[rowIndex] || [];
+  const universalCharges = getPaidArenaUniversalCharges(mode)[rowIndex] || Array(TEAM_SIZE).fill(0);
+  const sacrificeFrames = getPaidArenaRosannaSacrificeFrames(mode)[rowIndex] || Array(TEAM_SIZE).fill(null);
+  const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, getPaidArenaDataTeamKey());
+  return simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames);
 }
 
 function estimateChartLabelWidth(label) {
@@ -4883,6 +4905,32 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       };
     })
     .filter(Boolean);
+  const rosannaSacrificeGroups = chartResults
+    .map((item) => {
+      const timeline = item.result.timeline
+        .map((entry) => {
+          const contributions = entry.contributions.filter(
+            (contribution) => contribution.showOnMember === false && contribution.labels.some((label) => label.includes("罗珊娜献祭")),
+          );
+          if (contributions.length === 0) return null;
+          return {
+            frame: entry.frame,
+            charge: contributions.reduce((sum, contribution) => sum + contribution.charge, 0),
+            cumulativeCharge: contributions.reduce((sum, contribution) => sum + contribution.cumulativeCharge, 0),
+            contributions,
+          };
+        })
+        .filter(Boolean);
+      if (timeline.length === 0) return null;
+      return {
+        teamKey: item.teamKey,
+        groupKey: `${item.teamKey}-rosanna-sacrifice`,
+        label: "罗珊娜献祭",
+        timeline,
+      };
+    })
+    .filter(Boolean);
+  const specialChargeGroups = [...universalChargeGroups, ...rosannaSacrificeGroups];
   const totalGroups = chartResults.map((item) => ({
     teamKey: item.teamKey,
     result: item.result,
@@ -4925,7 +4973,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const chartLabels = [
     "标准轴",
     ...totalGroups.map((group) => group.label),
-    ...universalChargeGroups.map((group) => group.label),
+    ...specialChargeGroups.map((group) => group.label),
     ...scarletCounterGroups.map((group) => group.label),
     ...memberPointGroups.map((group) => {
       const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
@@ -4941,8 +4989,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const attackGroups = memberPointGroups.filter((group) => group.teamKey === "attack");
   const defenseCounterGroups = scarletCounterGroups.filter((group) => group.teamKey === "defense");
   const attackCounterGroups = scarletCounterGroups.filter((group) => group.teamKey === "attack");
-  const defenseUniversalGroups = universalChargeGroups.filter((group) => group.teamKey === "defense");
-  const attackUniversalGroups = universalChargeGroups.filter((group) => group.teamKey === "attack");
+  const defenseUniversalGroups = specialChargeGroups.filter((group) => group.teamKey === "defense");
+  const attackUniversalGroups = specialChargeGroups.filter((group) => group.teamKey === "attack");
   const hasTeamSeparator = defenseGroups.length > 0 && attackGroups.length > 0;
   const hasDefenseTotal = totalGroups.some((group) => group.teamKey === "defense");
   const firstMemberLaneIndex = 1;
@@ -5229,7 +5277,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       return `<line class="chart-track chart-scarlet-counter-track team-${group.teamKey}" x1="${xForFrame(firstFrame)}" y1="${y}" x2="${xForFrame(lastFrame)}" y2="${y}" />`;
     })
     .join("");
-  const universalChargePoints = universalChargeGroups
+  const universalChargePoints = specialChargeGroups
     .flatMap((group) =>
       group.timeline.map((entry) => {
         const x = xForFrame(entry.frame);
@@ -5343,7 +5391,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const scarletCounterLabels = scarletCounterGroups
     .map((group) => `<text class="chart-name chart-scarlet-counter-name team-${group.teamKey}" x="0" y="${yForCounterGroup(group.groupKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
     .join("");
-  const universalChargeLabels = universalChargeGroups
+  const universalChargeLabels = specialChargeGroups
     .map((group) => `<text class="chart-name chart-universal-name team-${group.teamKey}" x="0" y="${yForUniversalGroup(group.groupKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
     .join("");
   const standardLabel = `<text class="chart-name chart-standard-name" x="0" y="${yForStandard() + 4}" text-anchor="start">标准轴</text>`;
@@ -5552,7 +5600,7 @@ function renderResults(battleResults = getBattleResultsSnapshot()) {
     const pickedCount = teams.flat().filter(Boolean).length;
     els.summaryStrip.textContent = `${getPaidArenaModeLabel()}：${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复\n移动端长按，桌面端右键可复制队伍图片`;
     els.resultPanel.innerHTML = "";
-    renderChargeChart(null, null);
+    renderChargeChart(getActivePaidArenaChartResult(), null);
     return null;
   }
   const { attackResult: result, defenseResult } = battleResults;
