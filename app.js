@@ -126,6 +126,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "加入国服婴宁",
   "更新页面使用说明",
   "修正手填蓄速魔方联动",
   "支持手填最终蓄速",
@@ -135,7 +136,6 @@ const CHANGELOG_ITEMS = [
   "补充P5灰姑娘狙击特例",
   "修正浅色主题失效图标",
   "完善浅色主题队伍角标",
-  "放大复制图片站点网址",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 

@@ -16773,5 +16773,96 @@ const CHARACTERS = [
     },
     "notes": "发射器；系数 0.014；RL爆炸范围 1",
     "source": "NIKKE PVP 充能计算器 v2.3.20（更新20260516）.xlsx"
+  },
+  {
+    "id": 194,
+    "slug": "婴宁",
+    "name": "婴宁",
+    "enName": "Ying Ning",
+    "rarity": "SSR",
+    "avatarUrl": "assets/avatars/characters/194.webp",
+    "avatarSourceUrl": "https://lootandwaifus.com/characters/nikke/mi_c8004_00_s.webp",
+    "isCommon": true,
+    "weapon": "RL",
+    "weaponCn": "发射器",
+    "burstGen": 1.4,
+    "burstCoefficient": 0.014,
+    "chargeSpeedPercent": 0,
+    "rlExplosionRange": 1,
+    "firstFrameOverride": null,
+    "attackIntervalFrames": null,
+    "projectileFlightFrames": null,
+    "turnFrames": null,
+    "timing": {
+      "chargeFrames": 60,
+      "firstFrame": 76,
+      "intervalFrames": 76,
+      "projectileFlightFrames": null,
+      "projectileFlightFramesByPosition": {
+        "P1": 16,
+        "P2": 16,
+        "P3": 14,
+        "P4": 14,
+        "P5": 14
+      },
+      "turnFrames": 16
+    },
+    "hasPenetration": false,
+    "hasExtraDamage": false,
+    "delayedExtraHits": [],
+    "hitCountExtraEvents": [],
+    "flatBurstBonus": 0,
+    "company": "米西利斯",
+    "burstStage": "B2",
+    "classType": "辅助",
+    "element": "水冷",
+    "regions": [
+      "cn"
+    ],
+    "stats": {
+      "weaponDamage": 61.3,
+      "magazine": 6,
+      "reloadSeconds": 2,
+      "chargeSeconds": 1,
+      "maxCharge": 250
+    },
+    "scenario": {
+      "attack": {
+        "twoRl": 0.112,
+        "twoRlHits": 2,
+        "fiveSg": 0.112,
+        "fiveSgHits": 2,
+        "threeRl": 0.168,
+        "threeRlHits": 3,
+        "sevenSg": 0.168,
+        "fourRl": 0.224,
+        "fiveRl": 0.28,
+        "oneRl": 0.056,
+        "oneRlHits": 1,
+        "threeSg": 0.056,
+        "threeSgHits": 1
+      },
+      "defense": {
+        "twoRl": 0.112,
+        "twoRlHits": 2,
+        "fiveSg": 0.112,
+        "fiveSgHits": 2,
+        "threeRl": 0.168,
+        "threeRlHits": 3,
+        "sevenSg": 0.168,
+        "fourRl": 0.224,
+        "fiveRl": 0.28,
+        "oneRl": 0.056,
+        "oneRlHits": 1,
+        "threeSg": 0.056,
+        "threeSgHits": 1
+      }
+    },
+    "targetRule": {
+      "attack": "↗",
+      "defense": "↙"
+    },
+    "notes": "发射器；系数 0.014；RL爆炸范围 1；国服限定",
+    "source": "TapTap / Loot & Waifus"
   }
 ];
