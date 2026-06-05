@@ -1270,6 +1270,19 @@ input:focus {
   line-height: 1;
 }
 
+.team-action-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  mask: var(--team-action-icon) center / contain no-repeat;
+  -webkit-mask: var(--team-action-icon) center / contain no-repeat;
+}
+
+.copy-team-button .team-action-icon {
+  --team-action-icon: url("assets/icons/ui/share.svg");
+}
+
 .icon-toggle,
 .icon-button {
   position: relative;
