@@ -5014,7 +5014,7 @@ const CHARACTERS = [
     "stats": {
       "weaponDamage": 259.2,
       "magazine": 5,
-      "reloadSeconds": 1.4,
+      "reloadSeconds": 1.5333333333,
       "chargeSeconds": 0,
       "maxCharge": null
     },

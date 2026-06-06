@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "调整水阿换弹时间",
   "优化角色充能计算说明",
   "单发排序计入延迟充能",
   "调整莉贝雷利奥攻击后摇",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "优化SR和RL充能组成说明",
   "优化白雪公主重型武装充能组成说明",
   "更新白雪公主重型武装充能逻辑",
-  "拉普拉斯珍藏加入国服",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
