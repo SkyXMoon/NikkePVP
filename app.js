@@ -57,7 +57,6 @@ const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 0;
 const VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES = 12;
 const VESTI_TACTICAL_GUIDE_FRAMES = 2;
 const VESTI_TACTICAL_HIT_OFFSETS = [0, 22, 44, 66];
-const CHAMPION_ARENA_RL_PROJECTILE_FLIGHT_FRAMES = [16, 16, 16, 14, 14];
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 22;
 const CINDERELLA_INITIAL_CHARGE_SEQUENCE = [4, 2, 2, 2, 4, 4];
 const CINDERELLA_LOOP_CHARGE_SEQUENCE = [2, 2, 2, 2, 4, 4];
@@ -132,6 +131,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "统一RL飞行帧站位减少规则",
   "更新阿妮斯超级巨星充能光环",
   "优化战贝充能计算说明",
   "修正战贝额外伤害和转身",
@@ -141,7 +141,6 @@ const CHANGELOG_ITEMS = [
   "单发排序计入延迟充能",
   "调整莉贝雷利奥攻击后摇",
   "恢复移动端图表点击提示",
-  "更新莉贝雷利奥额外伤害逻辑",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_MULTIPLIER = 1.06;
@@ -957,8 +956,19 @@ function isAnisSuperstar(character) {
   return character?.id === 2 || character?.enName === "Anis: Star";
 }
 
-function getStandardRlProjectileFlightDelta(positionIndex) {
-  return positionIndex >= 4 ? -2 : 0;
+function getRlProjectileFlightBaseFrames(character) {
+  if (Number.isFinite(character.projectileFlightBaseFrames)) return character.projectileFlightBaseFrames;
+  return character.timing?.projectileFlightFramesByPosition?.P1 ?? 16;
+}
+
+function getRlProjectileFlightReduction(positionIndex, teamKey = "attack", arenaMode = state.paidArenaMode) {
+  if (arenaMode === "c") return positionIndex <= 1 ? 0 : 2;
+  if (normalizeTeamKey(teamKey) === "defense") {
+    if (positionIndex <= 1) return 0;
+    if (positionIndex <= 3) return 2;
+    return 4;
+  }
+  return positionIndex <= 1 ? 0 : 2;
 }
 
 function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = []) {
@@ -981,19 +991,8 @@ function getCinderellaChargeMultiplier(shotNumber = 1) {
 function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
   if (isCinderella(character)) return CINDERELLA_PROJECTILE_FLIGHT_FRAMES;
   if (isVestiTacticalUpgrade(character)) return VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES;
-  if (state.paidArenaMode === "c") {
-    return CHAMPION_ARENA_RL_PROJECTILE_FLIGHT_FRAMES[Math.max(0, Math.min(TEAM_SIZE - 1, positionIndex))] ?? 16;
-  }
-  if (Number.isFinite(character.projectileFlightBaseFrames)) {
-    return Math.max(0, character.projectileFlightBaseFrames + getStandardRlProjectileFlightDelta(positionIndex));
-  }
   if (Number.isFinite(character.projectileFlightFrames)) return character.projectileFlightFrames;
-  if (normalizeTeamKey(teamKey) === "defense") {
-    if (positionIndex <= 1) return 16;
-    if (positionIndex <= 3) return 14;
-    return 12;
-  }
-  return character.timing?.projectileFlightFramesByPosition?.P1 ?? 16;
+  return Math.max(0, getRlProjectileFlightBaseFrames(character) - getRlProjectileFlightReduction(positionIndex, teamKey));
 }
 
 function getChargeFrames(character, positionIndex, teamKey = "attack") {

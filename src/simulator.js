@@ -184,8 +184,19 @@ function isAnisSuperstar(character) {
   return character?.id === 2 || character?.enName === "Anis: Star";
 }
 
-function getStandardRlProjectileFlightDelta(positionIndex) {
-  return positionIndex >= 4 ? -2 : 0;
+function getRlProjectileFlightBaseFrames(character) {
+  if (Number.isFinite(character.projectileFlightBaseFrames)) return character.projectileFlightBaseFrames;
+  return character.timing?.projectileFlightFramesByPosition?.P1 ?? 16;
+}
+
+function getRlProjectileFlightReduction(positionIndex, teamKey = "attack", arenaMode = runtimeState?.paidArenaMode) {
+  if (arenaMode === "c") return positionIndex <= 1 ? 0 : 2;
+  if (normalizeTeamKey(teamKey) === "defense") {
+    if (positionIndex <= 1) return 0;
+    if (positionIndex <= 3) return 2;
+    return 4;
+  }
+  return positionIndex <= 1 ? 0 : 2;
 }
 
 function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = []) {
@@ -249,17 +260,8 @@ function applyChargeSpeedIntervalFrames(baseChargeFrames, fixedFrames, chargeSpe
 function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
   if (isCinderella(character)) return CINDERELLA_PROJECTILE_FLIGHT_FRAMES;
   if (isVestiTacticalUpgrade(character)) return VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES;
-  if (Number.isFinite(character.projectileFlightBaseFrames)) {
-    return Math.max(0, character.projectileFlightBaseFrames + getStandardRlProjectileFlightDelta(positionIndex));
-  }
   if (Number.isFinite(character.projectileFlightFrames)) return character.projectileFlightFrames;
-  if (normalizeTeamKey(teamKey) === "defense") {
-    if (positionIndex <= 1) return 16;
-    if (positionIndex <= 3) return 14;
-    return 12;
-  }
-  const positionKey = `P${positionIndex + 1}`;
-  return character.timing?.projectileFlightFramesByPosition?.[positionKey] ?? (positionIndex <= 1 ? 16 : 14);
+  return Math.max(0, getRlProjectileFlightBaseFrames(character) - getRlProjectileFlightReduction(positionIndex, teamKey));
 }
 
 function getChargeFrames(character, positionIndex, teamKey = "attack") {
@@ -1155,6 +1157,7 @@ function normalizePayload(payload = {}, characters = []) {
       defense: payload.jackalLinks?.defense || { enabled: false, ownerId: null, targetIds: [] },
       attack: payload.jackalLinks?.attack || { enabled: false, ownerId: null, targetIds: [] },
     },
+    paidArenaMode: payload.paidArenaMode === "c" ? "c" : payload.paidArenaMode === "p" ? "p" : "normal",
     allowMissedShots: payload.allowMissedShots !== false,
   };
 }
