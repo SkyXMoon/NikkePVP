@@ -55,6 +55,8 @@ const LITTLE_MERMAID_TIMELINE_EVENT = {
 };
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 0;
 const VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES = 12;
+const VESTI_TACTICAL_GUIDE_FRAMES = 2;
+const VESTI_TACTICAL_HIT_OFFSETS = [0, 22, 44, 66];
 const CHAMPION_ARENA_RL_PROJECTILE_FLIGHT_FRAMES = [16, 16, 16, 14, 14];
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 22;
 const CINDERELLA_INITIAL_CHARGE_SEQUENCE = [4, 2, 2, 2, 4, 4];
@@ -130,6 +132,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "更新战贝引导连射逻辑",
   "调整水阿换弹时间",
   "优化角色充能计算说明",
   "单发排序计入延迟充能",
@@ -139,7 +142,6 @@ const CHANGELOG_ITEMS = [
   "重装白雪不受蓄速影响",
   "优化SR和RL充能组成说明",
   "优化白雪公主重型武装充能组成说明",
-  "更新白雪公主重型武装充能逻辑",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1005,6 +1007,17 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 
     if (character.weapon === "RL" && character.timing.projectileFlightFramesByPosition) {
       const flightFrames = getRlProjectileFlightFrames(character, positionIndex, teamKey);
+      if (isVestiTacticalUpgrade(character)) {
+        return {
+          firstFrame: chargeFrames + VESTI_TACTICAL_GUIDE_FRAMES + flightFrames,
+          interval: chargeFrames + VESTI_TACTICAL_GUIDE_FRAMES + VESTI_TACTICAL_HIT_OFFSETS.at(-1),
+          reloadInterval: null,
+          chargeFrames,
+          baseChargeFrames,
+          baseIntervalFrames,
+          projectileFlightFrames: flightFrames,
+        };
+      }
       const firstFrame = isCinderella(character)
         ? chargeFrames + flightFrames
         : character.firstFrameOverride ?? chargeFrames + flightFrames;
@@ -1125,8 +1138,15 @@ function getDelayedExtraChargeTotal(character) {
   );
 }
 
+function getFixedSequenceChargeTotal(character, shotNumber = null) {
+  if (isVestiTacticalUpgrade(character)) {
+    return getChargeValue(character, shotNumber) * Math.max(0, VESTI_TACTICAL_HIT_OFFSETS.length - 1);
+  }
+  return 0;
+}
+
 function getSingleShotChargeValue(character, shotNumber = null) {
-  return getChargeValue(character, shotNumber) + getDelayedExtraChargeTotal(character);
+  return getChargeValue(character, shotNumber) + getDelayedExtraChargeTotal(character) + getFixedSequenceChargeTotal(character, shotNumber);
 }
 
 function getAttackChargeValue(character, shotNumber = null, hitProfile = null, shotCount = 1) {
@@ -1172,10 +1192,12 @@ function getChargeBreakdown(character) {
   const effectiveBurstGen = getEffectiveBurstGen(character);
   const flatBonus = character.flatBurstBonus || 0;
   const delayedExtraChargeTotal = getDelayedExtraChargeTotal(character);
+  const fixedSequenceChargeTotal = getFixedSequenceChargeTotal(character);
   const chargeFormulaParts = [
     `${formatNumber(baseChargeUnit, 5)} × ${hitMultiplier} × ${extraMultiplier}`,
     ...(flatBonus ? [formatNumber(flatBonus, 2)] : []),
     ...(delayedExtraChargeTotal ? [formatNumber(delayedExtraChargeTotal, 2)] : []),
+    ...(fixedSequenceChargeTotal ? [formatNumber(fixedSequenceChargeTotal, 2)] : []),
   ];
   const lines = [
     `充能计算：${chargeFormulaParts.join(" + ")} = ${formatNumber(getSingleShotChargeValue(character), 2)}%`,
@@ -1211,6 +1233,9 @@ function getChargeBreakdown(character) {
         .map((event) => `${event.delayFrames}帧后 +${formatNumber(baseChargeUnit * event.segments * extraMultiplier, 2)}%`)
         .join("，")}`,
     );
+  }
+  if (fixedSequenceChargeTotal) {
+    lines.push(`引导连射：本次蓄力后共 ${VESTI_TACTICAL_HIT_OFFSETS.length} 发，追加 +${formatNumber(fixedSequenceChargeTotal, 2)}%`);
   }
 
   return lines.join("\n");
@@ -1325,6 +1350,25 @@ function getDelayedExtraEvents(event, currentFrame, hitProfile = null) {
       label: extra.label,
     };
   });
+}
+
+function getVestiTacticalFollowUpEvents(event, currentFrame, hitProfile = null) {
+  if (!isVestiTacticalUpgrade(event.character)) return [];
+  const chargeValue = getAttackChargeValue(event.character, null, hitProfile, 1);
+  const positionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, []);
+  const targetHits = hitProfile?.targetHits || [];
+  return VESTI_TACTICAL_HIT_OFFSETS.slice(1).map((offset) => ({
+    character: event.character,
+    positionIndex: event.positionIndex,
+    frame: currentFrame + offset,
+    chargeValue,
+    positionHits,
+    targetHits,
+    source: "vesti-tactical-follow-up",
+    label: getAttackContributionLabel(event.character, 1, null, hitProfile),
+    countAsHitFrame: true,
+    flightFrames: event.projectileFlightFrames,
+  }));
 }
 
 function getMagazineEmptyExtraEvent(event, reloadEvent) {
@@ -1914,6 +1958,17 @@ function simulateBurst(
       totalCharge += extra.chargeValue;
       owner.totalCharge += extra.chargeValue;
       owner.attackChargeTotal += extra.chargeValue;
+      if (extra.countAsHitFrame) owner.hitFrames.push(extra.frame);
+      if (extra.flightFrames > 0) {
+        owner.flightEvents.push({
+          positionIndex: owner.positionIndex,
+          characterName: owner.character.name,
+          startFrame: Math.max(0, extra.frame - extra.flightFrames),
+          endFrame: extra.frame,
+          flightFrames: extra.flightFrames,
+          missed: false,
+        });
+      }
       addContribution(owner, extra.chargeValue, extra.label || getDelayedExtraLabel(owner.character));
       addPositionHits(owner, extra.positionHits || []);
       addTargetHits(owner, extra.targetHits || []);
@@ -2011,6 +2066,7 @@ function simulateBurst(
       const harranPoisonEvent = getHarranPoisonEvent(event, currentFrame);
       if (harranPoisonEvent) pendingExtraEvents.push(harranPoisonEvent);
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame, hitProfile));
+      pendingExtraEvents.push(...getVestiTacticalFollowUpEvents(event, currentFrame, hitProfile));
       const reloadEvent = advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
       const magazineEmptyExtra = getMagazineEmptyExtraEvent(event, reloadEvent);
       if (magazineEmptyExtra) pendingExtraEvents.push(magazineEmptyExtra);

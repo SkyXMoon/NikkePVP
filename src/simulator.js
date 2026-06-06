@@ -71,6 +71,8 @@ const LITTLE_MERMAID_STUN_DURATION_FRAMES = 180;
 const LITTLE_MERMAID_STUN_TARGET_INDEX = 0;
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 0;
 const VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES = 12;
+const VESTI_TACTICAL_GUIDE_FRAMES = 2;
+const VESTI_TACTICAL_HIT_OFFSETS = [0, 22, 44, 66];
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 22;
 const CINDERELLA_INITIAL_CHARGE_SEQUENCE = [4, 2, 2, 2, 4, 4];
 const CINDERELLA_LOOP_CHARGE_SEQUENCE = [2, 2, 2, 2, 4, 4];
@@ -268,6 +270,17 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 
     if (character.weapon === "RL" && character.timing.projectileFlightFramesByPosition) {
       const flightFrames = getRlProjectileFlightFrames(character, positionIndex, teamKey);
+      if (isVestiTacticalUpgrade(character)) {
+        return {
+          firstFrame: chargeFrames + VESTI_TACTICAL_GUIDE_FRAMES + flightFrames,
+          interval: chargeFrames + VESTI_TACTICAL_GUIDE_FRAMES + VESTI_TACTICAL_HIT_OFFSETS.at(-1),
+          reloadInterval: null,
+          chargeFrames,
+          baseChargeFrames,
+          baseIntervalFrames,
+          projectileFlightFrames: flightFrames,
+        };
+      }
       const firstFrame = isCinderella(character)
         ? chargeFrames + flightFrames
         : character.firstFrameOverride ?? chargeFrames + flightFrames;
@@ -414,6 +427,23 @@ function getDelayedExtraEvents(event, currentFrame, hitProfile = null) {
   }));
 }
 
+function getVestiTacticalFollowUpEvents(event, currentFrame, hitProfile = null) {
+  if (!isVestiTacticalUpgrade(event.character)) return [];
+  const chargeValue = getAttackChargeValue(event.character, null, hitProfile, 1);
+  const positionHits = getReceivedPositionHits(event.character, hitProfile, currentFrame, []);
+  return VESTI_TACTICAL_HIT_OFFSETS.slice(1).map((offset) => ({
+    character: event.character,
+    positionIndex: event.positionIndex,
+    frame: currentFrame + offset,
+    chargeValue,
+    positionHits,
+    source: "vesti-tactical-follow-up",
+    label: getAttackContributionLabel(event.character, 1, null),
+    countAsHitFrame: true,
+    flightFrames: event.projectileFlightFrames,
+  }));
+}
+
 function getAttackContributionLabel(character, shotCount = 1, shotNumber = null) {
   if (character.weapon === "RL") return `爆炸命中${character.hasExtraDamage ? "+额外伤害" : ""}`;
   if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${character.hasExtraDamage ? "+额外伤害" : ""}`;
@@ -476,9 +506,11 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotN
     const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
     const start = Math.max(0, targetPositionIndex - range);
     const end = Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndex + range);
+    const positionHits = Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]);
     return {
       totalHits: shotHits,
-      positionHits: Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]),
+      positionHits,
+      targetHits: positionHits.map(([positionIndex, hitCount]) => [positionIndex, hitCount * 2]),
       p5CinderellaDecoy: false,
     };
   }
@@ -842,6 +874,17 @@ function simulateBurst(
       if (owner) {
         owner.totalCharge += extra.chargeValue;
         owner.attackChargeTotal += extra.chargeValue;
+        if (extra.countAsHitFrame) owner.hitFrames.push(extra.frame);
+        if (extra.flightFrames > 0) {
+          owner.flightEvents.push({
+            positionIndex: owner.positionIndex,
+            characterName: owner.character.name,
+            startFrame: Math.max(0, extra.frame - extra.flightFrames),
+            endFrame: extra.frame,
+            flightFrames: extra.flightFrames,
+            missed: false,
+          });
+        }
         addContribution(owner, extra.chargeValue, extra.label || "延迟额外");
         addPositionHits(owner, extra.positionHits || []);
         if (extra.repeatFrames) {
@@ -917,6 +960,7 @@ function simulateBurst(
       const harranPoisonEvent = getHarranPoisonEvent(event, currentFrame);
       if (harranPoisonEvent) pendingExtraEvents.push(harranPoisonEvent);
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame, hitProfile));
+      pendingExtraEvents.push(...getVestiTacticalFollowUpEvents(event, currentFrame, hitProfile));
       advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
     });
 

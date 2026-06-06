@@ -7947,7 +7947,7 @@ const CHARACTERS = [
     "burstGen": 0.65,
     "burstCoefficient": 0.0065,
     "chargeSpeedPercent": 0,
-    "rlExplosionRange": 1,
+    "rlExplosionRange": 2,
     "firstFrameOverride": null,
     "attackIntervalFrames": null,
     "projectileFlightFrames": null,
