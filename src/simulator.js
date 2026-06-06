@@ -65,7 +65,7 @@ const MG_WARMUP_EVENTS = [
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
-const ANIS_SUPERSTAR_CHARGE_MULTIPLIER = 1.06;
+const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
 const ROSANNA_BUFF_REMOVE_FRAME = 96;
 const LITTLE_MERMAID_STUN_FRAME = 196;
 const LITTLE_MERMAID_STUN_DURATION_FRAMES = 180;
@@ -182,6 +182,11 @@ function isVestiTacticalUpgrade(character) {
 
 function isAnisSuperstar(character) {
   return character?.id === 2 || character?.enName === "Anis: Star";
+}
+
+function getAnisSuperstarSupplementValue(team = []) {
+  const anis = team.find((member) => member && isAnisSuperstar(member));
+  return anis ? (Number(anis.burstGen) || 0) * ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE : 0;
 }
 
 function getRlProjectileFlightBaseFrames(character) {
@@ -370,11 +375,13 @@ function getRlHitSegments(character) {
 
 function getEffectiveBurstGen(character) {
   const baseBurstGen = Number(character.burstGen) || 0;
-  return (
-    baseBurstGen *
-    (character.quantumRelicCubeEnabled ? QUANTUM_RELIC_CUBE_MULTIPLIER : 1) *
-    (character.superstarChargeBoostEnabled ? ANIS_SUPERSTAR_CHARGE_MULTIPLIER : 1)
-  );
+  return baseBurstGen * (character.quantumRelicCubeEnabled ? QUANTUM_RELIC_CUBE_MULTIPLIER : 1);
+}
+
+function getBaseChargeUnit(character) {
+  const baseCharge = getEffectiveBurstGen(character);
+  const baseChargeUnit = character.weapon === "SG" ? baseCharge / 10 : baseCharge;
+  return baseChargeUnit + (character.superstarChargeSupplementValue || 0);
 }
 
 function getChargeValue(character, shotNumber = null) {
@@ -386,7 +393,7 @@ function getChargeValue(character, shotNumber = null) {
         ? 2
         : 1;
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
-  return getEffectiveBurstGen(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
+  return getBaseChargeUnit(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
 function getAttackChargeValue(character, shotNumber = null, hitProfile = null, shotCount = 1) {
@@ -397,7 +404,7 @@ function getAttackChargeValue(character, shotNumber = null, hitProfile = null, s
     0,
   );
   const extraMultiplier = character.hasExtraDamage ? 2 : 1;
-  return getEffectiveBurstGen(character) * actualHitMultiplier * extraMultiplier + (character.flatBurstBonus || 0) * shotCount;
+  return getBaseChargeUnit(character) * actualHitMultiplier * extraMultiplier + (character.flatBurstBonus || 0) * shotCount;
 }
 
 function isHarran(character) {
@@ -405,7 +412,7 @@ function isHarran(character) {
 }
 
 function getHarranPoisonChargeValue(character) {
-  return getEffectiveBurstGen(character) * (character.hasExtraDamage ? 2 : 1);
+  return getBaseChargeUnit(character) * (character.hasExtraDamage ? 2 : 1);
 }
 
 function getHarranPoisonEvent(event, currentFrame) {
@@ -438,7 +445,7 @@ function getDelayedExtraEvents(event, currentFrame, hitProfile = null) {
     character: event.character,
     positionIndex: event.positionIndex,
     frame: currentFrame + extra.delayFrames,
-    chargeValue: getEffectiveBurstGen(event.character) * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
+    chargeValue: getBaseChargeUnit(event.character) * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
     positionHits: getDelayedExtraPositionHits(extra, hitProfile),
     source: "delayed",
     label: extra.label,
@@ -463,9 +470,10 @@ function getVestiTacticalFollowUpEvents(event, currentFrame, hitProfile = null) 
 }
 
 function getAttackContributionLabel(character, shotCount = 1, shotNumber = null) {
-  if (character.weapon === "RL") return `爆炸命中${character.hasExtraDamage ? "+额外伤害" : ""}`;
-  if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${character.hasExtraDamage ? "+额外伤害" : ""}`;
-  return `命中${character.hasExtraDamage ? "+额外伤害" : ""}`;
+  const supplementLabel = character.superstarChargeSupplementValue ? "+超阿补充" : "";
+  if (character.weapon === "RL") return `爆炸命中${character.hasExtraDamage ? "+额外伤害" : ""}${supplementLabel}`;
+  if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${character.hasExtraDamage ? "+额外伤害" : ""}${supplementLabel}`;
+  return `命中${character.hasExtraDamage ? "+额外伤害" : ""}${supplementLabel}`;
 }
 
 function getHitCountExtraCharge(event) {
@@ -473,7 +481,7 @@ function getHitCountExtraCharge(event) {
     .filter((extra) => extra.hit === event.hits)
     .reduce((sum, extra) => {
       const extraMultiplier = event.character.hasExtraDamage ? 2 : 1;
-      return sum + getEffectiveBurstGen(event.character) * extra.segments * extraMultiplier;
+      return sum + getBaseChargeUnit(event.character) * extra.segments * extraMultiplier;
     }, 0);
 }
 
@@ -737,7 +745,7 @@ function characterForSlot(character, positionIndex, teamKey = "attack", team = [
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const savedMagazine = isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
-  const superstarChargeBoostEnabled = team.some((member) => member && isAnisSuperstar(member));
+  const superstarChargeSupplementValue = getAnisSuperstarSupplementValue(team);
   const chargeSpeedPercent = canApplyChargeSpeed(character)
     ? Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0
     : 0;
@@ -747,7 +755,7 @@ function characterForSlot(character, positionIndex, teamKey = "attack", team = [
     stats: savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats,
     chargeSpeedPercent,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
-    superstarChargeBoostEnabled,
+    superstarChargeSupplementValue,
     redHoodPierceCount: isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, teamKey) : 0,
   };
 }
@@ -1110,7 +1118,7 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
     if (isJackal(member.character) && linkOwner?.id === member.character.id) {
       const linkedPositionIndices = getJackalLinkedPositionIndices(targetResult);
       if (linkedPositionIndices.length === 0) return;
-      const chargePerLink = getEffectiveBurstGen(member.character);
+      const chargePerLink = getBaseChargeUnit(member.character);
       let accumulatedHits = 0;
       let triggeredLinks = 0;
       opponentTimeline.forEach((entry) => {

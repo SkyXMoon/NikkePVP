@@ -131,6 +131,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正超阿充能补充逻辑",
   "统一RL飞行帧站位减少规则",
   "更新阿妮斯超级巨星充能光环",
   "优化战贝充能计算说明",
@@ -140,10 +141,9 @@ const CHANGELOG_ITEMS = [
   "优化角色充能计算说明",
   "单发排序计入延迟充能",
   "调整莉贝雷利奥攻击后摇",
-  "恢复移动端图表点击提示",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
-const ANIS_SUPERSTAR_CHARGE_MULTIPLIER = 1.06;
+const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
 
 async function loadCharacterData() {
   if (typeof CHARACTERS !== "undefined" && Array.isArray(CHARACTERS)) return;
@@ -956,6 +956,11 @@ function isAnisSuperstar(character) {
   return character?.id === 2 || character?.enName === "Anis: Star";
 }
 
+function getAnisSuperstarSupplementValue(team = []) {
+  const anis = team.find((member) => member && isAnisSuperstar(member));
+  return anis ? (Number(anis.burstGen) || 0) * ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE : 0;
+}
+
 function getRlProjectileFlightBaseFrames(character) {
   if (Number.isFinite(character.projectileFlightBaseFrames)) return character.projectileFlightBaseFrames;
   return character.timing?.projectileFlightFramesByPosition?.P1 ?? 16;
@@ -1105,16 +1110,13 @@ function getRlHitSegments(character) {
 
 function getEffectiveBurstGen(character) {
   const baseBurstGen = Number(character.burstGen) || 0;
-  return (
-    baseBurstGen *
-    (character.quantumRelicCubeEnabled ? QUANTUM_RELIC_CUBE_MULTIPLIER : 1) *
-    (character.superstarChargeBoostEnabled ? ANIS_SUPERSTAR_CHARGE_MULTIPLIER : 1)
-  );
+  return baseBurstGen * (character.quantumRelicCubeEnabled ? QUANTUM_RELIC_CUBE_MULTIPLIER : 1);
 }
 
 function getBaseChargeUnit(character) {
   const baseCharge = getEffectiveBurstGen(character);
-  return character.weapon === "SG" ? baseCharge / 10 : baseCharge;
+  const baseChargeUnit = character.weapon === "SG" ? baseCharge / 10 : baseCharge;
+  return baseChargeUnit + (character.superstarChargeSupplementValue || 0);
 }
 
 function hasEffectiveExtraDamage(character) {
@@ -1206,6 +1208,8 @@ function getChargeBreakdown(character) {
   const baseChargeUnit = getBaseChargeUnit(character);
   const effectiveBurstGen = getEffectiveBurstGen(character);
   const flatBonus = character.flatBurstBonus || 0;
+  const superstarSupplementValue = character.superstarChargeSupplementValue || 0;
+  const rawBaseChargeUnit = character.weapon === "SG" ? effectiveBurstGen / 10 : effectiveBurstGen;
   const delayedExtraChargeTotal = getDelayedExtraChargeTotal(character);
   const fixedSequenceChargeTotal = getFixedSequenceChargeTotal(character);
   const fixedSequenceMultiplier = isVestiTacticalUpgrade(character) ? VESTI_TACTICAL_HIT_OFFSETS.length : 1;
@@ -1221,9 +1225,9 @@ function getChargeBreakdown(character) {
   const lines = [
     `充能计算：${chargeFormulaParts.join(" + ")} = ${formatNumber(getSingleShotChargeValue(character), 2)}%`,
     `基础：${formatNumber(baseChargeUnit, 5)}%${
-      character.quantumRelicCubeEnabled || character.superstarChargeBoostEnabled
-        ? `（${formatNumber(character.burstGen, 2)}${character.quantumRelicCubeEnabled ? " × 1.0466" : ""}${
-            character.superstarChargeBoostEnabled ? " × 1.06" : ""
+      character.quantumRelicCubeEnabled || superstarSupplementValue
+        ? `（${formatNumber(rawBaseChargeUnit, 5)}${superstarSupplementValue ? ` + ${formatNumber(superstarSupplementValue, 3)} 超阿补充` : ""}${
+            character.quantumRelicCubeEnabled ? `；${formatNumber(character.burstGen, 2)} × 1.0466` : ""
           }）`
         : ""
     }`,
@@ -1231,6 +1235,7 @@ function getChargeBreakdown(character) {
   ];
 
   if (hasEffectiveExtraDamage(character)) lines.push("额外伤害 ×2");
+  if (superstarSupplementValue) lines.push(`超阿补充：基础 +${formatNumber(superstarSupplementValue, 3)}%`);
   if (isRedHood(character)) lines.push(`攻击蓄速：每次攻击 +${formatNumber(RED_HOOD_CHARGE_SPEED_PER_ATTACK, 2)}%，最多 ${RED_HOOD_MAX_CHARGE_SPEED_STACKS} 层`);
   if (flatBonus) lines.push(`固定补充 +${formatNumber(flatBonus, 2)}%`);
   if (character.hitCountExtraEvents?.length) {
@@ -1526,12 +1531,13 @@ function getAttackHitProfile(
 }
 
 function getAttackContributionLabel(character, shotCount = 1, shotNumber = null, hitProfile = null) {
+  const supplementLabel = character.superstarChargeSupplementValue ? "+超阿补充" : "";
   if (hitProfile?.p5CinderellaDecoy) {
     const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
-    return `命中：${actualHitMultiplier} hit`;
+    return `命中：${actualHitMultiplier} hit${supplementLabel}`;
   }
-  if (character.weapon === "MG" && shotCount > 1) return "命中";
-  return getChargeHitLabel(character, getChargeHitMultiplier(character, shotNumber), shotNumber);
+  if (character.weapon === "MG" && shotCount > 1) return `命中${supplementLabel}`;
+  return `${getChargeHitLabel(character, getChargeHitMultiplier(character, shotNumber), shotNumber)}${supplementLabel}`;
 }
 
 function isReloadingAtFrame(positionIndex, frame, reloadTimeline = []) {
@@ -1782,7 +1788,7 @@ function characterForSlot(character, positionIndex, teamKey = "attack", team = [
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
   const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
-  const superstarChargeBoostEnabled = team.some((member) => member && isAnisSuperstar(member));
+  const superstarChargeSupplementValue = getAnisSuperstarSupplementValue(team);
   const chargeSpeedPercent = canApplyChargeSpeed(character)
     ? Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0
     : 0;
@@ -1792,7 +1798,7 @@ function characterForSlot(character, positionIndex, teamKey = "attack", team = [
     stats: getEffectiveCharacterStats(character, teamKey),
     chargeSpeedPercent,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
-    superstarChargeBoostEnabled,
+    superstarChargeSupplementValue,
     redHoodPierceCount: isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[positionIndex]) : 0,
     scarletCounterEnabled: isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[positionIndex]) : false,
   };
@@ -4727,7 +4733,7 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
     return item.result.members
       .filter((member) => member.character.id === linkOwner.id)
       .map((member) => {
-        const chargePerLink = getEffectiveBurstGen(member.character);
+        const chargePerLink = getBaseChargeUnit(member.character);
         let accumulatedHits = 0;
         let triggeredLinks = 0;
         let cumulativeCharge = 0;
@@ -4815,7 +4821,7 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
     if (isJackal(member.character) && linkOwner?.id === member.character.id) {
       const linkedPositionIndices = getJackalLinkedPositionIndices(targetResult);
       if (linkedPositionIndices.length === 0) return;
-      const chargePerLink = getEffectiveBurstGen(member.character);
+      const chargePerLink = getBaseChargeUnit(member.character);
       let accumulatedHits = 0;
       let triggeredLinks = 0;
       opponentTimeline.forEach((entry) => {
