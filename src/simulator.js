@@ -65,6 +65,7 @@ const MG_WARMUP_EVENTS = [
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
+const ANIS_SUPERSTAR_CHARGE_MULTIPLIER = 1.06;
 const ROSANNA_BUFF_REMOVE_FRAME = 96;
 const LITTLE_MERMAID_STUN_FRAME = 196;
 const LITTLE_MERMAID_STUN_DURATION_FRAMES = 180;
@@ -179,6 +180,14 @@ function isVestiTacticalUpgrade(character) {
   return character?.id === 87 || character?.enName === "Vesti: Tactical Upgrade" || String(character?.slug || "").includes("战术升级");
 }
 
+function isAnisSuperstar(character) {
+  return character?.id === 2 || character?.enName === "Anis: Star";
+}
+
+function getStandardRlProjectileFlightDelta(positionIndex) {
+  return positionIndex >= 4 ? -2 : 0;
+}
+
 function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = []) {
   return (
     character?.weapon === "SR" &&
@@ -240,6 +249,9 @@ function applyChargeSpeedIntervalFrames(baseChargeFrames, fixedFrames, chargeSpe
 function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
   if (isCinderella(character)) return CINDERELLA_PROJECTILE_FLIGHT_FRAMES;
   if (isVestiTacticalUpgrade(character)) return VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES;
+  if (Number.isFinite(character.projectileFlightBaseFrames)) {
+    return Math.max(0, character.projectileFlightBaseFrames + getStandardRlProjectileFlightDelta(positionIndex));
+  }
   if (Number.isFinite(character.projectileFlightFrames)) return character.projectileFlightFrames;
   if (normalizeTeamKey(teamKey) === "defense") {
     if (positionIndex <= 1) return 16;
@@ -356,7 +368,11 @@ function getRlHitSegments(character) {
 
 function getEffectiveBurstGen(character) {
   const baseBurstGen = Number(character.burstGen) || 0;
-  return character.quantumRelicCubeEnabled ? baseBurstGen * QUANTUM_RELIC_CUBE_MULTIPLIER : baseBurstGen;
+  return (
+    baseBurstGen *
+    (character.quantumRelicCubeEnabled ? QUANTUM_RELIC_CUBE_MULTIPLIER : 1) *
+    (character.superstarChargeBoostEnabled ? ANIS_SUPERSTAR_CHARGE_MULTIPLIER : 1)
+  );
 }
 
 function getChargeValue(character, shotNumber = null) {
@@ -715,10 +731,11 @@ function getRlShotMissDodgeWindow(event, currentFrame, teamKey, opponentReloadTi
   ].find((window) => isMissedByDodgeWindow(targetPositionIndex, flightStartFrame, currentFrame, window));
 }
 
-function characterForSlot(character, positionIndex, teamKey = "attack") {
+function characterForSlot(character, positionIndex, teamKey = "attack", team = []) {
   if (!character) return null;
   const chargeSpeeds = getChargeSpeedState(teamKey);
   const savedMagazine = isScarlet(character) ? getSavedCharacterMagazine(character, teamKey) : null;
+  const superstarChargeBoostEnabled = team.some((member) => member && isAnisSuperstar(member));
   const chargeSpeedPercent = canApplyChargeSpeed(character)
     ? Number(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0
     : 0;
@@ -728,6 +745,7 @@ function characterForSlot(character, positionIndex, teamKey = "attack") {
     stats: savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats,
     chargeSpeedPercent,
     quantumRelicCubeEnabled: getSavedCharacterQuantumCube(character, teamKey),
+    superstarChargeBoostEnabled,
     redHoodPierceCount: isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, teamKey) : 0,
   };
 }
@@ -757,7 +775,7 @@ function simulateBurst(
   opponentTeam = [],
 ) {
   const members = team
-    .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey), positionIndex }))
+    .map((character, positionIndex) => ({ character: characterForSlot(character, positionIndex, teamKey, team), positionIndex }))
     .filter((member) => member.character);
   const universalMembers = getUniversalChargeState(teamKey)
     .map((charge, positionIndex) => ({

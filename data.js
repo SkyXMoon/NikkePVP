@@ -107,9 +107,10 @@ const CHARACTERS = [
     "burstGen": 1.4,
     "burstCoefficient": 0.014,
     "chargeSpeedPercent": 0,
-    "rlExplosionRange": 1,
+    "rlExplosionRange": 2,
     "firstFrameOverride": null,
     "attackIntervalFrames": null,
+    "projectileFlightBaseFrames": 14,
     "projectileFlightFrames": null,
     "turnFrames": null,
     "timing": {
@@ -118,16 +119,16 @@ const CHARACTERS = [
       "intervalFrames": 76,
       "projectileFlightFrames": null,
       "projectileFlightFramesByPosition": {
-        "P1": 16,
-        "P2": 16,
+        "P1": 14,
+        "P2": 14,
         "P3": 14,
         "P4": 14,
-        "P5": 14
+        "P5": 12
       },
       "turnFrames": 16
     },
     "hasPenetration": false,
-    "hasExtraDamage": false,
+    "hasExtraDamage": true,
     "delayedExtraHits": [],
     "hitCountExtraEvents": [],
     "flatBurstBonus": 0,
