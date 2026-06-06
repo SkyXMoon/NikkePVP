@@ -6,6 +6,11 @@ const PAID_ARENA_TEAM_COUNTS = { c: 5, p: 3 };
 const BATTLE_POWER_ADVANTAGE_RATE = 0.154;
 const DEFAULT_RL_TARGET_INDEX = 0;
 const BURST_EPSILON = 1e-6;
+const BURST_STAGE_INTERVAL_FRAMES = 32;
+const BURST_START_DELAY_BY_REGION = {
+  cn: 24,
+  global: 26,
+};
 const STORAGE_KEY = "nikke-arena-charge-team-v2";
 const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const PAID_DEV_ACCESS_KEY = "nikke-paid-dev-access";
@@ -131,6 +136,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "区分国服国际服爆裂开启帧",
   "移除渡鸦转身空枪判定",
   "更新渡鸦中毒充能逻辑",
   "修正超阿充能补充逻辑",
@@ -140,7 +146,6 @@ const CHANGELOG_ITEMS = [
   "修正战贝额外伤害和转身",
   "更新战贝引导连射逻辑",
   "调整水阿换弹时间",
-  "优化角色充能计算说明",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -414,6 +419,14 @@ function getCharacterBurstStages(character) {
 
 function normalizeStageFilter(stage = "all") {
   return ["B1", "B2", "B3"].includes(stage) ? stage : "all";
+}
+
+function getBurstStartDelayFrames(region = state.filters.region) {
+  return BURST_START_DELAY_BY_REGION[region === "global" ? "global" : "cn"];
+}
+
+function getBurstStageFrame(fullFrame, stageIndex, region = state.filters.region) {
+  return fullFrame + getBurstStartDelayFrames(region) + Math.max(0, stageIndex - 1) * BURST_STAGE_INTERVAL_FRAMES;
 }
 
 function getAvailableBurstLevel(members = []) {
@@ -2155,9 +2168,9 @@ function simulateBurst(
   return {
     teamKey,
     fullFrame: currentFrame,
-    burst1Frame: currentFrame + 26,
-    burst2Frame: currentFrame + 58,
-    burst3Frame: currentFrame + 90,
+    burst1Frame: getBurstStageFrame(currentFrame, 1),
+    burst2Frame: getBurstStageFrame(currentFrame, 2),
+    burst3Frame: getBurstStageFrame(currentFrame, 3),
     availableBurstLevel,
     canFullBurst: availableBurstLevel === 3,
     totalCharge,
@@ -4930,6 +4943,7 @@ function shouldUseWorkerCalculation() {
 
 function createCalculationPayload() {
   return {
+    region: state.filters.region,
     defenseTeam: state.defenseTeam.map((character) => character?.id || null),
     defenseChargeSpeeds: [...state.defenseChargeSpeeds],
     defenseUniversalCharges: [...state.defenseUniversalCharges],

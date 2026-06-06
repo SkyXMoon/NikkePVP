@@ -3,6 +3,11 @@ const TEAM_SIZE = 5;
 const ENEMY_TEAM_SIZE = 5;
 const DEFAULT_RL_TARGET_INDEX = 0;
 const BURST_EPSILON = 1e-6;
+const BURST_STAGE_INTERVAL_FRAMES = 32;
+const BURST_START_DELAY_BY_REGION = {
+  cn: 24,
+  global: 26,
+};
 const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
@@ -86,6 +91,18 @@ let runtimeCharacters = [];
 
 function normalizeTeamKey(teamKey = "attack") {
   return teamKey === "defense" ? "defense" : "attack";
+}
+
+function normalizeRegion(region = "cn") {
+  return region === "global" ? "global" : "cn";
+}
+
+function getBurstStartDelayFrames(region = runtimeState?.region) {
+  return BURST_START_DELAY_BY_REGION[normalizeRegion(region)];
+}
+
+function getBurstStageFrame(fullFrame, stageIndex, region = runtimeState?.region) {
+  return fullFrame + getBurstStartDelayFrames(region) + Math.max(0, stageIndex - 1) * BURST_STAGE_INTERVAL_FRAMES;
 }
 
 function getTeamState(teamKey = "attack") {
@@ -1037,9 +1054,9 @@ function simulateBurst(
   return {
     teamKey,
     fullFrame: currentFrame,
-    burst1Frame: currentFrame + 26,
-    burst2Frame: currentFrame + 58,
-    burst3Frame: currentFrame + 90,
+    burst1Frame: getBurstStageFrame(currentFrame, 1),
+    burst2Frame: getBurstStageFrame(currentFrame, 2),
+    burst3Frame: getBurstStageFrame(currentFrame, 3),
     availableBurstLevel,
     canFullBurst: availableBurstLevel === 3,
     totalCharge,
@@ -1183,6 +1200,7 @@ function normalizePayload(payload = {}, characters = []) {
       defense: payload.jackalLinks?.defense || { enabled: false, ownerId: null, targetIds: [] },
       attack: payload.jackalLinks?.attack || { enabled: false, ownerId: null, targetIds: [] },
     },
+    region: normalizeRegion(payload.region),
     paidArenaMode: payload.paidArenaMode === "c" ? "c" : payload.paidArenaMode === "p" ? "p" : "normal",
     allowMissedShots: payload.allowMissedShots !== false,
   };
