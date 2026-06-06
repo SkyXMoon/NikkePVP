@@ -7951,7 +7951,7 @@ const CHARACTERS = [
     "firstFrameOverride": null,
     "attackIntervalFrames": null,
     "projectileFlightFrames": null,
-    "turnFrames": null,
+    "turnFrames": 0,
     "timing": {
       "chargeFrames": 120,
       "firstFrame": 136,
@@ -7964,10 +7964,10 @@ const CHARACTERS = [
         "P4": 14,
         "P5": 14
       },
-      "turnFrames": 16
+      "turnFrames": 0
     },
     "hasPenetration": false,
-    "hasExtraDamage": false,
+    "hasExtraDamage": true,
     "delayedExtraHits": [],
     "hitCountExtraEvents": [],
     "flatBurstBonus": 0,

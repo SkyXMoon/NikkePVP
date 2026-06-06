@@ -132,6 +132,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正战贝额外伤害和转身",
   "更新战贝引导连射逻辑",
   "调整水阿换弹时间",
   "优化角色充能计算说明",
@@ -141,7 +142,6 @@ const CHANGELOG_ITEMS = [
   "更新莉贝雷利奥额外伤害逻辑",
   "重装白雪不受蓄速影响",
   "优化SR和RL充能组成说明",
-  "优化白雪公主重型武装充能组成说明",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1708,6 +1708,7 @@ function getTurnDodgeStartFrame(event, currentFrame) {
 function getTurnDodgeFrames(event) {
   if (!isChargeWeapon(event.character)) return 0;
   if (isCinderella(event.character)) return 0;
+  if (isVestiTacticalUpgrade(event.character)) return 0;
   const turnFrames = Number(event.character.timing?.turnFrames ?? event.character.turnFrames ?? 0) || 0;
   return Math.min(MISS_DODGE_WINDOW_FRAMES, Math.max(0, turnFrames));
 }

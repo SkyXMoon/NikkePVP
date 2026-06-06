@@ -680,6 +680,7 @@ function getTurnDodgeStartFrame(event, currentFrame) {
 
 function getTurnDodgeFrames(event) {
   if (!isChargeWeapon(event.character)) return 0;
+  if (isVestiTacticalUpgrade(event.character)) return 0;
   const turnFrames = Number(event.character.timing?.turnFrames ?? event.character.turnFrames ?? 0) || 0;
   return Math.min(MISS_DODGE_WINDOW_FRAMES, Math.max(0, turnFrames));
 }
