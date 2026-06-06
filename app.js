@@ -132,6 +132,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "优化战贝充能计算说明",
   "修正战贝额外伤害和转身",
   "更新战贝引导连射逻辑",
   "调整水阿换弹时间",
@@ -141,7 +142,6 @@ const CHANGELOG_ITEMS = [
   "恢复移动端图表点击提示",
   "更新莉贝雷利奥额外伤害逻辑",
   "重装白雪不受蓄速影响",
-  "优化SR和RL充能组成说明",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1193,11 +1193,15 @@ function getChargeBreakdown(character) {
   const flatBonus = character.flatBurstBonus || 0;
   const delayedExtraChargeTotal = getDelayedExtraChargeTotal(character);
   const fixedSequenceChargeTotal = getFixedSequenceChargeTotal(character);
+  const fixedSequenceMultiplier = isVestiTacticalUpgrade(character) ? VESTI_TACTICAL_HIT_OFFSETS.length : 1;
+  const mainChargeFormula = `${formatNumber(baseChargeUnit, 5)} × ${hitMultiplier} × ${extraMultiplier}${
+    fixedSequenceMultiplier > 1 ? ` × ${fixedSequenceMultiplier}` : ""
+  }`;
   const chargeFormulaParts = [
-    `${formatNumber(baseChargeUnit, 5)} × ${hitMultiplier} × ${extraMultiplier}`,
+    mainChargeFormula,
     ...(flatBonus ? [formatNumber(flatBonus, 2)] : []),
     ...(delayedExtraChargeTotal ? [formatNumber(delayedExtraChargeTotal, 2)] : []),
-    ...(fixedSequenceChargeTotal ? [formatNumber(fixedSequenceChargeTotal, 2)] : []),
+    ...(fixedSequenceChargeTotal && fixedSequenceMultiplier === 1 ? [formatNumber(fixedSequenceChargeTotal, 2)] : []),
   ];
   const lines = [
     `充能计算：${chargeFormulaParts.join(" + ")} = ${formatNumber(getSingleShotChargeValue(character), 2)}%`,
@@ -1235,7 +1239,7 @@ function getChargeBreakdown(character) {
     );
   }
   if (fixedSequenceChargeTotal) {
-    lines.push(`引导连射：本次蓄力后共 ${VESTI_TACTICAL_HIT_OFFSETS.length} 发，追加 +${formatNumber(fixedSequenceChargeTotal, 2)}%`);
+    lines.push(`引导连射：蓄力后引导共计${VESTI_TACTICAL_HIT_OFFSETS.length}发`);
   }
 
   return lines.join("\n");
