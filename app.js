@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "优化角色充能计算说明",
   "单发排序计入延迟充能",
   "调整莉贝雷利奥攻击后摇",
   "恢复移动端图表点击提示",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "优化白雪公主重型武装充能组成说明",
   "更新白雪公主重型武装充能逻辑",
   "拉普拉斯珍藏加入国服",
-  "修正国际服拉普拉斯额外伤害",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1172,10 +1172,15 @@ function getChargeBreakdown(character) {
   const effectiveBurstGen = getEffectiveBurstGen(character);
   const flatBonus = character.flatBurstBonus || 0;
   const delayedExtraChargeTotal = getDelayedExtraChargeTotal(character);
+  const chargeFormulaParts = [
+    `${formatNumber(baseChargeUnit, 5)} × ${hitMultiplier} × ${extraMultiplier}`,
+    ...(flatBonus ? [formatNumber(flatBonus, 2)] : []),
+    ...(delayedExtraChargeTotal ? [formatNumber(delayedExtraChargeTotal, 2)] : []),
+  ];
   const lines = [
-    `充能组成：${formatNumber(baseChargeUnit, 5)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${formatNumber(flatBonus, 2)}` : ""} = ${formatNumber(getChargeValue(character), 2)}%`,
+    `充能计算：${chargeFormulaParts.join(" + ")} = ${formatNumber(getSingleShotChargeValue(character), 2)}%`,
     `基础：${formatNumber(baseChargeUnit, 5)}%${character.quantumRelicCubeEnabled ? `（量子遗迹魔方 ${formatNumber(character.burstGen, 2)} × 1.0466）` : ""}`,
-    hitLabel,
+    `充能组成：${hitLabel}`,
   ];
 
   if (hasEffectiveExtraDamage(character)) lines.push("额外伤害 ×2");
@@ -1207,7 +1212,6 @@ function getChargeBreakdown(character) {
         .join("，")}`,
     );
   }
-  if (delayedExtraChargeTotal) lines.push(`单发合计：${formatNumber(getSingleShotChargeValue(character), 2)}%`);
 
   return lines.join("\n");
 }
