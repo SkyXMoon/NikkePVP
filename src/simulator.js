@@ -180,6 +180,10 @@ function isVestiTacticalUpgrade(character) {
   return character?.id === 87 || character?.enName === "Vesti: Tactical Upgrade" || String(character?.slug || "").includes("战术升级");
 }
 
+function isRaven(character) {
+  return character?.id === 59 || character?.enName === "Raven";
+}
+
 function isAnisSuperstar(character) {
   return character?.id === 2 || character?.enName === "Anis: Star";
 }
@@ -287,7 +291,12 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
     const fixedIntervalFrames = Math.max(0, baseIntervalFrames - baseChargeFrames);
     const intervalFrames = applyChargeSpeedIntervalFrames(baseChargeFrames, fixedIntervalFrames, speed);
 
-    if (character.weapon === "RL" && character.timing.projectileFlightFramesByPosition) {
+    if (
+      character.weapon === "RL" &&
+      (character.timing.projectileFlightFramesByPosition ||
+        Number.isFinite(character.projectileFlightFrames) ||
+        Number.isFinite(character.projectileFlightBaseFrames))
+    ) {
       const flightFrames = getRlProjectileFlightFrames(character, positionIndex, teamKey);
       if (isVestiTacticalUpgrade(character)) {
         return {
@@ -367,6 +376,7 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 
 function getRlHitSegments(character) {
   if (isCinderella(character)) return CINDERELLA_TARGET_HIT_COUNT;
+  if (isRaven(character)) return 5;
   const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
   const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
   const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
@@ -533,6 +543,14 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotN
     const start = Math.max(0, targetPositionIndex - range);
     const end = Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndex + range);
     const positionHits = Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]);
+    if (isRaven(character)) {
+      return {
+        totalHits: shotHits,
+        positionHits,
+        targetHits: positionHits.map(([positionIndex]) => [positionIndex, (positionIndex === targetPositionIndex ? 3 : 2) * shotCount]),
+        p5CinderellaDecoy: false,
+      };
+    }
     return {
       totalHits: shotHits,
       positionHits,

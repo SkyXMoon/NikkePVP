@@ -131,6 +131,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "更新渡鸦中毒充能逻辑",
   "修正超阿充能补充逻辑",
   "统一RL飞行帧站位减少规则",
   "更新阿妮斯超级巨星充能光环",
@@ -140,7 +141,6 @@ const CHANGELOG_ITEMS = [
   "调整水阿换弹时间",
   "优化角色充能计算说明",
   "单发排序计入延迟充能",
-  "调整莉贝雷利奥攻击后摇",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -952,6 +952,10 @@ function isVestiTacticalUpgrade(character) {
   );
 }
 
+function isRaven(character) {
+  return character?.id === 59 || character?.enName === "Raven";
+}
+
 function isAnisSuperstar(character) {
   return character?.id === 2 || character?.enName === "Anis: Star";
 }
@@ -1021,7 +1025,12 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
     const fixedIntervalFrames = Math.max(0, baseIntervalFrames - baseChargeFrames);
     const intervalFrames = applyChargeSpeedIntervalFrames(baseChargeFrames, fixedIntervalFrames, speed);
 
-    if (character.weapon === "RL" && character.timing.projectileFlightFramesByPosition) {
+    if (
+      character.weapon === "RL" &&
+      (character.timing.projectileFlightFramesByPosition ||
+        Number.isFinite(character.projectileFlightFrames) ||
+        Number.isFinite(character.projectileFlightBaseFrames))
+    ) {
       const flightFrames = getRlProjectileFlightFrames(character, positionIndex, teamKey);
       if (isVestiTacticalUpgrade(character)) {
         return {
@@ -1102,6 +1111,7 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 
 function getRlHitSegments(character) {
   if (isCinderella(character)) return CINDERELLA_TARGET_HIT_COUNT;
+  if (isRaven(character)) return 5;
   const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
   const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
   const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
@@ -1503,6 +1513,14 @@ function getAttackHitProfile(
     const start = Math.max(0, targetPositionIndex - range);
     const end = Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndex + range);
     const bodyHits = Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]);
+    if (isRaven(character)) {
+      return {
+        totalHits: shotHits,
+        bodyHits,
+        targetHits: bodyHits.map(([positionIndex]) => [positionIndex, (positionIndex === targetPositionIndex ? 3 : 2) * shotCount]),
+        p5CinderellaDecoy: false,
+      };
+    }
     return {
       totalHits: shotHits,
       bodyHits,

@@ -5453,25 +5453,30 @@ const CHARACTERS = [
     "rlExplosionRange": 1,
     "firstFrameOverride": null,
     "attackIntervalFrames": null,
-    "projectileFlightFrames": null,
+    "projectileFlightFrames": 3,
     "turnFrames": null,
     "timing": {
-      "chargeFrames": 120,
-      "firstFrame": 136,
-      "intervalFrames": 136,
-      "projectileFlightFrames": null,
-      "projectileFlightFramesByPosition": {
-        "P1": 16,
-        "P2": 16,
-        "P3": 14,
-        "P4": 14,
-        "P5": 14
-      },
-      "turnFrames": 16
+      "chargeFrames": 78,
+      "firstFrame": 81,
+      "intervalFrames": 126,
+      "projectileFlightFrames": 3,
+      "projectileFlightFramesByPosition": null,
+      "turnFrames": 48
     },
     "hasPenetration": false,
     "hasExtraDamage": false,
-    "delayedExtraHits": [],
+    "delayedExtraHits": [
+      {
+        "delayFrames": 9,
+        "segments": 1,
+        "label": "中毒充能"
+      },
+      {
+        "delayFrames": 97,
+        "segments": 1,
+        "label": "中毒充能"
+      }
+    ],
     "hitCountExtraEvents": [],
     "flatBurstBonus": 0,
     "company": "反常",
@@ -5486,7 +5491,7 @@ const CHARACTERS = [
       "weaponDamage": 61.3,
       "magazine": 6,
       "reloadSeconds": 2,
-      "chargeSeconds": 2,
+      "chargeSeconds": 1.3,
       "maxCharge": 250
     },
     "scenario": {
