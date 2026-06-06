@@ -131,6 +131,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "移除渡鸦转身空枪判定",
   "更新渡鸦中毒充能逻辑",
   "修正超阿充能补充逻辑",
   "统一RL飞行帧站位减少规则",
@@ -140,7 +141,6 @@ const CHANGELOG_ITEMS = [
   "更新战贝引导连射逻辑",
   "调整水阿换弹时间",
   "优化角色充能计算说明",
-  "单发排序计入延迟充能",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -1757,7 +1757,7 @@ function getTurnDodgeStartFrame(event, currentFrame) {
 function getTurnDodgeFrames(event) {
   if (!isChargeWeapon(event.character)) return 0;
   if (isCinderella(event.character)) return 0;
-  if (isVestiTacticalUpgrade(event.character)) return 0;
+  if (isVestiTacticalUpgrade(event.character) || isRaven(event.character)) return 0;
   const turnFrames = Number(event.character.timing?.turnFrames ?? event.character.turnFrames ?? 0) || 0;
   return Math.min(MISS_DODGE_WINDOW_FRAMES, Math.max(0, turnFrames));
 }
