@@ -130,6 +130,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "单发排序计入延迟充能",
   "调整莉贝雷利奥攻击后摇",
   "恢复移动端图表点击提示",
   "更新莉贝雷利奥额外伤害逻辑",
@@ -139,7 +140,6 @@ const CHANGELOG_ITEMS = [
   "更新白雪公主重型武装充能逻辑",
   "拉普拉斯珍藏加入国服",
   "修正国际服拉普拉斯额外伤害",
-  "调整说明页复制分享位置",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 
@@ -1115,6 +1115,20 @@ function getChargeValue(character, shotNumber = null) {
   return getBaseChargeUnit(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
+function getDelayedExtraChargeTotal(character) {
+  if (isHarran(character)) return 0;
+  const extraMultiplier = hasEffectiveExtraDamage(character) ? 2 : 1;
+  const baseChargeUnit = getBaseChargeUnit(character);
+  return (character.delayedExtraHits || []).reduce(
+    (sum, extra) => sum + baseChargeUnit * (Number(extra.segments) || 0) * extraMultiplier,
+    0,
+  );
+}
+
+function getSingleShotChargeValue(character, shotNumber = null) {
+  return getChargeValue(character, shotNumber) + getDelayedExtraChargeTotal(character);
+}
+
 function getAttackChargeValue(character, shotNumber = null, hitProfile = null, shotCount = 1) {
   if (!hitProfile || isCinderella(character)) return getChargeValue(character, shotNumber) * shotCount;
   if (hitProfile.p5CinderellaDecoy && character.flatBurstBonus) return (character.flatBurstBonus || 0) * shotCount;
@@ -1157,6 +1171,7 @@ function getChargeBreakdown(character) {
   const baseChargeUnit = getBaseChargeUnit(character);
   const effectiveBurstGen = getEffectiveBurstGen(character);
   const flatBonus = character.flatBurstBonus || 0;
+  const delayedExtraChargeTotal = getDelayedExtraChargeTotal(character);
   const lines = [
     `充能组成：${formatNumber(baseChargeUnit, 5)} × ${hitMultiplier} × ${extraMultiplier}${flatBonus ? ` + ${formatNumber(flatBonus, 2)}` : ""} = ${formatNumber(getChargeValue(character), 2)}%`,
     `基础：${formatNumber(baseChargeUnit, 5)}%${character.quantumRelicCubeEnabled ? `（量子遗迹魔方 ${formatNumber(character.burstGen, 2)} × 1.0466）` : ""}`,
@@ -1192,6 +1207,7 @@ function getChargeBreakdown(character) {
         .join("，")}`,
     );
   }
+  if (delayedExtraChargeTotal) lines.push(`单发合计：${formatNumber(getSingleShotChargeValue(character), 2)}%`);
 
   return lines.join("\n");
 }
@@ -1199,7 +1215,7 @@ function getChargeBreakdown(character) {
 function getCharacterDetailText(character) {
   return [
     `${getCharacterDisplayName(character)}（${character.rarity || "SSR"}）（${character.weapon || "-"}）`,
-    `最终单发充能：${formatNumber(getChargeValue(character), 2)}%`,
+    `最终单发充能：${formatNumber(getSingleShotChargeValue(character), 2)}%`,
     ...getChargeWeaponDetailLines(character),
     getChargeBreakdown(character),
   ].join("\n");
@@ -1258,7 +1274,7 @@ function showCharacterTooltip(character, index, tile) {
     <div class="character-tooltip-meta">
       #${index + 1} · ${escapeHtml(character.rarity || "SSR")} · ${escapeHtml(character.weapon)} · ${escapeHtml(character.burstStage)} · ${escapeHtml(getRegionLabel(character))}
     </div>
-    <div class="character-tooltip-main">最终单发 ${formatNumber(getChargeValue(character), 2)}%</div>
+    <div class="character-tooltip-main">最终单发 ${formatNumber(getSingleShotChargeValue(character), 2)}%</div>
     <div class="character-tooltip-lines">
       ${detailLines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}
     </div>
@@ -2414,7 +2430,7 @@ function getFilteredCharacters() {
     const matchesSearch = !keyword || getCharacterSearchText(character).includes(keyword);
     return matchesCommon && matchesRegion && matchesStage && matchesSearch;
   }).sort((a, b) => {
-    const chargeDiff = getChargeValue(b) - getChargeValue(a);
+    const chargeDiff = getSingleShotChargeValue(b) - getSingleShotChargeValue(a);
     const weaponDiff = WEAPON_ORDER.indexOf(a.weapon) - WEAPON_ORDER.indexOf(b.weapon);
     return chargeDiff || weaponDiff || a.name.localeCompare(b.name, "zh-CN");
   });
@@ -2433,7 +2449,7 @@ function renderCharacters() {
     const tile = document.createElement("button");
     tile.type = "button";
     tile.className = `character-tile rarity-${getRarityClass(character)}${pickedIds.has(character.id) ? " is-picked" : ""}`;
-    tile.setAttribute("aria-label", `加入 ${character.name}，${character.weapon}，单发 ${formatNumber(getChargeValue(character), 2)}%`);
+    tile.setAttribute("aria-label", `加入 ${character.name}，${character.weapon}，单发 ${formatNumber(getSingleShotChargeValue(character), 2)}%`);
     tile.innerHTML = `
       <span class="tile-avatar">${getAvatarMarkup(character)}</span>
       ${
@@ -2445,7 +2461,7 @@ function renderCharacters() {
             ${getIconMarkup(getElementIcon(character), character.element, "element-icon")}
           `
       }
-      <span class="tile-charge">${formatNumber(getChargeValue(character), 1)}</span>
+      <span class="tile-charge">${formatNumber(getSingleShotChargeValue(character), 1)}</span>
       <span class="tile-check" aria-hidden="true">✓</span>
     `;
     tile.addEventListener("mouseenter", () => {
