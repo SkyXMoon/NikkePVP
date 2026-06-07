@@ -139,6 +139,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正分享图魔方和链接图标",
   "优化竞技场分享头像标识",
   "冠军特殊竞技场补齐槽位设置",
   "修正空枪尾帧判定",
@@ -148,7 +149,6 @@ const CHANGELOG_ITEMS = [
   "移除渡鸦转身空枪判定",
   "更新渡鸦中毒充能逻辑",
   "修正超阿充能补充逻辑",
-  "统一RL飞行帧站位减少规则",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -4454,6 +4454,7 @@ function renderPaidArenaTeams() {
       const isFinisher = finishingPositions.has(slotIndex) && canShowFinishMarker(character);
       const isTauntTarget = character && slotIndex === tauntTargetPositionIndex;
       const sacrificeFrame = sanitizeSacrificeFrame(sacrificeFrames[slotIndex]);
+      const cubeIconSrc = character ? getCubeIconSrc(getSavedCharacterCubeType(character, dataTeamKey)) : "";
       const isSacrificedTarget =
         character && teamHasRosanna && !isRosanna(character) && sacrificeFrame !== null;
       const displayMagazine = character ? getDisplayMagazine(character, dataTeamKey) : null;
@@ -4465,7 +4466,6 @@ function renderPaidArenaTeams() {
           : displayMagazine
             ? String(displayMagazine)
             : "";
-      const cubeIconSrc = character ? getCubeIconSrc(getSavedCharacterCubeType(character, dataTeamKey)) : "";
       const isJackalOwner = character && isLinkProvider(character);
       const isActiveLinkOwner = character && isJackalConnecting && jackalLinkState.ownerId === character.id;
       const isJackalTarget = character && jackalTargetIds.has(character.id);
@@ -7601,6 +7601,8 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
     isScarletCounterEnabled = false,
     isActiveLinkOwner = false,
     isLinkTarget = false,
+    cubeIcon = null,
+    linkIcon = null,
   } = slot;
   const radius = 7;
   const drawBadgeBox = (centerX, centerY, width, height, options = {}) => {
@@ -7654,6 +7656,11 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
     context.lineTo(centerX + 2 * scale, centerY);
     context.stroke();
     context.restore();
+  };
+  const drawIconImage = (imageObject, centerX, centerY, width, height) => {
+    if (!imageObject) return false;
+    context.drawImage(imageObject, centerX - width / 2, centerY - height / 2, width, height);
+    return true;
   };
   context.save();
   context.fillStyle = character ? "#111821" : "#15191f";
@@ -7745,7 +7752,9 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
         fill: isLinkTarget ? "rgba(228, 63, 79, 0.95)" : "rgba(34, 137, 223, 0.94)",
         stroke: isLinkTarget ? "rgba(255, 184, 193, 0.92)" : "rgba(127, 211, 255, 0.9)",
       });
-      drawLinkSymbol(x + size / 2, badgeY, size / 82);
+      if (!drawIconImage(linkIcon, x + size / 2, badgeY, badgeSize * 0.68, badgeSize * 0.68)) {
+        drawLinkSymbol(x + size / 2, badgeY, size / 82);
+      }
     }
     if (sanitizeRedHoodPierceCount(redHoodPierceCount) > 0 || isScarletCounterEnabled) {
       const badgeSize = Math.max(22, size * 0.24);
@@ -7777,6 +7786,10 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
         weight: 800,
         color: "#f2f5fa",
       });
+    }
+    if (cubeIcon) {
+      const cubeSize = Math.max(26, size * 0.29);
+      drawIconImage(cubeIcon, x + cubeSize * 0.35, y + size - cubeSize * 0.35, cubeSize, cubeSize);
     }
   }
   context.restore();
@@ -7821,6 +7834,12 @@ async function paidArenaToPngBlob() {
     if (!imageCache.has(avatarUrl)) imageCache.set(avatarUrl, loadExportImage(avatarUrl));
     return imageCache.get(avatarUrl);
   };
+  const loadExportAsset = async (src) => {
+    if (!src) return null;
+    if (!imageCache.has(src)) imageCache.set(src, loadExportImage(src));
+    return imageCache.get(src);
+  };
+  const linkIcon = await loadExportAsset("assets/icons/ui/link.svg");
 
   let y = padding + headerHeight;
   for (const [rowIndex, team] of teams.entries()) {
@@ -7851,6 +7870,7 @@ async function paidArenaToPngBlob() {
       const character = team[slotIndex];
       const chargeSpeed = chargeSpeeds[slotIndex];
       const sacrificeFrame = sanitizeSacrificeFrame(sacrificeFrames[slotIndex]);
+      const cubeIconSrc = character ? getCubeIconSrc(getSavedCharacterCubeType(character, dataTeamKey)) : "";
       const slot = {
         index: slotIndex,
         character,
@@ -7865,6 +7885,8 @@ async function paidArenaToPngBlob() {
         isScarletCounterEnabled: character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[slotIndex]) : false,
         isActiveLinkOwner: character && jackalLink.enabled && jackalLink.ownerId === character.id,
         isLinkTarget: character && jackalTargetIds.has(character.id),
+        cubeIcon: await loadExportAsset(cubeIconSrc),
+        linkIcon,
       };
       drawPaidArenaSlot(context, slot, slotsStartX + slotIndex * (slotSize + slotGap), y, slotSize);
     }
@@ -7965,6 +7987,12 @@ async function normalArenaToPngBlob() {
     if (!imageCache.has(avatarUrl)) imageCache.set(avatarUrl, loadExportImage(avatarUrl));
     return imageCache.get(avatarUrl);
   };
+  const loadExportAsset = async (src) => {
+    if (!src) return null;
+    if (!imageCache.has(src)) imageCache.set(src, loadExportImage(src));
+    return imageCache.get(src);
+  };
+  const linkIcon = await loadExportAsset("assets/icons/ui/link.svg");
 
   const drawTeam = async (team, teamKey, x, universalCharges, chargeSpeeds, finishers, tauntTarget) => {
     const sacrificeFrames = getRosannaSacrificeFrameState(teamKey);
@@ -7976,6 +8004,7 @@ async function normalArenaToPngBlob() {
     for (let index = 0; index < TEAM_SIZE; index += 1) {
       const character = team[index];
       const sacrificeFrame = sanitizeSacrificeFrame(sacrificeFrames[index]);
+      const cubeIconSrc = character ? getCubeIconSrc(getSavedCharacterCubeType(character, teamKey)) : "";
       const slot = {
         index,
         character,
@@ -7990,6 +8019,8 @@ async function normalArenaToPngBlob() {
         isScarletCounterEnabled: character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false,
         isActiveLinkOwner: character && linkState.enabled && linkState.ownerId === character.id,
         isLinkTarget: character && linkTargetIds.has(character.id),
+        cubeIcon: await loadExportAsset(cubeIconSrc),
+        linkIcon,
       };
       drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), teamsY, slotSize);
     }
