@@ -139,6 +139,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "优化嘲定祭标识显示",
   "修正分享图魔方和链接图标",
   "优化竞技场分享头像标识",
   "冠军特殊竞技场补齐槽位设置",
@@ -148,7 +149,6 @@ const CHANGELOG_ITEMS = [
   "区分国服国际服爆裂开启帧",
   "移除渡鸦转身空枪判定",
   "更新渡鸦中毒充能逻辑",
-  "修正超阿充能补充逻辑",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -7713,7 +7713,7 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
   if (character) {
     if (isTauntTarget) {
       const markSize = Math.max(22, size * 0.27);
-      const centerX = x + size / 2 - markSize * 0.85;
+      const centerX = x + 2 + markSize / 2;
       const centerY = y + size / 2;
       context.fillStyle = "#4da3ff";
       context.strokeStyle = "rgba(221, 251, 255, 0.82)";
@@ -7722,7 +7722,7 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
       context.arc(centerX, centerY, markSize / 2, 0, Math.PI * 2);
       context.fill();
       context.stroke();
-      drawCanvasText(context, "嘲", centerX, centerY + 1, { align: "center", size: markSize * 0.58, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, "嘲", centerX, centerY + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
     }
     if (isSacrificedTarget) {
       const frameText = `${sanitizeSacrificeFrame(sacrificeFrame)}F`;
@@ -7731,8 +7731,8 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
       context.fillStyle = "#d9354a";
       getCanvasRoundedRectPath(context, x + 5, y + 5, markWidth, markHeight, 5);
       context.fill();
-      drawCanvasText(context, "祭", x + 5 + markWidth / 2, y + 5 + markHeight * 0.34, { align: "center", size: size * 0.16, weight: 900, color: "#ffffff" });
-      drawCanvasText(context, frameText, x + 5 + markWidth / 2, y + 5 + markHeight * 0.72, { align: "center", size: size * 0.1, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, "祭", x + 5 + markWidth / 2, y + 5 + markHeight * 0.34, { align: "center", size: size * 0.14, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, frameText, x + 5 + markWidth / 2, y + 5 + markHeight * 0.72, { align: "center", size: size * 0.09, weight: 900, color: "#ffffff" });
     }
     if (isFinisher) {
       const markSize = Math.max(26, size * 0.31);
@@ -7743,7 +7743,7 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
       context.arc(x + size / 2, y + size / 2, markSize / 2, 0, Math.PI * 2);
       context.fill();
       context.stroke();
-      drawCanvasText(context, "定", x + size / 2, y + size / 2 + 1, { align: "center", size: markSize * 0.58, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, "定", x + size / 2, y + size / 2 + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
     }
     if (isActiveLinkOwner || isLinkTarget) {
       const badgeSize = Math.max(22, size * 0.24);

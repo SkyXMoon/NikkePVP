@@ -1190,7 +1190,7 @@ input:focus {
   border-radius: 999px;
   color: #fff;
   background: var(--accent);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
   line-height: 1;
   transform: translate(-50%, -50%);
@@ -1198,7 +1198,7 @@ input:focus {
 
 .slot-copy .taunt-mark {
   position: absolute;
-  left: calc(50% - 22px);
+  left: 2px;
   top: 50%;
   display: grid;
   place-items: center;
@@ -1208,10 +1208,10 @@ input:focus {
   border-radius: 999px;
   color: #fff;
   background: var(--blue);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
   line-height: 1;
-  transform: translate(-50%, -50%);
+  transform: translateY(-50%);
 }
 
 .slot-copy .sacrifice-mark {
@@ -1235,13 +1235,13 @@ input:focus {
 }
 
 .slot-copy .sacrifice-mark span {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
 }
 
 .slot-copy .sacrifice-mark small {
   margin-top: 1px;
-  font-size: 8px;
+  font-size: 7px;
   line-height: 1;
 }
 
@@ -3808,14 +3808,14 @@ summary {
   .slot-copy .finish-mark {
     width: 18px;
     height: 18px;
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .slot-copy .taunt-mark {
-    left: calc(50% - 16px);
+    left: 2px;
     width: 16px;
     height: 16px;
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .speed-control {
