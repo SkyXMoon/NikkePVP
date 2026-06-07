@@ -50,7 +50,7 @@ const MG_WARMUP_EVENTS = [
   { frame: 180, shots: 14 },
 ];
 const STANDARD_TIMELINE_EVENTS = [
-  { label: "罗姗娜", tooltip: "罗姗娜（96F）消除BUFF", frame: 96 },
+  { label: "罗珊娜", tooltip: "罗珊娜（96F）消除BUFF", frame: 96 },
 ];
 const ROSANNA_BUFF_REMOVE_FRAME = 96;
 const LITTLE_MERMAID_STUN_FRAME = 196;
@@ -139,6 +139,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正罗珊娜消除链接累计",
   "优化嘲定祭标识显示",
   "修正分享图魔方和链接图标",
   "优化竞技场分享头像标识",
@@ -148,7 +149,6 @@ const CHANGELOG_ITEMS = [
   "冠军特殊竞技场增加10套方案",
   "区分国服国际服爆裂开启帧",
   "移除渡鸦转身空枪判定",
-  "更新渡鸦中毒充能逻辑",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -5385,13 +5385,20 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
         const chargePerLink = getBaseChargeUnit(member.character);
         let accumulatedHits = 0;
         let triggeredLinks = 0;
+        let previousSuppressedByRosanna = false;
         let cumulativeCharge = 0;
         const timeline = opponentTimeline
           .map((entry) => {
-            const hitCount = isLinkSuppressedByRosanna(
+            const suppressedByRosanna = isLinkSuppressedByRosanna(
               chartResults.find((resultItem) => resultItem.teamKey === opponentTeamKey)?.result || null,
               entry.frame,
-            )
+            );
+            if (suppressedByRosanna && !previousSuppressedByRosanna) {
+              accumulatedHits = 0;
+              triggeredLinks = 0;
+            }
+            previousSuppressedByRosanna = suppressedByRosanna;
+            const hitCount = suppressedByRosanna
               ? getPositionHitCount(entry, member.positionIndex)
               : getJackalLinkedHitCount(entry, linkedPositionIndices);
             accumulatedHits += hitCount;
@@ -5473,8 +5480,15 @@ function getSpecialChargeEventsForTeam(targetResult, opponentResult) {
       const chargePerLink = getBaseChargeUnit(member.character);
       let accumulatedHits = 0;
       let triggeredLinks = 0;
+      let previousSuppressedByRosanna = false;
       opponentTimeline.forEach((entry) => {
-        const hitCount = isLinkSuppressedByRosanna(opponentResult, entry.frame)
+        const suppressedByRosanna = isLinkSuppressedByRosanna(opponentResult, entry.frame);
+        if (suppressedByRosanna && !previousSuppressedByRosanna) {
+          accumulatedHits = 0;
+          triggeredLinks = 0;
+        }
+        previousSuppressedByRosanna = suppressedByRosanna;
+        const hitCount = suppressedByRosanna
           ? getPositionHitCount(entry, member.positionIndex)
           : getJackalLinkedHitCount(entry, linkedPositionIndices);
         accumulatedHits += hitCount;
@@ -7729,10 +7743,12 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
       const markWidth = Math.max(32, size * 0.36);
       const markHeight = Math.max(34, size * 0.39);
       context.fillStyle = "#d9354a";
-      getCanvasRoundedRectPath(context, x + 5, y + 5, markWidth, markHeight, 5);
+      const markX = x - Math.max(2, size * 0.03);
+      const markY = y - Math.max(2, size * 0.03);
+      getCanvasRoundedRectPath(context, markX, markY, markWidth, markHeight, 5);
       context.fill();
-      drawCanvasText(context, "祭", x + 5 + markWidth / 2, y + 5 + markHeight * 0.34, { align: "center", size: size * 0.14, weight: 900, color: "#ffffff" });
-      drawCanvasText(context, frameText, x + 5 + markWidth / 2, y + 5 + markHeight * 0.72, { align: "center", size: size * 0.09, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, "祭", markX + markWidth / 2, markY + markHeight * 0.34, { align: "center", size: size * 0.14, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, frameText, markX + markWidth / 2, markY + markHeight * 0.72, { align: "center", size: size * 0.09, weight: 900, color: "#ffffff" });
     }
     if (isFinisher) {
       const markSize = Math.max(26, size * 0.31);

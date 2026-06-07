@@ -1216,8 +1216,8 @@ input:focus {
 
 .slot-copy .sacrifice-mark {
   position: absolute;
-  left: 4px;
-  top: 4px;
+  left: -3px;
+  top: -3px;
   z-index: 2;
   display: flex;
   flex-direction: column;
