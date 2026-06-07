@@ -139,6 +139,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正分享图头像取图位置",
   "统一操作界面献祭图标",
   "统一分享图特殊图标",
   "修正罗珊娜消除链接累计",
@@ -148,7 +149,6 @@ const CHANGELOG_ITEMS = [
   "冠军特殊竞技场补齐槽位设置",
   "修正空枪尾帧判定",
   "空枪反推改为前端计算",
-  "冠军特殊竞技场增加10套方案",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -7690,10 +7690,13 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
     context.save();
     getCanvasRoundedRectPath(context, x + 4, y + 4, size - 8, size - 8, radius - 2);
     context.clip();
-    const scale = Math.max((size - 8) / image.width, (size - 8) / image.height);
+    const avatarInset = 4;
+    const avatarBoxSize = size - avatarInset * 2;
+    const scale = Math.max(avatarBoxSize / image.width, avatarBoxSize / image.height);
     const drawWidth = image.width * scale;
     const drawHeight = image.height * scale;
-    context.drawImage(image, x + 4 + (size - 8 - drawWidth) / 2, y + 4 + (size - 8 - drawHeight) / 2, drawWidth, drawHeight);
+    const avatarShiftY = Math.min(15, avatarBoxSize * 0.18);
+    context.drawImage(image, x + avatarInset + (avatarBoxSize - drawWidth) / 2, y + avatarInset - avatarShiftY, drawWidth, drawHeight);
     context.restore();
   } else if (character) {
     drawCanvasText(context, character.name, x + size / 2, y + size * 0.43, {
