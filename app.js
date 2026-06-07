@@ -139,6 +139,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "优化竞技场分享头像标识",
   "冠军特殊竞技场补齐槽位设置",
   "修正空枪尾帧判定",
   "空枪反推改为前端计算",
@@ -148,7 +149,6 @@ const CHANGELOG_ITEMS = [
   "更新渡鸦中毒充能逻辑",
   "修正超阿充能补充逻辑",
   "统一RL飞行帧站位减少规则",
-  "更新阿妮斯超级巨星充能光环",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -7588,8 +7588,73 @@ function drawExportSiteUrl(context, width, padding, y) {
 }
 
 function drawPaidArenaSlot(context, slot, x, y, size) {
-  const { character, universalCharge, image, isFinisher, isTauntTarget, isSacrificedTarget, sacrificeFrame, badgeText } = slot;
+  const {
+    character,
+    universalCharge,
+    image,
+    isFinisher,
+    isTauntTarget,
+    isSacrificedTarget,
+    sacrificeFrame,
+    badgeText,
+    redHoodPierceCount = 0,
+    isScarletCounterEnabled = false,
+    isActiveLinkOwner = false,
+    isLinkTarget = false,
+  } = slot;
   const radius = 7;
+  const drawBadgeBox = (centerX, centerY, width, height, options = {}) => {
+    context.fillStyle = options.fill || "rgba(61, 65, 72, 0.9)";
+    context.strokeStyle = options.stroke || "rgba(235, 241, 248, 0.42)";
+    context.lineWidth = Math.max(1, size * 0.012);
+    getCanvasRoundedRectPath(context, centerX - width / 2, centerY - height / 2, width, height, Math.max(4, height * 0.22));
+    context.fill();
+    context.stroke();
+  };
+  const drawSwordSymbol = (centerX, centerY, scale = 1, color = "#f2f5fa") => {
+    context.save();
+    context.strokeStyle = color;
+    context.lineWidth = Math.max(2, size * 0.02 * scale);
+    context.lineCap = "round";
+    context.beginPath();
+    context.moveTo(centerX - 5 * scale, centerY + 5 * scale);
+    context.lineTo(centerX + 5 * scale, centerY - 5 * scale);
+    context.moveTo(centerX + 5 * scale, centerY + 5 * scale);
+    context.lineTo(centerX - 5 * scale, centerY - 5 * scale);
+    context.stroke();
+    context.restore();
+  };
+  const drawPierceSymbol = (centerX, centerY, scale = 1, color = "#f2f5fa") => {
+    context.save();
+    context.strokeStyle = color;
+    context.fillStyle = color;
+    context.lineWidth = Math.max(2, size * 0.018 * scale);
+    context.lineCap = "round";
+    context.beginPath();
+    context.moveTo(centerX - 5 * scale, centerY + 5 * scale);
+    context.lineTo(centerX + 5 * scale, centerY - 5 * scale);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(centerX + 5 * scale, centerY - 5 * scale);
+    context.lineTo(centerX + 1 * scale, centerY - 4.5 * scale);
+    context.lineTo(centerX + 4.5 * scale, centerY - 1 * scale);
+    context.closePath();
+    context.fill();
+    context.restore();
+  };
+  const drawLinkSymbol = (centerX, centerY, scale = 1, color = "#f2f5fa") => {
+    context.save();
+    context.strokeStyle = color;
+    context.lineWidth = Math.max(2, size * 0.018 * scale);
+    context.lineCap = "round";
+    context.beginPath();
+    context.arc(centerX - 4 * scale, centerY, 4.5 * scale, -0.7, 2.2);
+    context.arc(centerX + 4 * scale, centerY, 4.5 * scale, Math.PI - 0.7, Math.PI + 2.2);
+    context.moveTo(centerX - 2 * scale, centerY);
+    context.lineTo(centerX + 2 * scale, centerY);
+    context.stroke();
+    context.restore();
+  };
   context.save();
   context.fillStyle = character ? "#111821" : "#15191f";
   getCanvasRoundedRectPath(context, x, y, size, size, radius);
@@ -7640,22 +7705,66 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
 
   if (character) {
     if (isTauntTarget) {
-      context.fillStyle = "#ff5f63";
-      context.fillRect(x + 5, y + 5, 22, 22);
-      drawCanvasText(context, "嘲", x + 16, y + 16, { align: "center", size: 15, weight: 800, color: "#ffffff" });
+      const markSize = Math.max(22, size * 0.27);
+      const centerX = x + size / 2 - markSize * 0.85;
+      const centerY = y + size / 2;
+      context.fillStyle = "#4da3ff";
+      context.strokeStyle = "rgba(221, 251, 255, 0.82)";
+      context.lineWidth = 1;
+      context.beginPath();
+      context.arc(centerX, centerY, markSize / 2, 0, Math.PI * 2);
+      context.fill();
+      context.stroke();
+      drawCanvasText(context, "嘲", centerX, centerY + 1, { align: "center", size: markSize * 0.58, weight: 900, color: "#ffffff" });
     }
     if (isSacrificedTarget) {
       const frameText = `${sanitizeSacrificeFrame(sacrificeFrame)}F`;
+      const markWidth = Math.max(32, size * 0.36);
+      const markHeight = Math.max(34, size * 0.39);
       context.fillStyle = "#d9354a";
-      getCanvasRoundedRectPath(context, x + 5, y + 5, 32, 34, 5);
+      getCanvasRoundedRectPath(context, x + 5, y + 5, markWidth, markHeight, 5);
       context.fill();
-      drawCanvasText(context, "祭", x + 21, y + 16, { align: "center", size: 14, weight: 800, color: "#ffffff" });
-      drawCanvasText(context, frameText, x + 21, y + 30, { align: "center", size: 9, weight: 800, color: "#ffffff" });
+      drawCanvasText(context, "祭", x + 5 + markWidth / 2, y + 5 + markHeight * 0.34, { align: "center", size: size * 0.16, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, frameText, x + 5 + markWidth / 2, y + 5 + markHeight * 0.72, { align: "center", size: size * 0.1, weight: 900, color: "#ffffff" });
     }
     if (isFinisher) {
+      const markSize = Math.max(26, size * 0.31);
       context.fillStyle = "#ff4f5f";
-      context.fillRect(x + 5, y + size - 27, 22, 22);
-      drawCanvasText(context, "定", x + 16, y + size - 16, { align: "center", size: 15, weight: 800, color: "#ffffff" });
+      context.strokeStyle = "rgba(255, 217, 220, 0.82)";
+      context.lineWidth = 1;
+      context.beginPath();
+      context.arc(x + size / 2, y + size / 2, markSize / 2, 0, Math.PI * 2);
+      context.fill();
+      context.stroke();
+      drawCanvasText(context, "定", x + size / 2, y + size / 2 + 1, { align: "center", size: markSize * 0.58, weight: 900, color: "#ffffff" });
+    }
+    if (isActiveLinkOwner || isLinkTarget) {
+      const badgeSize = Math.max(22, size * 0.24);
+      const badgeY = y + 6 + badgeSize / 2;
+      drawBadgeBox(x + size / 2, badgeY, badgeSize, badgeSize, {
+        fill: isLinkTarget ? "rgba(228, 63, 79, 0.95)" : "rgba(34, 137, 223, 0.94)",
+        stroke: isLinkTarget ? "rgba(255, 184, 193, 0.92)" : "rgba(127, 211, 255, 0.9)",
+      });
+      drawLinkSymbol(x + size / 2, badgeY, size / 82);
+    }
+    if (sanitizeRedHoodPierceCount(redHoodPierceCount) > 0 || isScarletCounterEnabled) {
+      const badgeSize = Math.max(22, size * 0.24);
+      const badgeY = y + size - 4 - badgeSize / 2;
+      drawBadgeBox(x + size / 2, badgeY, badgeSize, badgeSize, {
+        fill: "rgba(34, 137, 223, 0.94)",
+        stroke: "rgba(127, 211, 255, 0.9)",
+      });
+      if (sanitizeRedHoodPierceCount(redHoodPierceCount) > 0) {
+        drawPierceSymbol(x + size / 2, badgeY + 1, size / 84);
+        drawCanvasText(context, String(sanitizeRedHoodPierceCount(redHoodPierceCount)), x + size / 2, badgeY - badgeSize * 0.47, {
+          align: "center",
+          size: Math.max(9, size * 0.11),
+          weight: 900,
+          color: "#ffffff",
+        });
+      } else {
+        drawSwordSymbol(x + size / 2, badgeY, size / 84);
+      }
     }
     if (badgeText) {
       const badgeWidth = Math.max(30, Math.min(44, String(badgeText).length * 8 + 14));
@@ -7685,16 +7794,16 @@ async function paidArenaToPngBlob() {
   const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守数据" : "进攻数据";
   const title = `${getPaidArenaModeLabel(mode)}（${dataSourceLabel}）`;
   const padding = 28;
-  const slotSize = 76;
-  const slotGap = 12;
-  const teamLabelWidth = 96;
+  const slotSize = 100;
+  const slotGap = 14;
+  const teamLabelWidth = 100;
   const teamSlotsWidth = TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap;
   const rowInnerRightPadding = 24;
   const width = padding * 2 + teamLabelWidth + teamSlotsWidth + rowInnerRightPadding;
-  const rowGap = 22;
+  const rowGap = 24;
   const headerHeight = 56;
-  const resultHeight = 28;
-  const rowHeight = slotSize + resultHeight + 14;
+  const resultHeight = 30;
+  const rowHeight = slotSize + resultHeight + 16;
   const height = padding * 2 + headerHeight + teams.length * rowHeight + Math.max(0, teams.length - 1) * rowGap;
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -7720,6 +7829,7 @@ async function paidArenaToPngBlob() {
     const redHoodPierceCounts = redHoodPierceRows[rowIndex] || Array(TEAM_SIZE).fill(0);
     const scarletCounterEnabled = scarletCounterRows[rowIndex] || Array(TEAM_SIZE).fill(true);
     const jackalLink = normalizePaidArenaLinkForTeam(team, jackalLinkRows[rowIndex]);
+    const jackalTargetIds = new Set(jackalLink.targetIds || []);
     const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
     const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, jackalLink);
     const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
@@ -7751,6 +7861,10 @@ async function paidArenaToPngBlob() {
         isSacrificedTarget: character && teamHasRosanna && !isRosanna(character) && sacrificeFrame !== null,
         sacrificeFrame,
         badgeText: getPaidArenaSlotBadgeText(character, chargeSpeed, dataTeamKey),
+        redHoodPierceCount: character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[slotIndex]) : 0,
+        isScarletCounterEnabled: character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[slotIndex]) : false,
+        isActiveLinkOwner: character && jackalLink.enabled && jackalLink.ownerId === character.id,
+        isLinkTarget: character && jackalTargetIds.has(character.id),
       };
       drawPaidArenaSlot(context, slot, slotsStartX + slotIndex * (slotSize + slotGap), y, slotSize);
     }
@@ -7854,6 +7968,10 @@ async function normalArenaToPngBlob() {
 
   const drawTeam = async (team, teamKey, x, universalCharges, chargeSpeeds, finishers, tauntTarget) => {
     const sacrificeFrames = getRosannaSacrificeFrameState(teamKey);
+    const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
+    const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
+    const linkState = normalizeJackalLink(teamKey);
+    const linkTargetIds = new Set(linkState.targetIds || []);
     const teamHasRosanna = team.some((member) => member && isRosanna(member));
     for (let index = 0; index < TEAM_SIZE; index += 1) {
       const character = team[index];
@@ -7868,6 +7986,10 @@ async function normalArenaToPngBlob() {
         isSacrificedTarget: character && teamHasRosanna && !isRosanna(character) && sacrificeFrame !== null,
         sacrificeFrame,
         badgeText: getPaidArenaSlotBadgeText(character, sanitizeChargeSpeed(chargeSpeeds[index]), teamKey),
+        redHoodPierceCount: character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0,
+        isScarletCounterEnabled: character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false,
+        isActiveLinkOwner: character && linkState.enabled && linkState.ownerId === character.id,
+        isLinkTarget: character && linkTargetIds.has(character.id),
       };
       drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), teamsY, slotSize);
     }
