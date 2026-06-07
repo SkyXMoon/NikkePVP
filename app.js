@@ -136,6 +136,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "冠军特殊竞技场增加10套方案",
   "区分国服国际服爆裂开启帧",
   "移除渡鸦转身空枪判定",
   "更新渡鸦中毒充能逻辑",
@@ -145,7 +146,6 @@ const CHANGELOG_ITEMS = [
   "优化战贝充能计算说明",
   "修正战贝额外伤害和转身",
   "更新战贝引导连射逻辑",
-  "调整水阿换弹时间",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -208,10 +208,18 @@ const state = {
   lineupSlots: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot()),
   paidArenaMode: "normal",
   paidArenaActiveRowIndex: 0,
+  paidArenaActiveLineupIndex: {
+    c: 0,
+    p: 0,
+  },
   paidArenaDataTeamKey: "attack",
   paidArenaTeams: {
     c: createEmptyPaidArenaTeams("c"),
     p: createEmptyPaidArenaTeams("p"),
+  },
+  paidArenaLineupSlots: {
+    c: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyPaidArenaLineupSlot("c")),
+    p: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyPaidArenaLineupSlot("p")),
   },
   paidArenaUniversalCharges: {
     c: createEmptyPaidArenaUniversalCharges("c"),
@@ -3172,7 +3180,7 @@ function createHelpModal(options = {}) {
         "点击任意队伍会切换当前操作队伍；角色头像可拖拽换位，移动端也支持拖动。",
         "空槽可填写“充”作为万能充能值；选择角色会直接覆盖该槽位并清零万能充能。",
         "队伍栏上方可填写战力基准值，自动换算可防与可攻战压。",
-        "1-10 按钮用于普通竞技场方案；冠军/特殊竞技场没有方案按钮，但会保留各自队伍。",
+        "1-10 按钮用于保存当前模式方案；普通、冠军、特殊竞技场会分别保留各自 10 套方案。",
       ],
     },
     {
@@ -3432,6 +3440,16 @@ function createEmptyPaidArenaRosannaSacrificeFrames(mode) {
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(null));
 }
 
+function createEmptyPaidArenaLineupSlot(mode) {
+  return {
+    teams: createEmptyPaidArenaTeams(mode).map((team) => team.map((character) => character?.id || null)),
+    universalCharges: createEmptyPaidArenaUniversalCharges(mode),
+    chargeSpeeds: createEmptyPaidArenaChargeSpeeds(mode),
+    rosannaSacrificeFrames: createEmptyPaidArenaRosannaSacrificeFrames(mode),
+    activeRowIndex: 0,
+  };
+}
+
 function normalizePaidArenaMode(mode) {
   return mode === "c" || mode === "p" ? mode : "normal";
 }
@@ -3535,6 +3553,70 @@ function serializePaidArenaChargeSpeeds(mode) {
 
 function serializePaidArenaRosannaSacrificeFrames(mode) {
   return getPaidArenaRosannaSacrificeFrames(mode).map((teamFrames) => [...teamFrames]);
+}
+
+function serializePaidArenaLineupSlot(mode) {
+  return {
+    teams: serializePaidArenaTeams(mode),
+    universalCharges: serializePaidArenaUniversalCharges(mode),
+    chargeSpeeds: serializePaidArenaChargeSpeeds(mode),
+    rosannaSacrificeFrames: serializePaidArenaRosannaSacrificeFrames(mode),
+    activeRowIndex: Math.max(0, Math.min((PAID_ARENA_TEAM_COUNTS[mode] || 1) - 1, Number(state.paidArenaActiveRowIndex) || 0)),
+  };
+}
+
+function normalizePaidArenaLineupSlot(slot = {}, mode = "c") {
+  return {
+    teams: normalizePaidArenaTeams(slot.teams, mode).map((team) => team.map((character) => character?.id || null)),
+    universalCharges: normalizePaidArenaUniversalCharges(slot.universalCharges, mode),
+    chargeSpeeds: normalizePaidArenaChargeSpeeds(slot.chargeSpeeds, mode),
+    rosannaSacrificeFrames: normalizePaidArenaRosannaSacrificeFrames(slot.rosannaSacrificeFrames, mode),
+    activeRowIndex: Math.max(0, Math.min((PAID_ARENA_TEAM_COUNTS[mode] || 1) - 1, Number(slot.activeRowIndex) || 0)),
+  };
+}
+
+function normalizePaidArenaLineupSlots(savedSlots = [], mode = "c") {
+  return Array.from({ length: LINEUP_SLOT_COUNT }, (_, index) => normalizePaidArenaLineupSlot(savedSlots?.[index], mode));
+}
+
+function ensurePaidArenaLineupSlots(mode = state.paidArenaMode) {
+  const normalizedMode = normalizePaidArenaMode(mode);
+  if (normalizedMode === "normal") return [];
+  if (!Array.isArray(state.paidArenaLineupSlots?.[normalizedMode])) {
+    state.paidArenaLineupSlots[normalizedMode] = normalizePaidArenaLineupSlots([], normalizedMode);
+  }
+  state.paidArenaLineupSlots[normalizedMode] = normalizePaidArenaLineupSlots(state.paidArenaLineupSlots[normalizedMode], normalizedMode);
+  return state.paidArenaLineupSlots[normalizedMode];
+}
+
+function getPaidArenaActiveLineupIndex(mode = state.paidArenaMode) {
+  const normalizedMode = normalizePaidArenaMode(mode);
+  return Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(state.paidArenaActiveLineupIndex?.[normalizedMode]) || 0));
+}
+
+function saveCurrentPaidArenaLineupSlot(mode = state.paidArenaMode) {
+  const normalizedMode = normalizePaidArenaMode(mode);
+  if (normalizedMode === "normal") return;
+  ensurePaidArenaLineupSlots(normalizedMode)[getPaidArenaActiveLineupIndex(normalizedMode)] = serializePaidArenaLineupSlot(normalizedMode);
+}
+
+function loadPaidArenaLineupSlot(mode = state.paidArenaMode, index = getPaidArenaActiveLineupIndex(mode)) {
+  const normalizedMode = normalizePaidArenaMode(mode);
+  if (normalizedMode === "normal") return;
+  const slots = ensurePaidArenaLineupSlots(normalizedMode);
+  const slot = normalizePaidArenaLineupSlot(slots[index], normalizedMode);
+  state.paidArenaTeams[normalizedMode] = normalizePaidArenaTeams(slot.teams, normalizedMode);
+  state.paidArenaUniversalCharges[normalizedMode] = normalizePaidArenaUniversalCharges(slot.universalCharges, normalizedMode);
+  state.paidArenaChargeSpeeds[normalizedMode] = normalizePaidArenaChargeSpeeds(slot.chargeSpeeds, normalizedMode);
+  state.paidArenaRosannaSacrificeFrames[normalizedMode] = normalizePaidArenaRosannaSacrificeFrames(slot.rosannaSacrificeFrames, normalizedMode);
+  state.paidArenaActiveRowIndex = slot.activeRowIndex;
+}
+
+function getPaidArenaLineupSlotCount(slot = {}) {
+  return [
+    ...(slot.teams || []).flat().filter(Boolean),
+    ...(slot.universalCharges || []).flat().filter((charge) => sanitizeUniversalCharge(charge) > 0),
+  ].length;
 }
 
 function getPaidArenaDataTeamKey() {
@@ -3784,8 +3866,11 @@ function getPaidArenaModeLabel(mode = state.paidArenaMode) {
 
 function setPaidArenaMode(mode) {
   const nextMode = normalizePaidArenaMode(mode);
+  if (isPaidArenaModeActive()) saveCurrentPaidArenaLineupSlot(state.paidArenaMode);
   state.paidArenaMode = nextMode;
   if (isPaidArenaModeActive()) {
+    state.paidArenaActiveLineupIndex[nextMode] = getPaidArenaActiveLineupIndex(nextMode);
+    loadPaidArenaLineupSlot(nextMode, state.paidArenaActiveLineupIndex[nextMode]);
     state.testMode = false;
     state.paidArenaActiveRowIndex = Math.max(
       0,
@@ -3818,8 +3903,21 @@ function getLineupSlotCount(slot) {
 function renderLineupSlots() {
   if (!els.lineupSlots) return;
   if (isPaidArenaModeActive()) {
-    els.lineupSlots.hidden = true;
-    els.lineupSlots.replaceChildren();
+    els.lineupSlots.hidden = false;
+    const mode = state.paidArenaMode;
+    const activeIndex = getPaidArenaActiveLineupIndex(mode);
+    const fragment = document.createDocumentFragment();
+    ensurePaidArenaLineupSlots(mode).forEach((slot, index) => {
+      const count = getPaidArenaLineupSlotCount(slot);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `lineup-slot-button${index === activeIndex ? " is-active" : ""}${count ? " has-lineup" : ""}`;
+      button.dataset.paidArenaLineupIndex = index;
+      button.textContent = String(index + 1);
+      button.title = `${getPaidArenaModeLabel(mode)}方案 ${index + 1}${count ? ` · ${count}` : " · 空"}`;
+      fragment.append(button);
+    });
+    els.lineupSlots.replaceChildren(fragment);
     return;
   }
   els.lineupSlots.hidden = false;
@@ -6315,6 +6413,21 @@ function switchLineupSlot(index) {
   render();
 }
 
+function switchPaidArenaLineupSlot(index) {
+  if (!isPaidArenaModeActive()) return;
+  const mode = state.paidArenaMode;
+  const nextIndex = Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(index) || 0));
+  if (nextIndex === getPaidArenaActiveLineupIndex(mode)) return;
+  saveCurrentPaidArenaLineupSlot(mode);
+  state.paidArenaActiveLineupIndex[mode] = nextIndex;
+  loadPaidArenaLineupSlot(mode, nextIndex);
+  syncPaidArenaChargeSpeedsFromSavedData(mode);
+  openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
+  saveTeam();
+  render();
+}
+
 function copyLineupSlotTo(sourceIndex, targetIndex) {
   const normalizedSourceIndex = Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(sourceIndex) || 0));
   const normalizedTargetIndex = Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(targetIndex) || 0));
@@ -6430,6 +6543,7 @@ function rememberLoadedTeamRedHoodPierceCounts(teamKey) {
 function saveTeam() {
   normalizeJackalLinks();
   saveCurrentLineupSlot();
+  if (isPaidArenaModeActive()) saveCurrentPaidArenaLineupSlot(state.paidArenaMode);
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
@@ -6454,6 +6568,8 @@ function saveTeam() {
       activeLineupIndex: state.activeLineupIndex,
       lineupSlots: state.lineupSlots,
       paidArenaMode: state.paidArenaMode,
+      paidArenaActiveLineupIndex: state.paidArenaActiveLineupIndex,
+      paidArenaLineupSlots: state.paidArenaLineupSlots,
       paidArenaActiveRowIndex: state.paidArenaActiveRowIndex,
       paidArenaDataTeamKey: state.paidArenaDataTeamKey,
       paidArenaTeams: {
@@ -6560,10 +6676,26 @@ function loadTeam() {
         c: normalizePaidArenaRosannaSacrificeFrames(saved.paidArenaRosannaSacrificeFrames?.c, "c"),
         p: normalizePaidArenaRosannaSacrificeFrames(saved.paidArenaRosannaSacrificeFrames?.p, "p"),
       };
+      state.paidArenaLineupSlots = {
+        c: normalizePaidArenaLineupSlots(saved.paidArenaLineupSlots?.c, "c"),
+        p: normalizePaidArenaLineupSlots(saved.paidArenaLineupSlots?.p, "p"),
+      };
+      if (!Array.isArray(saved.paidArenaLineupSlots?.c)) {
+        state.paidArenaLineupSlots.c[0] = serializePaidArenaLineupSlot("c");
+      }
+      if (!Array.isArray(saved.paidArenaLineupSlots?.p)) {
+        state.paidArenaLineupSlots.p[0] = serializePaidArenaLineupSlot("p");
+      }
+      state.paidArenaActiveLineupIndex = {
+        c: Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(saved.paidArenaActiveLineupIndex?.c) || 0)),
+        p: Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(saved.paidArenaActiveLineupIndex?.p) || 0)),
+      };
       state.paidArenaMode = normalizePaidArenaMode(saved.paidArenaMode);
+      const hasSavedActivePaidArenaLineup = isPaidArenaModeActive() && Array.isArray(saved.paidArenaLineupSlots?.[state.paidArenaMode]);
+      if (isPaidArenaModeActive()) loadPaidArenaLineupSlot(state.paidArenaMode, getPaidArenaActiveLineupIndex(state.paidArenaMode));
       state.paidArenaActiveRowIndex = Math.max(
         0,
-        Math.min(getPaidArenaTeams().length - 1, Number(saved.paidArenaActiveRowIndex) || 0),
+        Math.min(getPaidArenaTeams().length - 1, Number(hasSavedActivePaidArenaLineup ? state.paidArenaActiveRowIndex : saved.paidArenaActiveRowIndex) || 0),
       );
       if (isPaidArenaModeActive()) syncPaidArenaChargeSpeedsFromSavedData();
       state.allowMissedShots = typeof saved.allowMissedShots === "boolean" ? saved.allowMissedShots : true;
@@ -6613,6 +6745,7 @@ function loadTeam() {
     state.lineupSlots = Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot());
     state.paidArenaMode = "normal";
     state.paidArenaActiveRowIndex = 0;
+    state.paidArenaActiveLineupIndex = { c: 0, p: 0 };
     state.paidArenaDataTeamKey = "attack";
     state.paidArenaTeams = {
       c: createEmptyPaidArenaTeams("c"),
@@ -6629,6 +6762,10 @@ function loadTeam() {
     state.paidArenaRosannaSacrificeFrames = {
       c: createEmptyPaidArenaRosannaSacrificeFrames("c"),
       p: createEmptyPaidArenaRosannaSacrificeFrames("p"),
+    };
+    state.paidArenaLineupSlots = {
+      c: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyPaidArenaLineupSlot("c")),
+      p: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyPaidArenaLineupSlot("p")),
     };
     state.jackalLinks = {
       defense: { enabled: false, ownerId: null, targetIds: [] },
@@ -7506,6 +7643,11 @@ function bindEvents() {
   els.lineupSlots.addEventListener("click", (event) => {
     if (suppressLineupClick) {
       event.preventDefault();
+      return;
+    }
+    const paidButton = event.target.closest("[data-paid-arena-lineup-index]");
+    if (paidButton) {
+      switchPaidArenaLineupSlot(Number(paidButton.dataset.paidArenaLineupIndex));
       return;
     }
     const button = event.target.closest("[data-lineup-index]");
