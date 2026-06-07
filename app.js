@@ -139,6 +139,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "统一分享图特殊图标",
   "修正罗珊娜消除链接累计",
   "优化嘲定祭标识显示",
   "修正分享图魔方和链接图标",
@@ -148,7 +149,6 @@ const CHANGELOG_ITEMS = [
   "空枪反推改为前端计算",
   "冠军特殊竞技场增加10套方案",
   "区分国服国际服爆裂开启帧",
-  "移除渡鸦转身空枪判定",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -7617,6 +7617,7 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
     isLinkTarget = false,
     cubeIcon = null,
     linkIcon = null,
+    pierceIcon = null,
   } = slot;
   const radius = 7;
   const drawBadgeBox = (centerX, centerY, width, height, options = {}) => {
@@ -7747,7 +7748,10 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
       const markY = y - Math.max(2, size * 0.03);
       getCanvasRoundedRectPath(context, markX, markY, markWidth, markHeight, 5);
       context.fill();
-      drawCanvasText(context, "祭", markX + markWidth / 2, markY + markHeight * 0.34, { align: "center", size: size * 0.14, weight: 900, color: "#ffffff" });
+      const sacrificeIconSize = Math.min(markWidth * 0.58, markHeight * 0.48);
+      if (!drawIconImage(pierceIcon, markX + markWidth / 2, markY + markHeight * 0.34, sacrificeIconSize, sacrificeIconSize)) {
+        drawCanvasText(context, "祭", markX + markWidth / 2, markY + markHeight * 0.34, { align: "center", size: size * 0.14, weight: 900, color: "#ffffff" });
+      }
       drawCanvasText(context, frameText, markX + markWidth / 2, markY + markHeight * 0.72, { align: "center", size: size * 0.09, weight: 900, color: "#ffffff" });
     }
     if (isFinisher) {
@@ -7780,7 +7784,9 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
         stroke: "rgba(127, 211, 255, 0.9)",
       });
       if (sanitizeRedHoodPierceCount(redHoodPierceCount) > 0) {
-        drawPierceSymbol(x + size / 2, badgeY + 1, size / 84);
+        if (!drawIconImage(pierceIcon, x + size / 2, badgeY + 1, badgeSize * 0.58, badgeSize * 0.58)) {
+          drawPierceSymbol(x + size / 2, badgeY + 1, size / 84);
+        }
         drawCanvasText(context, String(sanitizeRedHoodPierceCount(redHoodPierceCount)), x + size / 2, badgeY - badgeSize * 0.47, {
           align: "center",
           size: Math.max(9, size * 0.11),
@@ -7788,7 +7794,9 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
           color: "#ffffff",
         });
       } else {
-        drawSwordSymbol(x + size / 2, badgeY, size / 84);
+        if (!drawIconImage(pierceIcon, x + size / 2, badgeY, badgeSize * 0.58, badgeSize * 0.58)) {
+          drawSwordSymbol(x + size / 2, badgeY, size / 84);
+        }
       }
     }
     if (badgeText) {
@@ -7856,6 +7864,7 @@ async function paidArenaToPngBlob() {
     return imageCache.get(src);
   };
   const linkIcon = await loadExportAsset("assets/icons/ui/link.svg");
+  const pierceIcon = await loadExportAsset("assets/icons/ui/pierce.svg");
 
   let y = padding + headerHeight;
   for (const [rowIndex, team] of teams.entries()) {
@@ -7903,6 +7912,7 @@ async function paidArenaToPngBlob() {
         isLinkTarget: character && jackalTargetIds.has(character.id),
         cubeIcon: await loadExportAsset(cubeIconSrc),
         linkIcon,
+        pierceIcon,
       };
       drawPaidArenaSlot(context, slot, slotsStartX + slotIndex * (slotSize + slotGap), y, slotSize);
     }
@@ -8009,6 +8019,7 @@ async function normalArenaToPngBlob() {
     return imageCache.get(src);
   };
   const linkIcon = await loadExportAsset("assets/icons/ui/link.svg");
+  const pierceIcon = await loadExportAsset("assets/icons/ui/pierce.svg");
 
   const drawTeam = async (team, teamKey, x, universalCharges, chargeSpeeds, finishers, tauntTarget) => {
     const sacrificeFrames = getRosannaSacrificeFrameState(teamKey);
@@ -8037,6 +8048,7 @@ async function normalArenaToPngBlob() {
         isLinkTarget: character && linkTargetIds.has(character.id),
         cubeIcon: await loadExportAsset(cubeIconSrc),
         linkIcon,
+        pierceIcon,
       };
       drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), teamsY, slotSize);
     }
