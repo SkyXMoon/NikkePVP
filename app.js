@@ -139,6 +139,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "修正空枪尾帧判定",
   "空枪反推改为前端计算",
   "冠军特殊竞技场增加10套方案",
   "区分国服国际服爆裂开启帧",
@@ -148,7 +149,6 @@ const CHANGELOG_ITEMS = [
   "统一RL飞行帧站位减少规则",
   "更新阿妮斯超级巨星充能光环",
   "优化战贝充能计算说明",
-  "修正战贝额外伤害和转身",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -1802,7 +1802,7 @@ function addTurnDodgeEvent(event, currentFrame) {
 function isMissedByDodgeWindow(positionIndex, flightStartFrame, hitFrame, window) {
   if (window.positionIndex !== positionIndex) return false;
   const windowEndFrame = Math.min(window.endFrame, window.startFrame + MISS_DODGE_WINDOW_FRAMES);
-  return flightStartFrame < window.startFrame && window.startFrame < hitFrame && hitFrame < windowEndFrame;
+  return flightStartFrame < window.startFrame && window.startFrame < hitFrame && hitFrame <= windowEndFrame;
 }
 
 function getRlShotMissDodgeWindow(
@@ -3465,7 +3465,7 @@ function matchesDodgeWindow(attackWindow, dodgeStartFrame, dodgeFrames = MISS_DO
   return (
     attackWindow.launchFrame < dodgeStartFrame &&
     dodgeStartFrame < attackWindow.hitFrame &&
-    attackWindow.hitFrame < dodgeStartFrame + dodgeFrames
+    attackWindow.hitFrame <= dodgeStartFrame + dodgeFrames
   );
 }
 
