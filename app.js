@@ -16,8 +16,11 @@ const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const PAID_DEV_ACCESS_KEY = "nikke-paid-dev-access";
 const THEME_STORAGE_KEY = "nikke-arena-theme";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
-const LOCAL_PAID_API_URL = "http://localhost:8787/api/paid/miss-inference";
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
+const TEST_NOAH_ID = 12;
+const TEST_SCARLET_ID = 37;
+const TEST_SCARLET_MAGAZINES = [20, ...Array.from({ length: 63 }, (_, index) => index + 26)];
+const DEFAULT_AUTO_TEST_SHOTS = 3;
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
   AR: "步枪",
@@ -136,6 +139,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "空枪反推改为前端计算",
   "冠军特殊竞技场增加10套方案",
   "区分国服国际服爆裂开启帧",
   "移除渡鸦转身空枪判定",
@@ -145,7 +149,6 @@ const CHANGELOG_ITEMS = [
   "更新阿妮斯超级巨星充能光环",
   "优化战贝充能计算说明",
   "修正战贝额外伤害和转身",
-  "更新战贝引导连射逻辑",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -3420,6 +3423,166 @@ function getLocalPaidInferencePayload() {
   };
 }
 
+function sanitizeMissShot(value) {
+  const shot = Math.floor(Number(value) || 0);
+  return Math.max(0, Math.min(DEFAULT_AUTO_TEST_SHOTS, shot));
+}
+
+function getTestAttackCharacter(character, positionIndex, chargeSpeeds = []) {
+  if (!character) return null;
+  return {
+    ...character,
+    chargeSpeedPercent: sanitizeChargeSpeed(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
+  };
+}
+
+function getAttackRlShotWindow(character, positionIndex, shotNumber, chargeSpeeds = []) {
+  if (!character || character.weapon !== "RL" || shotNumber <= 0) return null;
+  const attackCharacter = getTestAttackCharacter(character, positionIndex, chargeSpeeds);
+  const timing = getChargeFrames(attackCharacter, positionIndex, "attack");
+  const flightFrames = Number(timing.projectileFlightFrames) || 0;
+  if (flightFrames <= 0) return null;
+  const hitFrame = timing.firstFrame + (shotNumber - 1) * timing.interval;
+  return {
+    positionIndex,
+    characterId: character.id,
+    characterName: character.name,
+    shotNumber,
+    launchFrame: hitFrame - flightFrames,
+    hitFrame,
+    flightFrames,
+  };
+}
+
+function getAttackRlShotWindows(character, positionIndex, chargeSpeeds = [], maxShots = DEFAULT_AUTO_TEST_SHOTS) {
+  const shotCount = Math.max(1, Math.min(DEFAULT_AUTO_TEST_SHOTS, Math.floor(Number(maxShots) || DEFAULT_AUTO_TEST_SHOTS)));
+  return Array.from({ length: shotCount }, (_, index) =>
+    getAttackRlShotWindow(character, positionIndex, index + 1, chargeSpeeds),
+  ).filter(Boolean);
+}
+
+function matchesDodgeWindow(attackWindow, dodgeStartFrame, dodgeFrames = MISS_DODGE_WINDOW_FRAMES) {
+  return (
+    attackWindow.launchFrame < dodgeStartFrame &&
+    dodgeStartFrame < attackWindow.hitFrame &&
+    attackWindow.hitFrame < dodgeStartFrame + dodgeFrames
+  );
+}
+
+function groupNumberRanges(values = []) {
+  const sorted = [...new Set(values)].sort((a, b) => a - b);
+  const ranges = [];
+  sorted.forEach((value) => {
+    const last = ranges.at(-1);
+    if (last && value === last.end + 1) {
+      last.end = value;
+    } else {
+      ranges.push({ start: value, end: value });
+    }
+  });
+  return ranges.map((range) => (range.start === range.end ? String(range.start) : `${range.start}-${range.end}`));
+}
+
+function formatInferenceValues(values = [], suffix = "") {
+  if (!values.length) return [];
+  return groupNumberRanges(values).map((value) => `${value}${suffix}`);
+}
+
+function getNoahChargeSpeedsForAttackWindow(attackWindow) {
+  const noah = getCharacterById(TEST_NOAH_ID);
+  if (!noah || !attackWindow) return [];
+  return [...FIXED_CHARGE_SPEED_FRAMES_60.keys()]
+    .filter((speed) => speed >= 0 && speed <= 26)
+    .filter((speed) => {
+      const defenseNoah = { ...noah, chargeSpeedPercent: speed };
+      const timing = getChargeFrames(defenseNoah, 0, "defense");
+      const flightFrames = Number(timing.projectileFlightFrames) || 0;
+      const intervalFrames = Number(timing.interval) || 0;
+      const firstTurnFrame = timing.firstFrame - flightFrames;
+      if (intervalFrames <= 0) return false;
+      const maxFrame = attackWindow.hitFrame + intervalFrames;
+      for (let turnFrame = firstTurnFrame; turnFrame <= maxFrame; turnFrame += intervalFrames) {
+        if (matchesDodgeWindow(attackWindow, turnFrame)) return true;
+      }
+      return false;
+    });
+}
+
+function getScarletReloadStarts(magazine, maxFrame) {
+  const scarlet = getCharacterById(TEST_SCARLET_ID);
+  const intervalFrames = 6;
+  const reloadFrames = getReloadFrames(scarlet);
+  const starts = [];
+  let reloadStart = (magazine - 1) * intervalFrames;
+  while (reloadStart <= maxFrame) {
+    starts.push(reloadStart);
+    reloadStart += reloadFrames + (magazine - 1) * intervalFrames;
+  }
+  return starts;
+}
+
+function getScarletMagazinesForAttackWindow(attackWindow) {
+  if (!attackWindow) return [];
+  const maxFrame = attackWindow.hitFrame + 240;
+  return TEST_SCARLET_MAGAZINES.filter((magazine) =>
+    getScarletReloadStarts(magazine, maxFrame).some((reloadStart) => matchesDodgeWindow(attackWindow, reloadStart)),
+  );
+}
+
+function inferMissCandidates(payload = {}) {
+  const attackIds = payload.attackTeam || payload.team || [];
+  const chargeSpeeds = payload.attackChargeSpeeds || payload.chargeSpeeds || [];
+  const missShots = payload.missShots || payload.attackMissShots || [];
+  const maxAutoShots = Math.max(1, Math.min(DEFAULT_AUTO_TEST_SHOTS, Math.floor(Number(payload.maxAutoShots) || DEFAULT_AUTO_TEST_SHOTS)));
+  const attackTeam = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(attackIds[index]));
+  const normalizedChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeChargeSpeed(chargeSpeeds[index]));
+  const normalizedMissShots = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeMissShot(missShots[index]));
+  const hasManualMissShots = normalizedMissShots.some((shotNumber) => shotNumber > 0);
+  const attackWindows = attackTeam.flatMap((character, positionIndex) =>
+    hasManualMissShots
+      ? [getAttackRlShotWindow(character, positionIndex, normalizedMissShots[positionIndex], normalizedChargeSpeeds)].filter(Boolean)
+      : getAttackRlShotWindows(character, positionIndex, normalizedChargeSpeeds, maxAutoShots),
+  );
+  const noah = getCharacterById(TEST_NOAH_ID);
+  const scarlet = getCharacterById(TEST_SCARLET_ID);
+  const noahMatches = attackWindows
+    .map((attackWindow) => ({ attackWindow, values: getNoahChargeSpeedsForAttackWindow(attackWindow) }))
+    .filter((entry) => entry.values.length > 0);
+  const scarletMatches = attackWindows
+    .map((attackWindow) => ({ attackWindow, values: getScarletMagazinesForAttackWindow(attackWindow) }))
+    .filter((entry) => entry.values.length > 0);
+
+  return {
+    attackWindows,
+    candidates: [
+      {
+        type: "noah-charge-speed",
+        characterId: noah?.id ?? TEST_NOAH_ID,
+        characterName: noah?.name ?? "诺雅",
+        matches: noahMatches.map((entry) => ({
+          attackPosition: entry.attackWindow.positionIndex + 1,
+          attackCharacterName: entry.attackWindow.characterName,
+          shotNumber: entry.attackWindow.shotNumber,
+          chargeSpeeds: entry.values,
+          displayValues: formatInferenceValues(entry.values, "%"),
+        })),
+      },
+      {
+        type: "scarlet-magazine",
+        characterId: scarlet?.id ?? TEST_SCARLET_ID,
+        characterName: scarlet?.name ?? "红莲",
+        matches: scarletMatches.map((entry) => ({
+          attackPosition: entry.attackWindow.positionIndex + 1,
+          attackCharacterName: entry.attackWindow.characterName,
+          shotNumber: entry.attackWindow.shotNumber,
+          magazines: entry.values,
+          displayValues: formatInferenceValues(entry.values),
+        })),
+      },
+    ],
+  };
+}
+
 function createEmptyPaidArenaTeams(mode) {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(null));
@@ -3709,7 +3872,7 @@ function formatPaidInferenceMatch(match, key) {
 }
 
 function scheduleLocalPaidInferenceRefresh() {
-  if (!state.testMode || !hasLocalPaidDevAccess()) return;
+  if (!state.testMode) return;
   const signature = getLocalPaidInferenceSignature();
   if (signature === localPaidInferenceState.requestSignature && (localPaidInferenceState.loading || localPaidInferenceState.result || localPaidInferenceState.error)) return;
   if (localPaidInferenceState.refreshTimer) clearTimeout(localPaidInferenceState.refreshTimer);
@@ -3720,31 +3883,16 @@ function scheduleLocalPaidInferenceRefresh() {
   }, 0);
 }
 
-async function refreshLocalPaidInference() {
-  localPaidInferenceState.loading = true;
+function refreshLocalPaidInference() {
+  localPaidInferenceState.loading = false;
   localPaidInferenceState.error = "";
   localPaidInferenceState.result = null;
-  renderTeam();
   try {
-    const response = await fetch(LOCAL_PAID_API_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: "Bearer dev-paid-token",
-      },
-      body: JSON.stringify(getLocalPaidInferencePayload()),
-    });
-    const data = await response.json().catch(() => null);
-    if (!response.ok || !data?.ok) {
-      throw new Error(data?.message || `Pro 后端返回 ${response.status}`);
-    }
-    localPaidInferenceState.result = data.data;
+    localPaidInferenceState.result = inferMissCandidates(getLocalPaidInferencePayload());
   } catch (error) {
-    localPaidInferenceState.error = `无法连接本地 Pro 后端。请确认 http://localhost:8787 已启动。${error?.message ? ` (${error.message})` : ""}`;
-  } finally {
-    localPaidInferenceState.loading = false;
-    renderTeam();
+    localPaidInferenceState.error = `空枪反推计算失败${error?.message ? `：${error.message}` : ""}`;
   }
+  renderTeam();
 }
 
 function getPaidCandidateLines(candidateType, valueKey) {
@@ -3847,13 +3995,8 @@ function setPaidTestMode(enabled) {
 }
 
 function openPaidInferenceFeature() {
-  if (hasLocalPaidDevAccess()) {
-    closePaidFeatureModal();
-    setPaidTestMode(!state.testMode);
-    return;
-  }
   closePaidFeatureModal();
-  document.body.append(createPaidFeatureModal("空枪反推"));
+  setPaidTestMode(!state.testMode);
 }
 
 function getPaidArenaFeatureTitle(mode) {
