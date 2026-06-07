@@ -139,6 +139,7 @@ const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const CHANGELOG_ITEMS = [
+  "统一操作界面献祭图标",
   "统一分享图特殊图标",
   "修正罗珊娜消除链接累计",
   "优化嘲定祭标识显示",
@@ -148,7 +149,6 @@ const CHANGELOG_ITEMS = [
   "修正空枪尾帧判定",
   "空枪反推改为前端计算",
   "冠军特殊竞技场增加10套方案",
-  "区分国服国际服爆裂开启帧",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -2454,7 +2454,7 @@ function getIconMarkup(src, label, className) {
 function getSacrificeMarkMarkup(frame) {
   const sacrificeFrame = sanitizeSacrificeFrame(frame);
   if (sacrificeFrame === null) return "";
-  return `<span class="sacrifice-mark"><span>祭</span><small>${sacrificeFrame}F</small></span>`;
+  return `<span class="sacrifice-mark"><img src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" /><small>${sacrificeFrame}F</small></span>`;
 }
 
 function isSlotSettingsOpen(teamKey, index) {

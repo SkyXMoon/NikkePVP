@@ -1234,9 +1234,10 @@ input:focus {
   line-height: 1;
 }
 
-.slot-copy .sacrifice-mark span {
-  font-size: 11px;
-  line-height: 1;
+.slot-copy .sacrifice-mark img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
 }
 
 .slot-copy .sacrifice-mark small {
