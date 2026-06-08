@@ -7565,10 +7565,7 @@ async function getChargeChartPngBlob() {
   const url = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml;charset=utf-8" }));
   try {
     const image = await loadImageFromUrl(url);
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext("2d");
+    const { canvas, context } = createHiDpiCanvas(width, height, 2);
     context.fillStyle = "#0b0e14";
     context.fillRect(0, 0, width, height);
     context.drawImage(image, 0, 0, width, height);
@@ -7635,10 +7632,22 @@ function getExportSiteUrl() {
 function drawExportSiteUrl(context, width, padding, y) {
   drawCanvasText(context, getExportSiteUrl(), width - padding, y, {
     align: "right",
-    size: 17,
+    size: 22,
     weight: 700,
     color: "#7f8a99",
   });
+}
+
+function createHiDpiCanvas(width, height, maxScale = 2) {
+  const scale = Math.min(maxScale, window.devicePixelRatio || 1);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(width * scale);
+  canvas.height = Math.ceil(height * scale);
+  const context = canvas.getContext("2d");
+  context.setTransform(scale, 0, 0, scale, 0, 0);
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  return { canvas, context, scale };
 }
 
 function drawPaidArenaSlot(context, slot, x, y, size) {
@@ -7741,13 +7750,13 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
   } else if (character) {
     drawCanvasText(context, character.name, x + size / 2, y + size * 0.43, {
       align: "center",
-      size: 15,
+      size: 18,
       weight: 700,
       color: "#dfe7f3",
     });
     drawCanvasText(context, character.weapon, x + size / 2, y + size * 0.64, {
       align: "center",
-      size: 13,
+      size: 15,
       weight: 700,
       color: "#8f9aaa",
     });
@@ -7885,10 +7894,7 @@ async function paidArenaToPngBlob() {
   const resultHeight = 30;
   const rowHeight = slotSize + resultHeight + 16;
   const height = padding * 2 + headerHeight + teams.length * rowHeight + Math.max(0, teams.length - 1) * rowGap;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
+  const { canvas, context } = createHiDpiCanvas(width, height, 2);
   context.fillStyle = "#0b0e14";
   context.fillRect(0, 0, width, height);
   drawCanvasText(context, title, padding, padding + 18, { size: 24, weight: 800, color: "#f0c45c" });
@@ -8015,10 +8021,7 @@ async function normalArenaToPngBlob() {
   const labelY = teamsY - 18;
   const height = teamsY + slotSize + padding;
   const width = contentWidth + padding * 2;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
+  const { canvas, context } = createHiDpiCanvas(width, height, 2);
   context.fillStyle = "#0b0e14";
   context.fillRect(0, 0, width, height);
   drawExportSiteUrl(context, width, padding, Math.max(18, padding - 12));
