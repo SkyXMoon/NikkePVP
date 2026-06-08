@@ -296,6 +296,7 @@ const els = {
   sidebarSuggestionButton: document.querySelector("#sidebarSuggestionButton"),
   themeToggleButton: document.querySelector("#themeToggleButton"),
   helpButton: document.querySelector("#helpButton"),
+  mobileShareFab: document.querySelector("#mobileShareFab"),
   toast: document.querySelector("#toast"),
   summaryStrip: document.querySelector("#summaryStrip"),
   sortSummary: document.querySelector("#sortSummary"),
@@ -8456,6 +8457,7 @@ function bindEvents() {
   els.paidPModeButton?.addEventListener("click", () => openPaidArenaFeature("p"));
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.copyTeamButton.addEventListener("click", handleCopyButtonClick);
+  els.mobileShareFab?.addEventListener("click", handleCopyButtonClick);
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
   els.allowMissedShotsToggle.addEventListener("change", (event) => {
     state.allowMissedShots = event.target.checked;
