@@ -3114,6 +3114,11 @@ input:focus {
   text-align: center;
 }
 
+.suggestion-title {
+  margin: 0;
+  line-height: 1.35;
+}
+
 .suggestion-qr {
   width: 180px;
   max-width: 55vw;

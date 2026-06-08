@@ -3417,8 +3417,8 @@ function openSuggestionModal() {
         <button class="help-modal-close" type="button" aria-label="关闭关于与建议">X</button>
       </div>
       <div class="help-modal-content">
-        <p>如需反馈建议，请加入群聊。</p>
         <div class="suggestion-qr-wrap">
+          <p class="suggestion-title">如需反馈建议，请加入群聊。</p>
           <img class="suggestion-qr" src="assets/qrcodes/qqqrcode.png" alt="QQ群二维码" />
           <a class="suggestion-join-link" href="https://qm.qq.com/q/gGTc312zTy" target="_blank" rel="noopener noreferrer">
             快速加入
