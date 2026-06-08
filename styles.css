@@ -1492,9 +1492,11 @@ input:focus {
 }
 
 .app-share-fab {
-  position: fixed;
-  top: 50px;
-  right: 12px;
+  position: fixed !important;
+  top: 50px !important;
+  right: 12px !important;
+  left: auto !important;
+  bottom: auto !important;
   z-index: 120;
   display: inline-flex;
   align-items: center;
@@ -3666,6 +3668,8 @@ summary {
   .app-share-fab {
     top: 47px;
     right: 12px;
+    left: auto;
+    bottom: auto;
     width: 32px;
     height: 32px;
     font-size: 10px;
@@ -3708,6 +3712,8 @@ summary {
   .app-share-fab {
     top: 42px;
     right: 8px;
+    left: auto;
+    bottom: auto;
     width: 32px;
     height: 32px;
     font-size: 10px;
