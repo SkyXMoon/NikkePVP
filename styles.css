@@ -3157,6 +3157,12 @@ input:focus {
 .suggestion-modal .help-modal-content {
   display: grid;
   gap: 8px;
+  justify-items: center;
+  text-align: center;
+}
+
+.suggestion-modal {
+  width: min(420px, calc(100vw - 44px));
 }
 
 .suggestion-qr-wrap {
