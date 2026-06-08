@@ -1532,37 +1532,10 @@ input:focus {
   transform: translateY(-1px);
 }
 
-.share-fab-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 12px;
-  height: 12px;
-  line-height: 1;
-  position: relative;
-  transform: rotate(-15deg);
-  font-size: 12px;
-}
-
 .share-fab-text {
   font-size: 9px;
   line-height: 1;
   letter-spacing: -0.1em;
-}
-
-@supports ((mask-image: url("assets/icons/ui/share.svg")) or (-webkit-mask-image: url("assets/icons/ui/share.svg"))) {
-  .share-fab-icon {
-    font-size: 0;
-  }
-
-  .share-fab-icon::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: currentColor;
-    mask: url("assets/icons/ui/share.svg") center / contain no-repeat;
-    -webkit-mask: url("assets/icons/ui/share.svg") center / contain no-repeat;
-  }
 }
 
 .copy-icon {
