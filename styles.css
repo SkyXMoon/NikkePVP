@@ -1458,9 +1458,7 @@ input:focus {
 }
 
 .app-help-button {
-  position: fixed;
-  top: 12px;
-  right: 12px;
+  position: static;
   z-index: 60;
   display: grid;
   place-items: center;
@@ -1492,11 +1490,7 @@ input:focus {
 }
 
 .app-share-fab {
-  position: fixed !important;
-  top: 50px !important;
-  right: 12px !important;
-  left: auto !important;
-  bottom: auto !important;
+  position: static;
   z-index: 120;
   display: inline-flex;
   align-items: center;
@@ -1520,6 +1514,17 @@ input:focus {
   color: #dffbff;
   position: relative;
   gap: 2px;
+}
+
+.floating-controls {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 130;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
 }
 
 .app-share-fab:hover,
@@ -3638,11 +3643,13 @@ summary {
 }
 
 @media (max-width: 1180px), (hover: none), (pointer: coarse) {
-  .app-share-fab {
-    top: 47px;
+  .floating-controls {
+    top: 12px;
     right: 12px;
-    left: auto;
-    bottom: auto;
+    gap: 8px;
+  }
+
+  .app-share-fab {
     width: 34px;
     height: 34px;
     font-size: 10px;
@@ -3675,18 +3682,18 @@ summary {
   }
 
   .app-help-button {
-    top: 8px;
-    right: 8px;
     width: 30px;
     height: 30px;
     font-size: 16px;
   }
 
-  .app-share-fab {
-    top: 42px;
+  .floating-controls {
+    top: 8px;
     right: 8px;
-    left: auto;
-    bottom: auto;
+    gap: 6px;
+  }
+
+  .app-share-fab {
     width: 30px;
     height: 30px;
     font-size: 10px;
