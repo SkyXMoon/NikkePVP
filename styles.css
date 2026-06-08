@@ -1495,7 +1495,7 @@ input:focus {
   position: fixed;
   top: 12px;
   right: 54px;
-  z-index: 60;
+  z-index: 120;
   display: none;
   align-items: center;
   justify-content: center;
@@ -1516,8 +1516,6 @@ input:focus {
   line-height: 1;
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
   color: #dffbff;
-  text-indent: -9999px;
-  overflow: hidden;
   position: relative;
 }
 
@@ -1532,15 +1530,34 @@ input:focus {
 }
 
 .share-fab-icon {
-  position: absolute;
-  right: 7px;
-  bottom: 6px;
-  width: 12px;
-  height: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  line-height: 1;
+  position: relative;
   transform: rotate(-15deg);
-  mask: url("assets/icons/ui/share.svg") center / contain no-repeat;
-  -webkit-mask: url("assets/icons/ui/share.svg") center / contain no-repeat;
-  background: currentColor;
+  font-size: 14px;
+  margin-right: 1px;
+}
+
+@supports ((mask-image: url("assets/icons/ui/share.svg")) or (-webkit-mask-image: url("assets/icons/ui/share.svg"))) {
+  .share-fab-icon {
+    width: 12px;
+    height: 12px;
+    font-size: 0;
+    margin-right: 0;
+  }
+
+  .share-fab-icon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    mask: url("assets/icons/ui/share.svg") center / contain no-repeat;
+    -webkit-mask: url("assets/icons/ui/share.svg") center / contain no-repeat;
+  }
 }
 
 .copy-icon {
@@ -3639,6 +3656,17 @@ summary {
   .character-list {
     grid-template-columns: repeat(auto-fill, 68px);
     flex: none;
+  }
+}
+
+@media (max-width: 1180px), (hover: none), (pointer: coarse) {
+  .app-share-fab {
+    display: grid;
+    top: 8px;
+    right: 46px;
+    width: 32px;
+    height: 32px;
+    font-size: 10px;
   }
 }
 
