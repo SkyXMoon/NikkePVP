@@ -293,6 +293,7 @@ const els = {
   sidebarCloseButton: document.querySelector("#sidebarCloseButton"),
   changelogButton: document.querySelector("#changelogButton"),
   sidebarHelpButton: document.querySelector("#sidebarHelpButton"),
+  sidebarSuggestionButton: document.querySelector("#sidebarSuggestionButton"),
   themeToggleButton: document.querySelector("#themeToggleButton"),
   helpButton: document.querySelector("#helpButton"),
   toast: document.querySelector("#toast"),
@@ -3394,6 +3395,44 @@ function openChangelogModal() {
   backdrop.querySelector(".help-modal-close").addEventListener("click", (event) => {
     event.preventDefault();
     closeChangelogModal();
+  });
+  document.body.append(backdrop);
+}
+
+function closeSuggestionModal() {
+  document.querySelector(".suggestion-modal-backdrop")?.remove();
+}
+
+function openSuggestionModal() {
+  closeSuggestionModal();
+  const backdrop = document.createElement("div");
+  backdrop.className = "help-modal-backdrop suggestion-modal-backdrop";
+  backdrop.innerHTML = `
+    <section class="help-modal suggestion-modal" role="dialog" aria-modal="true" aria-label="关于与建议">
+      <div class="help-modal-head">
+        <div>
+          <span class="help-modal-kicker">Contact</span>
+          <strong>关于与建议</strong>
+        </div>
+        <button class="help-modal-close" type="button" aria-label="关闭关于与建议">X</button>
+      </div>
+      <div class="help-modal-content">
+        <p>如需反馈建议，请加入群聊。</p>
+        <div class="suggestion-qr-wrap">
+          <img class="suggestion-qr" src="assets/qrcodes/qqqrcode.png" alt="QQ群二维码" />
+          <a class="suggestion-join-link" href="https://qm.qq.com/q/gGTc312zTy" target="_blank" rel="noopener noreferrer">
+            快速加入
+          </a>
+        </div>
+      </div>
+    </section>
+  `;
+  const modal = backdrop.querySelector(".help-modal");
+  modal.addEventListener("click", (event) => event.stopPropagation());
+  backdrop.addEventListener("click", closeSuggestionModal);
+  backdrop.querySelector(".help-modal-close").addEventListener("click", (event) => {
+    event.preventDefault();
+    closeSuggestionModal();
   });
   document.body.append(backdrop);
 }
@@ -8396,6 +8435,10 @@ function bindEvents() {
   els.changelogButton?.addEventListener("click", () => {
     setSidebarOpen(false);
     openChangelogModal();
+  });
+  els.sidebarSuggestionButton?.addEventListener("click", () => {
+    setSidebarOpen(false);
+    openSuggestionModal();
   });
   els.sidebarHelpButton?.addEventListener("click", () => {
     setSidebarOpen(false);
