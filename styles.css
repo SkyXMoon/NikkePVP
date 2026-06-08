@@ -1493,8 +1493,8 @@ input:focus {
 
 .app-share-fab {
   position: fixed;
-  top: 12px;
-  right: 54px;
+  top: 50px;
+  right: 12px;
   z-index: 120;
   display: none;
   align-items: center;
@@ -1503,7 +1503,7 @@ input:focus {
   height: 34px;
   border: 1px solid rgba(71, 200, 212, 0.64);
   border-radius: 999px;
-  padding: 0;
+  padding: 0 1px;
   color: #dffbff;
   background:
     linear-gradient(180deg, rgba(20, 49, 63, 0.94), rgba(7, 11, 17, 0.94)),
@@ -1517,6 +1517,7 @@ input:focus {
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
   color: #dffbff;
   position: relative;
+  gap: 2px;
 }
 
 .app-share-fab:hover,
@@ -1533,21 +1534,23 @@ input:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: auto;
-  height: auto;
+  width: 12px;
+  height: 12px;
   line-height: 1;
   position: relative;
   transform: rotate(-15deg);
-  font-size: 14px;
-  margin-right: 1px;
+  font-size: 12px;
+}
+
+.share-fab-text {
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: -0.1em;
 }
 
 @supports ((mask-image: url("assets/icons/ui/share.svg")) or (-webkit-mask-image: url("assets/icons/ui/share.svg"))) {
   .share-fab-icon {
-    width: 12px;
-    height: 12px;
     font-size: 0;
-    margin-right: 0;
   }
 
   .share-fab-icon::after {
@@ -3661,9 +3664,9 @@ summary {
 
 @media (max-width: 1180px), (hover: none), (pointer: coarse) {
   .app-share-fab {
-    display: grid;
-    top: 8px;
-    right: 46px;
+    display: inline-flex;
+    top: 47px;
+    right: 12px;
     width: 32px;
     height: 32px;
     font-size: 10px;
@@ -3704,9 +3707,9 @@ summary {
   }
 
   .app-share-fab {
-    display: grid;
-    top: 8px;
-    right: 46px;
+    display: inline-flex;
+    top: 42px;
+    right: 8px;
     width: 32px;
     height: 32px;
     font-size: 10px;
