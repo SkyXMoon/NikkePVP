@@ -661,13 +661,11 @@ function parseFileNamesFromOcrText(rawText) {
     : [];
 
   const matched = [];
-  const matchedIds = new Set();
   const warnings = [];
 
   lines.forEach((line) => {
     const matchedInLine = [];
     characterNames.forEach((entry) => {
-      if (matchedIds.has(String(entry.character.id))) return;
       const position = line.indexOf(entry.name);
       if (position >= 0) {
         matchedInLine.push({ ...entry, position });
@@ -676,6 +674,7 @@ function parseFileNamesFromOcrText(rawText) {
 
     if (matchedInLine.length === 0) {
       if (line.length >= 2) {
+        // keep parse result stable for debug if needed, but do not show missed lines to the user
         warnings.push(`未识别角色名: ${line}`);
       }
       return;
@@ -684,10 +683,7 @@ function parseFileNamesFromOcrText(rawText) {
     matchedInLine
       .sort((a, b) => a.position - b.position)
       .forEach((match) => {
-        const normalizedId = String(match.character.id);
-        if (matchedIds.has(normalizedId)) return;
         matched.push(match.character);
-        matchedIds.add(normalizedId);
       });
   });
 
@@ -740,8 +736,7 @@ function formatOcrToastMessage(result, teamLabel) {
       .filter(Boolean)
       .join("、");
     messages.push(`${teamLabel}已按识别顺序填入${added.length}名角色：${names || `共${added.length}名角色`}`);
-  }
-  if (warnings.length > 0) {
+  } else if (warnings.length > 0) {
     warnings.forEach((warning) => {
       if (warning) messages.push(warning);
     });
@@ -816,7 +811,6 @@ async function fillTeamSlotsWithOcrResult(teamKey, startIndex, files) {
     const rawText = await parseImageWithOcrSpace(file);
     const result = parseFileNamesFromOcrText(rawText);
     recognizedCharacters = result.matchedCharacters || [];
-    warnings.push(...(result.warnings || []));
   } catch (error) {
     warnings.push(`OCR识别失败: ${error?.message || "请检查网络后重试"}`);
   }
@@ -910,7 +904,6 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
     const rawText = await parseImageWithOcrSpace(file);
     const result = parseFileNamesFromOcrText(rawText);
     recognizedCharacters = result.matchedCharacters || [];
-    warnings.push(...(result.warnings || []));
   } catch (error) {
     warnings.push(`OCR识别失败: ${error?.message || "请检查网络后重试"}`);
   }
