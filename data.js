@@ -4260,7 +4260,8 @@ const CHARACTERS = [
     "classType": "辅助",
     "element": "风压",
     "regions": [
-      "global"
+      "global",
+      "cn"
     ],
     "stats": {
       "weaponDamage": 61.3,
