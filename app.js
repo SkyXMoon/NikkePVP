@@ -648,6 +648,7 @@ function getRosannaSacrificeFrameState(teamKey = state.activeTeamKey) {
 
 function normalizeOcrCharacterName(rawName) {
   return String(rawName || "")
+    .replace(/[：﹕]/g, ":")
     .replace(/[0-9]/g, "")
     .replace(/[A-Za-z]/g, "")
     .replace(/\s+/g, "");
@@ -670,6 +671,7 @@ function parseFileNamesFromOcrText(rawText) {
   const warnings = [];
 
   lines.forEach((line) => {
+    const containsColon = line.includes(":");
     const matchedInLine = [];
     characterNames.forEach((entry) => {
       const name = entry.name;
@@ -689,7 +691,15 @@ function parseFileNamesFromOcrText(rawText) {
       }
     });
 
-    if (matchedInLine.length === 0) {
+    let candidateInLine = matchedInLine;
+    if (containsColon) {
+      const colonCandidates = matchedInLine.filter((entry) => entry.name.includes(":"));
+      if (colonCandidates.length > 0) {
+        candidateInLine = colonCandidates;
+      }
+    }
+
+    if (candidateInLine.length === 0) {
       if (line.length >= 2) {
         // keep parse result stable for debug if needed, but do not show missed lines to the user
         warnings.push(`未识别角色名: ${line}`);
@@ -697,8 +707,8 @@ function parseFileNamesFromOcrText(rawText) {
       return;
     }
 
-    const exactMatches = matchedInLine.filter((entry) => !entry.partial);
-    const candidatePool = exactMatches.length > 0 ? exactMatches : matchedInLine;
+    const exactMatches = candidateInLine.filter((entry) => !entry.partial);
+    const candidatePool = exactMatches.length > 0 ? exactMatches : candidateInLine;
     const bestMatch = candidatePool
       .sort((a, b) => {
         if (a.length !== b.length) return b.length - a.length;
@@ -723,6 +733,7 @@ function parseFileNamesFromOcrText(rawText) {
 function cleanOcrTextForRoles(rawText) {
   return String(rawText || "")
     .replace(/\r/g, "")
+    .replace(/[：﹕]/g, ":")
     .replace(/[\s\u00A0\u3000]+/g, "\n")
     .replace(/[A-Za-z0-9]/g, "");
 }
