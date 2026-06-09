@@ -21,6 +21,10 @@ const TEST_NOAH_ID = 12;
 const TEST_SCARLET_ID = 37;
 const TEST_SCARLET_MAGAZINES = [20, ...Array.from({ length: 63 }, (_, index) => index + 26)];
 const DEFAULT_AUTO_TEST_SHOTS = 3;
+const OCR_SPACE_API_KEY = "K82166217988957";
+const OCR_SPACE_API_URL = "https://api.ocr.space/parse/image";
+const OCR_SPACE_LANGUAGE = "chs";
+const OCR_SPACE_ENGINE = 3;
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
   AR: "步枪",
@@ -641,6 +645,283 @@ function sanitizeSacrificeFrame(value) {
 
 function getRosannaSacrificeFrameState(teamKey = state.activeTeamKey) {
   return normalizeTeamKey(teamKey) === "defense" ? state.defenseRosannaSacrificeFrames : state.rosannaSacrificeFrames;
+}
+
+function parseFileNamesFromOcrText(rawText) {
+  const lines = String(rawText || "")
+    .replace(/\r/g, "")
+    .split("\n")
+    .map((line) => line.replace(/[^\u4e00-\u9fff]/g, "").trim())
+    .filter(Boolean);
+
+  const characterNames = Array.isArray(CHARACTERS)
+    ? CHARACTERS.map((character) => ({ character, name: String(character?.name || "").trim() }))
+        .filter((entry) => entry.name)
+        .sort((a, b) => b.name.length - a.name.length)
+    : [];
+
+  const matched = [];
+  const matchedIds = new Set();
+  const warnings = [];
+
+  lines.forEach((line) => {
+    const matchedInLine = [];
+    characterNames.forEach((entry) => {
+      if (matchedIds.has(String(entry.character.id))) return;
+      const position = line.indexOf(entry.name);
+      if (position >= 0) {
+        matchedInLine.push({ ...entry, position });
+      }
+    });
+
+    if (matchedInLine.length === 0) {
+      if (line.length >= 2) {
+        warnings.push(`未识别角色名: ${line}`);
+      }
+      return;
+    }
+
+    matchedInLine
+      .sort((a, b) => a.position - b.position)
+      .forEach((match) => {
+        const normalizedId = String(match.character.id);
+        if (matchedIds.has(normalizedId)) return;
+        matched.push(match.character);
+        matchedIds.add(normalizedId);
+      });
+  });
+
+  return {
+    matchedCharacters: matched,
+    warnings,
+  };
+}
+
+function cleanOcrTextForRoles(rawText) {
+  return String(rawText || "").replace(/[^\u4e00-\u9fff\n]/g, "\n");
+}
+
+async function parseImageWithOcrSpace(file) {
+  const formData = new FormData();
+  formData.append("apikey", OCR_SPACE_API_KEY);
+  formData.append("language", OCR_SPACE_LANGUAGE);
+  formData.append("OCREngine", String(OCR_SPACE_ENGINE));
+  formData.append("isOverlayRequired", "false");
+  formData.append("scale", "true");
+  formData.append("file", file);
+
+  const response = await fetch(OCR_SPACE_API_URL, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`OCR识别请求失败（${response.status}）`);
+  }
+
+  const payload = await response.json();
+  if (!payload?.ParsedResults || !Array.isArray(payload.ParsedResults)) {
+    throw new Error("OCR返回格式异常，请稍后重试");
+  }
+
+  const parsedText = payload.ParsedResults.map((result) => String(result?.ParsedText || "").trim())
+    .filter(Boolean)
+    .join("\n");
+  return cleanOcrTextForRoles(parsedText);
+}
+
+function formatOcrToastMessage(result, teamLabel) {
+  const added = Array.isArray(result?.added) ? result.added : [];
+  const warnings = Array.isArray(result?.warnings) ? result.warnings : [];
+  const messages = [];
+  if (added.length > 0) {
+    const names = added
+      .map((entry) => entry?.character?.name || "")
+      .filter(Boolean)
+      .join("、");
+    messages.push(`${teamLabel}已按识别顺序填入${added.length}名角色：${names || `共${added.length}名角色`}`);
+  }
+  if (warnings.length > 0) {
+    warnings.forEach((warning) => {
+      if (warning) messages.push(warning);
+    });
+  }
+  return messages.join("；");
+}
+
+async function handleOcrFill(teamKey, startIndex, files) {
+  const result = await fillTeamSlotsWithOcrResult(teamKey, startIndex, files);
+  const message = formatOcrToastMessage(result, TEAM_LABELS[normalizeTeamKey(teamKey)] || "当前队伍");
+  if (message) showToast(message);
+}
+
+async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
+  const result = await fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files);
+  const label = mode === "c" ? "冠军竞技场" : "特殊竞技场";
+  const message = formatOcrToastMessage(result, `${label}第${rowIndex + 1}队`);
+  if (message) showToast(message);
+}
+
+function getSortedEmptyTeamSlots(team, startIndex, includeLoop = true) {
+  const totalSlots = team.length;
+  const normalizedStart = Number.isFinite(startIndex) ? Math.max(0, Math.min(totalSlots - 1, Number(startIndex))) : 0;
+  const primary = Array.from({ length: totalSlots }, (_, index) => index).filter((index) => index >= normalizedStart && !team[index]);
+  if (!includeLoop) return primary;
+  const secondary = Array.from({ length: totalSlots }, (_, index) => index).filter((index) => index < normalizedStart && !team[index]);
+  return [...primary, ...secondary];
+}
+
+async function fillTeamSlotsWithOcrResult(teamKey, startIndex, files) {
+  const team = getTeamState(teamKey);
+  const chargeSpeeds = getChargeSpeedState(teamKey);
+  const universalCharges = getUniversalChargeState(teamKey);
+  const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
+  const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
+  const rosannaSacrificeFrames = getRosannaSacrificeFrameState(teamKey);
+  const savedTargets = [];
+  const warnings = [];
+  const imageFiles = Array.from(files || []).filter((entry) => String(entry?.type || "").startsWith("image/"));
+
+  if (imageFiles.length === 0) {
+    warnings.push("请选择图片文件");
+    return { added: [], warnings };
+  }
+
+  let recognizedCharacters = [];
+  const file = imageFiles[0];
+  try {
+    const rawText = await parseImageWithOcrSpace(file);
+    const result = parseFileNamesFromOcrText(rawText);
+    recognizedCharacters = result.matchedCharacters || [];
+    warnings.push(...(result.warnings || []));
+  } catch (error) {
+    warnings.push(`OCR识别失败: ${error?.message || "请检查网络后重试"}`);
+  }
+
+  if (recognizedCharacters.length === 0) {
+    return { added: [], warnings };
+  }
+
+  const emptySlots = getSortedEmptyTeamSlots(team, Number(startIndex));
+  if (emptySlots.length === 0) {
+    warnings.push("当前队伍无空位");
+    return { added: [], warnings };
+  }
+
+  recognizedCharacters.forEach((character) => {
+    if (emptySlots.length === 0) {
+      warnings.push(`队伍空位不足，剩余角色未填充`);
+      return;
+    }
+    if (!character?.id) return;
+    const alreadyExists = team.some((member) => member && String(member.id) === String(character.id));
+    if (alreadyExists) {
+      warnings.push(`${character.name} 已在队伍中`);
+      return;
+    }
+    const targetIndex = emptySlots.shift();
+    team[targetIndex] = character;
+    chargeSpeeds[targetIndex] = getSavedCharacterChargeSpeed(character, teamKey);
+    universalCharges[targetIndex] = 0;
+    redHoodPierceCounts[targetIndex] = isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, teamKey) : 0;
+    scarletCounterEnabled[targetIndex] = true;
+    rosannaSacrificeFrames[targetIndex] = null;
+    savedTargets.push({ character, index: targetIndex });
+  });
+
+  openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
+  normalizeJackalLink(teamKey);
+  saveTeam();
+  render();
+  return { added: savedTargets, warnings };
+}
+
+function getPaidArenaRowState(rowIndex, property = "team") {
+  const teams = getPaidArenaTeams();
+  return teams[rowIndex]?.[property];
+}
+
+async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
+  const row = Number(rowIndex);
+  const teams = getPaidArenaTeams();
+  const team = getPaidArenaRowState(row, "team");
+  if (!team || !Array.isArray(team)) {
+    return { added: [], warnings: ["无效的队伍行"] };
+  }
+
+  const universalCharges = getPaidArenaUniversalCharges()[row] || Array(TEAM_SIZE).fill(0);
+  const redHoodPierceCounts = getPaidArenaRedHoodPierceCounts()[row] || Array(TEAM_SIZE).fill(0);
+  const scarletCounterEnabled = getPaidArenaScarletCounterEnabled()[row] || Array(TEAM_SIZE).fill(true);
+  const sacrificialFrames = getPaidArenaRosannaSacrificeFrames()[row] || Array(TEAM_SIZE).fill(null);
+  const warnings = [];
+  const added = [];
+  const imageFiles = Array.from(files || []).filter((entry) => String(entry?.type || "").startsWith("image/"));
+
+  if (imageFiles.length === 0) {
+    warnings.push("请选择图片文件");
+    return { added: [], warnings };
+  }
+
+  let recognizedCharacters = [];
+  const file = imageFiles[0];
+  try {
+    const rawText = await parseImageWithOcrSpace(file);
+    const result = parseFileNamesFromOcrText(rawText);
+    recognizedCharacters = result.matchedCharacters || [];
+    warnings.push(...(result.warnings || []));
+  } catch (error) {
+    warnings.push(`OCR识别失败: ${error?.message || "请检查网络后重试"}`);
+  }
+
+  if (recognizedCharacters.length === 0) {
+    return { added: [], warnings };
+  }
+
+  const emptySlots = getSortedEmptyTeamSlots(team, Number(startIndex));
+  const dataTeamKey = getPaidArenaDataTeamKey();
+  const linkState = normalizePaidArenaLinkForTeam(team, getPaidArenaJackalLinks()[row]);
+
+  recognizedCharacters.forEach((character) => {
+    if (emptySlots.length === 0) {
+      warnings.push(`队伍空位不足，剩余角色未填充`);
+      return;
+    }
+    if (!character?.id) return;
+    if (team.some((member) => member && String(member.id) === String(character.id))) {
+      warnings.push(`${character.name} 已在队伍中`);
+      return;
+    }
+    const targetIndex = emptySlots.shift();
+    team[targetIndex] = character;
+    universalCharges[targetIndex] = 0;
+    const chargeSpeedState = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
+    chargeSpeedState[targetIndex] = getSavedCharacterChargeSpeed(character, dataTeamKey);
+    redHoodPierceCounts[targetIndex] = isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, dataTeamKey) : 0;
+    scarletCounterEnabled[targetIndex] = true;
+    sacrificialFrames[targetIndex] = null;
+    added.push({ character, index: targetIndex });
+  });
+
+  getPaidArenaJackalLinks()[row] = normalizePaidArenaLinkForTeam(team, linkState);
+  state.paidArenaUniversalCharges[state.paidArenaMode][row] = Array.from({ length: TEAM_SIZE }, (_, index) => universalCharges[index]);
+  state.paidArenaChargeSpeeds[state.paidArenaMode][row] = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
+  state.paidArenaRosannaSacrificeFrames[state.paidArenaMode][row] = Array.from({ length: TEAM_SIZE }, (_, index) => sacrificialFrames[index]);
+  state.paidArenaRedHoodPierceCounts[state.paidArenaMode][row] = Array.from({ length: TEAM_SIZE }, (_, index) => redHoodPierceCounts[index]);
+  state.paidArenaScarletCounterEnabled[state.paidArenaMode][row] = Array.from({ length: TEAM_SIZE }, (_, index) => scarletCounterEnabled[index]);
+  openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
+  saveTeam();
+  render();
+  return { added, warnings };
+}
+
+function getTransferFiles(event) {
+  return [...(event?.dataTransfer?.files || [])];
+}
+
+function isTransferWithFiles(event) {
+  return event?.dataTransfer && [...(event.dataTransfer.types || [])].includes("Files");
 }
 
 function createEmptyLineupSlot() {
@@ -2804,23 +3085,39 @@ function renderSingleTeamLegacy() {
       });
     });
 
-    slot.addEventListener("dragover", (event) => {
-      if (draggedTeamIndex === null || draggedTeamIndex === index) return;
-      event.preventDefault();
-      event.dataTransfer.dropEffect = "move";
-      slot.classList.add("is-drop-target");
-    });
+      slot.addEventListener("dragover", (event) => {
+        const files = getTransferFiles(event);
+        if (files.length > 0 && isTransferWithFiles(event)) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "copy";
+          slot.classList.add("is-drop-target");
+          return;
+        }
+        if (draggedTeamIndex === null || draggedTeamIndex === index) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        slot.classList.add("is-drop-target");
+      });
 
     slot.addEventListener("dragleave", () => {
       slot.classList.remove("is-drop-target");
     });
 
-    slot.addEventListener("drop", (event) => {
-      event.preventDefault();
-      const sourceIndex = Number(event.dataTransfer.getData("text/plain") || draggedTeamIndex);
-      slot.classList.remove("is-drop-target");
-      moveTeamSlot(sourceIndex, index);
-    });
+      slot.addEventListener("drop", (event) => {
+        event.preventDefault();
+        slot.classList.remove("is-drop-target");
+        const files = getTransferFiles(event);
+        if (isTransferWithFiles(event) && files.length > 0) {
+          if (!character) {
+            handleOcrFill(state.activeTeamKey, index, files);
+            return;
+          }
+          showToast("仅可将识别结果填入空栏目");
+          return;
+        }
+        const sourceIndex = Number(event.dataTransfer.getData("text/plain") || draggedTeamIndex);
+        moveTeamSlot(sourceIndex, index);
+      });
 
     if (character) {
       slot.querySelector(".slot-remove").addEventListener("click", () => removeCharacter(index));
@@ -4696,6 +4993,13 @@ function renderPaidArenaTeams() {
       });
 
       slot.addEventListener("dragover", (event) => {
+        const files = getTransferFiles(event);
+        if (files.length > 0 && isTransferWithFiles(event)) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "copy";
+          slot.classList.add("is-drop-target");
+          return;
+        }
         if (draggedTeamIndex === null) return;
         if (draggedTeamKey === "paidArena" && draggedPaidArenaRowIndex === rowIndex && draggedTeamIndex === slotIndex) return;
         event.preventDefault();
@@ -4710,6 +5014,19 @@ function renderPaidArenaTeams() {
       slot.addEventListener("drop", (event) => {
         event.preventDefault();
         slot.classList.remove("is-drop-target");
+        const files = getTransferFiles(event);
+        if (isTransferWithFiles(event) && files.length > 0) {
+          if (!character) {
+            const targetRow = rowIndex;
+          handlePaidArenaOcrFill(state.paidArenaMode, targetRow, slotIndex, files).catch(() => {
+            showToast("OCR识别失败，请重试");
+          });
+            return;
+          }
+          showToast("仅可将识别结果填入空栏目");
+          return;
+        }
+
         const [, sourceRowText, sourceIndexText] = String(
           event.dataTransfer.getData("text/plain") || `paidArena:${draggedPaidArenaRowIndex}:${draggedTeamIndex}`,
         ).split(":");
@@ -5070,6 +5387,13 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       });
 
       slot.addEventListener("dragover", (event) => {
+        const files = getTransferFiles(event);
+        if (files.length > 0 && isTransferWithFiles(event)) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "copy";
+          slot.classList.add("is-drop-target");
+          return;
+        }
         if (draggedTeamIndex === null || (draggedTeamKey === teamKey && draggedTeamIndex === index)) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
@@ -5082,8 +5406,19 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
 
       slot.addEventListener("drop", (event) => {
         event.preventDefault();
-        const [sourceTeamKey, sourceIndexText] = String(event.dataTransfer.getData("text/plain") || `${draggedTeamKey}:${draggedTeamIndex}`).split(":");
         slot.classList.remove("is-drop-target");
+        const files = getTransferFiles(event);
+        if (isTransferWithFiles(event) && files.length > 0) {
+          if (!character) {
+            handleOcrFill(teamKey, index, files).catch(() => {
+              showToast("OCR识别失败，请重试");
+            });
+            return;
+          }
+          showToast("仅可将识别结果填入空栏目");
+          return;
+        }
+        const [sourceTeamKey, sourceIndexText] = String(event.dataTransfer.getData("text/plain") || `${draggedTeamKey}:${draggedTeamIndex}`).split(":");
         moveTeamSlot(sourceTeamKey, Number(sourceIndexText), teamKey, index);
       });
 
