@@ -138,6 +138,7 @@ const CUBE_TYPE_QUANTUM = "quantum";
 const CHARGE_SPEED_CUBE_VALUE = 2.12;
 const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
+const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
   "修正分享图头像取图位置",
   "统一操作界面献祭图标",
@@ -164,6 +165,61 @@ async function loadCharacterData() {
   const payload = await response.json();
   globalThis.DATA_SOURCES = payload.sources || {};
   globalThis.CHARACTERS = Array.isArray(payload.characters) ? payload.characters : [];
+}
+
+function canUseServiceWorkerForAvatarCache() {
+  if (!("serviceWorker" in navigator) || window.location.protocol === "file:") return false;
+  return window.isSecureContext || ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+}
+
+function getAvatarCacheCandidates() {
+  if (!Array.isArray(CHARACTERS)) return [];
+  const urls = new Set();
+  CHARACTERS.forEach((character) => {
+    if (!character) return;
+    const avatarUrl = getCharacterAvatarUrl(character);
+    const namecodeUrl = character.nameCodeAvatarUrl || "";
+    const sourceUrl = character.avatarSourceUrl || "";
+    [avatarUrl, namecodeUrl, sourceUrl].forEach((rawUrl) => {
+      if (!rawUrl) return;
+      try {
+        urls.add(new URL(rawUrl, window.location.href).href);
+      } catch {
+        // ignore invalid avatar URL
+      }
+    });
+  });
+  return Array.from(urls);
+}
+
+async function warmAvatarCacheInServiceWorker() {
+  if (!canUseServiceWorkerForAvatarCache()) return;
+  try {
+    const registration = await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+    const activeWorker = (await navigator.serviceWorker.ready).active;
+    if (!activeWorker) return;
+    const candidateUrls = getAvatarCacheCandidates();
+    if (candidateUrls.length === 0) return;
+    activeWorker.postMessage({
+      type: "CACHE_AVATARS",
+      urls: candidateUrls,
+      cacheVersion: AVATAR_CACHE_CONTROL_KEY,
+    });
+    registration.addEventListener("updatefound", () => {
+      const worker = registration.installing;
+      worker?.addEventListener("statechange", () => {
+        if (worker.state === "activated") {
+          worker.postMessage({
+            type: "CACHE_AVATARS",
+            urls: candidateUrls,
+            cacheVersion: AVATAR_CACHE_CONTROL_KEY,
+          });
+        }
+      });
+    });
+  } catch (error) {
+    console.warn("头像缓存初始化失败，已跳过本地缓存：", error);
+  }
 }
 
 const state = {
@@ -8582,6 +8638,7 @@ function syncFilterControls() {
 async function bootstrap() {
   initTheme();
   await loadCharacterData();
+  void warmAvatarCacheInServiceWorker();
   bindEvents();
   loadTeam();
   els.allowMissedShotsToggle.checked = state.allowMissedShots;
