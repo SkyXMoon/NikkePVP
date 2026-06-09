@@ -750,13 +750,22 @@ function formatOcrToastMessage(result, teamLabel) {
 }
 
 async function handleOcrFill(teamKey, startIndex, files) {
+  showToast("检测到图片拖入，正在识别。");
   const result = await fillTeamSlotsWithOcrResult(teamKey, startIndex, files);
   const message = formatOcrToastMessage(result, TEAM_LABELS[normalizeTeamKey(teamKey)] || "当前队伍");
   if (message) showToast(message);
 }
 
 async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
-  const result = await fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files);
+  showToast("检测到图片拖入，正在识别。");
+  const normalizedMode = normalizePaidArenaMode(mode);
+  const teams = getPaidArenaTeams(normalizedMode);
+  const normalizedRow = Number(rowIndex);
+  if (!Number.isInteger(normalizedRow) || normalizedRow < 0 || normalizedRow >= teams.length) {
+    showToast("无效的队伍行");
+    return;
+  }
+  const result = await fillPaidArenaSlotsWithOcrResult(normalizedRow, startIndex, files);
   const label = mode === "c" ? "冠军竞技场" : "特殊竞技场";
   const message = formatOcrToastMessage(result, `${label}队伍`);
   if (message) showToast(message);
@@ -867,9 +876,13 @@ function getPaidArenaRowState(rowIndex, property = "team") {
 
 async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
   const teams = getPaidArenaTeams();
+  const normalizedRow = Number(rowIndex);
   const warnings = [];
   const added = [];
   if (!Array.isArray(teams) || teams.length === 0) {
+    return { added: [], warnings: ["无效的队伍行"] };
+  }
+  if (!Number.isInteger(normalizedRow) || normalizedRow < 0 || normalizedRow >= teams.length) {
     return { added: [], warnings: ["无效的队伍行"] };
   }
 
