@@ -735,7 +735,11 @@ function formatOcrToastMessage(result, teamLabel) {
       .map((entry) => entry?.character?.name || "")
       .filter(Boolean)
       .join("、");
-    messages.push(`${teamLabel}已按识别顺序填入${added.length}名角色：${names || `共${added.length}名角色`}`);
+    if (names) {
+      messages.push(names);
+    } else {
+      messages.push(`共${added.length}名角色`);
+    }
   } else if (warnings.length > 0) {
     warnings.forEach((warning) => {
       if (warning) messages.push(warning);
