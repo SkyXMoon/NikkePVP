@@ -721,6 +721,7 @@ function parseFileNamesFromOcrText(rawText) {
 function cleanOcrTextForRoles(rawText) {
   return String(rawText || "")
     .replace(/\r/g, "")
+    .replace(/[\s\u00A0\u3000]+/g, "\n")
     .replace(/[A-Za-z0-9]/g, "");
 }
 
