@@ -768,14 +768,14 @@ function formatOcrToastMessage(result, teamLabel) {
 }
 
 async function handleOcrFill(teamKey, startIndex, files) {
-  showToast("检测到图片拖入，正在识别。");
+  showToast("检测到图片拖入，正在识别。", { persistent: true });
   const result = await fillTeamSlotsWithOcrResult(teamKey, startIndex, files);
   const message = formatOcrToastMessage(result, TEAM_LABELS[normalizeTeamKey(teamKey)] || "当前队伍");
   if (message) showToast(message);
 }
 
 async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
-  showToast("检测到图片拖入，正在识别。");
+  showToast("检测到图片拖入，正在识别。", { persistent: true });
   const normalizedMode = normalizePaidArenaMode(mode);
   const teams = getPaidArenaTeams(normalizedMode);
   const normalizedRow = Number(rowIndex);
@@ -7932,11 +7932,14 @@ function loadTeam() {
 }
 
 let toastTimer = null;
-function showToast(message) {
+function showToast(message, options = {}) {
+  const { persistent = false, duration = 2200 } = options;
   els.toast.textContent = message;
   els.toast.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => els.toast.classList.remove("show"), 2200);
+  if (!persistent && duration > 0) {
+    toastTimer = setTimeout(() => els.toast.classList.remove("show"), duration);
+  }
 }
 
 async function copyTextToClipboard(text) {
