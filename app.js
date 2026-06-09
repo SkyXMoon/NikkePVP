@@ -705,7 +705,7 @@ function parseFileNamesFromOcrText(rawText) {
       .forEach((match) => matched.push(match.character));
   });
 
-  console.debug("OCR匹配结果", {
+  console.log("[OCR] 匹配结果", {
     inputLines: lines,
     matchedNames: matched.map((character) => String(character?.name || "")),
     unmatched: warnings.slice(),
@@ -748,7 +748,7 @@ async function parseImageWithOcrSpace(file) {
     .filter(Boolean)
     .join("\n");
 
-  console.debug("OCR原始识别文本", parsedText);
+  console.log("[OCR] 原始识别文本", parsedText);
   return cleanOcrTextForRoles(parsedText);
 }
 
@@ -777,12 +777,19 @@ function formatOcrToastMessage(result, teamLabel) {
 async function handleOcrFill(teamKey, startIndex, files) {
   showToast("检测到图片拖入，正在识别。", { persistent: true });
   const result = await fillTeamSlotsWithOcrResult(teamKey, startIndex, files);
+  console.log("[OCR] 普通场景识别完成", {
+    teamKey,
+    startIndex,
+    added: result?.added?.length || 0,
+    warnings: result?.warnings?.length || 0,
+  });
   const message = formatOcrToastMessage(result, TEAM_LABELS[normalizeTeamKey(teamKey)] || "当前队伍");
   if (message) showToast(message);
 }
 
 async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
   showToast("检测到图片拖入，正在识别。", { persistent: true });
+  console.log("[OCR] 特殊场景识别开始", { mode, rowIndex, startIndex, files: files?.length || 0 });
   const normalizedMode = normalizePaidArenaMode(mode);
   const teams = getPaidArenaTeams(normalizedMode);
   const normalizedRow = Number(rowIndex);
@@ -791,6 +798,12 @@ async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
     return;
   }
   const result = await fillPaidArenaSlotsWithOcrResult(normalizedRow, startIndex, files);
+  console.log("[OCR] 特殊场景识别完成", {
+    mode,
+    rowIndex: normalizedRow,
+    added: result?.added?.length || 0,
+    warnings: result?.warnings?.length || 0,
+  });
   const label = mode === "c" ? "冠军竞技场" : "特殊竞技场";
   const message = formatOcrToastMessage(result, `${label}队伍`);
   if (message) showToast(message);
