@@ -706,6 +706,12 @@ function parseFileNamesFromOcrText(rawText) {
       .forEach((match) => matched.push(match.character));
   });
 
+  console.debug("OCR匹配结果", {
+    inputLines: lines,
+    matchedNames: matched.map((character) => String(character?.name || "")),
+    unmatched: warnings.slice(),
+  });
+
   return {
     matchedCharacters: matched,
     warnings,
@@ -742,6 +748,8 @@ async function parseImageWithOcrSpace(file) {
   const parsedText = payload.ParsedResults.map((result) => String(result?.ParsedText || "").trim())
     .filter(Boolean)
     .join("\n");
+
+  console.debug("OCR原始识别文本", parsedText);
   return cleanOcrTextForRoles(parsedText);
 }
 
