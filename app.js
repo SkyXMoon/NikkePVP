@@ -780,7 +780,7 @@ async function fillTeamSlotsWithOcrResult(teamKey, startIndex, files) {
   const rosannaSacrificeFrames = getRosannaSacrificeFrameState(teamKey);
   const savedTargets = [];
   const warnings = [];
-  const imageFiles = Array.from(files || []).filter((entry) => String(entry?.type || "").startsWith("image/"));
+  const imageFiles = Array.from(files || []).filter((entry) => isImageFile(entry));
 
   if (imageFiles.length === 0) {
     warnings.push("请选择图片文件");
@@ -856,7 +856,7 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
   const sacrificialFrames = getPaidArenaRosannaSacrificeFrames()[row] || Array(TEAM_SIZE).fill(null);
   const warnings = [];
   const added = [];
-  const imageFiles = Array.from(files || []).filter((entry) => String(entry?.type || "").startsWith("image/"));
+  const imageFiles = Array.from(files || []).filter((entry) => isImageFile(entry));
 
   if (imageFiles.length === 0) {
     warnings.push("请选择图片文件");
@@ -917,15 +917,35 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
 }
 
 function getTransferFiles(event) {
-  return [...(event?.dataTransfer?.files || [])];
+  const dataTransfer = event?.dataTransfer;
+  if (!dataTransfer) return [];
+
+  const files = [...(dataTransfer.files || [])];
+  if (files.length > 0) return files;
+
+  if (dataTransfer.items && dataTransfer.items.length > 0) {
+    return [...dataTransfer.items]
+      .map((item) => (typeof item.getAsFile === "function" ? item.getAsFile() : null))
+      .filter(Boolean);
+  }
+
+  return [];
 }
 
 function isTransferWithFiles(event) {
-  return event?.dataTransfer && [...(event.dataTransfer.types || [])].includes("Files");
+  const dataTransfer = event?.dataTransfer;
+  if (!dataTransfer) return false;
+
+  if (getTransferFiles(event).length > 0) return true;
+
+  const types = [...(dataTransfer.types || [])].map((item) => String(item || "").toLowerCase());
+  return types.includes("files") || types.includes("file");
 }
 
 function getOcrDropSlotContext(event) {
-  const targetSlot = event?.target instanceof Element ? event.target.closest(".team-slot") : null;
+  const targetSlot =
+    (event?.target instanceof Element ? event.target.closest(".team-slot") : null) ||
+    (event?.clientX != null && event?.clientY != null ? getTeamSlotAtPoint(event.clientX, event.clientY) : null);
   if (!targetSlot) return null;
   if (targetSlot.dataset.paidArenaRowIndex !== undefined && targetSlot.dataset.paidArenaRowIndex !== null) {
     const rowIndex = Number(targetSlot.dataset.paidArenaRowIndex);
@@ -949,10 +969,12 @@ function getOcrFallbackContext(event) {
   return { mode: "normal", teamKey: state.activeTeamKey, slotIndex: 0 };
 }
 
-function getOcrDropContext(event) {
-  const contextFromTarget = getOcrDropSlotContext(event);
-  if (contextFromTarget) return contextFromTarget;
-  return getOcrFallbackContext(event);
+function isImageFile(file) {
+  const type = String(file?.type || "").toLowerCase();
+  const name = String(file?.name || "").toLowerCase();
+  if (type.startsWith("image/")) return true;
+  if (!name) return false;
+  return /\.(png|jpg|jpeg|gif|webp|bmp|tiff?|avif)$/i.test(name);
 }
 
 function createEmptyLineupSlot() {
@@ -3117,8 +3139,7 @@ function renderSingleTeamLegacy() {
     });
 
       slot.addEventListener("dragover", (event) => {
-        const files = getTransferFiles(event);
-        if (files.length > 0 && isTransferWithFiles(event)) {
+        if (isTransferWithFiles(event)) {
           event.preventDefault();
           event.dataTransfer.dropEffect = "copy";
           slot.classList.add("is-drop-target");
@@ -3138,7 +3159,7 @@ function renderSingleTeamLegacy() {
         event.preventDefault();
         slot.classList.remove("is-drop-target");
         const files = getTransferFiles(event);
-        if (isTransferWithFiles(event) && files.length > 0) {
+        if (isTransferWithFiles(event)) {
           if (!character) {
             handleOcrFill(state.activeTeamKey, index, files);
             return;
@@ -5024,8 +5045,7 @@ function renderPaidArenaTeams() {
       });
 
       slot.addEventListener("dragover", (event) => {
-        const files = getTransferFiles(event);
-        if (files.length > 0 && isTransferWithFiles(event)) {
+        if (isTransferWithFiles(event)) {
           event.preventDefault();
           event.dataTransfer.dropEffect = "copy";
           slot.classList.add("is-drop-target");
@@ -5046,7 +5066,7 @@ function renderPaidArenaTeams() {
         event.preventDefault();
         slot.classList.remove("is-drop-target");
         const files = getTransferFiles(event);
-        if (isTransferWithFiles(event) && files.length > 0) {
+        if (isTransferWithFiles(event)) {
           if (!character) {
             const targetRow = rowIndex;
           handlePaidArenaOcrFill(state.paidArenaMode, targetRow, slotIndex, files).catch(() => {
@@ -5418,8 +5438,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       });
 
       slot.addEventListener("dragover", (event) => {
-        const files = getTransferFiles(event);
-        if (files.length > 0 && isTransferWithFiles(event)) {
+        if (isTransferWithFiles(event)) {
           event.preventDefault();
           event.dataTransfer.dropEffect = "copy";
           slot.classList.add("is-drop-target");
@@ -5439,7 +5458,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
         event.preventDefault();
         slot.classList.remove("is-drop-target");
         const files = getTransferFiles(event);
-        if (isTransferWithFiles(event) && files.length > 0) {
+        if (isTransferWithFiles(event)) {
           if (!character) {
             handleOcrFill(teamKey, index, files).catch(() => {
               showToast("OCR识别失败，请重试");
@@ -8919,17 +8938,19 @@ function bindEvents() {
   els.chargeChart.addEventListener("click", showChartTooltipByInteraction);
   els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
   document.addEventListener("dragover", (event) => {
-    const files = getTransferFiles(event);
-    if (!isTransferWithFiles(event) || files.length === 0) return;
+    if (!isTransferWithFiles(event)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
   });
   document.addEventListener("drop", (event) => {
     const files = getTransferFiles(event);
-    if (!isTransferWithFiles(event) || files.length === 0 || event.defaultPrevented) return;
+    if (!isTransferWithFiles(event)) return;
     event.preventDefault();
 
-    const context = getOcrDropContext(event);
+    const directContext = getOcrDropSlotContext(event);
+    if (directContext) return;
+
+    const context = getOcrFallbackContext(event);
     if (!context) return;
 
     if (context.mode === "paid") {
