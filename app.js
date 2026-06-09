@@ -672,9 +672,20 @@ function parseFileNamesFromOcrText(rawText) {
   lines.forEach((line) => {
     const matchedInLine = [];
     characterNames.forEach((entry) => {
-      const position = line.indexOf(entry.name);
-      if (position >= 0) {
-        matchedInLine.push({ ...entry, position });
+      const name = entry.name;
+      const exactPosition = line.indexOf(name);
+      if (exactPosition >= 0) {
+        matchedInLine.push({ ...entry, position: exactPosition, partial: false, length: name.length });
+        return;
+      }
+
+      const lineLength = line.length;
+      const nameLength = name.length;
+      if (lineLength >= 2 && nameLength >= 2 && nameLength - lineLength <= 2) {
+        const containsPartial = name.includes(line);
+        if (containsPartial) {
+          matchedInLine.push({ ...entry, position: 0, partial: true, length: nameLength });
+        }
       }
     });
 
@@ -687,10 +698,12 @@ function parseFileNamesFromOcrText(rawText) {
     }
 
     matchedInLine
-      .sort((a, b) => a.position - b.position)
-      .forEach((match) => {
-        matched.push(match.character);
-      });
+      .sort((a, b) => {
+        if (a.partial !== b.partial) return a.partial ? 1 : -1;
+        if (a.position !== b.position) return a.position - b.position;
+        return b.length - a.length;
+      })
+      .forEach((match) => matched.push(match.character));
   });
 
   return {
