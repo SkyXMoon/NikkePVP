@@ -648,7 +648,8 @@ function getRosannaSacrificeFrameState(teamKey = state.activeTeamKey) {
 
 function normalizeOcrCharacterName(rawName) {
   return String(rawName || "")
-    .replace(/[：:]/g, "")
+    .replace(/[0-9]/g, "")
+    .replace(/[A-Za-z]/g, "")
     .replace(/\s+/g, "");
 }
 
@@ -656,7 +657,7 @@ function parseFileNamesFromOcrText(rawText) {
   const lines = String(rawText || "")
     .replace(/\r/g, "")
     .split("\n")
-    .map((line) => normalizeOcrCharacterName(line).replace(/[^\u4e00-\u9fff]/g, "").trim())
+    .map((line) => normalizeOcrCharacterName(line).trim())
     .filter(Boolean);
 
   const characterNames = Array.isArray(CHARACTERS)
