@@ -719,7 +719,9 @@ function parseFileNamesFromOcrText(rawText) {
 }
 
 function cleanOcrTextForRoles(rawText) {
-  return String(rawText || "").replace(/[^\u4e00-\u9fff\n]/g, "\n");
+  return String(rawText || "")
+    .replace(/\r/g, "")
+    .replace(/[A-Za-z0-9]/g, "");
 }
 
 async function parseImageWithOcrSpace(file) {
