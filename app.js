@@ -924,6 +924,37 @@ function isTransferWithFiles(event) {
   return event?.dataTransfer && [...(event.dataTransfer.types || [])].includes("Files");
 }
 
+function getOcrDropSlotContext(event) {
+  const targetSlot = event?.target instanceof Element ? event.target.closest(".team-slot") : null;
+  if (!targetSlot) return null;
+  if (targetSlot.dataset.paidArenaRowIndex !== undefined && targetSlot.dataset.paidArenaRowIndex !== null) {
+    const rowIndex = Number(targetSlot.dataset.paidArenaRowIndex);
+    const slotIndex = Number(targetSlot.dataset.slotIndex);
+    if (!Number.isFinite(rowIndex) || !Number.isFinite(slotIndex)) return null;
+    return { mode: "paid", rowIndex, slotIndex };
+  }
+
+  const teamKey = normalizeTeamKey(targetSlot.dataset.teamKey);
+  const slotIndex = Number(targetSlot.dataset.slotIndex);
+  if (!teamKey || !Number.isFinite(slotIndex)) return null;
+  return { mode: "normal", teamKey, slotIndex };
+}
+
+function getOcrFallbackContext(event) {
+  const paidMode = isPaidArenaModeActive();
+  if (paidMode) {
+    const activeRow = Number(state.paidArenaActiveRowIndex || 0);
+    return { mode: "paid", rowIndex: activeRow, slotIndex: 0 };
+  }
+  return { mode: "normal", teamKey: state.activeTeamKey, slotIndex: 0 };
+}
+
+function getOcrDropContext(event) {
+  const contextFromTarget = getOcrDropSlotContext(event);
+  if (contextFromTarget) return contextFromTarget;
+  return getOcrFallbackContext(event);
+}
+
 function createEmptyLineupSlot() {
   return {
     defenseTeam: Array(TEAM_SIZE).fill(null),
@@ -8887,6 +8918,31 @@ function bindEvents() {
   els.chargeChart.addEventListener("pointerdown", showChartTooltipByInteraction);
   els.chargeChart.addEventListener("click", showChartTooltipByInteraction);
   els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
+  document.addEventListener("dragover", (event) => {
+    const files = getTransferFiles(event);
+    if (!isTransferWithFiles(event) || files.length === 0) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  });
+  document.addEventListener("drop", (event) => {
+    const files = getTransferFiles(event);
+    if (!isTransferWithFiles(event) || files.length === 0 || event.defaultPrevented) return;
+    event.preventDefault();
+
+    const context = getOcrDropContext(event);
+    if (!context) return;
+
+    if (context.mode === "paid") {
+      handlePaidArenaOcrFill(state.paidArenaMode, context.rowIndex, context.slotIndex, files).catch(() => {
+        showToast("OCR识别失败，请重试");
+      });
+      return;
+    }
+
+    handleOcrFill(context.teamKey, context.slotIndex, files).catch(() => {
+      showToast("OCR识别失败，请重试");
+    });
+  });
   document.addEventListener("touchstart", hideFloatingTooltips, { capture: true, passive: true });
   document.addEventListener(
     "pointerdown",
