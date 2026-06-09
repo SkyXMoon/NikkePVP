@@ -697,13 +697,15 @@ function parseFileNamesFromOcrText(rawText) {
       return;
     }
 
-    matchedInLine
+    const exactMatches = matchedInLine.filter((entry) => !entry.partial);
+    const candidatePool = exactMatches.length > 0 ? exactMatches : matchedInLine;
+    const bestMatch = candidatePool
       .sort((a, b) => {
-        if (a.partial !== b.partial) return a.partial ? 1 : -1;
-        if (a.position !== b.position) return a.position - b.position;
-        return b.length - a.length;
-      })
-      .forEach((match) => matched.push(match.character));
+        if (a.length !== b.length) return b.length - a.length;
+        return a.position - b.position;
+      })[0];
+
+    if (bestMatch) matched.push(bestMatch.character);
   });
 
   console.log("[OCR] 匹配结果", {
