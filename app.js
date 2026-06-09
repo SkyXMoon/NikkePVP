@@ -647,15 +647,21 @@ function getRosannaSacrificeFrameState(teamKey = state.activeTeamKey) {
   return normalizeTeamKey(teamKey) === "defense" ? state.defenseRosannaSacrificeFrames : state.rosannaSacrificeFrames;
 }
 
+function normalizeOcrCharacterName(rawName) {
+  return String(rawName || "")
+    .replace(/[：:]/g, "")
+    .replace(/\s+/g, "");
+}
+
 function parseFileNamesFromOcrText(rawText) {
   const lines = String(rawText || "")
     .replace(/\r/g, "")
     .split("\n")
-    .map((line) => line.replace(/[^\u4e00-\u9fff]/g, "").trim())
+    .map((line) => normalizeOcrCharacterName(line).replace(/[^\u4e00-\u9fff]/g, "").trim())
     .filter(Boolean);
 
   const characterNames = Array.isArray(CHARACTERS)
-    ? CHARACTERS.map((character) => ({ character, name: String(character?.name || "").trim() }))
+    ? CHARACTERS.map((character) => ({ character, name: normalizeOcrCharacterName(character?.name || "") }))
         .filter((entry) => entry.name)
         .sort((a, b) => b.name.length - a.name.length)
     : [];
