@@ -8,11 +8,9 @@ function isAvatarRequestUrl(url) {
     const requestUrl = new URL(url);
     if (requestUrl.protocol !== "http:" && requestUrl.protocol !== "https:") return false;
     const lowerPath = requestUrl.pathname.toLowerCase();
-    const lowerHost = requestUrl.hostname.toLowerCase();
     const isLocalAvatar = requestUrl.origin === self.location.origin && (lowerPath.includes(AVATAR_PATH_SNIPPET) || lowerPath.includes(ICON_PATH_SNIPPET));
-    const isKnownRemoteAvatarHost = /gamekee\.com|img\.nga\.178\.com|cloudflare\.com/i.test(lowerHost);
     const hasImageExt = /\.(png|webp|jpe?g|gif|avif|bmp)$/i.test(lowerPath);
-    return (isLocalAvatar || isKnownRemoteAvatarHost) && hasImageExt;
+    return isLocalAvatar && hasImageExt;
   } catch {
     return false;
   }

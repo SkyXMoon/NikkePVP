@@ -183,8 +183,7 @@ function getAvatarCacheCandidates() {
     if (!character) return;
     const avatarUrl = getCharacterAvatarUrl(character);
     const namecodeUrl = character.nameCodeAvatarUrl || "";
-    const sourceUrl = character.avatarSourceUrl || "";
-    [avatarUrl, namecodeUrl, sourceUrl].forEach((rawUrl) => {
+    [avatarUrl, namecodeUrl].forEach((rawUrl) => {
       if (!rawUrl) return;
       try {
         urls.add(new URL(rawUrl, window.location.href).href);
@@ -2717,7 +2716,9 @@ function getAvatarMarkup(character) {
 }
 
 function getCharacterAvatarUrl(character) {
-  return character?.avatarUrl || character?.nameCodeAvatarUrl || "";
+  const avatarUrl = character?.avatarUrl || "";
+  if (typeof avatarUrl === "string" && /^https?:\/\//i.test(avatarUrl)) return "";
+  return avatarUrl || character?.nameCodeAvatarUrl || "";
 }
 
 function getTimingLabel(character) {
