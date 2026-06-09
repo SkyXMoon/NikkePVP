@@ -758,7 +758,7 @@ async function handleOcrFill(teamKey, startIndex, files) {
 async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
   const result = await fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files);
   const label = mode === "c" ? "冠军竞技场" : "特殊竞技场";
-  const message = formatOcrToastMessage(result, `${label}第${rowIndex + 1}队`);
+  const message = formatOcrToastMessage(result, `${label}队伍`);
   if (message) showToast(message);
 }
 
@@ -772,12 +772,26 @@ function getSortedEmptyTeamSlots(team, startIndex, includeLoop = true) {
 }
 
 async function fillTeamSlotsWithOcrResult(teamKey, startIndex, files) {
-  const team = getTeamState(teamKey);
-  const chargeSpeeds = getChargeSpeedState(teamKey);
-  const universalCharges = getUniversalChargeState(teamKey);
-  const redHoodPierceCounts = getRedHoodPierceCountState(teamKey);
-  const scarletCounterEnabled = getScarletCounterEnabledState(teamKey);
-  const rosannaSacrificeFrames = getRosannaSacrificeFrameState(teamKey);
+  const teamOrder = [
+    {
+      teamKey: "defense",
+      team: getTeamState("defense"),
+      chargeSpeeds: getChargeSpeedState("defense"),
+      universalCharges: getUniversalChargeState("defense"),
+      redHoodPierceCounts: getRedHoodPierceCountState("defense"),
+      scarletCounterEnabled: getScarletCounterEnabledState("defense"),
+      rosannaSacrificeFrames: getRosannaSacrificeFrameState("defense"),
+    },
+    {
+      teamKey: "attack",
+      team: getTeamState("attack"),
+      chargeSpeeds: getChargeSpeedState("attack"),
+      universalCharges: getUniversalChargeState("attack"),
+      redHoodPierceCounts: getRedHoodPierceCountState("attack"),
+      scarletCounterEnabled: getScarletCounterEnabledState("attack"),
+      rosannaSacrificeFrames: getRosannaSacrificeFrameState("attack"),
+    },
+  ];
   const savedTargets = [];
   const warnings = [];
   const imageFiles = Array.from(files || []).filter((entry) => isImageFile(entry));
@@ -802,36 +816,45 @@ async function fillTeamSlotsWithOcrResult(teamKey, startIndex, files) {
     return { added: [], warnings };
   }
 
-  const emptySlots = getSortedEmptyTeamSlots(team, Number(startIndex));
-  if (emptySlots.length === 0) {
+  const getNextEmptySlot = () => {
+    for (const entry of teamOrder) {
+      const targetIndex = entry.team.findIndex((member) => member === null);
+      if (targetIndex >= 0) return { entry, targetIndex };
+    }
+    return null;
+  };
+
+  if (!getNextEmptySlot()) {
     warnings.push("当前队伍无空位");
     return { added: [], warnings };
   }
 
   recognizedCharacters.forEach((character) => {
-    if (emptySlots.length === 0) {
+    const target = getNextEmptySlot();
+    if (!target) {
       warnings.push(`队伍空位不足，剩余角色未填充`);
       return;
     }
     if (!character?.id) return;
-    const alreadyExists = team.some((member) => member && String(member.id) === String(character.id));
+    const { entry, targetIndex } = target;
+    const alreadyExists = entry.team.some((member) => member && String(member.id) === String(character.id));
     if (alreadyExists) {
       warnings.push(`${character.name} 已在队伍中`);
       return;
     }
-    const targetIndex = emptySlots.shift();
-    team[targetIndex] = character;
-    chargeSpeeds[targetIndex] = getSavedCharacterChargeSpeed(character, teamKey);
-    universalCharges[targetIndex] = 0;
-    redHoodPierceCounts[targetIndex] = isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, teamKey) : 0;
-    scarletCounterEnabled[targetIndex] = true;
-    rosannaSacrificeFrames[targetIndex] = null;
-    savedTargets.push({ character, index: targetIndex });
+    entry.team[targetIndex] = character;
+    entry.chargeSpeeds[targetIndex] = getSavedCharacterChargeSpeed(character, entry.teamKey);
+    entry.universalCharges[targetIndex] = 0;
+    entry.redHoodPierceCounts[targetIndex] = isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, entry.teamKey) : 0;
+    entry.scarletCounterEnabled[targetIndex] = true;
+    entry.rosannaSacrificeFrames[targetIndex] = null;
+    savedTargets.push({ character, index: targetIndex, teamKey: entry.teamKey });
   });
 
   openSlotSettings = null;
   openRosannaSacrificeSettings = null;
-  normalizeJackalLink(teamKey);
+  normalizeJackalLink("defense");
+  normalizeJackalLink("attack");
   saveTeam();
   render();
   return { added: savedTargets, warnings };
@@ -843,19 +866,24 @@ function getPaidArenaRowState(rowIndex, property = "team") {
 }
 
 async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
-  const row = Number(rowIndex);
   const teams = getPaidArenaTeams();
-  const team = getPaidArenaRowState(row, "team");
-  if (!team || !Array.isArray(team)) {
+  const warnings = [];
+  const added = [];
+  if (!Array.isArray(teams) || teams.length === 0) {
     return { added: [], warnings: ["无效的队伍行"] };
   }
 
-  const universalCharges = getPaidArenaUniversalCharges()[row] || Array(TEAM_SIZE).fill(0);
-  const redHoodPierceCounts = getPaidArenaRedHoodPierceCounts()[row] || Array(TEAM_SIZE).fill(0);
-  const scarletCounterEnabled = getPaidArenaScarletCounterEnabled()[row] || Array(TEAM_SIZE).fill(true);
-  const sacrificialFrames = getPaidArenaRosannaSacrificeFrames()[row] || Array(TEAM_SIZE).fill(null);
-  const warnings = [];
-  const added = [];
+  const dataTeamKey = getPaidArenaDataTeamKey();
+  const paidRows = teams.map((team, paidRowIndex) => ({
+    rowIndex: Number(paidRowIndex),
+    team,
+    universalCharges: getPaidArenaUniversalCharges()[Number(paidRowIndex)] || Array(TEAM_SIZE).fill(0),
+    redHoodPierceCounts: getPaidArenaRedHoodPierceCounts()[Number(paidRowIndex)] || Array(TEAM_SIZE).fill(0),
+    scarletCounterEnabled: getPaidArenaScarletCounterEnabled()[Number(paidRowIndex)] || Array(TEAM_SIZE).fill(true),
+    sacrificialFrames: getPaidArenaRosannaSacrificeFrames()[Number(paidRowIndex)] || Array(TEAM_SIZE).fill(null),
+    chargeSpeeds: getPaidArenaTeamChargeSpeeds(team, dataTeamKey),
+    linkState: normalizePaidArenaLinkForTeam(team, getPaidArenaJackalLinks()[Number(paidRowIndex)]),
+  }));
   const imageFiles = Array.from(files || []).filter((entry) => isImageFile(entry));
 
   if (imageFiles.length === 0) {
@@ -878,37 +906,49 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
     return { added: [], warnings };
   }
 
-  const emptySlots = getSortedEmptyTeamSlots(team, Number(startIndex));
-  const dataTeamKey = getPaidArenaDataTeamKey();
-  const linkState = normalizePaidArenaLinkForTeam(team, getPaidArenaJackalLinks()[row]);
+  const getNextEmptySlot = () => {
+    for (const rowEntry of paidRows) {
+      const targetIndex = rowEntry.team.findIndex((member) => member === null);
+      if (targetIndex >= 0) return { rowEntry, targetIndex };
+    }
+    return null;
+  };
+
+  if (!getNextEmptySlot()) {
+    warnings.push(`队伍空位不足，剩余角色未填充`);
+    return { added: [], warnings };
+  }
 
   recognizedCharacters.forEach((character) => {
-    if (emptySlots.length === 0) {
+    const target = getNextEmptySlot();
+    if (!target) {
       warnings.push(`队伍空位不足，剩余角色未填充`);
       return;
     }
     if (!character?.id) return;
-    if (team.some((member) => member && String(member.id) === String(character.id))) {
+    const { rowEntry, targetIndex } = target;
+    if (rowEntry.team.some((member) => member && String(member.id) === String(character.id))) {
       warnings.push(`${character.name} 已在队伍中`);
       return;
     }
-    const targetIndex = emptySlots.shift();
-    team[targetIndex] = character;
-    universalCharges[targetIndex] = 0;
-    const chargeSpeedState = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
-    chargeSpeedState[targetIndex] = getSavedCharacterChargeSpeed(character, dataTeamKey);
-    redHoodPierceCounts[targetIndex] = isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, dataTeamKey) : 0;
-    scarletCounterEnabled[targetIndex] = true;
-    sacrificialFrames[targetIndex] = null;
+    rowEntry.team[targetIndex] = character;
+    rowEntry.universalCharges[targetIndex] = 0;
+    rowEntry.chargeSpeeds[targetIndex] = getSavedCharacterChargeSpeed(character, dataTeamKey);
+    rowEntry.redHoodPierceCounts[targetIndex] = isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, dataTeamKey) : 0;
+    rowEntry.scarletCounterEnabled[targetIndex] = true;
+    rowEntry.sacrificialFrames[targetIndex] = null;
     added.push({ character, index: targetIndex });
   });
 
-  getPaidArenaJackalLinks()[row] = normalizePaidArenaLinkForTeam(team, linkState);
-  state.paidArenaUniversalCharges[state.paidArenaMode][row] = Array.from({ length: TEAM_SIZE }, (_, index) => universalCharges[index]);
-  state.paidArenaChargeSpeeds[state.paidArenaMode][row] = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
-  state.paidArenaRosannaSacrificeFrames[state.paidArenaMode][row] = Array.from({ length: TEAM_SIZE }, (_, index) => sacrificialFrames[index]);
-  state.paidArenaRedHoodPierceCounts[state.paidArenaMode][row] = Array.from({ length: TEAM_SIZE }, (_, index) => redHoodPierceCounts[index]);
-  state.paidArenaScarletCounterEnabled[state.paidArenaMode][row] = Array.from({ length: TEAM_SIZE }, (_, index) => scarletCounterEnabled[index]);
+  paidRows.forEach((rowEntry) => {
+    const normalizedIndex = Number(rowEntry.rowIndex);
+    state.paidArenaUniversalCharges[state.paidArenaMode][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.universalCharges[index]);
+    state.paidArenaChargeSpeeds[state.paidArenaMode][normalizedIndex] = getPaidArenaTeamChargeSpeeds(rowEntry.team, dataTeamKey);
+    state.paidArenaRosannaSacrificeFrames[state.paidArenaMode][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.sacrificialFrames[index]);
+    state.paidArenaRedHoodPierceCounts[state.paidArenaMode][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.redHoodPierceCounts[index]);
+    state.paidArenaScarletCounterEnabled[state.paidArenaMode][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.scarletCounterEnabled[index]);
+    getPaidArenaJackalLinks()[normalizedIndex] = normalizePaidArenaLinkForTeam(rowEntry.team, rowEntry.linkState);
+  });
   openSlotSettings = null;
   openRosannaSacrificeSettings = null;
   saveTeam();
