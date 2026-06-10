@@ -144,16 +144,16 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
-  "修复表单字段缺少id/name导致可访问性告警",
-  "修正OCR解析优先按冒号角色匹配，避免无冒号命中有冒号角色",
-  "修正分享图头像取图位置",
-  "统一操作界面献祭图标",
-  "统一分享图特殊图标",
-  "修正罗珊娜消除链接累计",
-  "优化嘲定祭标识显示",
-  "修正分享图魔方和链接图标",
-  "优化竞技场分享头像标识",
-  "冠军特殊竞技场补齐槽位设置",
+  "移动端分享在不支持原生分享时改为弹出图片预览弹窗，支持查看与下载图片",
+  "修复移动端分享与复制图片降级行为",
+  "修复移动端分享与复制图标的降级行为",
+  "优化角色设置中蓄速与魔方保存逻辑",
+  "新增关于与建议侧边栏目及QQ群快速加入入口",
+  "补充冠军场/特殊场方案拖拽复制与互斥选择逻辑",
+  "完善罗珊娜献祭、红莲反击与链接共享逻辑",
+  "新增常用角色与国服/国际服切换筛选按钮",
+  "补充角色头像两层回退与本地缓存机制",
+  "修复复制图片后提示与主题文字颜色显示"
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -9042,6 +9042,56 @@ async function copyCurrentArenaImage() {
   return isPaid ? paidArenaToPngBlob() : normalArenaToPngBlob();
 }
 
+function openShareImagePreview(imageBlob, title = "NIKKE PVP") {
+  if (!imageBlob) return;
+  const imageUrl = URL.createObjectURL(imageBlob);
+  const filename = `nikke-pvp-${Date.now()}.png`;
+  const safeTitle = escapeHtml(title);
+  const backdrop = document.createElement("div");
+  backdrop.className = "share-preview-backdrop";
+  backdrop.innerHTML = `
+    <section class="share-preview-modal" role="dialog" aria-modal="true" aria-label="分享图片预览">
+      <div class="share-preview-head">
+        <span class="share-preview-title">${safeTitle}</span>
+        <button class="share-preview-close" type="button" aria-label="关闭预览">×</button>
+      </div>
+      <div class="share-preview-body">
+        <img class="share-preview-image" src="${imageUrl}" alt="${safeTitle}分享图片" />
+      </div>
+      <div class="share-preview-actions">
+        <a class="share-preview-download" href="${imageUrl}" download="${filename}" target="_blank" rel="noopener">下载图片</a>
+        <button class="share-preview-close-btn" type="button">关闭</button>
+      </div>
+    </section>
+  `;
+  const closePreview = () => {
+    if (!document.body.contains(backdrop)) return;
+    backdrop.remove();
+    URL.revokeObjectURL(imageUrl);
+    window.removeEventListener("keydown", handleEscape);
+  };
+  const handleEscape = (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closePreview();
+    }
+  };
+  backdrop.querySelector(".share-preview-close")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    closePreview();
+  });
+  backdrop.querySelector(".share-preview-close-btn")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    closePreview();
+  });
+  backdrop.addEventListener("click", (event) => {
+    if (event.target === backdrop) closePreview();
+  });
+  backdrop.querySelector(".share-preview-modal")?.addEventListener("click", (event) => event.stopPropagation());
+  window.addEventListener("keydown", handleEscape, { capture: true });
+  document.body.append(backdrop);
+}
+
 function isTextEditingElement(element = document.activeElement) {
   if (!element) return false;
   const tagName = element.tagName?.toLowerCase();
@@ -9118,8 +9168,9 @@ async function shareArenaImageSummary() {
   }
   try {
     const imageBlob = await copyCurrentArenaImage();
+    const isMobileCopyChoice = isMobileCopyChoiceRuntime();
     const file = new File([imageBlob], `nikke-pvp-${Date.now()}.png`, { type: "image/png" });
-    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+    if (isMobileCopyChoice && navigator.share && navigator.canShare?.({ files: [file] })) {
       await navigator.share({
         files: [file],
         title: "NIKKE PVP",
@@ -9127,13 +9178,32 @@ async function shareArenaImageSummary() {
       showToast("已打开分享");
       return;
     }
+    if (isMobileCopyChoice) {
+      openShareImagePreview(imageBlob);
+      showToast("当前环境不支持直接分享，已生成图片预览");
+      return;
+    }
     await copyRichImageToClipboard(imageBlob);
     showToast("当前浏览器不支持分享，已复制图片");
   } catch (error) {
     if (error?.name === "AbortError") return;
     console.error("share arena image failed", error);
+    if (isMobileCopyChoiceRuntime()) {
+      try {
+        const fallbackBlob = await copyCurrentArenaImage();
+        openShareImagePreview(fallbackBlob);
+        return;
+      } catch {
+        // continue to text fallback
+      }
+    }
     try {
-      await copyArenaImageSummary();
+      if (isMobileCopyChoiceRuntime()) {
+        await copyTextToClipboard(text);
+        showToast("分享失败，已复制文字信息");
+      } else {
+        await copyArenaImageSummary();
+      }
     } catch {
       showToast("分享失败，请检查浏览器权限");
     }
