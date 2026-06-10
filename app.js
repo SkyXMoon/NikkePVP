@@ -144,6 +144,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "调整哈兰中毒充能为固定2hit，基础充能每次触发提升为+5.8%",
   "移动端分享在不支持原生分享时改为弹出图片预览弹窗，支持查看与下载图片",
   "修复移动端分享与复制图片降级行为",
   "修复移动端分享与复制图标的降级行为",
@@ -153,7 +154,6 @@ const CHANGELOG_ITEMS = [
   "完善罗珊娜献祭、红莲反击与链接共享逻辑",
   "新增常用角色与国服/国际服切换筛选按钮",
   "补充角色头像两层回退与本地缓存机制",
-  "分享失败提示已区分移动端预览降级与文字回退结果"
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -1825,7 +1825,7 @@ function isHarran(character) {
 }
 
 function getHarranPoisonChargeValue(character) {
-  return getBaseChargeUnit(character) * (hasEffectiveExtraDamage(character) ? 2 : 1);
+  return getBaseChargeUnit(character) * 2;
 }
 
 function getHarranPoisonEvent(event, currentFrame) {
