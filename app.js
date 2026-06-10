@@ -153,7 +153,7 @@ const CHANGELOG_ITEMS = [
   "完善罗珊娜献祭、红莲反击与链接共享逻辑",
   "新增常用角色与国服/国际服切换筛选按钮",
   "补充角色头像两层回退与本地缓存机制",
-  "修复复制图片后提示与主题文字颜色显示"
+  "分享失败提示已区分移动端预览降级与文字回退结果"
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -9175,16 +9175,16 @@ async function shareArenaImageSummary() {
         files: [file],
         title: "NIKKE PVP",
       });
-      showToast("已打开分享");
+      showToast("已打开系统分享");
       return;
     }
     if (isMobileCopyChoice) {
       openShareImagePreview(imageBlob);
-      showToast("当前环境不支持直接分享，已生成图片预览");
+      showToast("不支持直接分享，已打开图片预览（可保存后手动发送）");
       return;
     }
     await copyRichImageToClipboard(imageBlob);
-    showToast("当前浏览器不支持分享，已复制图片");
+    showToast("已复制图片到剪贴板");
   } catch (error) {
     if (error?.name === "AbortError") return;
     console.error("share arena image failed", error);
@@ -9192,6 +9192,7 @@ async function shareArenaImageSummary() {
       try {
         const fallbackBlob = await copyCurrentArenaImage();
         openShareImagePreview(fallbackBlob);
+        showToast("分享失败，已切换到图片预览，支持下载后手动分享");
         return;
       } catch {
         // continue to text fallback
@@ -9200,12 +9201,12 @@ async function shareArenaImageSummary() {
     try {
       if (isMobileCopyChoiceRuntime()) {
         await copyTextToClipboard(text);
-        showToast("分享失败，已复制文字信息");
+        showToast("分享失败，已复制文本，建议手动复制后发送");
       } else {
         await copyArenaImageSummary();
       }
     } catch {
-      showToast("分享失败，请检查浏览器权限");
+      showToast("分享失败，当前浏览器剪贴板权限受限");
     }
   }
 }
