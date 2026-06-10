@@ -8073,6 +8073,8 @@ async function copyTextToClipboard(text) {
   }
 
   const textarea = document.createElement("textarea");
+  textarea.name = "clipboard-fallback-text";
+  textarea.id = "clipboard-fallback-text";
   textarea.value = text;
   textarea.setAttribute("readonly", "");
   textarea.style.position = "fixed";
