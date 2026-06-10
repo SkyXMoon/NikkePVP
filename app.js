@@ -144,7 +144,6 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
-  "补充变更记录：每次修改需写入更新记录并保持最近10条（本次为OCR冒号匹配修正）",
   "修正OCR解析优先按冒号角色匹配，避免无冒号命中有冒号角色",
   "修正分享图头像取图位置",
   "统一操作界面献祭图标",
