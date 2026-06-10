@@ -50,8 +50,13 @@ const server = createServer((request, response) => {
     return;
   }
 
+  const ext = path.extname(filePath).toLowerCase();
+  let contentType = contentTypes.get(ext) || "application/octet-stream";
+  if (/^image\/svg\+xml/i.test(contentType) && !/;\s*charset=/i.test(contentType)) {
+    contentType = "image/svg+xml; charset=utf-8";
+  }
   response.writeHead(200, {
-    "content-type": contentTypes.get(path.extname(filePath).toLowerCase()) || "application/octet-stream",
+    "content-type": contentType,
   });
   createReadStream(filePath).pipe(response);
 });
