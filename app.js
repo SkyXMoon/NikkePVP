@@ -1081,15 +1081,35 @@ function isTransferWithFiles(event) {
   const dataTransfer = event?.dataTransfer;
   if (!dataTransfer) return false;
 
-  if (getTransferFiles(event).length > 0) return true;
+  const files = getTransferFiles(event);
+  if (files.length > 0) return files.some(isImageFile);
 
   const types = [...(dataTransfer.types || [])].map((item) => String(item || "").toLowerCase());
   return types.includes("files") || types.includes("file");
 }
 
+function isChargeChartDropZone(event) {
+  const target = event?.target;
+  if (!els.chargeChart) return false;
+  if (target instanceof Element) {
+    if (target.closest?.(".charge-chart")) return true;
+    if (target.closest?.(".charge-chart-panel")) return true;
+  }
+  const rect = els.chargeChart.getBoundingClientRect();
+  if (!Number.isFinite(event?.clientX) || !Number.isFinite(event?.clientY)) return false;
+  return (
+    event.clientX >= rect.left &&
+    event.clientX <= rect.right &&
+    event.clientY >= rect.top &&
+    event.clientY <= rect.bottom
+  );
+}
+
 function isInternalTeamSlotDrag(event) {
   const dataTransfer = event?.dataTransfer;
   if (!dataTransfer) return false;
+  const types = [...(dataTransfer.types || [])].map((item) => String(item || "").toLowerCase());
+  if (types.includes("application/x-nyk-team-slot-drag")) return true;
 
   if (
     isTeamSlotDragActive ||
@@ -3302,16 +3322,17 @@ function renderSingleTeamLegacy() {
 
     slot.addEventListener("dragstart", (event) => {
       if (!character || event.target.closest(".speed-control")) {
-        event.preventDefault();
-        return;
-      }
-      draggedTeamIndex = index;
-      isTeamSlotDragActive = true;
-      slot.classList.add("is-dragging");
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", String(index));
-      setTeamSlotDragImage(event, slot);
-    });
+      event.preventDefault();
+      return;
+    }
+    draggedTeamIndex = index;
+    isTeamSlotDragActive = true;
+    slot.classList.add("is-dragging");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", String(index));
+    event.dataTransfer.setData("application/x-nyk-team-slot-drag", "1");
+    setTeamSlotDragImage(event, slot);
+  });
 
     slot.addEventListener("dragend", () => {
       draggedTeamIndex = null;
@@ -5257,6 +5278,7 @@ function renderPaidArenaTeams() {
       slot.classList.add("is-dragging");
       event.dataTransfer.effectAllowed = "move";
       event.dataTransfer.setData("text/plain", `paidArena:${rowIndex}:${slotIndex}`);
+      event.dataTransfer.setData("application/x-nyk-team-slot-drag", "1");
       setTeamSlotDragImage(event, slot);
     });
 
@@ -5666,14 +5688,15 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           event.preventDefault();
           return;
         }
-        draggedTeamIndex = index;
-        draggedTeamKey = teamKey;
-        isTeamSlotDragActive = true;
-        slot.classList.add("is-dragging");
-        event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("text/plain", `${teamKey}:${index}`);
-        setTeamSlotDragImage(event, slot);
-      });
+      draggedTeamIndex = index;
+      draggedTeamKey = teamKey;
+      isTeamSlotDragActive = true;
+      slot.classList.add("is-dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", `${teamKey}:${index}`);
+      event.dataTransfer.setData("application/x-nyk-team-slot-drag", "1");
+      setTeamSlotDragImage(event, slot);
+    });
 
       slot.addEventListener("dragend", () => {
         draggedTeamIndex = null;
@@ -9210,14 +9233,14 @@ function bindEvents() {
   els.chargeChart.addEventListener("pointerdown", showChartTooltipByInteraction);
   els.chargeChart.addEventListener("click", showChartTooltipByInteraction);
   els.chargeChart.addEventListener("mouseleave", hideChartTooltip);
-  document.addEventListener("dragover", (event) => {
-    if (!isTransferWithFiles(event)) return;
+  els.chargeChart?.addEventListener("dragover", (event) => {
+    if (!isChargeChartDropZone(event) || !isTransferWithFiles(event)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
   });
-  document.addEventListener("drop", (event) => {
+  els.chargeChart?.addEventListener("drop", (event) => {
+    if (!isChargeChartDropZone(event) || !isTransferWithFiles(event)) return;
     const files = getTransferFiles(event);
-    if (!isTransferWithFiles(event)) return;
     event.preventDefault();
 
     const directContext = getOcrDropSlotContext(event);
