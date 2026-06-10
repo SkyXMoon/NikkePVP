@@ -4019,8 +4019,14 @@ function openSuggestionModal() {
 function setSidebarOpen(open) {
   isSidebarOpen = Boolean(open);
   els.appSidebar?.classList.toggle("is-open", isSidebarOpen);
-  if (els.appSidebar) els.appSidebar.setAttribute("aria-hidden", isSidebarOpen ? "false" : "true");
+  if (els.appSidebar) {
+    els.appSidebar.setAttribute("aria-hidden", isSidebarOpen ? "false" : "true");
+    els.appSidebar.toggleAttribute("inert", !isSidebarOpen);
+  }
   if (els.appSidebarBackdrop) els.appSidebarBackdrop.hidden = !isSidebarOpen;
+  if (isSidebarOpen) {
+    els.appSidebar?.querySelector(".app-sidebar-close")?.focus();
+  }
 }
 
 function normalizeTheme(theme) {
@@ -9246,6 +9252,7 @@ async function bootstrap() {
   await loadCharacterData();
   void warmAvatarCacheInServiceWorker();
   bindEvents();
+  setSidebarOpen(false);
   loadTeam();
   els.allowMissedShotsToggle.checked = state.allowMissedShots;
   syncFilterControls();
