@@ -144,6 +144,8 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "补充变更记录：每次修改需写入更新记录并保持最近10条（本次为OCR冒号匹配修正）",
+  "修正OCR解析优先按冒号角色匹配，避免无冒号命中有冒号角色",
   "修正分享图头像取图位置",
   "统一操作界面献祭图标",
   "统一分享图特殊图标",
@@ -152,8 +154,6 @@ const CHANGELOG_ITEMS = [
   "修正分享图魔方和链接图标",
   "优化竞技场分享头像标识",
   "冠军特殊竞技场补齐槽位设置",
-  "修正空枪尾帧判定",
-  "空枪反推改为前端计算",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -648,11 +648,15 @@ function getRosannaSacrificeFrameState(teamKey = state.activeTeamKey) {
 
 function normalizeOcrCharacterName(rawName) {
   return String(rawName || "")
-    .replace(/[：﹕]/g, ":")
+    .replace(/[：\uFE13\uFE55\uFF1A]/g, ":")
     .replace(/[0-9]/g, "")
     .replace(/[A-Za-z]/g, "")
     .replace(/\s+/g, "");
 }
+
+const OCR_COLON_PREFERRED_VARIANTS = {
+  "阿妮斯:": "阿妮斯:闪耀夏日",
+};
 
 function parseFileNamesFromOcrText(rawText) {
   const lines = String(rawText || "")
@@ -664,6 +668,7 @@ function parseFileNamesFromOcrText(rawText) {
   const characterNames = Array.isArray(CHARACTERS)
     ? CHARACTERS.map((character) => ({ character, name: normalizeOcrCharacterName(character?.name || "") }))
         .filter((entry) => entry.name)
+        .map((entry) => ({ ...entry, hasColon: entry.name.includes(":") }))
         .sort((a, b) => b.name.length - a.name.length)
     : [];
 
@@ -672,21 +677,50 @@ function parseFileNamesFromOcrText(rawText) {
 
   lines.forEach((line) => {
     const containsColon = line.includes(":");
+    const bareColonPreferredName = OCR_COLON_PREFERRED_VARIANTS[line];
+    const scopedCharacterNames = characterNames.filter((entry) => (containsColon ? entry.hasColon : !entry.hasColon));
     const matchedInLine = [];
-    characterNames.forEach((entry) => {
+    scopedCharacterNames.forEach((entry) => {
       const name = entry.name;
       const exactPosition = line.indexOf(name);
       if (exactPosition >= 0) {
-        matchedInLine.push({ ...entry, position: exactPosition, partial: false, length: name.length });
+        matchedInLine.push({
+          ...entry,
+          position: exactPosition,
+          partial: false,
+          length: name.length,
+          priority: 200,
+        });
         return;
       }
 
       const lineLength = line.length;
       const nameLength = name.length;
-      if (lineLength >= 2 && nameLength >= 2 && nameLength - lineLength <= 2) {
-        const containsPartial = name.includes(line);
-        if (containsPartial) {
-          matchedInLine.push({ ...entry, position: 0, partial: true, length: nameLength });
+      if (lineLength >= 2 && nameLength >= 2) {
+        if (!containsColon && nameLength - lineLength <= 2) {
+          const containsPartial = name.includes(line);
+          if (containsPartial) {
+            matchedInLine.push({
+              ...entry,
+              position: 0,
+              partial: true,
+              length: nameLength,
+              priority: 100,
+            });
+          }
+          return;
+        }
+
+        if (containsColon && lineLength <= nameLength && name.startsWith(line)) {
+          const isPreferred = line.endsWith(":") && name === bareColonPreferredName;
+          matchedInLine.push({
+            ...entry,
+            position: 0,
+            partial: true,
+            length: nameLength,
+            priority: isPreferred ? 260 : 150,
+          });
+          return;
         }
       }
     });
@@ -711,6 +745,9 @@ function parseFileNamesFromOcrText(rawText) {
     const candidatePool = exactMatches.length > 0 ? exactMatches : candidateInLine;
     const bestMatch = candidatePool
       .sort((a, b) => {
+        const priorityA = Number(a.priority || 0);
+        const priorityB = Number(b.priority || 0);
+        if (priorityA !== priorityB) return priorityB - priorityA;
         if (a.length !== b.length) return b.length - a.length;
         return a.position - b.position;
       })[0];
@@ -733,7 +770,7 @@ function parseFileNamesFromOcrText(rawText) {
 function cleanOcrTextForRoles(rawText) {
   return String(rawText || "")
     .replace(/\r/g, "")
-    .replace(/[：﹕]/g, ":")
+    .replace(/[：\uFE13\uFE55\uFF1A]/g, ":")
     .replace(/[\s\u00A0\u3000]+/g, "\n")
     .replace(/[A-Za-z0-9]/g, "");
 }
