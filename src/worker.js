@@ -19,6 +19,15 @@ const TEXT_CONTENT_TYPES = new Map([
 function normalizeAssetResponseCharset(requestUrl, response) {
   const url = new URL(requestUrl);
   const contentType = response.headers.get("content-type") || "";
+  if (/^image\/svg\+xml$/i.test(contentType.trim()) && !/; *charset=/i.test(contentType)) {
+    const imageSvgHeaders = new Headers(response.headers);
+    imageSvgHeaders.set("content-type", "image/svg+xml; charset=utf-8");
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: imageSvgHeaders,
+    });
+  }
   const ext = url.pathname.toLowerCase().match(/\.([a-z0-9]+)(?:\?.*)?$/)?.[0] || "";
   const expected = TEXT_CONTENT_TYPES.get(ext);
   if (!expected) return response;
