@@ -144,6 +144,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复表单字段缺少id/name导致可访问性告警",
   "修正OCR解析优先按冒号角色匹配，避免无冒号命中有冒号角色",
   "修正分享图头像取图位置",
   "统一操作界面献祭图标",
@@ -3252,7 +3253,16 @@ function renderSingleTeamLegacy() {
         </button>
         <label class="speed-control">
           <span>蓄</span>
-          <input type="number" min="0" max="100" step="1" value="${Number(state.chargeSpeeds[index]) || 0}" data-speed-index="${index}" />
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            name="legacy-speed-${index}"
+            id="legacy-speed-${index}"
+            value="${Number(state.chargeSpeeds[index]) || 0}"
+            data-speed-index="${index}"
+          />
           <span>%</span>
         </label>
       `
@@ -3413,13 +3423,20 @@ function createSlotSettingsModal() {
   const chargeSpeedEntries = getSavedCharacterChargeSpeedEntries(character, teamKey);
   const showChargeSpeedSettings = canEditChargeSpeed(character);
   const chargeSpeedPreviewFrame = getChargeSpeedPreviewFrame(character, index, simulationTeamKey, chargeSpeedValue);
+  const settingsFieldScope = `${teamKey}-${index}`;
   const chargeSpeedEntryOptions = CHARGE_SPEED_ENTRY_OPTIONS.map(
     (option) => `<option value="${option.toFixed(2)}">${formatChargeSpeedEntry(option)}</option>`,
   ).join("");
   const chargeSpeedEntrySelects = chargeSpeedEntries
     .map(
       (entry, entryIndex) => `
-        <select class="slot-settings-speed-entry" data-speed-entry-index="${entryIndex}" aria-label="蓄力速度词条 ${entryIndex + 1}">
+        <select
+          class="slot-settings-speed-entry"
+          data-speed-entry-index="${entryIndex}"
+          name="speed-entry-${settingsFieldScope}-${entryIndex}"
+          id="speed-entry-${settingsFieldScope}-${entryIndex}"
+          aria-label="蓄力速度词条 ${entryIndex + 1}"
+        >
           ${chargeSpeedEntryOptions.replace(`value="${entry.toFixed(2)}"`, `value="${entry.toFixed(2)}" selected`)}
         </select>
       `,
@@ -3449,7 +3466,7 @@ function createSlotSettingsModal() {
               <div class="slot-settings-speed-entry-list">
                 ${chargeSpeedEntrySelects}
               </div>
-              <input class="slot-settings-speed-total" type="number" min="0" max="100" step="1" value="${chargeSpeedValue}" aria-label="最终蓄力速度" />
+              <input class="slot-settings-speed-total" type="number" min="0" max="100" step="1" name="speed-total-${settingsFieldScope}" id="speed-total-${settingsFieldScope}" value="${chargeSpeedValue}" aria-label="最终蓄力速度" />
               <span class="slot-settings-frame-preview">${formatFrameCount(chargeSpeedPreviewFrame)}F</span>
             </div>
           `
@@ -3460,7 +3477,7 @@ function createSlotSettingsModal() {
           ? `
             <label class="settings-field">
               <span>弹容</span>
-              <input class="slot-settings-magazine" type="number" min="20" max="88" step="1" value="${magazineValue}" />
+              <input class="slot-settings-magazine" type="number" min="20" max="88" step="1" name="magazine-${settingsFieldScope}" id="magazine-${settingsFieldScope}" value="${magazineValue}" />
               <span>发</span>
             </label>
           `
@@ -3469,21 +3486,21 @@ function createSlotSettingsModal() {
       <div class="settings-cube-field" role="radiogroup" aria-label="魔方选择">
         <span>魔方</span>
         <label class="settings-cube-option">
-          <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_NONE}"${cubeType === CUBE_TYPE_NONE ? " checked" : ""} />
+          <input class="slot-settings-cube-type" type="radio" name="cube-type-${settingsFieldScope}" value="${CUBE_TYPE_NONE}"${cubeType === CUBE_TYPE_NONE ? " checked" : ""} />
           <span>无魔方</span>
         </label>
         ${
           showChargeSpeedCubeOption
             ? `
               <label class="settings-cube-option is-icon-only" title="蓄速魔方 +${CHARGE_SPEED_CUBE_VALUE.toFixed(2)}%">
-                <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_CHARGE_SPEED}"${cubeType === CUBE_TYPE_CHARGE_SPEED ? " checked" : ""} />
+                <input class="slot-settings-cube-type" type="radio" name="cube-type-${settingsFieldScope}" value="${CUBE_TYPE_CHARGE_SPEED}"${cubeType === CUBE_TYPE_CHARGE_SPEED ? " checked" : ""} />
                 <img class="settings-check-icon" src="assets/icons/ui/cubes/charge-speed.png" alt="" aria-hidden="true" />
               </label>
             `
             : ""
         }
         <label class="settings-cube-option is-icon-only" title="量子魔方">
-          <input class="slot-settings-cube-type" type="radio" name="slot-cube-type" value="${CUBE_TYPE_QUANTUM}"${cubeType === CUBE_TYPE_QUANTUM ? " checked" : ""} />
+          <input class="slot-settings-cube-type" type="radio" name="cube-type-${settingsFieldScope}" value="${CUBE_TYPE_QUANTUM}"${cubeType === CUBE_TYPE_QUANTUM ? " checked" : ""} />
           <img class="settings-check-icon" src="assets/icons/ui/cubes/quantum.png" alt="" aria-hidden="true" />
         </label>
       </div>
@@ -3656,6 +3673,7 @@ function createRosannaSacrificeModal() {
     return null;
   }
   sacrificeFrames[index] = null;
+  const sacrificeScope = `${teamKey}-${rowIndex}-${index}`;
   const targetRows = team
     .map((character, positionIndex) => ({ character, positionIndex }))
     .filter((entry) => entry.character && entry.positionIndex !== index);
@@ -3681,7 +3699,18 @@ function createRosannaSacrificeModal() {
                     <label class="rosanna-sacrifice-row">
                       <span class="rosanna-sacrifice-avatar">${getAvatarMarkup(character)}</span>
                       <span class="rosanna-sacrifice-name">P${positionIndex + 1} ${escapeHtml(character.name)}</span>
-                      <input class="rosanna-sacrifice-frame" type="number" min="0" max="${CHART_MAX_FRAME}" step="1" value="${frame ?? ""}" placeholder="空" data-sacrifice-index="${positionIndex}" />
+                    <input
+                      class="rosanna-sacrifice-frame"
+                      type="number"
+                      min="0"
+                      max="${CHART_MAX_FRAME}"
+                      step="1"
+                      name="rosanna-sacrifice-${sacrificeScope}-${positionIndex}"
+                      id="rosanna-sacrifice-${sacrificeScope}-${positionIndex}"
+                      value="${frame ?? ""}"
+                      placeholder="空"
+                      data-sacrifice-index="${positionIndex}"
+                    />
                       <span>F</span>
                     </label>
                   `;
@@ -5076,7 +5105,15 @@ function renderPaidArenaTeams() {
             <span class="position">P${slotIndex + 1}</span>
             <label class="universal-charge-field" aria-label="P${slotIndex + 1}万能充能值">
               <span class="universal-charge-label">充</span>
-              <input type="text" inputmode="decimal" value="${universalChargeValue || ""}" placeholder="0" data-paid-arena-universal-index="${slotIndex}" />
+              <input
+                type="text"
+                inputmode="decimal"
+                name="paid-universal-${state.paidArenaMode}-${rowIndex}-${slotIndex}"
+                id="paid-universal-${state.paidArenaMode}-${rowIndex}-${slotIndex}"
+                value="${universalChargeValue || ""}"
+                placeholder="0"
+                data-paid-arena-universal-index="${slotIndex}"
+              />
             </label>
           </div>
         `;
@@ -5548,7 +5585,15 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             <span class="position">P${index + 1}</span>
             <label class="universal-charge-field" aria-label="P${index + 1}充能值">
               <span class="universal-charge-label">充</span>
-              <input type="text" inputmode="decimal" value="${universalChargeValue || ""}" placeholder="0" data-universal-index="${index}" />
+              <input
+                type="text"
+                inputmode="decimal"
+                name="universal-${teamKey}-${index}"
+                id="universal-${teamKey}-${index}"
+                value="${universalChargeValue || ""}"
+                placeholder="0"
+                data-universal-index="${index}"
+              />
             </label>
           </div>
         `;
