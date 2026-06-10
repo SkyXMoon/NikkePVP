@@ -19,7 +19,7 @@ const TEXT_CONTENT_TYPES = new Map([
 function normalizeAssetResponseCharset(requestUrl, response) {
   const url = new URL(requestUrl);
   const contentType = response.headers.get("content-type") || "";
-  if (/^image\/svg\+xml$/i.test(contentType.trim()) && !/; *charset=/i.test(contentType)) {
+  if (/^image\/svg\+xml/i.test(contentType.trim()) && !/; *charset=/i.test(contentType)) {
     const imageSvgHeaders = new Headers(response.headers);
     imageSvgHeaders.set("content-type", "image/svg+xml; charset=utf-8");
     return new Response(response.body, {
