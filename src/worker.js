@@ -7,6 +7,32 @@ const JSON_HEADERS = {
   "x-content-type-options": "nosniff",
 };
 
+const TEXT_CONTENT_TYPES = new Map([
+  [".html", "text/html; charset=utf-8"],
+  [".js", "text/javascript; charset=utf-8"],
+  [".css", "text/css; charset=utf-8"],
+  [".json", "application/json; charset=utf-8"],
+  [".svg", "image/svg+xml; charset=utf-8"],
+  [".txt", "text/plain; charset=utf-8"],
+]);
+
+function normalizeAssetResponseCharset(requestUrl, response) {
+  const url = new URL(requestUrl);
+  const contentType = response.headers.get("content-type") || "";
+  const ext = url.pathname.toLowerCase().match(/\.([a-z0-9]+)(?:\?.*)?$/)?.[0] || "";
+  const expected = TEXT_CONTENT_TYPES.get(ext);
+  if (!expected) return response;
+  if (/;\\s*charset=/.test(contentType.toLowerCase())) return response;
+
+  const headers = new Headers(response.headers);
+  headers.set("content-type", expected);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 function json(data, init = {}) {
   return new Response(JSON.stringify(data), {
     ...init,
@@ -66,6 +92,7 @@ export default {
     if (url.pathname.startsWith("/api/")) {
       return handleApi(request, env);
     }
-    return env.ASSETS.fetch(request);
+    const response = await env.ASSETS.fetch(request);
+    return normalizeAssetResponseCharset(request.url, response);
   },
 };
