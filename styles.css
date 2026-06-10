@@ -2541,6 +2541,7 @@ input:focus {
   place-items: center;
   padding: 22px;
   background: rgba(0, 0, 0, 0.58);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
 
@@ -2869,6 +2870,7 @@ input:focus {
   place-items: center;
   padding: 22px;
   background: rgba(0, 0, 0, 0.62);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
 
@@ -2902,6 +2904,7 @@ input:focus {
 @keyframes helpBackdropFadeOut {
   to {
     background: rgba(0, 0, 0, 0);
+    -webkit-backdrop-filter: blur(0);
     backdrop-filter: blur(0);
   }
 }
@@ -2980,6 +2983,7 @@ input:focus {
   place-items: center;
   padding: 22px;
   background: rgba(0, 0, 0, 0.66);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
 
