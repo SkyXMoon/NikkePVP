@@ -4020,7 +4020,6 @@ function setSidebarOpen(open) {
   isSidebarOpen = Boolean(open);
   els.appSidebar?.classList.toggle("is-open", isSidebarOpen);
   if (els.appSidebar) {
-    els.appSidebar.setAttribute("aria-hidden", isSidebarOpen ? "false" : "true");
     els.appSidebar.toggleAttribute("inert", !isSidebarOpen);
   }
   if (els.appSidebarBackdrop) els.appSidebarBackdrop.hidden = !isSidebarOpen;
