@@ -83,15 +83,15 @@ button {
 }
 
 input[type="number"] {
-  appearance: textfield;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
-  appearance: none;
   -webkit-appearance: none;
+  appearance: none;
 }
 
 .app-shell {
@@ -1353,8 +1353,8 @@ input:focus {
   width: 16px;
   height: 16px;
   background: currentColor;
-  mask: var(--team-action-icon) center / contain no-repeat;
   -webkit-mask: var(--team-action-icon) center / contain no-repeat;
+  mask: var(--team-action-icon) center / contain no-repeat;
 }
 
 .copy-team-button .team-action-icon {
@@ -2639,8 +2639,8 @@ input:focus {
   min-height: 28px;
   padding: 0 6px;
   text-align: center;
-  appearance: textfield;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .settings-field input::-webkit-inner-spin-button,
@@ -2688,8 +2688,8 @@ input:focus {
   text-align: center;
   font-size: 11px;
   font-weight: 900;
-  appearance: textfield;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .slot-settings-speed-total::-webkit-inner-spin-button,
@@ -2838,8 +2838,8 @@ input:focus {
   text-align: center;
   font-size: 12px;
   font-weight: 900;
-  appearance: textfield;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .rosanna-sacrifice-frame::-webkit-inner-spin-button,
@@ -3457,8 +3457,8 @@ input:focus {
   min-height: 26px;
   padding: 0 6px;
   text-align: center;
-  appearance: textfield;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .speed-control input::-webkit-inner-spin-button,
