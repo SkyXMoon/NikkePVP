@@ -331,6 +331,7 @@ const els = {
   chargeChart: document.querySelector("#chargeChart"),
   lineupSlots: document.querySelector("#lineupSlots"),
   appVersion: document.querySelector("#appVersion"),
+  battlePowerStrip: document.querySelector(".battle-power-strip"),
   paidInferenceButton: document.querySelector("#paidInferenceButton"),
   paidCModeButton: document.querySelector("#paidCModeButton"),
   paidPModeButton: document.querySelector("#paidPModeButton"),
@@ -7154,6 +7155,14 @@ function formatBattlePower(value) {
 }
 
 function renderBattlePowerStrip() {
+  if (els.battlePowerStrip) {
+    const shouldHide = isPaidArenaModeActive();
+    els.battlePowerStrip.hidden = shouldHide;
+    if (shouldHide) {
+      return;
+    }
+  }
+
   const base = sanitizeBattlePowerBase(state.battlePowerBase);
   const ratio = 1 - BATTLE_POWER_ADVANTAGE_RATE;
   if (els.battlePowerBaseInput && document.activeElement !== els.battlePowerBaseInput) {
