@@ -368,6 +368,7 @@ let draggedTeamKey = null;
 let draggedPaidArenaRowIndex = null;
 let draggedLineupIndex = null;
 let pointerTeamDrag = null;
+let isTeamSlotDragActive = false;
 let suppressTeamSlotClick = false;
 let suppressLineupClick = false;
 let resizeRenderId = null;
@@ -1084,6 +1085,29 @@ function isTransferWithFiles(event) {
 
   const types = [...(dataTransfer.types || [])].map((item) => String(item || "").toLowerCase());
   return types.includes("files") || types.includes("file");
+}
+
+function isInternalTeamSlotDrag(event) {
+  const dataTransfer = event?.dataTransfer;
+  if (!dataTransfer) return false;
+
+  if (
+    isTeamSlotDragActive ||
+    draggedTeamIndex !== null ||
+    draggedTeamKey !== null ||
+    draggedPaidArenaRowIndex !== null ||
+    pointerTeamDrag?.active
+  ) {
+    return true;
+  }
+
+  const plain = String(dataTransfer.getData?.("text/plain") || "").trim();
+  if (!plain) return false;
+  if (/^\d+$/.test(plain)) return true;
+  if (/^[a-zA-Z-]+:\d+:\d+$/.test(plain)) return true;
+  if (/^[a-zA-Z-]+:\d+$/.test(plain)) return true;
+
+  return false;
 }
 
 function getOcrDropSlotContext(event) {
@@ -2896,6 +2920,7 @@ function startPointerTeamDrag(event, slot, teamKey, index) {
   draggedTeamIndex = index;
   draggedTeamKey = teamKey;
   draggedPaidArenaRowIndex = pointerTeamDrag.rowIndex ?? null;
+  isTeamSlotDragActive = true;
   slot.classList.add("is-dragging");
   updatePointerTeamDragTarget(event.clientX, event.clientY);
 }
@@ -2937,6 +2962,7 @@ function finishPointerTeamDrag(event) {
   draggedTeamIndex = null;
   draggedTeamKey = null;
   draggedPaidArenaRowIndex = null;
+  isTeamSlotDragActive = false;
 
   if (!drag.active) return;
   suppressTeamSlotClick = true;
@@ -3280,6 +3306,7 @@ function renderSingleTeamLegacy() {
         return;
       }
       draggedTeamIndex = index;
+      isTeamSlotDragActive = true;
       slot.classList.add("is-dragging");
       event.dataTransfer.effectAllowed = "move";
       event.dataTransfer.setData("text/plain", String(index));
@@ -3288,22 +3315,27 @@ function renderSingleTeamLegacy() {
 
     slot.addEventListener("dragend", () => {
       draggedTeamIndex = null;
+      isTeamSlotDragActive = false;
       els.teamSlots.querySelectorAll(".team-slot").forEach((teamSlot) => {
         teamSlot.classList.remove("is-dragging", "is-drop-target");
       });
     });
 
       slot.addEventListener("dragover", (event) => {
+        const isInternalDrag = isInternalTeamSlotDrag(event);
+        if (isInternalDrag) {
+          if (draggedTeamIndex === null || draggedTeamIndex === index) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+          slot.classList.add("is-drop-target");
+          return;
+        }
         if (isTransferWithFiles(event)) {
           event.preventDefault();
           event.dataTransfer.dropEffect = "copy";
           slot.classList.add("is-drop-target");
           return;
         }
-        if (draggedTeamIndex === null || draggedTeamIndex === index) return;
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-        slot.classList.add("is-drop-target");
       });
 
     slot.addEventListener("dragleave", () => {
@@ -3313,6 +3345,11 @@ function renderSingleTeamLegacy() {
       slot.addEventListener("drop", (event) => {
         event.preventDefault();
         slot.classList.remove("is-drop-target");
+        if (isInternalTeamSlotDrag(event)) {
+          const sourceIndex = Number(event.dataTransfer.getData("text/plain") || draggedTeamIndex);
+          moveTeamSlot(sourceIndex, index);
+          return;
+        }
         const files = getTransferFiles(event);
         if (isTransferWithFiles(event)) {
           if (!character) {
@@ -5209,40 +5246,46 @@ function renderPaidArenaTeams() {
       });
 
       slot.addEventListener("dragstart", (event) => {
-        if (!character || isTeamSlotDragControl(event.target)) {
-          event.preventDefault();
-          return;
-        }
-        draggedTeamIndex = slotIndex;
-        draggedTeamKey = "paidArena";
-        draggedPaidArenaRowIndex = rowIndex;
-        slot.classList.add("is-dragging");
-        event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("text/plain", `paidArena:${rowIndex}:${slotIndex}`);
-        setTeamSlotDragImage(event, slot);
-      });
+      if (!character || isTeamSlotDragControl(event.target)) {
+        event.preventDefault();
+        return;
+      }
+      draggedTeamIndex = slotIndex;
+      draggedTeamKey = "paidArena";
+      draggedPaidArenaRowIndex = rowIndex;
+      isTeamSlotDragActive = true;
+      slot.classList.add("is-dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", `paidArena:${rowIndex}:${slotIndex}`);
+      setTeamSlotDragImage(event, slot);
+    });
 
-      slot.addEventListener("dragend", () => {
-        draggedTeamIndex = null;
-        draggedTeamKey = null;
-        draggedPaidArenaRowIndex = null;
-        els.teamSlots.querySelectorAll(".team-slot").forEach((teamSlot) => {
-          teamSlot.classList.remove("is-dragging", "is-drop-target");
-        });
+    slot.addEventListener("dragend", () => {
+      draggedTeamIndex = null;
+      draggedTeamKey = null;
+      draggedPaidArenaRowIndex = null;
+      isTeamSlotDragActive = false;
+      els.teamSlots.querySelectorAll(".team-slot").forEach((teamSlot) => {
+        teamSlot.classList.remove("is-dragging", "is-drop-target");
       });
+    });
 
       slot.addEventListener("dragover", (event) => {
+        const isInternalDrag = isInternalTeamSlotDrag(event);
+        if (isInternalDrag) {
+          if (draggedTeamIndex === null) return;
+          if (draggedTeamKey === "paidArena" && draggedPaidArenaRowIndex === rowIndex && draggedTeamIndex === slotIndex) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+          slot.classList.add("is-drop-target");
+          return;
+        }
         if (isTransferWithFiles(event)) {
           event.preventDefault();
           event.dataTransfer.dropEffect = "copy";
           slot.classList.add("is-drop-target");
           return;
         }
-        if (draggedTeamIndex === null) return;
-        if (draggedTeamKey === "paidArena" && draggedPaidArenaRowIndex === rowIndex && draggedTeamIndex === slotIndex) return;
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-        slot.classList.add("is-drop-target");
       });
 
       slot.addEventListener("dragleave", () => {
@@ -5252,6 +5295,13 @@ function renderPaidArenaTeams() {
       slot.addEventListener("drop", (event) => {
         event.preventDefault();
         slot.classList.remove("is-drop-target");
+        if (isInternalTeamSlotDrag(event)) {
+          const [, sourceRowText, sourceIndexText] = String(
+            event.dataTransfer.getData("text/plain") || `paidArena:${draggedPaidArenaRowIndex}:${draggedTeamIndex}`,
+          ).split(":");
+          movePaidArenaSlot(Number(sourceRowText), Number(sourceIndexText), rowIndex, slotIndex);
+          return;
+        }
         const files = getTransferFiles(event);
         if (isTransferWithFiles(event)) {
           if (!character) {
@@ -5618,6 +5668,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
         }
         draggedTeamIndex = index;
         draggedTeamKey = teamKey;
+        isTeamSlotDragActive = true;
         slot.classList.add("is-dragging");
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", `${teamKey}:${index}`);
@@ -5627,22 +5678,27 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       slot.addEventListener("dragend", () => {
         draggedTeamIndex = null;
         draggedTeamKey = null;
+        isTeamSlotDragActive = false;
         els.teamSlots.querySelectorAll(".team-slot").forEach((teamSlot) => {
           teamSlot.classList.remove("is-dragging", "is-drop-target");
         });
       });
 
       slot.addEventListener("dragover", (event) => {
+        const isInternalDrag = isInternalTeamSlotDrag(event);
+        if (isInternalDrag) {
+          if (draggedTeamIndex === null || (draggedTeamKey === teamKey && draggedTeamIndex === index)) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+          slot.classList.add("is-drop-target");
+          return;
+        }
         if (isTransferWithFiles(event)) {
           event.preventDefault();
           event.dataTransfer.dropEffect = "copy";
           slot.classList.add("is-drop-target");
           return;
         }
-        if (draggedTeamIndex === null || (draggedTeamKey === teamKey && draggedTeamIndex === index)) return;
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-        slot.classList.add("is-drop-target");
       });
 
       slot.addEventListener("dragleave", () => {
@@ -5652,6 +5708,15 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       slot.addEventListener("drop", (event) => {
         event.preventDefault();
         slot.classList.remove("is-drop-target");
+        if (isInternalTeamSlotDrag(event)) {
+          const [sourceTeamKey, sourceIndexText] = String(
+            event.dataTransfer.getData("text/plain") || `${draggedTeamKey}:${draggedTeamIndex}`,
+          ).split(":");
+          if (sourceTeamKey && sourceIndexText) {
+            moveTeamSlot(sourceTeamKey, Number(sourceIndexText), teamKey, index);
+          }
+          return;
+        }
         const files = getTransferFiles(event);
         if (isTransferWithFiles(event)) {
           if (!character) {
