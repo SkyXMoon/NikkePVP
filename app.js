@@ -112,6 +112,7 @@ const OCR_SPACE_API_KEY = "K82166217988957";
 const OCR_SPACE_API_URL = "https://api.ocr.space/parse/image";
 const OCR_SPACE_LANGUAGE = "chs";
 const OCR_SPACE_ENGINE = 3;
+const OCR_LARGE_IMAGE_THRESHOLD_BYTES = 1024 * 1024;
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
   AR: "步枪",
@@ -230,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR识别图片超过1MB时支持先框选识别区域",
   "空枪反推中全发射器共同满足的候选值独立标红",
   "分享图片支持跟随深色/浅色主题",
   "冠军/特殊竞技场默认显示进攻队伍并支持攻防队伍交换",
@@ -238,7 +240,6 @@ const CHANGELOG_ITEMS = [
   "总充能hit明细改为目标位分布格式",
   "总充能详情将hit信息合并到各角色充能行",
   "诺雅额外机制改为额外效果不再计入hit",
-  "总充能详情补充各站位累计造成hit来源",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -1017,6 +1018,188 @@ async function parseImageWithOcrSpace(file) {
   return cleanOcrTextForRoles(parsedText);
 }
 
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("图片加载失败"));
+    };
+    image.src = url;
+  });
+}
+
+function canvasToBlob(canvas, type = "image/png", quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("图片裁剪失败"));
+    }, type, quality);
+  });
+}
+
+function createOcrCropFileName(file) {
+  const rawName = String(file?.name || "ocr-image").replace(/\.[^.]+$/, "");
+  return `${rawName}-crop.png`;
+}
+
+function normalizeCropRect(rect, bounds) {
+  const x1 = Math.max(0, Math.min(bounds.width, Math.min(rect.x, rect.x + rect.width)));
+  const y1 = Math.max(0, Math.min(bounds.height, Math.min(rect.y, rect.y + rect.height)));
+  const x2 = Math.max(0, Math.min(bounds.width, Math.max(rect.x, rect.x + rect.width)));
+  const y2 = Math.max(0, Math.min(bounds.height, Math.max(rect.y, rect.y + rect.height)));
+  return {
+    x: x1,
+    y: y1,
+    width: Math.max(1, x2 - x1),
+    height: Math.max(1, y2 - y1),
+  };
+}
+
+async function cropImageFile(file, cropRect, displaySize, image) {
+  const scaleX = image.naturalWidth / displaySize.width;
+  const scaleY = image.naturalHeight / displaySize.height;
+  const sourceX = Math.max(0, Math.min(image.naturalWidth - 1, Math.floor(cropRect.x * scaleX)));
+  const sourceY = Math.max(0, Math.min(image.naturalHeight - 1, Math.floor(cropRect.y * scaleY)));
+  const sourceWidth = Math.max(1, Math.min(image.naturalWidth - sourceX, Math.floor(cropRect.width * scaleX)));
+  const sourceHeight = Math.max(1, Math.min(image.naturalHeight - sourceY, Math.floor(cropRect.height * scaleY)));
+  const canvas = document.createElement("canvas");
+  canvas.width = sourceWidth;
+  canvas.height = sourceHeight;
+  const context = canvas.getContext("2d");
+  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
+  const blob = await canvasToBlob(canvas, "image/png");
+  return new File([blob], createOcrCropFileName(file), { type: "image/png" });
+}
+
+async function selectOcrImageCrop(file) {
+  const image = await loadImageFromFile(file);
+  return new Promise((resolve, reject) => {
+    const backdrop = document.createElement("div");
+    backdrop.className = "ocr-crop-backdrop";
+    backdrop.innerHTML = `
+      <section class="ocr-crop-modal" role="dialog" aria-modal="true" aria-label="选择识别区域">
+        <div class="ocr-crop-head">
+          <strong>选择识别区域</strong>
+          <button class="ocr-crop-close" type="button" aria-label="取消识别">X</button>
+        </div>
+        <div class="ocr-crop-body">
+          <div class="ocr-crop-stage">
+            <img class="ocr-crop-image" alt="待识别图片预览" />
+            <div class="ocr-crop-selection" aria-hidden="true"></div>
+          </div>
+          <p class="ocr-crop-tip">拖拽框选需要识别的队伍区域，只会上传选区内容。</p>
+        </div>
+        <div class="ocr-crop-actions">
+          <button class="ocr-crop-cancel" type="button">取消</button>
+          <button class="ocr-crop-confirm" type="button">识别选区</button>
+        </div>
+      </section>
+    `;
+
+    const stage = backdrop.querySelector(".ocr-crop-stage");
+    const preview = backdrop.querySelector(".ocr-crop-image");
+    const selection = backdrop.querySelector(".ocr-crop-selection");
+    const close = () => {
+      URL.revokeObjectURL(preview.src);
+      backdrop.remove();
+    };
+    const rejectCancel = () => {
+      close();
+      reject(new Error("已取消识别"));
+    };
+    let displaySize = { width: 1, height: 1 };
+    let cropRect = null;
+    let dragStart = null;
+
+    const setSelectionRect = (rect) => {
+      cropRect = normalizeCropRect(rect, displaySize);
+      selection.style.left = `${cropRect.x}px`;
+      selection.style.top = `${cropRect.y}px`;
+      selection.style.width = `${cropRect.width}px`;
+      selection.style.height = `${cropRect.height}px`;
+      selection.classList.toggle("is-visible", cropRect.width > 2 && cropRect.height > 2);
+    };
+
+    const resetDefaultSelection = () => {
+      const rect = preview.getBoundingClientRect();
+      displaySize = { width: Math.max(1, rect.width), height: Math.max(1, rect.height) };
+      setSelectionRect({ x: 0, y: 0, width: displaySize.width, height: displaySize.height });
+    };
+
+    preview.addEventListener("load", resetDefaultSelection, { once: true });
+    const imageUrl = URL.createObjectURL(file);
+    preview.src = imageUrl;
+    window.setTimeout(resetDefaultSelection, 0);
+
+    stage.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      const rect = stage.getBoundingClientRect();
+      displaySize = { width: Math.max(1, rect.width), height: Math.max(1, rect.height) };
+      dragStart = {
+        x: Math.max(0, Math.min(displaySize.width, event.clientX - rect.left)),
+        y: Math.max(0, Math.min(displaySize.height, event.clientY - rect.top)),
+      };
+      stage.setPointerCapture?.(event.pointerId);
+      setSelectionRect({ x: dragStart.x, y: dragStart.y, width: 1, height: 1 });
+    });
+
+    stage.addEventListener("pointermove", (event) => {
+      if (!dragStart) return;
+      event.preventDefault();
+      const rect = stage.getBoundingClientRect();
+      const currentX = Math.max(0, Math.min(displaySize.width, event.clientX - rect.left));
+      const currentY = Math.max(0, Math.min(displaySize.height, event.clientY - rect.top));
+      setSelectionRect({
+        x: dragStart.x,
+        y: dragStart.y,
+        width: currentX - dragStart.x,
+        height: currentY - dragStart.y,
+      });
+    });
+
+    const finishDrag = (event) => {
+      if (!dragStart) return;
+      stage.releasePointerCapture?.(event.pointerId);
+      dragStart = null;
+    };
+    stage.addEventListener("pointerup", finishDrag);
+    stage.addEventListener("pointercancel", finishDrag);
+
+    backdrop.querySelector(".ocr-crop-confirm").addEventListener("click", async (event) => {
+      event.preventDefault();
+      try {
+        const normalizedRect = cropRect || { x: 0, y: 0, width: displaySize.width, height: displaySize.height };
+        const croppedFile = await cropImageFile(file, normalizedRect, displaySize, image);
+        close();
+        resolve(croppedFile);
+      } catch (error) {
+        close();
+        reject(error);
+      }
+    });
+    backdrop.querySelector(".ocr-crop-close").addEventListener("click", rejectCancel);
+    backdrop.querySelector(".ocr-crop-cancel").addEventListener("click", rejectCancel);
+    backdrop.addEventListener("click", (event) => {
+      if (event.target === backdrop) rejectCancel();
+    });
+    backdrop.querySelector(".ocr-crop-modal").addEventListener("click", (event) => event.stopPropagation());
+
+    document.body.append(backdrop);
+  });
+}
+
+async function prepareOcrImageFile(file) {
+  if (!file || Number(file.size) <= OCR_LARGE_IMAGE_THRESHOLD_BYTES) return file;
+  showToast("图片超过1MB，请选择识别区域。", { persistent: true });
+  return selectOcrImageCrop(file);
+}
+
 function formatOcrToastMessage(result, teamLabel) {
   const added = Array.isArray(result?.added) ? result.added : [];
   const warnings = Array.isArray(result?.warnings) ? result.warnings : [];
@@ -1114,8 +1297,8 @@ async function fillTeamSlotsWithOcrResult(teamKey, startIndex, files) {
   }
 
   let recognizedCharacters = [];
-  const file = imageFiles[0];
   try {
+    const file = await prepareOcrImageFile(imageFiles[0]);
     const rawText = await parseImageWithOcrSpace(file);
     const result = parseFileNamesFromOcrText(rawText);
     recognizedCharacters = result.matchedCharacters || [];
@@ -1207,8 +1390,8 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
   }
 
   let recognizedCharacters = [];
-  const file = imageFiles[0];
   try {
+    const file = await prepareOcrImageFile(imageFiles[0]);
     const rawText = await parseImageWithOcrSpace(file);
     const result = parseFileNamesFromOcrText(rawText);
     recognizedCharacters = result.matchedCharacters || [];
