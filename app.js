@@ -42,11 +42,13 @@ const UI_TEXTS = {
     sidebarHelp: "打开页面说明",
     shareButton: "分享",
     shareImageButton: "分享队伍图片",
+    recognizeButton: "识别图片填充队伍",
     sortSummaryLabel: "排序：",
     sortSummaryBy: "充能从高到低",
     filterCommon: "常用",
     filterRegionCN: "国服",
     filterRegionGlobal: "国际服",
+    filterBurst: "爆裂",
     summaryTeamLabels: {
       defense: "防守队",
       attack: "进攻队",
@@ -84,11 +86,13 @@ const UI_TEXTS = {
     sidebarHelp: "Open help panel",
     shareButton: "Share",
     shareImageButton: "Share team image",
+    recognizeButton: "Recognize image",
     sortSummaryLabel: "Sort:",
     sortSummaryBy: "Charge desc",
     filterCommon: "Common",
     filterRegionCN: "CN",
     filterRegionGlobal: "Global",
+    filterBurst: "Burst ",
     summaryTeamLabels: {
       defense: "Defense",
       attack: "Attack",
@@ -235,6 +239,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "补全英文界面核心内容",
   "优化角色数量统计口径",
   "调整帮助页图片识别排序",
   "优化帮助页使用顺序说明",
@@ -244,7 +249,6 @@ const CHANGELOG_ITEMS = [
   "统一角色充能计算为基础充能乘hit乘人数展示",
   "修复充能数值浮点尾差显示",
   "修正爱蜜莉雅额外伤害仅作用本体",
-  "爱蜜莉雅增加额外伤害",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -519,6 +523,19 @@ function getCurrentLanguageText() {
   return UI_TEXTS[normalizeLanguage(state.language)] || UI_TEXTS.zh;
 }
 
+function isEnglishLanguage() {
+  return normalizeLanguage(state.language) === "en";
+}
+
+function localize(zhText, enText) {
+  return isEnglishLanguage() ? enText : zhText;
+}
+
+function getCharacterLocalizedName(character) {
+  if (!character) return "";
+  return isEnglishLanguage() && character.enName ? character.enName : character.name;
+}
+
 function applyLanguage(language) {
   state.language = normalizeLanguage(language);
   const ui = getCurrentLanguageText();
@@ -556,6 +573,23 @@ function applyLanguage(language) {
   if (els.paidInferenceButton) els.paidInferenceButton.setAttribute("title", ui.paidInference);
   if (els.paidCModeButton) els.paidCModeButton.setAttribute("title", ui.paidCMode);
   if (els.paidPModeButton) els.paidPModeButton.setAttribute("title", ui.paidPMode);
+  if (els.paidInferenceButton) els.paidInferenceButton.textContent = isEnglishLanguage() ? "Test" : "测";
+  if (els.paidCModeButton) els.paidCModeButton.textContent = isEnglishLanguage() ? "C" : "冠";
+  if (els.paidPModeButton) els.paidPModeButton.textContent = isEnglishLanguage() ? "P" : "特";
+  els.allowMissedShotsToggle?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Miss" : "空"));
+  els.teamShareButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Img" : "图"));
+  els.swapTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Swap" : "换"));
+  els.clearTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Clear" : "清"));
+  els.mobileShareFab?.querySelector(".share-fab-text")?.replaceChildren(document.createTextNode(ui.shareButton));
+  els.ocrUploadButton?.querySelector(".share-fab-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "OCR" : "识别"));
+  if (els.mobileShareFab) {
+    els.mobileShareFab.setAttribute("aria-label", ui.shareButton);
+    els.mobileShareFab.setAttribute("title", ui.shareButton);
+  }
+  if (els.ocrUploadButton) {
+    els.ocrUploadButton.setAttribute("aria-label", ui.recognizeButton);
+    els.ocrUploadButton.setAttribute("title", ui.recognizeButton);
+  }
   if (els.teamPanelTitle) els.teamPanelTitle.textContent = ui.teamPanelTitle;
   if (els.teamShareButton) {
     els.teamShareButton.setAttribute("aria-label", ui.shareImageButton);
@@ -642,7 +676,7 @@ function getStandardChargeBand(frame) {
         .toFixed(2)
         .replace(/0+$/, "")
         .replace(/\.$/, "");
-  return `等于${formattedRlValue}RL`;
+  return isEnglishLanguage() ? `equals ${formattedRlValue} RL` : `等于${formattedRlValue}RL`;
 }
 
 function getTeamPositionText(finishingPositionIndices = [], teamKey = "attack") {
@@ -700,7 +734,7 @@ function getCharacterChargeFrameInfo(character) {
 function getChargeWeaponDetailLines(character) {
   if (!isChargeWeapon(character)) return [];
   const { seconds, frames } = getCharacterChargeFrameInfo(character);
-  return [`蓄力时间：${formatSeconds(seconds)}s（${frames}F）`];
+  return [localize(`蓄力时间：${formatSeconds(seconds)}s（${frames}F）`, `Charge time: ${formatSeconds(seconds)}s (${frames}F)`)];
 }
 
 function isAnyBurstStageCharacter(character) {
@@ -750,6 +784,11 @@ function getAvailableBurstMarkers(result) {
     .filter((marker) => Number.isFinite(marker.frame));
 }
 
+function getBurstMarkerLabel(stage) {
+  const stageNumber = String(stage || "").replace("B", "");
+  return isEnglishLanguage() ? `Burst ${stageNumber}` : `爆裂${stageNumber}`;
+}
+
 function getBurstDisplayEndFrame(result) {
   const markers = getAvailableBurstMarkers(result);
   return markers.length ? markers.at(-1).frame : result?.fullFrame || 0;
@@ -779,7 +818,7 @@ function getPaidArenaCopyText() {
   const scarletCounterRows = getPaidArenaScarletCounterEnabled();
   const jackalLinkRows = getPaidArenaJackalLinks();
   const dataTeamKey = getPaidArenaDataTeamKey();
-  const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守队伍" : "进攻队伍";
+  const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? localize("防守队伍", "Defense teams") : localize("进攻队伍", "Attack teams");
   const rows = teams.map((team, rowIndex) => {
     const universalCharges = universalRows[rowIndex] || Array(TEAM_SIZE).fill(0);
     const sacrificeFrames = sacrificeRows[rowIndex] || Array(TEAM_SIZE).fill(null);
@@ -795,9 +834,9 @@ function getPaidArenaCopyText() {
         if (chargeSpeed > 0 && canEditChargeSpeed(character)) return `${character.name}(${chargeSpeed})`;
         return character.name;
       }
-      return universalCharge > 0 ? `充${formatChargeNumber(universalCharge)}%` : "空";
-    }).join("，");
-    return `第${rowIndex + 1}队：${members}\n${getPaidArenaResultText(
+      return universalCharge > 0 ? `${localize("充", "Charge")} ${formatChargeNumber(universalCharge)}%` : localize("空", "Empty");
+    }).join(localize("，", ", "));
+    return `${localize(`第${rowIndex + 1}队`, `Team ${rowIndex + 1}`)}: ${members}\n${getPaidArenaResultText(
       team,
       universalCharges,
       chargeSpeeds,
@@ -1205,21 +1244,21 @@ async function selectOcrImageCrop(file) {
     const backdrop = document.createElement("div");
     backdrop.className = "ocr-crop-backdrop";
     backdrop.innerHTML = `
-      <section class="ocr-crop-modal" role="dialog" aria-modal="true" aria-label="选择识别区域">
+      <section class="ocr-crop-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("选择识别区域", "Select OCR area"))}">
         <div class="ocr-crop-head">
-          <strong>选择识别区域</strong>
-          <button class="ocr-crop-close" type="button" aria-label="取消识别">X</button>
+          <strong>${escapeHtml(localize("选择识别区域", "Select OCR area"))}</strong>
+          <button class="ocr-crop-close" type="button" aria-label="${escapeHtml(localize("取消识别", "Cancel OCR"))}">X</button>
         </div>
         <div class="ocr-crop-body">
           <div class="ocr-crop-stage">
-            <img class="ocr-crop-image" alt="待识别图片预览" />
+            <img class="ocr-crop-image" alt="${escapeHtml(localize("待识别图片预览", "OCR image preview"))}" />
             <div class="ocr-crop-selection" aria-hidden="true"></div>
           </div>
-          <p class="ocr-crop-tip">拖拽框选需要识别的队伍区域，只会上传选区内容。</p>
+          <p class="ocr-crop-tip">${escapeHtml(localize("拖拽框选需要识别的队伍区域，只会上传选区内容。", "Drag to select the team area. Only the selected region will be uploaded."))}</p>
         </div>
         <div class="ocr-crop-actions">
-          <button class="ocr-crop-cancel" type="button">取消</button>
-          <button class="ocr-crop-confirm" type="button">识别选区</button>
+          <button class="ocr-crop-cancel" type="button">${escapeHtml(localize("取消", "Cancel"))}</button>
+          <button class="ocr-crop-confirm" type="button">${escapeHtml(localize("识别选区", "Recognize selection"))}</button>
         </div>
       </section>
     `;
@@ -1321,9 +1360,9 @@ async function selectOcrImageCrop(file) {
 
 async function prepareOcrImageFile(file) {
   if (!file) return file;
-  showToast("请选择OCR识别区域。", { persistent: true });
+  showToast(localize("请选择OCR识别区域。", "Please select the OCR area."), { persistent: true });
   const croppedFile = await selectOcrImageCrop(file);
-  startProgressToast("OCR识别中");
+  startProgressToast(localize("OCR识别中", "Recognizing OCR"));
   return croppedFile;
 }
 
@@ -1339,7 +1378,7 @@ function formatOcrToastMessage(result, teamLabel) {
     if (names) {
       messages.push(names);
     } else {
-      messages.push(`共${added.length}名角色`);
+      messages.push(localize(`共${added.length}名角色`, `${added.length} characters`));
     }
   } else if (warnings.length > 0) {
     warnings.forEach((warning) => {
@@ -1350,13 +1389,13 @@ function formatOcrToastMessage(result, teamLabel) {
 }
 
 async function handleOcrFill(teamKey, startIndex, files) {
-  showToast("检测到图片，准备识别。", { persistent: true });
+  showToast(localize("检测到图片，准备识别。", "Image detected. Preparing OCR."), { persistent: true });
   try {
     const result = await fillTeamSlotsWithOcrResult(teamKey, startIndex, files);
-    const message = formatOcrToastMessage(result, getTeamLabel(normalizeTeamKey(teamKey)) || "当前队伍");
+    const message = formatOcrToastMessage(result, getTeamLabel(normalizeTeamKey(teamKey)) || localize("当前队伍", "current team"));
     stopProgressToast({ keepVisible: true });
     if (message) showToast(message);
-    else showToast("OCR未识别到可填充角色");
+    else showToast(localize("OCR未识别到可填充角色", "OCR did not find fillable characters"));
   } catch (error) {
     stopProgressToast({ keepVisible: true });
     throw error;
@@ -1364,22 +1403,22 @@ async function handleOcrFill(teamKey, startIndex, files) {
 }
 
 async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
-  showToast("检测到图片，准备识别。", { persistent: true });
+  showToast(localize("检测到图片，准备识别。", "Image detected. Preparing OCR."), { persistent: true });
   try {
     const normalizedMode = normalizePaidArenaMode(mode);
     const teams = getPaidArenaTeams(normalizedMode);
     const normalizedRow = Number(rowIndex);
     if (!Number.isInteger(normalizedRow) || normalizedRow < 0 || normalizedRow >= teams.length) {
       stopProgressToast({ keepVisible: true });
-      showToast("无效的队伍行");
+      showToast(localize("无效的队伍行", "Invalid team row"));
       return;
     }
     const result = await fillPaidArenaSlotsWithOcrResult(normalizedRow, startIndex, files);
-    const label = mode === "c" ? "冠军竞技场" : "特殊竞技场";
+    const label = mode === "c" ? getPaidArenaModeLabel("c") : getPaidArenaModeLabel("p");
     const message = formatOcrToastMessage(result, `${label}队伍`);
     stopProgressToast({ keepVisible: true });
     if (message) showToast(message);
-    else showToast("OCR未识别到可填充角色");
+    else showToast(localize("OCR未识别到可填充角色", "OCR did not find fillable characters"));
   } catch (error) {
     stopProgressToast({ keepVisible: true });
     throw error;
@@ -1462,7 +1501,7 @@ async function fillTeamSlotsWithOcrResult(teamKey, startIndex, files) {
     const { entry, targetIndex } = target;
     const alreadyExists = entry.team.some((member) => member && String(member.id) === String(character.id));
     if (alreadyExists) {
-      warnings.push(`${character.name} 已在队伍中`);
+      warnings.push(localize(`${character.name} 已在队伍中`, `${getCharacterLocalizedName(character)} is already in the team`));
       return;
     }
     entry.team[targetIndex] = character;
@@ -1554,7 +1593,7 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
     if (!character?.id) return;
     const { rowEntry, targetIndex } = target;
     if (paidRows.some((entry) => entry.team.some((member) => member && String(member.id) === String(character.id)))) {
-      warnings.push(`${character.name} 已在队伍中`);
+      warnings.push(localize(`${character.name} 已在队伍中`, `${getCharacterLocalizedName(character)} is already in the team`));
       return;
     }
     rowEntry.team[targetIndex] = character;
@@ -1697,12 +1736,12 @@ function handleOcrUploadFiles(files) {
   if (context.mode === "paid") {
     if (context.teamKey) state.paidArenaDataTeamKey = normalizeTeamKey(context.teamKey);
     handlePaidArenaOcrFill(state.paidArenaMode, context.rowIndex, context.slotIndex, files).catch(() => {
-      showToast("OCR识别失败，请重试");
+      showToast(localize("OCR识别失败，请重试", "OCR failed. Please try again."));
     });
     return;
   }
   handleOcrFill(context.teamKey, context.slotIndex, files).catch(() => {
-    showToast("OCR识别失败，请重试");
+    showToast(localize("OCR识别失败，请重试", "OCR failed. Please try again."));
   });
 }
 
@@ -2340,8 +2379,8 @@ function hasEffectiveExtraChargeMultiplier(character) {
 }
 
 function getExtraChargeLabel(character) {
-  if (hasEffectiveExtraDamage(character)) return "额外伤害";
-  if (hasEffectiveExtraChargeEffect(character)) return "额外效果";
+  if (hasEffectiveExtraDamage(character)) return localize("额外伤害", "extra damage");
+  if (hasEffectiveExtraChargeEffect(character)) return localize("额外效果", "extra effect");
   return "";
 }
 
@@ -2386,12 +2425,12 @@ function getBodyOnlyExtraDamageHitMultiplier(character, shotNumber = null) {
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character), shotNumber = null) {
-  if (isCinderella(character)) return "命中+额外伤害";
+  if (isCinderella(character)) return localize("命中+额外伤害", "hit + extra damage");
   const extraChargeLabel = getExtraChargeLabel(character);
   const extraText = extraChargeLabel ? `+${extraChargeLabel}` : "";
-  if (character.weapon === "RL") return `爆炸命中${extraText}`;
-  if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${extraText}`;
-  return `命中${extraText}`;
+  if (character.weapon === "RL") return `${localize("爆炸命中", "explosion hit")}${extraText}`;
+  if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `${localize("命中+穿透", "hit + pierce")}${extraText}`;
+  return `${localize("命中", "hit")}${extraText}`;
 }
 
 function getChargeValue(character, shotNumber = null) {
@@ -2435,7 +2474,9 @@ function getAttackChargeValue(character, shotNumber = null, hitProfile = null, s
 }
 
 function getDelayedExtraLabel(character) {
-  return character?.id === 57 || character?.slug === "哈兰" || character?.name === "哈兰" ? "中毒充能" : "延迟额外";
+  return character?.id === 57 || character?.slug === "哈兰" || character?.name === "哈兰"
+    ? localize("中毒充能", "Poison charge")
+    : localize("延迟额外", "Delayed extra");
 }
 
 function isHarran(character) {
@@ -2480,58 +2521,92 @@ function getChargeBreakdown(character) {
     ...(delayedExtraChargeTotal ? [formatChargeNumber(delayedExtraChargeTotal)] : []),
     ...(fixedSequenceChargeTotal && fixedSequenceMultiplier === 1 ? [formatChargeNumber(fixedSequenceChargeTotal)] : []),
   ];
+  const chargeCalculationLabel = localize("充能计算", "Charge formula");
+  const baseLabel = localize("基础", "Base");
+  const compositionLabel = localize("充能组成", "Charge source");
+  const superAnisLabel = localize("超阿补充", "Anis: Superstar bonus");
+  const quantumText = localize("；", "; ");
   const lines = [
-    `充能计算：${chargeFormulaParts.join(" + ")} = ${formatChargeNumber(getSingleShotChargeValue(character))}%`,
-    `基础：${formatChargeNumber(baseChargeUnit)}%${
+    `${chargeCalculationLabel}: ${chargeFormulaParts.join(" + ")} = ${formatChargeNumber(getSingleShotChargeValue(character))}%`,
+    `${baseLabel}: ${formatChargeNumber(baseChargeUnit)}%${
       character.quantumRelicCubeEnabled || superstarSupplementValue
-        ? `（${formatChargeNumber(rawBaseChargeUnit)}${superstarSupplementValue ? ` + ${formatChargeNumber(superstarSupplementValue)} 超阿补充` : ""}${
-            character.quantumRelicCubeEnabled ? `；${formatChargeNumber(character.burstGen)} × 1.0466` : ""
-          }）`
+        ? `${localize("（", " (")}${formatChargeNumber(rawBaseChargeUnit)}${superstarSupplementValue ? ` + ${formatChargeNumber(superstarSupplementValue)} ${superAnisLabel}` : ""}${
+            character.quantumRelicCubeEnabled ? `${quantumText}${formatChargeNumber(character.burstGen)} × 1.0466` : ""
+          }${localize("）", ")")}`
         : ""
     }`,
-    `充能组成：${getChargeHitLabel(character)}`,
+    `${compositionLabel}: ${getChargeHitLabel(character)}`,
   ];
 
   const extraChargeLabel = getExtraChargeLabel(character);
   if (extraChargeLabel) {
     if (bodyOnlyExtraMultiplier) {
-      lines.push(`${extraChargeLabel}：仅本体，已计入 hit`);
+      lines.push(`${extraChargeLabel}: ${localize("仅本体，已计入 hit", "body only, included in hit")}`);
     } else {
-      lines.push(`${extraChargeLabel}：已计入 hit`);
+      lines.push(`${extraChargeLabel}: ${localize("已计入 hit", "included in hit")}`);
     }
   }
-  if (superstarSupplementValue) lines.push(`超阿补充：基础 +${formatChargeNumber(superstarSupplementValue)}%`);
-  if (isRedHood(character)) lines.push(`攻击蓄速：每次攻击 +${formatNumber(RED_HOOD_CHARGE_SPEED_PER_ATTACK, 2)}%，最多 ${RED_HOOD_MAX_CHARGE_SPEED_STACKS} 层`);
-  if (isEmilia(character)) lines.push(`蓄速变化：第二发起 +${formatChargeNumber(EMILIA_CHARGE_SPEED_AFTER_FIRST_SHOT)}%`);
-  if (flatBonus) lines.push(`固定补充 +${formatChargeNumber(flatBonus)}%`);
+  if (superstarSupplementValue) lines.push(`${superAnisLabel}: ${localize("基础", "base")} +${formatChargeNumber(superstarSupplementValue)}%`);
+  if (isRedHood(character)) {
+    lines.push(
+      localize(
+        `攻击蓄速：每次攻击 +${formatNumber(RED_HOOD_CHARGE_SPEED_PER_ATTACK, 2)}%，最多 ${RED_HOOD_MAX_CHARGE_SPEED_STACKS} 层`,
+        `Attack charge speed: +${formatNumber(RED_HOOD_CHARGE_SPEED_PER_ATTACK, 2)}% per attack, max ${RED_HOOD_MAX_CHARGE_SPEED_STACKS} stacks`,
+      ),
+    );
+  }
+  if (isEmilia(character)) {
+    lines.push(
+      localize(
+        `蓄速变化：第二发起 +${formatChargeNumber(EMILIA_CHARGE_SPEED_AFTER_FIRST_SHOT)}%`,
+        `Charge speed change: +${formatChargeNumber(EMILIA_CHARGE_SPEED_AFTER_FIRST_SHOT)}% from 2nd shot`,
+      ),
+    );
+  }
+  if (flatBonus) lines.push(localize(`固定补充 +${formatChargeNumber(flatBonus)}%`, `Fixed bonus +${formatChargeNumber(flatBonus)}%`));
   if (character.hitCountExtraEvents?.length) {
     lines.push(
-      `攻击追加：${character.hitCountExtraEvents
+      `${localize("攻击追加", "Attack extra")}: ${character.hitCountExtraEvents
         .map((event) => {
-          const triggerText = event.every ? `每${event.every}发` : `第${event.hit}次`;
-          const delayText = event.delayFrames ? `${event.delayFrames}帧后 ` : "";
+          const triggerText = event.every
+            ? localize(`每${event.every}发`, `every ${event.every} shots`)
+            : localize(`第${event.hit}次`, `hit ${event.hit}`);
+          const delayText = event.delayFrames ? localize(`${event.delayFrames}帧后 `, `${event.delayFrames}F later `) : "";
           return `${triggerText}${delayText} +${formatChargeNumber(baseChargeUnit * event.segments * extraMultiplier)}%`;
         })
-        .join("，")}`,
+        .join(localize("，", ", "))}`,
     );
   }
   if (character.magazineEmptyExtraCharge) {
     lines.push(
-      `尾弹追加：打完弹夹后${Number(character.magazineEmptyExtraDelayFrames) || 12}帧 +${formatChargeNumber(character.magazineEmptyExtraCharge)}%`,
+      localize(
+        `尾弹追加：打完弹夹后${Number(character.magazineEmptyExtraDelayFrames) || 12}帧 +${formatChargeNumber(character.magazineEmptyExtraCharge)}%`,
+        `Tail shot bonus: ${Number(character.magazineEmptyExtraDelayFrames) || 12}F after magazine empty +${formatChargeNumber(character.magazineEmptyExtraCharge)}%`,
+      ),
     );
   }
   if (isHarran(character)) {
-    lines.push(`中毒充能：第一发命中后每60F +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`);
+    lines.push(
+      localize(
+        `中毒充能：第一发命中后每60F +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
+        `Poison charge: every 60F after first hit +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
+      ),
+    );
   } else if (character.delayedExtraHits?.length) {
     const delayedLabel = getDelayedExtraLabel(character);
     lines.push(
-      `${delayedLabel}：${character.delayedExtraHits
-        .map((event) => `${event.delayFrames}帧后 +${formatChargeNumber(baseChargeUnit * event.segments * extraMultiplier)}%`)
-        .join("，")}`,
+      `${delayedLabel}: ${character.delayedExtraHits
+        .map((event) => localize(`${event.delayFrames}帧后 +${formatChargeNumber(baseChargeUnit * event.segments * extraMultiplier)}%`, `${event.delayFrames}F later +${formatChargeNumber(baseChargeUnit * event.segments * extraMultiplier)}%`))
+        .join(localize("，", ", "))}`,
     );
   }
   if (fixedSequenceChargeTotal) {
-    lines.push(`引导连射：蓄力后引导共计${VESTI_TACTICAL_HIT_OFFSETS.length}发`);
+    lines.push(
+      localize(
+        `引导连射：蓄力后引导共计${VESTI_TACTICAL_HIT_OFFSETS.length}发`,
+        `Guided burst: ${VESTI_TACTICAL_HIT_OFFSETS.length} guided shots after charge`,
+      ),
+    );
   }
 
   return lines.join("\n");
@@ -2539,8 +2614,8 @@ function getChargeBreakdown(character) {
 
 function getCharacterDetailText(character) {
   return [
-    `${getCharacterDisplayName(character)}（${character.rarity || "SSR"}）（${character.weapon || "-"}）`,
-    `最终单发充能：${formatChargeNumber(getSingleShotChargeValue(character))}%`,
+    `${getCharacterDisplayName(character)}${localize("（", " (")}${character.rarity || "SSR"}${localize("）（", ") (")}${character.weapon || "-"}${localize("）", ")")}`,
+    localize(`最终单发充能：${formatChargeNumber(getSingleShotChargeValue(character))}%`, `Final charge per shot: ${formatChargeNumber(getSingleShotChargeValue(character))}%`),
     ...getChargeWeaponDetailLines(character),
     getChargeBreakdown(character),
   ].join("\n");
@@ -2554,7 +2629,8 @@ function getCharacterEnglishName(character) {
 
 function getCharacterDisplayName(character) {
   const englishName = getCharacterEnglishName(character);
-  return englishName ? `${character.name}（${englishName}）` : character.name;
+  if (!englishName) return character.name;
+  return isEnglishLanguage() ? `${englishName} (${character.name})` : `${character.name}（${englishName}）`;
 }
 
 function getCharacterSearchText(character) {
@@ -2594,12 +2670,12 @@ function showCharacterTooltip(character, index, tile) {
   tooltip.innerHTML = `
     <div class="character-tooltip-head">
       <strong>${escapeHtml(getCharacterDisplayName(character))}</strong>
-      <span>可右键复制</span>
+      <span>${escapeHtml(localize("可右键复制", "Right-click to copy"))}</span>
     </div>
     <div class="character-tooltip-meta">
       #${index + 1} · ${escapeHtml(character.rarity || "SSR")} · ${escapeHtml(character.weapon)} · ${escapeHtml(character.burstStage)} · ${escapeHtml(getRegionLabel(character))}
     </div>
-    <div class="character-tooltip-main">最终单发 ${formatChargeNumber(getSingleShotChargeValue(character))}%</div>
+    <div class="character-tooltip-main">${escapeHtml(localize("最终单发", "Final per shot"))} ${formatChargeNumber(getSingleShotChargeValue(character))}%</div>
     <div class="character-tooltip-lines">
       ${detailLines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}
     </div>
@@ -2807,12 +2883,12 @@ function getAttackHitProfile(
 }
 
 function getAttackContributionLabel(character, shotCount = 1, shotNumber = null, hitProfile = null) {
-  const supplementLabel = character.superstarChargeSupplementValue ? "+超阿补充" : "";
+  const supplementLabel = character.superstarChargeSupplementValue ? `+${localize("超阿补充", "Anis: Superstar bonus")}` : "";
   if (hitProfile?.p5CinderellaDecoy) {
     const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
-    return `命中：${actualHitMultiplier} hit${supplementLabel}`;
+    return `${localize("命中", "Hit")}: ${actualHitMultiplier} hit${supplementLabel}`;
   }
-  if (character.weapon === "MG" && shotCount > 1) return `命中${supplementLabel}`;
+  if (character.weapon === "MG" && shotCount > 1) return `${localize("命中", "hit")}${supplementLabel}`;
   return `${getChargeHitLabel(character, getChargeHitMultiplier(character, shotNumber), shotNumber)}${supplementLabel}`;
 }
 
@@ -3466,7 +3542,9 @@ function getCharacterById(id) {
 }
 
 function getRegionLabel(character) {
-  return character.regions.includes("cn") ? "国际 / 国服" : "国际服";
+  if (character.regions.includes("cn") && character.regions.includes("global")) return localize("国际 / 国服", "Global / CN");
+  if (character.regions.includes("cn")) return localize("国服", "CN");
+  return localize("国际服", "Global");
 }
 
 function getAvatarMarkup(character) {
@@ -3490,17 +3568,23 @@ function getCharacterAvatarUrl(character) {
 
 function getTimingLabel(character) {
   if (character.weapon === "MG") {
-    return "暖机 96f×12 / 152f×22 / 180f×14 / 182f后每2f";
+    return localize("暖机 96f×12 / 152f×22 / 180f×14 / 182f后每2f", "Warm-up 96F×12 / 152F×22 / 180F×14 / every 2F after 182F");
   }
   if (character.weapon === "RL") {
     const timing = character.timing || {};
     const flight = timing.projectileFlightFrames ?? timing.projectileFlightFramesByPosition?.P1 ?? character.projectileFlightFrames ?? 16;
-    return `蓄力 ${timing.chargeFrames ?? "-"}f / 飞行 ${flight}f / 转身 ${timing.turnFrames ?? character.turnFrames ?? 16}f`;
+    return localize(
+      `蓄力 ${timing.chargeFrames ?? "-"}f / 飞行 ${flight}f / 转身 ${timing.turnFrames ?? character.turnFrames ?? 16}f`,
+      `Charge ${timing.chargeFrames ?? "-"}F / Flight ${flight}F / Turn ${timing.turnFrames ?? character.turnFrames ?? 16}F`,
+    );
   }
   if (character.weapon === "SR") {
-    return `蓄力 ${character.timing?.chargeFrames ?? "-"}f / 转身 ${character.timing?.turnFrames ?? 16}f`;
+    return localize(
+      `蓄力 ${character.timing?.chargeFrames ?? "-"}f / 转身 ${character.timing?.turnFrames ?? 16}f`,
+      `Charge ${character.timing?.chargeFrames ?? "-"}F / Turn ${character.timing?.turnFrames ?? 16}F`,
+    );
   }
-  return `间隔 ${getChargeFrames(character, 0).interval}f`;
+  return localize(`间隔 ${getChargeFrames(character, 0).interval}f`, `Interval ${getChargeFrames(character, 0).interval}F`);
 }
 
 function getChargeSpeedPreviewFrame(character, positionIndex = 0, teamKey = "attack", chargeSpeed = 0) {
@@ -3926,13 +4010,19 @@ function renderCharacters() {
   const visibleCharacterCount = CHARACTERS.filter(
     (character) => !character.isHidden && character.regions.includes(state.filters.region),
   ).length;
-  els.listCount.textContent = `${characters.length}/${visibleCharacterCount} 名角色`;
+  els.listCount.textContent = `${characters.length}/${visibleCharacterCount} ${getCurrentLanguageText().listCountSuffix}`;
 
   characters.forEach((character, index) => {
     const tile = document.createElement("button");
     tile.type = "button";
     tile.className = `character-tile rarity-${getRarityClass(character)}${pickedIds.has(character.id) ? " is-picked" : ""}`;
-    tile.setAttribute("aria-label", `加入 ${character.name}，${character.weapon}，单发 ${formatChargeNumber(getSingleShotChargeValue(character))}%`);
+    tile.setAttribute(
+      "aria-label",
+      localize(
+        `加入 ${character.name}，${character.weapon}，单发 ${formatChargeNumber(getSingleShotChargeValue(character))}%`,
+        `Add ${getCharacterLocalizedName(character)}, ${character.weapon}, ${formatChargeNumber(getSingleShotChargeValue(character))}% per shot`,
+      ),
+    );
     tile.innerHTML = `
       <span class="tile-avatar">${getAvatarMarkup(character)}</span>
       ${
@@ -4073,7 +4163,7 @@ function renderSingleTeamLegacy() {
             handleOcrFill(state.activeTeamKey, index, files);
             return;
           }
-          showToast("仅可将识别结果填入空栏目");
+          showToast(localize("仅可将识别结果填入空栏目", "OCR results can only be filled into empty slots"));
           return;
         }
         const sourceIndex = Number(event.dataTransfer.getData("text/plain") || draggedTeamIndex);
@@ -4191,7 +4281,7 @@ function createSlotSettingsModal() {
           data-speed-entry-index="${entryIndex}"
           name="speed-entry-${settingsFieldScope}-${entryIndex}"
           id="speed-entry-${settingsFieldScope}-${entryIndex}"
-          aria-label="蓄力速度词条 ${entryIndex + 1}"
+          aria-label="${escapeHtml(localize("蓄力速度词条", "Charge speed line"))} ${entryIndex + 1}"
         >
           ${chargeSpeedEntryOptions.replace(`value="${entry.toFixed(2)}"`, `value="${entry.toFixed(2)}" selected`)}
         </select>
@@ -4206,23 +4296,23 @@ function createSlotSettingsModal() {
   backdrop.className = "slot-settings-backdrop";
   backdrop.setAttribute("role", "presentation");
   backdrop.innerHTML = `
-    <section class="slot-settings-modal" role="dialog" aria-modal="true" aria-label="设置 ${escapeHtml(character.name)}">
+    <section class="slot-settings-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("设置", "Settings"))} ${escapeHtml(getCharacterLocalizedName(character))}">
       <div class="slot-settings-modal-head">
         <div>
           <span class="slot-settings-team">${escapeHtml(context.title)}</span>
-          <strong>${escapeHtml(character.name)}</strong>
+          <strong>${escapeHtml(getCharacterDisplayName(character))}</strong>
         </div>
-        <button class="slot-settings-close" type="button" aria-label="关闭设置">X</button>
+        <button class="slot-settings-close" type="button" aria-label="${escapeHtml(localize("关闭设置", "Close settings"))}">X</button>
       </div>
       ${
         showChargeSpeedSettings
           ? `
             <div class="settings-field settings-speed-entries">
-              <span>蓄速</span>
+              <span>${escapeHtml(localize("蓄速", "Speed"))}</span>
               <div class="slot-settings-speed-entry-list">
                 ${chargeSpeedEntrySelects}
               </div>
-              <input class="slot-settings-speed-total" type="number" min="0" max="100" step="1" name="speed-total-${settingsFieldScope}" id="speed-total-${settingsFieldScope}" value="${chargeSpeedValue}" aria-label="最终蓄力速度" />
+              <input class="slot-settings-speed-total" type="number" min="0" max="100" step="1" name="speed-total-${settingsFieldScope}" id="speed-total-${settingsFieldScope}" value="${chargeSpeedValue}" aria-label="${escapeHtml(localize("最终蓄力速度", "Final charge speed"))}" />
               <span class="slot-settings-frame-preview">${formatFrameCount(chargeSpeedPreviewFrame)}F</span>
             </div>
           `
@@ -4232,35 +4322,35 @@ function createSlotSettingsModal() {
         isScarletSettings
           ? `
             <label class="settings-field">
-              <span>弹容</span>
+              <span>${escapeHtml(localize("弹容", "Ammo"))}</span>
               <input class="slot-settings-magazine" type="number" min="20" max="88" step="1" name="magazine-${settingsFieldScope}" id="magazine-${settingsFieldScope}" value="${magazineValue}" />
-              <span>发</span>
+              <span>${escapeHtml(localize("发", "shots"))}</span>
             </label>
           `
           : ""
       }
-      <div class="settings-cube-field" role="radiogroup" aria-label="魔方选择">
-        <span>魔方</span>
+      <div class="settings-cube-field" role="radiogroup" aria-label="${escapeHtml(localize("魔方选择", "Cube selection"))}">
+        <span>${escapeHtml(localize("魔方", "Cube"))}</span>
         <label class="settings-cube-option">
           <input class="slot-settings-cube-type" type="radio" name="cube-type-${settingsFieldScope}" value="${CUBE_TYPE_NONE}"${cubeType === CUBE_TYPE_NONE ? " checked" : ""} />
-          <span>无魔方</span>
+          <span>${escapeHtml(localize("无魔方", "None"))}</span>
         </label>
         ${
           showChargeSpeedCubeOption
             ? `
-              <label class="settings-cube-option is-icon-only" title="蓄速魔方 +${CHARGE_SPEED_CUBE_VALUE.toFixed(2)}%">
+              <label class="settings-cube-option is-icon-only" title="${escapeHtml(localize("蓄速魔方", "Charge speed cube"))} +${CHARGE_SPEED_CUBE_VALUE.toFixed(2)}%">
                 <input class="slot-settings-cube-type" type="radio" name="cube-type-${settingsFieldScope}" value="${CUBE_TYPE_CHARGE_SPEED}"${cubeType === CUBE_TYPE_CHARGE_SPEED ? " checked" : ""} />
                 <img class="settings-check-icon" src="assets/icons/ui/cubes/charge-speed.png" alt="" aria-hidden="true" />
               </label>
             `
             : ""
         }
-        <label class="settings-cube-option is-icon-only" title="量子魔方">
+        <label class="settings-cube-option is-icon-only" title="${escapeHtml(localize("量子魔方", "Quantum cube"))}">
           <input class="slot-settings-cube-type" type="radio" name="cube-type-${settingsFieldScope}" value="${CUBE_TYPE_QUANTUM}"${cubeType === CUBE_TYPE_QUANTUM ? " checked" : ""} />
           <img class="settings-check-icon" src="assets/icons/ui/cubes/quantum.png" alt="" aria-hidden="true" />
         </label>
       </div>
-      <button class="slot-settings-reset" type="button">重置默认</button>
+      <button class="slot-settings-reset" type="button">${escapeHtml(localize("重置默认", "Reset default"))}</button>
     </section>
   `;
 
@@ -4437,13 +4527,13 @@ function createRosannaSacrificeModal() {
   backdrop.className = "slot-settings-backdrop";
   backdrop.setAttribute("role", "presentation");
   backdrop.innerHTML = `
-    <section class="slot-settings-modal rosanna-sacrifice-modal" role="dialog" aria-modal="true" aria-label="罗珊娜献祭设置">
+    <section class="slot-settings-modal rosanna-sacrifice-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("罗珊娜献祭设置", "Rosanna sacrifice settings"))}">
       <div class="slot-settings-modal-head">
         <div>
           <span class="slot-settings-team">${escapeHtml(isPaidArena ? `${getPaidArenaModeLabel(paidArenaMode)} P${rowIndex + 1}` : getTeamLabel(teamKey))}</span>
-          <strong>罗珊娜献祭</strong>
+          <strong>${escapeHtml(localize("罗珊娜献祭", "Rosanna sacrifice"))}</strong>
         </div>
-        <button class="slot-settings-close" type="button" aria-label="关闭献祭设置">X</button>
+        <button class="slot-settings-close" type="button" aria-label="${escapeHtml(localize("关闭献祭设置", "Close sacrifice settings"))}">X</button>
       </div>
       <div class="rosanna-sacrifice-list">
         ${
@@ -4454,7 +4544,7 @@ function createRosannaSacrificeModal() {
                   return `
                     <label class="rosanna-sacrifice-row">
                       <span class="rosanna-sacrifice-avatar">${getAvatarMarkup(character)}</span>
-                      <span class="rosanna-sacrifice-name">P${positionIndex + 1} ${escapeHtml(character.name)}</span>
+                      <span class="rosanna-sacrifice-name">P${positionIndex + 1} ${escapeHtml(getCharacterLocalizedName(character))}</span>
                     <input
                       class="rosanna-sacrifice-frame"
                       type="number"
@@ -4464,7 +4554,7 @@ function createRosannaSacrificeModal() {
                       name="rosanna-sacrifice-${sacrificeScope}-${positionIndex}"
                       id="rosanna-sacrifice-${sacrificeScope}-${positionIndex}"
                       value="${frame ?? ""}"
-                      placeholder="空"
+                      placeholder="${escapeHtml(localize("空", "None"))}"
                       data-sacrifice-index="${positionIndex}"
                     />
                       <span>F</span>
@@ -4472,10 +4562,10 @@ function createRosannaSacrificeModal() {
                   `;
                 })
                 .join("")
-            : '<p class="rosanna-sacrifice-empty">暂无可献祭角色</p>'
+            : `<p class="rosanna-sacrifice-empty">${escapeHtml(localize("暂无可献祭角色", "No available sacrifice targets"))}</p>`
         }
       </div>
-      <button class="slot-settings-reset rosanna-sacrifice-reset" type="button">重置默认</button>
+      <button class="slot-settings-reset rosanna-sacrifice-reset" type="button">${escapeHtml(localize("重置默认", "Reset default"))}</button>
     </section>
   `;
 
@@ -4571,7 +4661,101 @@ function closeHelpModal() {
 
 function createHelpModal(options = {}) {
   if (!isHelpModalOpen) return null;
-  const sections = [
+  const sections = isEnglishLanguage()
+    ? [
+        {
+          title: "Arena Modes",
+          items: [
+            "Tap C for Champion Arena with 5 teams, or P for Special Arena with 3 teams.",
+            "Without switching modes, the page stays in Normal Arena with defense and attack teams.",
+            "Champion and Special Arena support Side view and ROUND view. ROUND view compares defense N against attack N.",
+            "Each Champion/Special mode has 10 saved plans, and Nikkes cannot be reused within the same mode.",
+            "Tap Test to enter missed-shot inference and estimate the opponent Noah charge speed or Scarlet magazine from your attack timing.",
+          ],
+        },
+        {
+          title: "Sharing",
+          items: [
+            "Tap the floating Share button or the team bar Image button to generate a share image for the current setup.",
+            "Normal Arena shares the timeline, defense vs attack result, and both teams.",
+            "Champion/Special Arena shares each team's result, team icons, and matching timeline.",
+            "Desktop browsers copy the image to the clipboard when possible; mobile browsers open the system share sheet when possible.",
+            "If direct sharing is not supported, the generated image opens in a preview so you can save or share it manually.",
+          ],
+        },
+        {
+          title: "Image Recognition",
+          items: [
+            "Tap Recognize to upload an image, or drag an image onto the timeline area.",
+            "Select the region to scan, then the page recognizes character names inside that region.",
+            "Matched characters are filled into empty slots from the first team in the current mode; full teams continue into the next row.",
+            "Matched names and recognition errors are shown in the toast message.",
+          ],
+        },
+        {
+          title: "Team Slots",
+          items: [
+            "Tap a team to make it active. The active team is highlighted.",
+            "Drag character icons to change positions. Mobile drag is supported.",
+            "Empty slots show P1-P5. You can enter a universal charge value in the bottom of an empty slot.",
+            "Selecting a character replaces the universal charge in that slot. Removing the character resets that value to 0.",
+            "Enter a power threshold above the team area to calculate attack and defense battle-power ranges.",
+            "Drag a Normal Arena plan button from 1-10 to copy that plan into another slot.",
+          ],
+        },
+        {
+          title: "Timeline",
+          items: [
+            "After selecting teams, the timeline shows key charge frames, RL standards, reload/turn windows, missed shots, stun, and special events.",
+            "Move the pointer over the timeline to snap to the nearest key frame and view details.",
+            "Tap a timeline point to view details on mobile.",
+            "The total-charge lane includes attacks, universal charge, Scarlet counter, Jackal link, and Rosanna sacrifice.",
+            "Character charge uses the format: base charge × X hit × Y targets. Hit targets are shown by P1-P5.",
+            "If a team cannot complete Burst 1/2/3, the timeline only shows up to the stage it can reach.",
+          ],
+        },
+        {
+          title: "Character Settings",
+          items: [
+            "Tap the gear on a team icon to edit charge-speed rolls, final charge speed, charge/quantum cube, Scarlet magazine, and other parameters.",
+            "Identical charge-speed rolls are combined before rounding; different rolls are rounded separately and then added.",
+            "You can also type final charge speed directly. Manual input clears the four roll selectors.",
+            "Charge cube adds 2.12% charge speed, rounded as +2. Quantum cube increases base burst generation.",
+            "Characters that do not use charge speed do not show charge-speed settings or charge cube options.",
+            "Scarlet supports counter and magazine settings. Red Hood supports pierce count. Rosanna supports sacrifice frames and reset.",
+          ],
+        },
+        {
+          title: "Special Mechanics",
+          items: [
+            "The Miss toggle enables missed-shot calculation, including Scarlet magazine, RL/SR turn windows, and reload windows.",
+            "Jackal and Poli can enable link behavior. Jackal link generates charge; Poli link only affects shared hit intake and Scarlet counter.",
+            "Scarlet counter, Red Hood pierce, Cinderella firing logic, Snow White: Heavy Arms damage sequence, Liberatio extra hits, Raven DOT, taunt, and stun are included.",
+            "Noah/Noise taunt affects targets starting from the second shot.",
+            "Rosanna removes link effects at 96F. Emilia's body-only extra damage and second-shot charge-speed bonus are included.",
+          ],
+        },
+        {
+          title: "Character List",
+          items: [
+            "Search supports Chinese and English names. Buttons 1/2/3 filter Burst stages. Common and region toggles are saved locally.",
+            "The list searches within the current region/common filters and sorts by final charge efficiency from high to low.",
+            "Tap an already selected character to remove it from the active team.",
+            "Right-click a character card to copy its visible charge details. Hover or tap to view charge details.",
+          ],
+        },
+        {
+          title: "Page Tools",
+          items: [
+            "Open the top-left menu to view changelog, help, feedback, and the current version.",
+            "The question-mark button opens this help page. First-time visitors see this help automatically.",
+            "The sidebar includes dark/light theme and Chinese/English language switches.",
+            "The right-side Share button generates a team image. Recognize fills teams from an image.",
+            "Team bar buttons: Image shares the team image, Swap exchanges attack/defense teams, and Clear clears both teams.",
+          ],
+        },
+      ]
+    : [
     {
       title: "竞技场模式",
       items: [
@@ -4682,13 +4866,13 @@ function createHelpModal(options = {}) {
   backdrop.className = "help-modal-backdrop";
   if (options.intro) backdrop.dataset.intro = "true";
   backdrop.innerHTML = `
-    <section class="help-modal" role="dialog" aria-modal="true" aria-label="页面说明">
+    <section class="help-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("页面说明", "Help"))}">
       <div class="help-modal-head">
         <div>
           <span class="help-modal-kicker">Help</span>
-          <strong>页面说明</strong>
+          <strong>${escapeHtml(localize("页面说明", "Help"))}</strong>
         </div>
-        <button class="help-modal-close" type="button" aria-label="关闭说明">X</button>
+        <button class="help-modal-close" type="button" aria-label="${escapeHtml(localize("关闭说明", "Close help"))}">X</button>
       </div>
       <div class="help-modal-content">
         ${sections
@@ -4737,17 +4921,17 @@ function openChangelogModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "help-modal-backdrop changelog-modal-backdrop";
   backdrop.innerHTML = `
-    <section class="help-modal changelog-modal" role="dialog" aria-modal="true" aria-label="更新日志">
+    <section class="help-modal changelog-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("更新日志", "Changelog"))}">
       <div class="help-modal-head">
         <div>
           <span class="help-modal-kicker">Log</span>
-          <strong>更新日志</strong>
+          <strong>${escapeHtml(localize("更新日志", "Changelog"))}</strong>
         </div>
-        <button class="help-modal-close" type="button" aria-label="关闭更新日志">X</button>
+        <button class="help-modal-close" type="button" aria-label="${escapeHtml(localize("关闭更新日志", "Close changelog"))}">X</button>
       </div>
       <div class="help-modal-content">
         <article class="help-section">
-          <h2>最近 10 条</h2>
+          <h2>${escapeHtml(localize("最近 10 条", "Latest 10 updates"))}</h2>
           <ul>
             ${CHANGELOG_ITEMS.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
           </ul>
@@ -4774,20 +4958,20 @@ function openSuggestionModal() {
   const backdrop = document.createElement("div");
   backdrop.className = "help-modal-backdrop suggestion-modal-backdrop";
   backdrop.innerHTML = `
-    <section class="help-modal suggestion-modal" role="dialog" aria-modal="true" aria-label="关于与建议">
+    <section class="help-modal suggestion-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("关于与建议", "About & Feedback"))}">
       <div class="help-modal-head">
         <div>
           <span class="help-modal-kicker">Contact</span>
-          <strong>关于与建议</strong>
+          <strong>${escapeHtml(localize("关于与建议", "About & Feedback"))}</strong>
         </div>
-        <button class="help-modal-close" type="button" aria-label="关闭关于与建议">X</button>
+        <button class="help-modal-close" type="button" aria-label="${escapeHtml(localize("关闭关于与建议", "Close feedback"))}">X</button>
       </div>
       <div class="help-modal-content">
         <div class="suggestion-qr-wrap">
-          <p class="suggestion-title">如需反馈建议，请加入群聊。</p>
-          <img class="suggestion-qr" src="assets/qrcodes/qqqrcode.png" alt="QQ群二维码" />
+          <p class="suggestion-title">${escapeHtml(localize("如需反馈建议，请加入群聊。", "Join the group chat for feedback and suggestions."))}</p>
+          <img class="suggestion-qr" src="assets/qrcodes/qqqrcode.png" alt="${escapeHtml(localize("QQ群二维码", "QQ group QR code"))}" />
           <a class="suggestion-join-link" href="https://qm.qq.com/q/gGTc312zTy" target="_blank" rel="noopener noreferrer">
-            快速加入
+            ${escapeHtml(localize("快速加入", "Join now"))}
           </a>
         </div>
       </div>
@@ -4933,7 +5117,12 @@ function syncLocalPaidDevAccessControl() {
   if (isLocalDev) {
     els.appVersion.setAttribute("role", "button");
     els.appVersion.setAttribute("tabindex", "0");
-    els.appVersion.setAttribute("title", hasLocalPaidDevAccess() ? "关闭本地付费测试" : "启用本地付费测试");
+    els.appVersion.setAttribute(
+      "title",
+      hasLocalPaidDevAccess()
+        ? localize("关闭本地付费测试", "Disable local paid-feature testing")
+        : localize("启用本地付费测试", "Enable local paid-feature testing"),
+    );
   } else {
     els.appVersion.removeAttribute("role");
     els.appVersion.removeAttribute("tabindex");
@@ -4947,7 +5136,7 @@ function toggleLocalPaidDevAccess() {
   setLocalPaidDevAccess(nextEnabled);
   if (!nextEnabled && state.testMode) setPaidTestMode(false);
   syncLocalPaidDevAccessControl();
-  showToast(nextEnabled ? "已启用本地付费测试" : "已关闭本地付费测试");
+  showToast(nextEnabled ? localize("已启用本地付费测试", "Local paid-feature testing enabled") : localize("已关闭本地付费测试", "Local paid-feature testing disabled"));
 }
 
 function closePaidFeatureModal() {
@@ -5809,23 +5998,24 @@ function renderTestDefenseRow() {
 }
 
 function createPaidFeatureModal(title = "空枪反推") {
+  const modalTitle = isEnglishLanguage() && title === "空枪反推" ? "Missed-shot inference" : title;
   const backdrop = document.createElement("div");
   backdrop.className = "paid-modal-backdrop";
   backdrop.setAttribute("role", "presentation");
   backdrop.innerHTML = `
-    <section class="paid-modal" role="dialog" aria-modal="true" aria-label="功能提示">
+    <section class="paid-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("功能提示", "Feature notice"))}">
       <div class="paid-modal-head">
         <div>
           <span class="paid-modal-kicker">Pro</span>
-          <strong>${escapeHtml(title)}</strong>
+          <strong>${escapeHtml(modalTitle)}</strong>
         </div>
-        <button class="paid-modal-close" type="button" aria-label="关闭">X</button>
+        <button class="paid-modal-close" type="button" aria-label="${escapeHtml(localize("关闭", "Close"))}">X</button>
       </div>
       <div class="paid-modal-content">
-        <p>该功能正在开发中！</p>
+        <p>${escapeHtml(localize("该功能正在开发中！", "This feature is under development."))}</p>
       </div>
       <div class="paid-modal-actions">
-        <button class="paid-modal-confirm" type="button">知道了</button>
+        <button class="paid-modal-confirm" type="button">${escapeHtml(localize("知道了", "Got it"))}</button>
       </div>
     </section>
   `;
@@ -5863,11 +6053,11 @@ function openPaidInferenceFeature() {
 }
 
 function getPaidArenaFeatureTitle(mode) {
-  return mode === "c" ? "冠军竞技场" : "特殊竞技场";
+  return mode === "c" ? localize("冠军竞技场", "Champion Arena") : localize("特殊竞技场", "Special Arena");
 }
 
 function getPaidArenaModeLabel(mode = state.paidArenaMode) {
-  return mode === "c" ? "冠军竞技场" : mode === "p" ? "特殊竞技场" : "";
+  return mode === "c" ? localize("冠军竞技场", "Champion Arena") : mode === "p" ? localize("特殊竞技场", "Special Arena") : "";
 }
 
 function setPaidArenaMode(mode) {
@@ -5921,7 +6111,7 @@ function renderLineupSlots() {
       button.className = `lineup-slot-button${index === activeIndex ? " is-active" : ""}${count ? " has-lineup" : ""}`;
       button.dataset.paidArenaLineupIndex = index;
       button.textContent = String(index + 1);
-      button.title = `${getPaidArenaModeLabel(mode)}方案 ${index + 1}${count ? ` · ${count}` : " · 空"}`;
+      button.title = `${getPaidArenaModeLabel(mode)} ${localize("方案", "Plan")} ${index + 1}${count ? ` · ${count}` : ` · ${localize("空", "Empty")}`}`;
       fragment.append(button);
     });
     els.lineupSlots.replaceChildren(fragment);
@@ -5937,7 +6127,10 @@ function renderLineupSlots() {
     button.dataset.lineupIndex = index;
     button.draggable = true;
     button.textContent = String(index + 1);
-    button.title = `方案 ${index + 1}${count ? ` · ${count}/10` : " · 空"}，可拖动复制到其他方案`;
+    button.title = localize(
+      `方案 ${index + 1}${count ? ` · ${count}/10` : " · 空"}，可拖动复制到其他方案`,
+      `Plan ${index + 1}${count ? ` · ${count}/10` : " · Empty"}, drag to copy to another plan`,
+    );
     button.addEventListener("dragstart", (event) => {
       draggedLineupIndex = index;
       button.classList.add("is-dragging");
@@ -6004,21 +6197,27 @@ function getPaidArenaResultText(
 ) {
   const rowResult =
     result || simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, jackalLink, teamKey);
-  if (!rowResult) return "未配置";
+  if (!rowResult) return localize("未配置", "Not configured");
   if (rowResult.error) return rowResult.error;
   const frame = rowResult.fullFrame;
-  return `等于${formatNumber(frame / 76, 2)}RL(${frame}F)等于${formatNumber(frame / 42 + 1, 2)}SG`;
+  return localize(
+    `等于${formatNumber(frame / 76, 2)}RL(${frame}F)等于${formatNumber(frame / 42 + 1, 2)}SG`,
+    `equals ${formatNumber(frame / 76, 2)} RL (${frame}F), equals ${formatNumber(frame / 42 + 1, 2)} SG`,
+  );
 }
 
 function createPaidArenaDataSourceBar() {
   const dataTeamKey = getPaidArenaSelectedDataTeamKey();
   const bar = document.createElement("div");
   bar.className = "paid-arena-data-source-bar";
+  const attackLabel = localize("进攻队伍", "Attack teams");
+  const defenseLabel = localize("防守队伍", "Defense teams");
+  const swapLabel = localize("交换", "Swap");
   bar.innerHTML = `
-    <div class="paid-arena-data-source-actions" role="group" aria-label="选择显示队伍">
-      <button class="paid-arena-side-button is-attack${dataTeamKey === "attack" ? " is-active" : ""}" type="button" data-paid-data-source="attack">进攻队伍</button>
-      <button class="paid-arena-side-button is-swap" type="button" data-paid-side-swap="1">交换</button>
-      <button class="paid-arena-side-button is-defense${dataTeamKey === "defense" ? " is-active" : ""}" type="button" data-paid-data-source="defense">防守队伍</button>
+    <div class="paid-arena-data-source-actions" role="group" aria-label="${escapeHtml(localize("选择显示队伍", "Choose team side"))}">
+      <button class="paid-arena-side-button is-attack${dataTeamKey === "attack" ? " is-active" : ""}" type="button" data-paid-data-source="attack">${escapeHtml(attackLabel)}</button>
+      <button class="paid-arena-side-button is-swap" type="button" data-paid-side-swap="1">${escapeHtml(swapLabel)}</button>
+      <button class="paid-arena-side-button is-defense${dataTeamKey === "defense" ? " is-active" : ""}" type="button" data-paid-data-source="defense">${escapeHtml(defenseLabel)}</button>
     </div>
   `;
   bar.querySelectorAll("[data-paid-data-source]").forEach((button) => {
@@ -6041,9 +6240,9 @@ function createPaidArenaDisplayModeBar() {
   const bar = document.createElement("div");
   bar.className = "paid-arena-display-mode-bar";
   bar.innerHTML = `
-    <div class="paid-arena-display-mode-actions" role="group" aria-label="显示模式">
-      <button class="${displayMode === "side" ? "is-active" : ""}" type="button" data-paid-display-mode="side">攻防显示</button>
-      <button class="${displayMode === "round" ? "is-active" : ""}" type="button" data-paid-display-mode="round">ROUND显示</button>
+    <div class="paid-arena-display-mode-actions" role="group" aria-label="${escapeHtml(localize("显示模式", "Display mode"))}">
+      <button class="${displayMode === "side" ? "is-active" : ""}" type="button" data-paid-display-mode="side">${escapeHtml(localize("攻防显示", "Side view"))}</button>
+      <button class="${displayMode === "round" ? "is-active" : ""}" type="button" data-paid-display-mode="round">${escapeHtml(localize("ROUND显示", "Round view"))}</button>
     </div>
   `;
   bar.querySelectorAll("[data-paid-display-mode]").forEach((button) => {
@@ -6064,7 +6263,7 @@ function createPaidArenaRoundBar(teamCount) {
   const buttons = Array.from({ length: normalizedCount }, (_, index) => `
     <button class="${index === activeIndex ? "is-active" : ""}" type="button" data-paid-round-index="${index}">R${index + 1}</button>
   `).join("");
-  bar.innerHTML = `<div class="paid-arena-round-actions" role="group" aria-label="ROUND选择">${buttons}</div>`;
+  bar.innerHTML = `<div class="paid-arena-round-actions" role="group" aria-label="${escapeHtml(localize("ROUND选择", "Round selection"))}">${buttons}</div>`;
   bar.querySelectorAll("[data-paid-round-index]").forEach((button) => {
     button.addEventListener("click", (event) => {
       event.preventDefault();
@@ -6153,7 +6352,11 @@ function renderPaidArenaTeams() {
     const isJackalConnecting = Boolean(jackalLinkState.enabled && team.some((member) => member && isLinkProvider(member) && member.id === jackalLinkState.ownerId));
     const jackalTargetIds = new Set(jackalLinkState.targetIds || []);
     const linkOwner = team.find((member) => member && isLinkProvider(member) && member.id === jackalLinkState.ownerId) || null;
-    const linkOwnerName = linkOwner ? (isJackal(linkOwner) ? "豺狼链接" : "波莉链接") : "链接";
+    const linkOwnerName = linkOwner
+      ? isJackal(linkOwner)
+        ? localize("豺狼链接", "Jackal link")
+        : localize("波莉链接", "Poli link")
+      : localize("链接", "Link");
     const hasSacrificeTarget = team.some(
       (member, index) => member && !isRosanna(member) && sanitizeSacrificeFrame(sacrificeFrames[index]) !== null,
     );
@@ -6161,7 +6364,10 @@ function renderPaidArenaTeams() {
     row.className = `team-row paid-arena-row ${dataTeamKey === "defense" ? "is-defense-side" : "is-attack-side"}${state.paidArenaActiveRowIndex === rowIndex ? " is-active" : ""}`;
     row.dataset.paidArenaRowIndex = String(rowIndex);
     row.dataset.paidArenaTeamKey = dataTeamKey;
-    row.setAttribute("aria-label", `${getPaidArenaModeLabel()}${dataTeamKey === "defense" ? "防守" : "进攻"}第${rowIndex + 1}队`);
+    row.setAttribute(
+      "aria-label",
+      `${getPaidArenaModeLabel()} ${dataTeamKey === "defense" ? getTeamLabel("defense") : getTeamLabel("attack")} ${rowIndex + 1}`,
+    );
     row.innerHTML = '<div class="team-slots-row"></div><div class="paid-arena-result-bar"></div>';
     row.addEventListener("click", (event) => {
       if (event.target.closest(".universal-charge-field")) return;
@@ -6209,15 +6415,15 @@ function renderPaidArenaTeams() {
       slot.draggable = Boolean(character);
       slot.innerHTML = character
         ? `
-          <button class="slot-remove" type="button" aria-label="移除 ${escapeHtml(character.name)}">
+          <button class="slot-remove" type="button" aria-label="${escapeHtml(localize("移除", "Remove"))} ${escapeHtml(getCharacterLocalizedName(character))}">
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
           </button>
         `
         : `
           <div class="slot-empty">
             <span class="position">P${slotIndex + 1}</span>
-            <label class="universal-charge-field" aria-label="P${slotIndex + 1}万能充能值">
-              <span class="universal-charge-label">充</span>
+            <label class="universal-charge-field" aria-label="P${slotIndex + 1} ${escapeHtml(localize("万能充能值", "universal charge value"))}">
+              <span class="universal-charge-label">${escapeHtml(localize("充", "C"))}</span>
               <input
                 type="text"
                 inputmode="decimal"
@@ -6237,9 +6443,9 @@ function renderPaidArenaTeams() {
         copyLayer.className = "slot-copy";
         copyLayer.setAttribute("aria-hidden", "true");
         copyLayer.innerHTML = `
-          ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
+          ${isTauntTarget ? `<span class="taunt-mark">${escapeHtml(localize("嘲", "T"))}</span>` : ""}
           ${isSacrificedTarget ? getSacrificeMarkMarkup(sacrificeFrame) : ""}
-          ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
+          ${isFinisher ? `<span class="finish-mark">${escapeHtml(localize("定", "F"))}</span>` : ""}
           ${cubeIconSrc ? `<span class="slot-cube-badge"><img src="${cubeIconSrc}" alt="" /></span>` : ""}
           ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
         `;
@@ -6248,8 +6454,8 @@ function renderPaidArenaTeams() {
         const settingsButton = document.createElement("button");
         settingsButton.className = `slot-settings-toggle${isSettingsOpen ? " is-open" : ""}`;
         settingsButton.type = "button";
-        settingsButton.setAttribute("aria-label", `设置 ${character.name}`);
-        settingsButton.title = "设置";
+        settingsButton.setAttribute("aria-label", `${localize("设置", "Settings")} ${getCharacterLocalizedName(character)}`);
+        settingsButton.title = localize("设置", "Settings");
         settingsButton.innerHTML = '<img src="assets/icons/ui/settings.svg" alt="" aria-hidden="true" />';
         slot.append(settingsButton);
 
@@ -6259,8 +6465,8 @@ function renderPaidArenaTeams() {
             isPaidArenaRosannaSacrificeSettingsOpen(state.paidArenaMode, rowIndex, slotIndex, dataTeamKey) || hasSacrificeTarget ? " is-active" : ""
           }`;
           sacrificeButton.type = "button";
-          sacrificeButton.setAttribute("aria-label", `设置 ${character.name} 献祭`);
-          sacrificeButton.title = "罗珊娜献祭";
+          sacrificeButton.setAttribute("aria-label", `${localize("设置", "Set")} ${getCharacterLocalizedName(character)} ${localize("献祭", "sacrifice")}`);
+          sacrificeButton.title = localize("罗珊娜献祭", "Rosanna sacrifice");
           sacrificeButton.innerHTML = '<img src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />';
           slot.append(sacrificeButton);
         }
@@ -6269,8 +6475,8 @@ function renderPaidArenaTeams() {
           pierceButton.className = `slot-pierce-count${redHoodPierceCount > 0 ? " is-active" : ""}`;
           pierceButton.type = "button";
           pierceButton.dataset.pierceCount = String(redHoodPierceCount);
-          pierceButton.setAttribute("aria-label", `设置 ${character.name} 穿透次数：${redHoodPierceCount}`);
-          pierceButton.title = `穿透次数 ${redHoodPierceCount}`;
+          pierceButton.setAttribute("aria-label", `${localize("设置", "Set")} ${getCharacterLocalizedName(character)} ${localize("穿透次数", "pierce count")}: ${redHoodPierceCount}`);
+          pierceButton.title = `${localize("穿透次数", "Pierce count")} ${redHoodPierceCount}`;
           pierceButton.innerHTML = `
             <img class="slot-pierce-icon" src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />
             ${redHoodPierceCount > 0 ? `<span class="slot-pierce-value">${redHoodPierceCount}</span>` : ""}
@@ -6281,8 +6487,8 @@ function renderPaidArenaTeams() {
           const counterButton = document.createElement("button");
           counterButton.className = `slot-counter-toggle${isScarletCounterEnabled ? " is-active" : ""}`;
           counterButton.type = "button";
-          counterButton.setAttribute("aria-label", `${isScarletCounterEnabled ? "关闭" : "开启"} ${character.name} 反击`);
-          counterButton.title = `红莲反击：${isScarletCounterEnabled ? "开启" : "关闭"}`;
+          counterButton.setAttribute("aria-label", `${isScarletCounterEnabled ? localize("关闭", "Disable") : localize("开启", "Enable")} ${getCharacterLocalizedName(character)} ${localize("反击", "counter")}`);
+          counterButton.title = `${localize("红莲反击", "Scarlet counter")}: ${isScarletCounterEnabled ? localize("开启", "On") : localize("关闭", "Off")}`;
           counterButton.innerHTML = '<img src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />';
           slot.append(counterButton);
         }
@@ -6290,8 +6496,11 @@ function renderPaidArenaTeams() {
           const linkButton = document.createElement("button");
           linkButton.className = `slot-link-toggle${isActiveLinkOwner ? " is-active" : ""}`;
           linkButton.type = "button";
-          linkButton.setAttribute("aria-label", `${isActiveLinkOwner ? "关闭" : "开启"}${isJackal(character) ? "豺狼链接" : "波莉链接"}`);
-          linkButton.title = isJackal(character) ? "豺狼链接" : "波莉链接";
+          linkButton.setAttribute(
+            "aria-label",
+            `${isActiveLinkOwner ? localize("关闭", "Disable") : localize("开启", "Enable")}${isJackal(character) ? localize("豺狼链接", "Jackal link") : localize("波莉链接", "Poli link")}`,
+          );
+          linkButton.title = isJackal(character) ? localize("豺狼链接", "Jackal link") : localize("波莉链接", "Poli link");
           linkButton.innerHTML = '<img src="assets/icons/ui/link.svg" alt="" aria-hidden="true" />';
           slot.append(linkButton);
         }
@@ -6299,8 +6508,11 @@ function renderPaidArenaTeams() {
           const linkTargetButton = document.createElement("button");
           linkTargetButton.className = `slot-link-target${isJackalTarget ? " is-selected" : ""}`;
           linkTargetButton.type = "button";
-          linkTargetButton.setAttribute("aria-label", `${isJackalTarget ? "取消" : "选择"}${linkOwnerName}目标 ${character.name}`);
-          linkTargetButton.title = isJackalTarget ? "取消链接" : "链接目标";
+          linkTargetButton.setAttribute(
+            "aria-label",
+            `${isJackalTarget ? localize("取消", "Cancel") : localize("选择", "Select")}${linkOwnerName}${localize("目标", " target")} ${getCharacterLocalizedName(character)}`,
+          );
+          linkTargetButton.title = isJackalTarget ? localize("取消链接", "Cancel link") : localize("链接目标", "Link target");
           linkTargetButton.innerHTML = isJackalTarget ? '<img src="assets/icons/ui/link.svg" alt="" aria-hidden="true" />' : "<span>+</span>";
           slot.append(linkTargetButton);
         }
@@ -6373,7 +6585,7 @@ function renderPaidArenaTeams() {
         if (isInternalTeamSlotDrag(event)) {
           const source = parsePaidArenaDragPayload(event, dataTeamKey, draggedPaidArenaRowIndex, draggedTeamIndex);
           if (source.teamKey !== dataTeamKey) {
-            showToast("ROUND显示下请在同一侧队伍内拖动");
+            showToast(localize("ROUND显示下请在同一侧队伍内拖动", "In Round view, drag within the same side only"));
             return;
           }
           state.paidArenaDataTeamKey = dataTeamKey;
@@ -6386,11 +6598,11 @@ function renderPaidArenaTeams() {
             const targetRow = rowIndex;
             state.paidArenaDataTeamKey = dataTeamKey;
             handlePaidArenaOcrFill(state.paidArenaMode, targetRow, slotIndex, files).catch(() => {
-              showToast("OCR识别失败，请重试");
+              showToast(localize("OCR识别失败，请重试", "OCR failed. Please try again."));
             });
             return;
           }
-          showToast("仅可将识别结果填入空栏目");
+          showToast(localize("仅可将识别结果填入空栏目", "OCR results can only be filled into empty slots"));
           return;
         }
 
@@ -6628,7 +6840,11 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
     const isJackalConnecting = isJackalLinkEnabled(teamKey);
     const jackalTargetIds = new Set(jackalLinkState.targetIds);
     const linkOwner = getTeamLinkProvider(teamKey);
-    const linkOwnerName = linkOwner ? (isJackal(linkOwner) ? "豺狼链接" : "波莉链接") : "链接";
+    const linkOwnerName = linkOwner
+      ? isJackal(linkOwner)
+        ? localize("豺狼链接", "Jackal link")
+        : localize("波莉链接", "Poli link")
+      : localize("链接", "Link");
     const tauntTargetPositionIndex =
       getTauntTargetState(teamKey === "defense" ? state.defenseTeam : state.team, teamKey, chargeSpeeds)?.positionIndex ?? null;
     team.forEach((character, index) => {
@@ -6664,23 +6880,23 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
       slot.draggable = Boolean(character);
       slot.innerHTML = character
         ? `
-          <button class="slot-remove" type="button" aria-label="移除 ${escapeHtml(character.name)}">
+          <button class="slot-remove" type="button" aria-label="${escapeHtml(localize("移除", "Remove"))} ${escapeHtml(getCharacterLocalizedName(character))}">
             <span class="team-avatar">${getAvatarMarkup(character)}</span>
             <span class="slot-copy" aria-hidden="true">
-              ${isTauntTarget ? '<span class="taunt-mark">嘲</span>' : ""}
+              ${isTauntTarget ? `<span class="taunt-mark">${escapeHtml(localize("嘲", "T"))}</span>` : ""}
               ${isSacrificedTarget ? getSacrificeMarkMarkup(sacrificeFrame) : ""}
-              ${isFinisher ? '<span class="finish-mark">定</span>' : ""}
+              ${isFinisher ? `<span class="finish-mark">${escapeHtml(localize("定", "F"))}</span>` : ""}
               ${cubeIconSrc ? `<span class="slot-cube-badge"><img src="${cubeIconSrc}" alt="" /></span>` : ""}
               ${sideBadgeText ? `<span class="slot-speed-badge">${sideBadgeText}</span>` : ""}
             </span>
           </button>
-          <button class="slot-settings-toggle${isSettingsOpen ? " is-open" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)}" title="设置">
+          <button class="slot-settings-toggle${isSettingsOpen ? " is-open" : ""}" type="button" aria-label="${escapeHtml(localize("设置", "Settings"))} ${escapeHtml(getCharacterLocalizedName(character))}" title="${escapeHtml(localize("设置", "Settings"))}">
             <img src="assets/icons/ui/settings.svg" alt="" aria-hidden="true" />
           </button>
           ${
             isRedHood(character)
               ? `
-                <button class="slot-pierce-count${redHoodPierceCount > 0 ? " is-active" : ""}" type="button" data-pierce-count="${redHoodPierceCount}" aria-label="设置 ${escapeHtml(character.name)} 穿透次数：${redHoodPierceCount}" title="穿透次数 ${redHoodPierceCount}">
+                <button class="slot-pierce-count${redHoodPierceCount > 0 ? " is-active" : ""}" type="button" data-pierce-count="${redHoodPierceCount}" aria-label="${escapeHtml(localize("设置", "Set"))} ${escapeHtml(getCharacterLocalizedName(character))} ${escapeHtml(localize("穿透次数", "pierce count"))}: ${redHoodPierceCount}" title="${escapeHtml(localize("穿透次数", "Pierce count"))} ${redHoodPierceCount}">
                   <img class="slot-pierce-icon" src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />
                   ${redHoodPierceCount > 0 ? `<span class="slot-pierce-value">${redHoodPierceCount}</span>` : ""}
                 </button>
@@ -6690,7 +6906,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           ${
             isScarlet(character)
               ? `
-                <button class="slot-counter-toggle${isScarletCounterEnabled ? " is-active" : ""}" type="button" aria-label="${isScarletCounterEnabled ? "关闭" : "开启"} ${escapeHtml(character.name)} 反击" title="红莲反击：${isScarletCounterEnabled ? "开启" : "关闭"}">
+                <button class="slot-counter-toggle${isScarletCounterEnabled ? " is-active" : ""}" type="button" aria-label="${escapeHtml(isScarletCounterEnabled ? localize("关闭", "Disable") : localize("开启", "Enable"))} ${escapeHtml(getCharacterLocalizedName(character))} ${escapeHtml(localize("反击", "counter"))}" title="${escapeHtml(localize("红莲反击", "Scarlet counter"))}: ${escapeHtml(isScarletCounterEnabled ? localize("开启", "On") : localize("关闭", "Off"))}">
                   <img src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />
                 </button>
               `
@@ -6699,7 +6915,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           ${
             isRosanna(character)
               ? `
-                <button class="slot-sacrifice-toggle${isRosannaSacrificeSettingsOpen(teamKey, index) || hasSacrificeTarget ? " is-active" : ""}" type="button" aria-label="设置 ${escapeHtml(character.name)} 献祭" title="罗珊娜献祭">
+                <button class="slot-sacrifice-toggle${isRosannaSacrificeSettingsOpen(teamKey, index) || hasSacrificeTarget ? " is-active" : ""}" type="button" aria-label="${escapeHtml(localize("设置", "Set"))} ${escapeHtml(getCharacterLocalizedName(character))} ${escapeHtml(localize("献祭", "sacrifice"))}" title="${escapeHtml(localize("罗珊娜献祭", "Rosanna sacrifice"))}">
                   <img src="assets/icons/ui/pierce.svg" alt="" aria-hidden="true" />
                 </button>
               `
@@ -6708,7 +6924,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           ${
             isJackalOwner
               ? `
-                <button class="slot-link-toggle${isActiveLinkOwner ? " is-active" : ""}" type="button" aria-label="${isActiveLinkOwner ? "关闭" : "开启"}${isJackal(character) ? "豺狼链接" : "波莉链接"}" title="${isJackal(character) ? "豺狼链接" : "波莉链接"}">
+                <button class="slot-link-toggle${isActiveLinkOwner ? " is-active" : ""}" type="button" aria-label="${escapeHtml(isActiveLinkOwner ? localize("关闭", "Disable") : localize("开启", "Enable"))}${escapeHtml(isJackal(character) ? localize("豺狼链接", "Jackal link") : localize("波莉链接", "Poli link"))}" title="${escapeHtml(isJackal(character) ? localize("豺狼链接", "Jackal link") : localize("波莉链接", "Poli link"))}">
                   <img src="assets/icons/ui/link.svg" alt="" aria-hidden="true" />
                 </button>
               `
@@ -6717,7 +6933,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
           ${
             canSelectJackalTarget
               ? `
-                <button class="slot-link-target${isJackalTarget ? " is-selected" : ""}" type="button" aria-label="${isJackalTarget ? "取消" : "选择"}${linkOwnerName}目标 ${escapeHtml(character.name)}" title="${isJackalTarget ? "取消链接" : "链接目标"}">
+                <button class="slot-link-target${isJackalTarget ? " is-selected" : ""}" type="button" aria-label="${escapeHtml(isJackalTarget ? localize("取消", "Cancel") : localize("选择", "Select"))}${escapeHtml(linkOwnerName)}${escapeHtml(localize("目标", " target"))} ${escapeHtml(getCharacterLocalizedName(character))}" title="${escapeHtml(isJackalTarget ? localize("取消链接", "Cancel link") : localize("链接目标", "Link target"))}">
                   ${isJackalTarget ? '<img src="assets/icons/ui/link.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
                 </button>
               `
@@ -6727,8 +6943,8 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
         : `
           <div class="slot-empty">
             <span class="position">P${index + 1}</span>
-            <label class="universal-charge-field" aria-label="P${index + 1}充能值">
-              <span class="universal-charge-label">充</span>
+            <label class="universal-charge-field" aria-label="P${index + 1} ${escapeHtml(localize("充能值", "charge value"))}">
+              <span class="universal-charge-label">${escapeHtml(localize("充", "C"))}</span>
               <input
                 type="text"
                 inputmode="decimal"
@@ -6810,11 +7026,11 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
         if (isTransferWithFiles(event)) {
           if (!character) {
             handleOcrFill(teamKey, index, files).catch(() => {
-              showToast("OCR识别失败，请重试");
+              showToast(localize("OCR识别失败，请重试", "OCR failed. Please try again."));
             });
             return;
           }
-          showToast("仅可将识别结果填入空栏目");
+          showToast(localize("仅可将识别结果填入空栏目", "OCR results can only be filled into empty slots"));
           return;
         }
         const [sourceTeamKey, sourceIndexText] = String(event.dataTransfer.getData("text/plain") || `${draggedTeamKey}:${draggedTeamIndex}`).split(":");
@@ -7022,14 +7238,27 @@ function formatTooltipLines(lines) {
   return escapeHtml(lines.join("\n"));
 }
 
+function getChartGroupLabel(label) {
+  const labels = {
+    红莲反击: localize("红莲反击", "Scarlet counter"),
+    豺狼链接: localize("豺狼链接", "Jackal link"),
+    万能充能: localize("万能充能", "Universal charge"),
+    罗珊娜献祭: localize("罗珊娜献祭", "Rosanna sacrifice"),
+    总充能: localize("总充能", "Total charge"),
+  };
+  return labels[label] || label;
+}
+
 function formatContributionSourceLabels(labels = []) {
-  const normalizedLabels = labels.map((label) => (String(label).startsWith("命中：") ? "命中" : label)).filter(Boolean);
+  const normalizedLabels = labels
+    .map((label) => (String(label).startsWith("命中：") || String(label).startsWith("Hit:") ? localize("命中", "hit") : label))
+    .filter(Boolean);
   return [...new Set(normalizedLabels)].join(" + ");
 }
 
 function getContributionLabelHitCount(labels = []) {
-  const hitLabel = labels.find((label) => String(label).startsWith("命中："));
-  const match = String(hitLabel || "").match(/命中：([\d.]+)\s*hit/);
+  const hitLabel = labels.find((label) => String(label).startsWith("命中：") || String(label).startsWith("Hit:"));
+  const match = String(hitLabel || "").match(/(?:命中：|Hit:)\s*([\d.]+)\s*hit/i);
   return match ? Number(match[1]) : null;
 }
 
@@ -7043,7 +7272,7 @@ function formatContributionTargetHits(positionHits = [], labels = []) {
   const targets = visiblePositionHits
     .sort((a, b) => a.positionIndex - b.positionIndex)
     .map((positionHit) => `P${positionHit.positionIndex + 1} (${formatNumber(Number(positionHit.hitCount) * displayMultiplier, 2)} hit)`);
-  return targets.length ? `命中目标：${targets.join(", ")}` : null;
+  return targets.length ? `${localize("命中目标", "Hit targets")}: ${targets.join(", ")}` : null;
 }
 
 function isScarlet(character) {
@@ -7166,13 +7395,13 @@ function formatJackalHitSources(sources = []) {
     .flatMap(([key, frameSources]) => {
       if (key === "previous") {
         const total = frameSources.reduce((sum, source) => sum + Number(source.hitCount), 0);
-        return [`前序累计：${formatNumber(total, 2)} hit`];
+        return [`${localize("前序累计", "Previous accumulated")}: ${formatNumber(total, 2)} hit`];
       }
       return frameSources.map((source) => {
         const hitTargets = source.hits
           .map((hit) => `P${hit.positionIndex + 1} ${formatNumber(Number(hit.hitCount), 2)} hit`)
           .join(", ");
-        return `${key}F：敌方P${source.attackerPositionIndex + 1} ${source.characterName} -> ${hitTargets}`;
+        return `${key}F: ${localize("敌方", "Enemy")} P${source.attackerPositionIndex + 1} ${source.characterName} -> ${hitTargets}`;
       });
     })
     .filter(Boolean);
@@ -7344,27 +7573,28 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
 }
 
 function getSpecialChargeTooltipLines(group, entry) {
+  const groupLabel = getChartGroupLabel(group.label);
   if (group.type === "jackalLink") {
     const sourceLines = formatJackalHitSources(entry.triggerSources || []);
     return [
-      group.label,
-      `阶段：${entry.stageStartFrame ?? entry.frame}F-${entry.stageEndFrame ?? entry.frame}F`,
-      `触发帧：${entry.frame} F`,
-      `本次触发：${formatNumber(entry.triggerHitCount || entry.hitCount, 2)} hit`,
-      ...(sourceLines.length ? ["触发来源：", ...sourceLines] : []),
-      `受击累计：${entry.accumulatedHits} hit`,
-      `连接触发：${entry.triggerCount} × ${formatChargeNumber(group.chargePerLink)}% = ${formatChargeNumber(entry.charge)}%`,
-      `累计充能：${formatChargeNumber(entry.cumulativeCharge)}%`,
+      groupLabel,
+      `${localize("阶段", "Stage")}: ${entry.stageStartFrame ?? entry.frame}F-${entry.stageEndFrame ?? entry.frame}F`,
+      `${localize("触发帧", "Trigger frame")}: ${entry.frame} F`,
+      `${localize("本次触发", "This trigger")}: ${formatNumber(entry.triggerHitCount || entry.hitCount, 2)} hit`,
+      ...(sourceLines.length ? [`${localize("触发来源", "Trigger sources")}:`, ...sourceLines] : []),
+      `${localize("受击累计", "Accumulated hits")}: ${entry.accumulatedHits} hit`,
+      `${localize("连接触发", "Link trigger")}: ${entry.triggerCount} × ${formatChargeNumber(group.chargePerLink)}% = ${formatChargeNumber(entry.charge)}%`,
+      `${localize("累计充能", "Cumulative")}: ${formatChargeNumber(entry.cumulativeCharge)}%`,
     ];
   }
 
   const sourceLines = group.type === "scarletCounter" ? formatJackalHitSources(entry.triggerSources || []) : [];
   return [
-    group.label,
-    `时间：${entry.frame} F`,
-    ...(sourceLines.length ? ["反击来源：", ...sourceLines] : []),
-    `期望反击：${entry.triggerCount} × ${formatChargeNumber(group.chargePerCounter)}% = ${formatChargeNumber(entry.charge)}%`,
-    `累计充能：${formatChargeNumber(entry.cumulativeCharge)}%`,
+    groupLabel,
+    `${localize("时间", "Time")}: ${entry.frame} F`,
+    ...(sourceLines.length ? [`${localize("反击来源", "Counter sources")}:`, ...sourceLines] : []),
+    `${localize("期望反击", "Expected counter")}: ${entry.triggerCount} × ${formatChargeNumber(group.chargePerCounter)}% = ${formatChargeNumber(entry.charge)}%`,
+    `${localize("累计充能", "Cumulative")}: ${formatChargeNumber(entry.cumulativeCharge)}%`,
   ];
 }
 
@@ -7629,8 +7859,8 @@ function formatDealtHitSummary(hitItem) {
   if (!hitItem || hitItem.total <= 0) return "";
   return [...hitItem.byTarget.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([targetPositionIndex, hitCount]) => `P${targetPositionIndex + 1}：${formatNumber(hitCount, 2)}hit`)
-    .join("，");
+    .map(([targetPositionIndex, hitCount]) => `P${targetPositionIndex + 1}: ${formatNumber(hitCount, 2)} hit`)
+    .join(localize("，", ", "));
 }
 
 function getCumulativeContributionLines(result, frame) {
@@ -7653,7 +7883,7 @@ function getCumulativeContributionLines(result, frame) {
       const cumulative = cumulativeByPosition.get(member.positionIndex) || 0;
       if (cumulative <= BURST_EPSILON) return null;
       const dealtHitText = formatDealtHitSummary(dealtHitMap.get(member.positionIndex));
-      return `${member.character.name}：${formatChargeNumber(cumulative)}%${dealtHitText ? `（${dealtHitText}）` : ""}`;
+      return `${getCharacterLocalizedName(member.character)}: ${formatChargeNumber(cumulative)}%${dealtHitText ? ` ${localize("（", "(")}${dealtHitText}${localize("）", ")")}` : ""}`;
     })
     .filter(Boolean);
 }
@@ -7867,13 +8097,13 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const finishingPositionsByTeam = new Map(chartResults.map((item) => [item.teamKey, new Set(item.result.finishingPositionIndices)]));
   const labelGap = 10;
   const chartLabels = [
-    "标准轴",
-    ...totalGroups.map((group) => group.label),
-    ...specialChargeGroups.map((group) => group.label),
-    ...scarletCounterGroups.map((group) => group.label),
+    localize("标准轴", "Standard"),
+    ...totalGroups.map((group) => getChartGroupLabel(group.label)),
+    ...specialChargeGroups.map((group) => getChartGroupLabel(group.label)),
+    ...scarletCounterGroups.map((group) => getChartGroupLabel(group.label)),
     ...memberPointGroups.map((group) => {
       const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
-      return `${finishingPositions.has(group.member.positionIndex) && canShowFinishMarker(group.member.character) ? "*" : ""}${group.member.character.name}`;
+      return `${finishingPositions.has(group.member.positionIndex) && canShowFinishMarker(group.member.character) ? "*" : ""}${getCharacterLocalizedName(group.member.character)}`;
     }),
   ];
   const labelGutter =
@@ -8100,13 +8330,13 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const markers = [
         {
           frame: Math.min(stun.startFrame, maxFrame),
-          tooltip: `${getTeamLabel(stun.teamKey)} P${stun.positionIndex + 1}\n时间：${stun.startFrame} F\n状态：被晕眩`,
+          tooltip: `${getTeamLabel(stun.teamKey)} P${stun.positionIndex + 1}\n${localize("时间", "Time")}: ${stun.startFrame} F\n${localize("状态", "Status")}: ${localize("被晕眩", "Stunned")}`,
         },
       ];
       if (endFrame >= stun.endFrame) {
         markers.push({
           frame: endFrame,
-          tooltip: `${getTeamLabel(stun.teamKey)} P${stun.positionIndex + 1}\n时间：${stun.endFrame} F\n状态：晕眩解除`,
+          tooltip: `${getTeamLabel(stun.teamKey)} P${stun.positionIndex + 1}\n${localize("时间", "Time")}: ${stun.endFrame} F\n${localize("状态", "Status")}: ${localize("晕眩解除", "Stun ended")}`,
         });
       }
       return markers.map(
@@ -8126,7 +8356,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const dodgeEndFrame = Math.min(reload.endFrame, reload.startFrame + MISS_DODGE_WINDOW_FRAMES);
       const visibleDodgeEndFrame = Math.min(dodgeEndFrame, maxFrame, reload.displayEndFrame);
       const tooltip = escapeHtml(
-        `${reload.characterName}\n换弹：${reload.startFrame}F → ${reload.endFrame}F\n可空判定：${reload.startFrame}F → ${dodgeEndFrame}F`,
+        `${reload.characterName}\n${localize("换弹", "Reload")}: ${reload.startFrame}F → ${reload.endFrame}F\n${localize("可空判定", "Miss window")}: ${reload.startFrame}F → ${dodgeEndFrame}F`,
       );
       const lines = [];
       if (visibleDodgeEndFrame > startFrame) {
@@ -8149,17 +8379,17 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const startFrame = Math.min(window.startFrame, maxFrame);
       const endFrame = Math.min(window.endFrame, maxFrame, window.displayEndFrame);
       if (endFrame <= startFrame) return "";
-      const label = window.type === "reload" ? "换弹可空" : "转身可空";
-      const tooltip = escapeHtml(`${window.characterName}\n${label}：${window.startFrame}F → ${window.endFrame}F\n判定：${window.durationFrames}F`);
+      const label = window.type === "reload" ? localize("换弹可空", "Reload miss window") : localize("转身可空", "Turn miss window");
+      const tooltip = escapeHtml(`${window.characterName}\n${label}: ${window.startFrame}F → ${window.endFrame}F\n${localize("判定", "Window")}: ${window.durationFrames}F`);
       return `<line class="chart-dodge-track chart-dodge-${window.type} team-${window.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
     })
     .join("");
   const missedPoints = visibleMissedEvents
     .map((miss) => {
       const y = yForGroup(`${miss.teamKey}-${miss.positionIndex}`);
-      const dodgeLabel = miss.dodgeType === "reload" ? "换弹可空" : "转身可空";
+      const dodgeLabel = miss.dodgeType === "reload" ? localize("换弹可空", "Reload miss window") : localize("转身可空", "Turn miss window");
       const tooltip = escapeHtml(
-        `${miss.characterName}\n时间：${miss.frame} F\n结果：空枪，未命中\n${dodgeLabel}：${miss.dodgeStartFrame}F → ${miss.dodgeEndFrame}F`,
+        `${miss.characterName}\n${localize("时间", "Time")}: ${miss.frame} F\n${localize("结果", "Result")}: ${localize("空枪，未命中", "Missed shot")}\n${dodgeLabel}: ${miss.dodgeStartFrame}F → ${miss.dodgeEndFrame}F`,
       );
       return `<circle class="chart-missed-point" cx="${xForFrame(miss.frame)}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle>`;
     })
@@ -8179,11 +8409,11 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const x = xForFrame(entry.frame);
         const y = yForUniversalGroup(group.groupKey);
         const lines = [
-          group.label,
-          `时间：${entry.frame} F`,
-          `充能：${formatChargeNumber(entry.charge)}%`,
-          "组成：",
-          ...entry.contributions.map((contribution) => `${contribution.characterName}：${formatChargeNumber(contribution.charge)}%`),
+          getChartGroupLabel(group.label),
+          `${localize("时间", "Time")}: ${entry.frame} F`,
+          `${localize("充能", "Charge")}: ${formatChargeNumber(entry.charge)}%`,
+          `${localize("组成", "Breakdown")}:`,
+          ...entry.contributions.map((contribution) => `${contribution.characterName}: ${formatChargeNumber(contribution.charge)}%`),
         ];
         return `<circle class="chart-universal-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${formatTooltipLines(lines)}"></circle>`;
       }),
@@ -8200,10 +8430,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const tooltip = contribution
         ? formatTooltipLines([
             contribution.characterName,
-            `时间：${point.frame} F`,
-            `充能：${formatChargeNumber(contribution.charge)}%`,
-            `累积充能：${formatChargeNumber(contribution.cumulativeCharge)}%`,
-            `充能组成：${formatContributionSourceLabels(contribution.labels)}`,
+            `${localize("时间", "Time")}: ${point.frame} F`,
+            `${localize("充能", "Charge")}: ${formatChargeNumber(contribution.charge)}%`,
+            `${localize("累积充能", "Cumulative")}: ${formatChargeNumber(contribution.cumulativeCharge)}%`,
+            `${localize("充能组成", "Charge source")}: ${formatContributionSourceLabels(contribution.labels)}`,
             formatContributionTargetHits(contribution.targetHits, contribution.labels),
           ].filter(Boolean))
         : "";
@@ -8226,13 +8456,13 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const rosannaSacrificeTotal = getSpecialContributionTotal(group.result, entry.frame, "罗珊娜献祭");
         const characterChargeLines = getCumulativeContributionLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
-          `${group.label} · ${entry.frame}F`,
-          `累计总充能：${formatChargeNumber(entry.totalCharge)}%`,
-          ...(universalChargeTotal > BURST_EPSILON ? [`万能充能：${formatChargeNumber(universalChargeTotal)}%`] : []),
-          ...(rosannaSacrificeTotal > BURST_EPSILON ? [`罗珊娜献祭充能：${formatChargeNumber(rosannaSacrificeTotal)}%`] : []),
-          ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${formatChargeNumber(jackalLinkTotal)}%`] : []),
-          ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${formatChargeNumber(scarletCounterTotal)}%`] : []),
-          ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
+          `${getChartGroupLabel(group.label)} · ${entry.frame}F`,
+          `${localize("累计总充能", "Total charge")}: ${formatChargeNumber(entry.totalCharge)}%`,
+          ...(universalChargeTotal > BURST_EPSILON ? [`${localize("万能充能", "Universal charge")}: ${formatChargeNumber(universalChargeTotal)}%`] : []),
+          ...(rosannaSacrificeTotal > BURST_EPSILON ? [`${localize("罗珊娜献祭充能", "Rosanna sacrifice charge")}: ${formatChargeNumber(rosannaSacrificeTotal)}%`] : []),
+          ...(jackalLinkTotal > BURST_EPSILON ? [`${localize("豺狼链接充能", "Jackal link charge")}: ${formatChargeNumber(jackalLinkTotal)}%`] : []),
+          ...(scarletCounterTotal > BURST_EPSILON ? [`${localize("红莲反击充能", "Scarlet counter charge")}: ${formatChargeNumber(scarletCounterTotal)}%`] : []),
+          ...(characterChargeLines.length ? [`${localize("各角色充能", "Character charge")}:`, ...characterChargeLines] : []),
         ]);
         return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle>`;
       }),
@@ -8256,8 +8486,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         .map((marker) => {
           const x = xForFrame(marker.frame);
           const y = yForTeamTotal(group.teamKey);
-          const tooltip = escapeHtml(`${getTeamLabel(group.teamKey)} ${marker.label} · ${marker.frame} F`);
-          return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
+          const markerLabel = getBurstMarkerLabel(marker.stage);
+          const tooltip = escapeHtml(`${getTeamLabel(group.teamKey)} ${markerLabel} · ${marker.frame} F`);
+          return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(markerLabel)}</text>`;
         }),
     )
     .join("");
@@ -8282,21 +8513,21 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     const y = yForGroup(group.groupKey);
     const finishingPositions = finishingPositionsByTeam.get(group.teamKey) || new Set();
     const prefix = finishingPositions.has(group.member.positionIndex) && canShowFinishMarker(group.member.character) ? "*" : "";
-    return `<text class="chart-name" x="0" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + group.member.character.name)}</text>`;
+    return `<text class="chart-name" x="0" y="${y + 4}" text-anchor="start">${escapeHtml(prefix + getCharacterLocalizedName(group.member.character))}</text>`;
   }).join("");
   const scarletCounterLabels = scarletCounterGroups
-    .map((group) => `<text class="chart-name chart-scarlet-counter-name team-${group.teamKey}" x="0" y="${yForCounterGroup(group.groupKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
+    .map((group) => `<text class="chart-name chart-scarlet-counter-name team-${group.teamKey}" x="0" y="${yForCounterGroup(group.groupKey) + 4}" text-anchor="start">${escapeHtml(getChartGroupLabel(group.label))}</text>`)
     .join("");
   const universalChargeLabels = specialChargeGroups
-    .map((group) => `<text class="chart-name chart-universal-name team-${group.teamKey}" x="0" y="${yForUniversalGroup(group.groupKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
+    .map((group) => `<text class="chart-name chart-universal-name team-${group.teamKey}" x="0" y="${yForUniversalGroup(group.groupKey) + 4}" text-anchor="start">${escapeHtml(getChartGroupLabel(group.label))}</text>`)
     .join("");
-  const standardLabel = `<text class="chart-name chart-standard-name" x="0" y="${yForStandard() + 4}" text-anchor="start">标准轴</text>`;
+  const standardLabel = `<text class="chart-name chart-standard-name" x="0" y="${yForStandard() + 4}" text-anchor="start">${escapeHtml(localize("标准轴", "Standard"))}</text>`;
   const totalLabels = totalGroups
-    .map((group) => `<text class="chart-name chart-total-name team-${group.teamKey}" x="0" y="${yForTeamTotal(group.teamKey) + 4}" text-anchor="start">${escapeHtml(group.label)}</text>`)
+    .map((group) => `<text class="chart-name chart-total-name team-${group.teamKey}" x="0" y="${yForTeamTotal(group.teamKey) + 4}" text-anchor="start">${escapeHtml(getChartGroupLabel(group.label))}</text>`)
     .join("");
 
   return `
-    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMinYMin meet" data-label-gap="${labelGap}" data-label-gutter="${labelGutter}" role="img" aria-label="队伍充能关键帧图表">
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMinYMin meet" data-label-gap="${labelGap}" data-label-gutter="${labelGutter}" role="img" aria-label="${escapeHtml(localize("队伍充能关键帧图表", "Team charge timeline chart"))}">
       <rect class="chart-bg" x="0" y="0" width="${width}" height="${height}" rx="8" />
       ${gridLines}
       ${standardLines}
@@ -8510,8 +8741,11 @@ function renderResults(battleResults = getBattleResultsSnapshot()) {
     const teams = getPaidArenaTeams();
     const pickedCount = teams.flat().filter(Boolean).length;
     const activeSide = getPaidArenaDataTeamKey();
-    const activeSideLabel = activeSide === "defense" ? "防守队伍" : "进攻队伍";
-    els.summaryStrip.textContent = `${getPaidArenaModeLabel()}：${activeSideLabel} ${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复\n移动端长按，桌面端右键可复制队伍图片`;
+    const activeSideLabel = activeSide === "defense" ? localize("防守队伍", "Defense teams") : localize("进攻队伍", "Attack teams");
+    els.summaryStrip.textContent = localize(
+      `${getPaidArenaModeLabel()}：${activeSideLabel} ${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复\n移动端长按，桌面端右键可复制队伍图片`,
+      `${getPaidArenaModeLabel()}: ${activeSideLabel} ${pickedCount}/${teams.length * TEAM_SIZE}, shared Nikkes cannot repeat\nLong press on mobile or right-click on desktop to copy team image`,
+    );
     els.resultPanel.innerHTML = "";
     const { attackResult, defenseResult } = getActivePaidArenaChartResults();
     renderChargeChart(attackResult, defenseResult);
@@ -8552,13 +8786,13 @@ function render() {
 
 function addCharacterLegacy(character) {
   if (state.team.some((member) => member && member.id === character.id)) {
-    showToast(`${character.name} 已在队伍中，不能重复加入。`);
+    showToast(localize(`${character.name} 已在队伍中，不能重复加入。`, `${getCharacterLocalizedName(character)} is already in the team and cannot be added again.`));
     return;
   }
 
   const emptyIndex = state.team.findIndex((member) => !member);
   if (emptyIndex === -1) {
-    showToast("队伍已满，请先移除一个槽位。");
+    showToast(localize("队伍已满，请先移除一个槽位。", "Team is full. Remove a slot first."));
     return;
   }
 
@@ -8641,7 +8875,7 @@ function addPaidArenaCharacter(character) {
   const scarletCounterEnabled = getPaidArenaScarletCounterEnabled()[rowIndex] || Array(TEAM_SIZE).fill(true);
   const emptyIndex = team.findIndex((member) => !member);
   if (emptyIndex === -1) {
-    showToast(`${getPaidArenaModeLabel()}第${rowIndex + 1}队已满，请先移除一个槽位。`);
+    showToast(localize(`${getPaidArenaModeLabel()}第${rowIndex + 1}队已满，请先移除一个槽位。`, `${getPaidArenaModeLabel()} team ${rowIndex + 1} is full. Remove a slot first.`));
     return;
   }
   team[emptyIndex] = character;
@@ -8768,13 +9002,13 @@ function addCharacter(character) {
   const scarletCounterEnabled = getScarletCounterEnabledState();
   const sacrificeFrames = getRosannaSacrificeFrameState();
   if (team.some((member) => member && member.id === character.id)) {
-    showToast(`${character.name} 已在${getTeamLabel(state.activeTeamKey)}中`);
+    showToast(localize(`${character.name} 已在${getTeamLabel(state.activeTeamKey)}中`, `${getCharacterLocalizedName(character)} is already in ${getTeamLabel(state.activeTeamKey)}`));
     return;
   }
 
   const emptyIndex = team.findIndex((member) => !member);
   if (emptyIndex === -1) {
-    showToast(`${getTeamLabel(state.activeTeamKey)}已满，请先移除一个槽位`);
+    showToast(localize(`${getTeamLabel(state.activeTeamKey)}已满，请先移除一个槽位`, `${getTeamLabel(state.activeTeamKey)} is full. Remove a slot first.`));
     return;
   }
 
@@ -8994,7 +9228,7 @@ function copyLineupSlotTo(sourceIndex, targetIndex) {
   saveCurrentLineupSlot();
   const sourceSlot = cloneLineupSlot(state.lineupSlots[normalizedSourceIndex]);
   if (getLineupSlotCount(sourceSlot) === 0) {
-    showToast(`方案 ${normalizedSourceIndex + 1} 为空，无法复制`);
+    showToast(localize(`方案 ${normalizedSourceIndex + 1} 为空，无法复制`, `Plan ${normalizedSourceIndex + 1} is empty and cannot be copied`));
     renderLineupSlots();
     return;
   }
@@ -9002,7 +9236,7 @@ function copyLineupSlotTo(sourceIndex, targetIndex) {
   const targetCount = getLineupSlotCount(targetSlot);
 
   if (targetCount > 0) {
-    const confirmed = window.confirm(`方案 ${normalizedTargetIndex + 1} 已有队伍，是否覆盖？`);
+    const confirmed = window.confirm(localize(`方案 ${normalizedTargetIndex + 1} 已有队伍，是否覆盖？`, `Plan ${normalizedTargetIndex + 1} already has teams. Overwrite?`));
     if (!confirmed) {
       renderLineupSlots();
       return;
@@ -9015,7 +9249,7 @@ function copyLineupSlotTo(sourceIndex, targetIndex) {
   openSlotSettings = null;
   openRosannaSacrificeSettings = null;
   saveTeam();
-  showToast(`已将方案 ${normalizedSourceIndex + 1} 复制到方案 ${normalizedTargetIndex + 1}`);
+  showToast(localize(`已将方案 ${normalizedSourceIndex + 1} 复制到方案 ${normalizedTargetIndex + 1}`, `Copied plan ${normalizedSourceIndex + 1} to plan ${normalizedTargetIndex + 1}`));
   render();
 }
 
@@ -10410,17 +10644,17 @@ function openShareImagePreview(imageBlob, title = "NIKKE PVP") {
   const backdrop = document.createElement("div");
   backdrop.className = "share-preview-backdrop";
   backdrop.innerHTML = `
-    <section class="share-preview-modal" role="dialog" aria-modal="true" aria-label="分享图片预览">
+    <section class="share-preview-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("分享图片预览", "Share image preview"))}">
       <div class="share-preview-head">
         <span class="share-preview-title">${safeTitle}</span>
-        <button class="share-preview-close" type="button" aria-label="关闭预览">×</button>
+        <button class="share-preview-close" type="button" aria-label="${escapeHtml(localize("关闭预览", "Close preview"))}">×</button>
       </div>
       <div class="share-preview-body">
-        <img class="share-preview-image" src="${imageUrl}" alt="${safeTitle}分享图片" />
+        <img class="share-preview-image" src="${imageUrl}" alt="${safeTitle} ${escapeHtml(localize("分享图片", "share image"))}" />
       </div>
       <div class="share-preview-actions">
-        <a class="share-preview-download" href="${imageUrl}" download="${filename}" target="_blank" rel="noopener">下载图片</a>
-        <button class="share-preview-close-btn" type="button">关闭</button>
+        <a class="share-preview-download" href="${imageUrl}" download="${filename}" target="_blank" rel="noopener">${escapeHtml(localize("下载图片", "Download image"))}</a>
+        <button class="share-preview-close-btn" type="button">${escapeHtml(localize("关闭", "Close"))}</button>
       </div>
     </section>
   `;
@@ -10474,27 +10708,27 @@ function scheduleResponsiveRender() {
 async function copyCharacterDetails(character) {
   try {
     await copyTextToClipboard(getCharacterDetailText(character));
-    showToast(`已复制 ${character.name} 的详细信息`);
+    showToast(localize(`已复制 ${character.name} 的详细信息`, `Copied details for ${getCharacterLocalizedName(character)}`));
   } catch {
-    showToast("复制失败，请检查浏览器剪切板权限");
+    showToast(localize("复制失败，请检查浏览器剪切板权限", "Copy failed. Please check clipboard permission."));
   }
 }
 
 async function copyBattleResultsSummary() {
   const text = getBattleResultsCopyText();
   if (!text) {
-    showToast("队伍为空，无法复制结果");
+    showToast(localize("队伍为空，无法复制结果", "Team is empty. Nothing to copy."));
     return;
   }
   try {
     await copyBattleResultsWithChart(text);
-    showToast("已复制时间轴图片和双方队伍信息");
+    showToast(localize("已复制时间轴图片和双方队伍信息", "Copied timeline image and both teams."));
   } catch {
     try {
       await copyTextToClipboard(text);
-      showToast("已复制文字，时间轴图片复制失败");
+      showToast(localize("已复制文字，时间轴图片复制失败", "Copied text. Timeline image copy failed."));
     } catch {
-      showToast("复制失败，请检查浏览器剪切板权限");
+      showToast(localize("复制失败，请检查浏览器剪切板权限", "Copy failed. Please check clipboard permission."));
     }
   }
 }
@@ -10503,24 +10737,24 @@ async function copyArenaImageSummary(options = {}) {
   const { showProgress = true } = options;
   const text = getArenaCopyText();
   if (!text && !isPaidArenaModeActive()) {
-    showToast("队伍为空，无法复制结果");
+    showToast(localize("队伍为空，无法复制结果", "Team is empty. Nothing to copy."));
     return;
   }
-  if (showProgress) startProgressToast("正在生成分享图");
+  if (showProgress) startProgressToast(localize("正在生成分享图", "Generating share image"));
   try {
     const imageBlobPromise = copyCurrentArenaImage();
     await copyRichImageToClipboard(imageBlobPromise);
     if (showProgress) stopProgressToast({ keepVisible: true });
-    showToast(isPaidArenaModeActive() ? "已复制竞技场队伍图片" : "已复制时间轴和双方队伍图片");
+    showToast(isPaidArenaModeActive() ? localize("已复制竞技场队伍图片", "Copied arena team image") : localize("已复制时间轴和双方队伍图片", "Copied timeline and both teams image"));
   } catch (error) {
     console.error("copy arena image failed", error);
     try {
       await copyTextToClipboard(text);
       if (showProgress) stopProgressToast({ keepVisible: true });
-      showToast("图片复制失败，已复制文字信息");
+      showToast(localize("图片复制失败，已复制文字信息", "Image copy failed. Text was copied instead."));
     } catch {
       if (showProgress) stopProgressToast({ keepVisible: true });
-      showToast("复制失败，请检查浏览器剪贴板权限");
+      showToast(localize("复制失败，请检查浏览器剪贴板权限", "Copy failed. Please check clipboard permission."));
     }
   }
 }
@@ -10528,10 +10762,10 @@ async function copyArenaImageSummary(options = {}) {
 async function shareArenaImageSummary() {
   const text = getArenaCopyText();
   if (!text && !isPaidArenaModeActive()) {
-    showToast("队伍为空，无法分享结果");
+    showToast(localize("队伍为空，无法分享结果", "Team is empty. Nothing to share."));
     return;
   }
-  startProgressToast("正在生成分享图");
+  startProgressToast(localize("正在生成分享图", "Generating share image"));
   try {
     const imageBlob = await copyCurrentArenaImage();
     const isMobileCopyChoice = isMobileCopyChoiceRuntime();
@@ -10542,18 +10776,18 @@ async function shareArenaImageSummary() {
         title: "NIKKE PVP",
       });
       stopProgressToast({ keepVisible: true });
-      showToast("已打开系统分享");
+      showToast(localize("已打开系统分享", "System share opened"));
       return;
     }
     if (isMobileCopyChoice) {
       openShareImagePreview(imageBlob);
       stopProgressToast({ keepVisible: true });
-      showToast("不支持直接分享，已打开图片预览（可保存后手动发送）");
+      showToast(localize("不支持直接分享，已打开图片预览（可保存后手动发送）", "Direct share is not supported. Image preview opened for saving or manual sharing."));
       return;
     }
     await copyRichImageToClipboard(imageBlob);
     stopProgressToast({ keepVisible: true });
-    showToast("已复制图片到剪贴板");
+    showToast(localize("已复制图片到剪贴板", "Image copied to clipboard"));
   } catch (error) {
     if (error?.name === "AbortError") {
       stopProgressToast();
@@ -10565,7 +10799,7 @@ async function shareArenaImageSummary() {
         const fallbackBlob = await copyCurrentArenaImage();
         openShareImagePreview(fallbackBlob);
         stopProgressToast({ keepVisible: true });
-        showToast("分享失败，已切换到图片预览，支持下载后手动分享");
+        showToast(localize("分享失败，已切换到图片预览，支持下载后手动分享", "Share failed. Image preview opened for download or manual sharing."));
         return;
       } catch {
         // continue to text fallback
@@ -10575,14 +10809,14 @@ async function shareArenaImageSummary() {
       if (isMobileCopyChoiceRuntime()) {
         await copyTextToClipboard(text);
         stopProgressToast({ keepVisible: true });
-        showToast("分享失败，已复制文本，建议手动复制后发送");
+        showToast(localize("分享失败，已复制文本，建议手动复制后发送", "Share failed. Text was copied instead."));
       } else {
         stopProgressToast({ keepVisible: true });
         await copyArenaImageSummary({ showProgress: false });
       }
     } catch {
       stopProgressToast({ keepVisible: true });
-      showToast("分享失败，当前浏览器剪贴板权限受限");
+      showToast(localize("分享失败，当前浏览器剪贴板权限受限", "Share failed. Clipboard permission is restricted."));
     }
   }
 }
@@ -10706,13 +10940,13 @@ function bindEvents() {
     if (context.mode === "paid") {
       if (context.teamKey) state.paidArenaDataTeamKey = normalizeTeamKey(context.teamKey);
       handlePaidArenaOcrFill(state.paidArenaMode, context.rowIndex, context.slotIndex, files).catch(() => {
-        showToast("OCR识别失败，请重试");
+        showToast(localize("OCR识别失败，请重试", "OCR failed. Please try again."));
       });
       return;
     }
 
     handleOcrFill(context.teamKey, context.slotIndex, files).catch(() => {
-      showToast("OCR识别失败，请重试");
+      showToast(localize("OCR识别失败，请重试", "OCR failed. Please try again."));
     });
   });
   document.addEventListener("touchstart", hideFloatingTooltips, { capture: true, passive: true });
