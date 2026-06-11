@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR冒号角色支持缺字和单字偏差匹配",
   "OCR前端过滤规则改为仅保留中文和冒号",
   "OCR无冒号识别结果支持匹配冒号角色名",
   "OCR控制台改为显示最终用于匹配的过滤行",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "OCR识别图片超过1MB时支持先框选识别区域",
   "空枪反推中全发射器共同满足的候选值独立标红",
   "分享图片支持跟随深色/浅色主题",
-  "冠军/特殊竞技场默认显示进攻队伍并支持攻防队伍交换",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -871,6 +871,54 @@ const OCR_COLON_PREFERRED_VARIANTS = {
   "阿妮斯:": "阿妮斯:闪耀夏日",
 };
 
+function getLimitedEditDistance(left, right, limit = 1) {
+  const a = Array.from(String(left || ""));
+  const b = Array.from(String(right || ""));
+  if (Math.abs(a.length - b.length) > limit) return limit + 1;
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    let rowMin = current[0];
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      const value = Math.min(
+        previous[j] + 1,
+        current[j - 1] + 1,
+        previous[j - 1] + cost,
+      );
+      current[j] = value;
+      rowMin = Math.min(rowMin, value);
+    }
+    if (rowMin > limit) return limit + 1;
+    previous = current;
+  }
+  return previous[b.length];
+}
+
+function isOcrSegmentMatch(inputSegment, targetSegment) {
+  const input = normalizeOcrCharacterName(inputSegment);
+  const target = normalizeOcrCharacterName(targetSegment);
+  if (!input || !target) return false;
+  if (target.includes(input)) return true;
+  if (input.length < 2) return false;
+  const head = target.slice(0, input.length);
+  const tail = target.slice(Math.max(0, target.length - input.length));
+  return getLimitedEditDistance(input, head, 1) <= 1 || getLimitedEditDistance(input, tail, 1) <= 1;
+}
+
+function getOcrColonMatchPriority(line, entry) {
+  if (!entry?.hasColon || !line.includes(":") || !entry.name.includes(":")) return 0;
+  const [lineBase = "", lineVariant = ""] = line.split(":");
+  const [nameBase = "", nameVariant = ""] = entry.name.split(":");
+  if (!lineBase || !lineVariant || !nameBase || !nameVariant) return 0;
+  const baseMatched = isOcrSegmentMatch(lineBase, nameBase);
+  const variantMatched = isOcrSegmentMatch(lineVariant, nameVariant);
+  if (!baseMatched || !variantMatched) return 0;
+  const baseExact = nameBase.includes(lineBase);
+  const variantExact = nameVariant.includes(lineVariant) || nameVariant.startsWith(lineVariant);
+  return baseExact && variantExact ? 250 : 230;
+}
+
 function parseFileNamesFromOcrText(rawText) {
   const lines = String(rawText || "")
     .replace(/\r/g, "")
@@ -911,6 +959,21 @@ function parseFileNamesFromOcrText(rawText) {
       const lineLength = line.length;
       const nameLength = name.length;
       if (lineLength >= 2 && nameLength >= 2) {
+        if (containsColon && entry.hasColon) {
+          const colonPriority = getOcrColonMatchPriority(line, entry);
+          if (colonPriority > 0) {
+            const isPreferred = line.endsWith(":") && name === bareColonPreferredName;
+            matchedInLine.push({
+              ...entry,
+              position: 0,
+              partial: true,
+              length: nameLength,
+              priority: isPreferred ? 260 : colonPriority,
+            });
+            return;
+          }
+        }
+
         if (!containsColon) {
           const comparableName = entry.hasColon ? entry.nameNoColon : name;
           const comparableLength = comparableName.length;
@@ -957,9 +1020,7 @@ function parseFileNamesFromOcrText(rawText) {
       return;
     }
 
-    const exactMatches = candidateInLine.filter((entry) => !entry.partial);
-    const candidatePool = exactMatches.length > 0 ? exactMatches : candidateInLine;
-    const bestMatch = candidatePool
+    const bestMatch = candidateInLine
       .sort((a, b) => {
         const priorityA = Number(a.priority || 0);
         const priorityB = Number(b.priority || 0);
