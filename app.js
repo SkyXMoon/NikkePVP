@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "冠军/特殊竞技场改为同一方案内切换进攻队伍与防守队伍，并分别保存队伍",
   "扩展本地缓存机制，主资源、头像、图标与二维码首次访问后可持久缓存",
   "新增侧边栏中英文切换入口，并同步主要界面文案",
   "补充吉儿·华伦泰本地头像回退资源",
@@ -240,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "修复移动端分享与复制图标的降级行为",
   "优化角色设置中蓄速与魔方保存逻辑",
   "新增关于与建议侧边栏目及QQ群快速加入入口",
-  "补充冠军场/特殊场方案拖拽复制与互斥选择逻辑",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -377,36 +377,36 @@ const state = {
   },
   paidArenaDataTeamKey: "attack",
   paidArenaTeams: {
-    c: createEmptyPaidArenaTeams("c"),
-    p: createEmptyPaidArenaTeams("p"),
+    c: createEmptyPaidArenaTeamsBySide("c"),
+    p: createEmptyPaidArenaTeamsBySide("p"),
   },
   paidArenaLineupSlots: {
     c: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyPaidArenaLineupSlot("c")),
     p: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyPaidArenaLineupSlot("p")),
   },
   paidArenaUniversalCharges: {
-    c: createEmptyPaidArenaUniversalCharges("c"),
-    p: createEmptyPaidArenaUniversalCharges("p"),
+    c: createEmptyPaidArenaUniversalChargesBySide("c"),
+    p: createEmptyPaidArenaUniversalChargesBySide("p"),
   },
   paidArenaChargeSpeeds: {
-    c: createEmptyPaidArenaChargeSpeeds("c"),
-    p: createEmptyPaidArenaChargeSpeeds("p"),
+    c: createEmptyPaidArenaChargeSpeedsBySide("c"),
+    p: createEmptyPaidArenaChargeSpeedsBySide("p"),
   },
   paidArenaRosannaSacrificeFrames: {
-    c: createEmptyPaidArenaRosannaSacrificeFrames("c"),
-    p: createEmptyPaidArenaRosannaSacrificeFrames("p"),
+    c: createEmptyPaidArenaRosannaSacrificeFramesBySide("c"),
+    p: createEmptyPaidArenaRosannaSacrificeFramesBySide("p"),
   },
   paidArenaRedHoodPierceCounts: {
-    c: createEmptyPaidArenaRedHoodPierceCounts("c"),
-    p: createEmptyPaidArenaRedHoodPierceCounts("p"),
+    c: createEmptyPaidArenaRedHoodPierceCountsBySide("c"),
+    p: createEmptyPaidArenaRedHoodPierceCountsBySide("p"),
   },
   paidArenaScarletCounterEnabled: {
-    c: createEmptyPaidArenaScarletCounterEnabled("c"),
-    p: createEmptyPaidArenaScarletCounterEnabled("p"),
+    c: createEmptyPaidArenaScarletCounterEnabledBySide("c"),
+    p: createEmptyPaidArenaScarletCounterEnabledBySide("p"),
   },
   paidArenaJackalLinks: {
-    c: createEmptyPaidArenaJackalLinks("c"),
-    p: createEmptyPaidArenaJackalLinks("p"),
+    c: createEmptyPaidArenaJackalLinksBySide("c"),
+    p: createEmptyPaidArenaJackalLinksBySide("p"),
   },
   allowMissedShots: true,
   battlePowerBase: 0,
@@ -756,7 +756,7 @@ function getPaidArenaCopyText() {
   const scarletCounterRows = getPaidArenaScarletCounterEnabled();
   const jackalLinkRows = getPaidArenaJackalLinks();
   const dataTeamKey = getPaidArenaDataTeamKey();
-  const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守数据" : "进攻数据";
+  const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守队伍" : "进攻队伍";
   const rows = teams.map((team, rowIndex) => {
     const universalCharges = universalRows[rowIndex] || Array(TEAM_SIZE).fill(0);
     const sacrificeFrames = sacrificeRows[rowIndex] || Array(TEAM_SIZE).fill(null);
@@ -785,7 +785,7 @@ function getPaidArenaCopyText() {
       jackalLink,
     )}`;
   });
-  return [`${getPaidArenaModeLabel()}（${dataSourceLabel}）`, ...rows].join("\n\n");
+  return [`${getPaidArenaModeLabel()}：${dataSourceLabel}`, ...rows].join("\n\n");
 }
 
 function getArenaCopyText() {
@@ -1225,7 +1225,7 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
     }
     if (!character?.id) return;
     const { rowEntry, targetIndex } = target;
-    if (rowEntry.team.some((member) => member && String(member.id) === String(character.id))) {
+    if (paidRows.some((entry) => entry.team.some((member) => member && String(member.id) === String(character.id)))) {
       warnings.push(`${character.name} 已在队伍中`);
       return;
     }
@@ -1240,11 +1240,12 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
 
   paidRows.forEach((rowEntry) => {
     const normalizedIndex = Number(rowEntry.rowIndex);
-    state.paidArenaUniversalCharges[state.paidArenaMode][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.universalCharges[index]);
-    state.paidArenaChargeSpeeds[state.paidArenaMode][normalizedIndex] = getPaidArenaTeamChargeSpeeds(rowEntry.team, dataTeamKey);
-    state.paidArenaRosannaSacrificeFrames[state.paidArenaMode][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.sacrificialFrames[index]);
-    state.paidArenaRedHoodPierceCounts[state.paidArenaMode][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.redHoodPierceCounts[index]);
-    state.paidArenaScarletCounterEnabled[state.paidArenaMode][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.scarletCounterEnabled[index]);
+    const activeSide = getPaidArenaDataTeamKey();
+    state.paidArenaUniversalCharges[state.paidArenaMode][activeSide][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.universalCharges[index]);
+    state.paidArenaChargeSpeeds[state.paidArenaMode][activeSide][normalizedIndex] = getPaidArenaTeamChargeSpeeds(rowEntry.team, dataTeamKey);
+    state.paidArenaRosannaSacrificeFrames[state.paidArenaMode][activeSide][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.sacrificialFrames[index]);
+    state.paidArenaRedHoodPierceCounts[state.paidArenaMode][activeSide][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.redHoodPierceCounts[index]);
+    state.paidArenaScarletCounterEnabled[state.paidArenaMode][activeSide][normalizedIndex] = Array.from({ length: TEAM_SIZE }, (_, index) => rowEntry.scarletCounterEnabled[index]);
     getPaidArenaJackalLinks()[normalizedIndex] = normalizePaidArenaLinkForTeam(rowEntry.team, rowEntry.linkState);
   });
   openSlotSettings = null;
@@ -4100,7 +4101,7 @@ function createHelpModal(options = {}) {
         "点击头像右上角齿轮，可设置蓄力速度词条、最终蓄速、蓄速/量子魔方、红莲弹容等参数。",
         "蓄速词条会按相同词条先合并再四舍五入；也可以直接手填最终蓄速，手填后会清空词条。",
         "蓄速魔方会额外增加 2.12% 蓄速，取整后为 +2；量子魔方会提高单发基础充能。",
-        "角色参数按进攻/防守分别保存；冠军/特殊竞技场可选择沿用普通竞技场的进攻或防守数据。",
+        "角色参数按进攻/防守分别保存；冠军/特殊竞技场支持在同一方案内切换进攻队伍与防守队伍。",
       ],
     },
     {
@@ -4531,9 +4532,24 @@ function createEmptyPaidArenaTeams(mode) {
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(null));
 }
 
+function createPaidArenaSideRows(createRows, mode) {
+  return {
+    defense: createRows(mode),
+    attack: createRows(mode),
+  };
+}
+
+function createEmptyPaidArenaTeamsBySide(mode) {
+  return createPaidArenaSideRows(createEmptyPaidArenaTeams, mode);
+}
+
 function createEmptyPaidArenaUniversalCharges(mode) {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(0));
+}
+
+function createEmptyPaidArenaUniversalChargesBySide(mode) {
+  return createPaidArenaSideRows(createEmptyPaidArenaUniversalCharges, mode);
 }
 
 function createEmptyPaidArenaChargeSpeeds(mode) {
@@ -4541,9 +4557,17 @@ function createEmptyPaidArenaChargeSpeeds(mode) {
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(0));
 }
 
+function createEmptyPaidArenaChargeSpeedsBySide(mode) {
+  return createPaidArenaSideRows(createEmptyPaidArenaChargeSpeeds, mode);
+}
+
 function createEmptyPaidArenaRosannaSacrificeFrames(mode) {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(null));
+}
+
+function createEmptyPaidArenaRosannaSacrificeFramesBySide(mode) {
+  return createPaidArenaSideRows(createEmptyPaidArenaRosannaSacrificeFrames, mode);
 }
 
 function createEmptyPaidArenaRedHoodPierceCounts(mode) {
@@ -4551,9 +4575,17 @@ function createEmptyPaidArenaRedHoodPierceCounts(mode) {
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(0));
 }
 
+function createEmptyPaidArenaRedHoodPierceCountsBySide(mode) {
+  return createPaidArenaSideRows(createEmptyPaidArenaRedHoodPierceCounts, mode);
+}
+
 function createEmptyPaidArenaScarletCounterEnabled(mode) {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, () => Array(TEAM_SIZE).fill(true));
+}
+
+function createEmptyPaidArenaScarletCounterEnabledBySide(mode) {
+  return createPaidArenaSideRows(createEmptyPaidArenaScarletCounterEnabled, mode);
 }
 
 function createEmptyJackalLinkState() {
@@ -4565,16 +4597,21 @@ function createEmptyPaidArenaJackalLinks(mode) {
   return Array.from({ length: teamCount }, () => createEmptyJackalLinkState());
 }
 
+function createEmptyPaidArenaJackalLinksBySide(mode) {
+  return createPaidArenaSideRows(createEmptyPaidArenaJackalLinks, mode);
+}
+
 function createEmptyPaidArenaLineupSlot(mode) {
   return {
-    teams: createEmptyPaidArenaTeams(mode).map((team) => team.map((character) => character?.id || null)),
-    universalCharges: createEmptyPaidArenaUniversalCharges(mode),
-    chargeSpeeds: createEmptyPaidArenaChargeSpeeds(mode),
-    rosannaSacrificeFrames: createEmptyPaidArenaRosannaSacrificeFrames(mode),
-    redHoodPierceCounts: createEmptyPaidArenaRedHoodPierceCounts(mode),
-    scarletCounterEnabled: createEmptyPaidArenaScarletCounterEnabled(mode),
-    jackalLinks: createEmptyPaidArenaJackalLinks(mode),
+    teams: createEmptyPaidArenaTeamsBySide(mode),
+    universalCharges: createEmptyPaidArenaUniversalChargesBySide(mode),
+    chargeSpeeds: createEmptyPaidArenaChargeSpeedsBySide(mode),
+    rosannaSacrificeFrames: createEmptyPaidArenaRosannaSacrificeFramesBySide(mode),
+    redHoodPierceCounts: createEmptyPaidArenaRedHoodPierceCountsBySide(mode),
+    scarletCounterEnabled: createEmptyPaidArenaScarletCounterEnabledBySide(mode),
+    jackalLinks: createEmptyPaidArenaJackalLinksBySide(mode),
     activeRowIndex: 0,
+    activeTeamKey: "attack",
   };
 }
 
@@ -4586,95 +4623,87 @@ function isPaidArenaModeActive() {
   return state.paidArenaMode === "c" || state.paidArenaMode === "p";
 }
 
-function getPaidArenaTeams(mode = state.paidArenaMode) {
+function getPaidArenaTeams(mode = state.paidArenaMode, teamKey = getPaidArenaDataTeamKey()) {
   const normalizedMode = normalizePaidArenaMode(mode);
   if (normalizedMode === "normal") return [];
-  if (!Array.isArray(state.paidArenaTeams[normalizedMode])) {
-    state.paidArenaTeams[normalizedMode] = createEmptyPaidArenaTeams(normalizedMode);
-  }
   state.paidArenaTeams[normalizedMode] = normalizePaidArenaTeams(state.paidArenaTeams[normalizedMode], normalizedMode);
-  return state.paidArenaTeams[normalizedMode];
+  return state.paidArenaTeams[normalizedMode][normalizeTeamKey(teamKey)];
 }
 
-function getPaidArenaUniversalCharges(mode = state.paidArenaMode) {
+function getPaidArenaUniversalCharges(mode = state.paidArenaMode, teamKey = getPaidArenaDataTeamKey()) {
   const normalizedMode = normalizePaidArenaMode(mode);
   if (normalizedMode === "normal") return [];
-  if (!Array.isArray(state.paidArenaUniversalCharges?.[normalizedMode])) {
-    state.paidArenaUniversalCharges[normalizedMode] = createEmptyPaidArenaUniversalCharges(normalizedMode);
-  }
   state.paidArenaUniversalCharges[normalizedMode] = normalizePaidArenaUniversalCharges(
     state.paidArenaUniversalCharges[normalizedMode],
     normalizedMode,
   );
-  return state.paidArenaUniversalCharges[normalizedMode];
+  return state.paidArenaUniversalCharges[normalizedMode][normalizeTeamKey(teamKey)];
 }
 
-function getPaidArenaChargeSpeeds(mode = state.paidArenaMode) {
+function getPaidArenaChargeSpeeds(mode = state.paidArenaMode, teamKey = getPaidArenaDataTeamKey()) {
   const normalizedMode = normalizePaidArenaMode(mode);
   if (normalizedMode === "normal") return [];
-  if (!Array.isArray(state.paidArenaChargeSpeeds?.[normalizedMode])) {
-    state.paidArenaChargeSpeeds[normalizedMode] = createEmptyPaidArenaChargeSpeeds(normalizedMode);
-  }
   state.paidArenaChargeSpeeds[normalizedMode] = normalizePaidArenaChargeSpeeds(
     state.paidArenaChargeSpeeds[normalizedMode],
     normalizedMode,
   );
-  return state.paidArenaChargeSpeeds[normalizedMode];
+  return state.paidArenaChargeSpeeds[normalizedMode][normalizeTeamKey(teamKey)];
 }
 
-function getPaidArenaRosannaSacrificeFrames(mode = state.paidArenaMode) {
+function getPaidArenaRosannaSacrificeFrames(mode = state.paidArenaMode, teamKey = getPaidArenaDataTeamKey()) {
   const normalizedMode = normalizePaidArenaMode(mode);
   if (normalizedMode === "normal") return [];
-  if (!Array.isArray(state.paidArenaRosannaSacrificeFrames?.[normalizedMode])) {
-    state.paidArenaRosannaSacrificeFrames[normalizedMode] = createEmptyPaidArenaRosannaSacrificeFrames(normalizedMode);
-  }
   state.paidArenaRosannaSacrificeFrames[normalizedMode] = normalizePaidArenaRosannaSacrificeFrames(
     state.paidArenaRosannaSacrificeFrames[normalizedMode],
     normalizedMode,
   );
-  return state.paidArenaRosannaSacrificeFrames[normalizedMode];
+  return state.paidArenaRosannaSacrificeFrames[normalizedMode][normalizeTeamKey(teamKey)];
 }
 
-function getPaidArenaRedHoodPierceCounts(mode = state.paidArenaMode) {
+function getPaidArenaRedHoodPierceCounts(mode = state.paidArenaMode, teamKey = getPaidArenaDataTeamKey()) {
   const normalizedMode = normalizePaidArenaMode(mode);
   if (normalizedMode === "normal") return [];
-  if (!Array.isArray(state.paidArenaRedHoodPierceCounts?.[normalizedMode])) {
-    state.paidArenaRedHoodPierceCounts[normalizedMode] = createEmptyPaidArenaRedHoodPierceCounts(normalizedMode);
-  }
   state.paidArenaRedHoodPierceCounts[normalizedMode] = normalizePaidArenaRedHoodPierceCounts(
     state.paidArenaRedHoodPierceCounts[normalizedMode],
     normalizedMode,
   );
-  return state.paidArenaRedHoodPierceCounts[normalizedMode];
+  return state.paidArenaRedHoodPierceCounts[normalizedMode][normalizeTeamKey(teamKey)];
 }
 
-function getPaidArenaScarletCounterEnabled(mode = state.paidArenaMode) {
+function getPaidArenaScarletCounterEnabled(mode = state.paidArenaMode, teamKey = getPaidArenaDataTeamKey()) {
   const normalizedMode = normalizePaidArenaMode(mode);
   if (normalizedMode === "normal") return [];
-  if (!Array.isArray(state.paidArenaScarletCounterEnabled?.[normalizedMode])) {
-    state.paidArenaScarletCounterEnabled[normalizedMode] = createEmptyPaidArenaScarletCounterEnabled(normalizedMode);
-  }
   state.paidArenaScarletCounterEnabled[normalizedMode] = normalizePaidArenaScarletCounterEnabled(
     state.paidArenaScarletCounterEnabled[normalizedMode],
     normalizedMode,
   );
-  return state.paidArenaScarletCounterEnabled[normalizedMode];
+  return state.paidArenaScarletCounterEnabled[normalizedMode][normalizeTeamKey(teamKey)];
 }
 
-function getPaidArenaJackalLinks(mode = state.paidArenaMode) {
+function getPaidArenaJackalLinks(mode = state.paidArenaMode, teamKey = getPaidArenaDataTeamKey()) {
   const normalizedMode = normalizePaidArenaMode(mode);
   if (normalizedMode === "normal") return [];
-  if (!Array.isArray(state.paidArenaJackalLinks?.[normalizedMode])) {
-    state.paidArenaJackalLinks[normalizedMode] = createEmptyPaidArenaJackalLinks(normalizedMode);
-  }
   state.paidArenaJackalLinks[normalizedMode] = normalizePaidArenaJackalLinks(
     state.paidArenaJackalLinks[normalizedMode],
     normalizedMode,
   );
-  return state.paidArenaJackalLinks[normalizedMode];
+  return state.paidArenaJackalLinks[normalizedMode][normalizeTeamKey(teamKey)];
 }
 
-function normalizePaidArenaTeams(savedTeams = [], mode = "c") {
+function normalizePaidArenaSideRows(savedRows, mode, normalizeRows, createRows) {
+  if (Array.isArray(savedRows)) {
+    return {
+      defense: createRows(mode),
+      attack: normalizeRows(savedRows, mode),
+    };
+  }
+  return {
+    defense: normalizeRows(savedRows?.defense, mode),
+    attack: normalizeRows(savedRows?.attack, mode),
+  };
+}
+
+function normalizePaidArenaTeamRows(savedTeams = [], mode = "c") {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, (_, rowIndex) =>
     Array.from({ length: TEAM_SIZE }, (_, slotIndex) => {
@@ -4685,39 +4714,63 @@ function normalizePaidArenaTeams(savedTeams = [], mode = "c") {
   );
 }
 
-function normalizePaidArenaUniversalCharges(savedCharges = [], mode = "c") {
+function normalizePaidArenaTeams(savedTeams = [], mode = "c") {
+  return normalizePaidArenaSideRows(savedTeams, mode, normalizePaidArenaTeamRows, createEmptyPaidArenaTeams);
+}
+
+function normalizePaidArenaUniversalChargeRows(savedCharges = [], mode = "c") {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, (_, rowIndex) =>
     Array.from({ length: TEAM_SIZE }, (_, slotIndex) => sanitizeUniversalCharge(savedCharges?.[rowIndex]?.[slotIndex])),
   );
 }
 
-function normalizePaidArenaChargeSpeeds(savedSpeeds = [], mode = "c") {
+function normalizePaidArenaUniversalCharges(savedCharges = [], mode = "c") {
+  return normalizePaidArenaSideRows(savedCharges, mode, normalizePaidArenaUniversalChargeRows, createEmptyPaidArenaUniversalCharges);
+}
+
+function normalizePaidArenaChargeSpeedRows(savedSpeeds = [], mode = "c") {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, (_, rowIndex) =>
     Array.from({ length: TEAM_SIZE }, (_, slotIndex) => sanitizeChargeSpeed(savedSpeeds?.[rowIndex]?.[slotIndex])),
   );
 }
 
-function normalizePaidArenaRosannaSacrificeFrames(savedFrames = [], mode = "c") {
+function normalizePaidArenaChargeSpeeds(savedSpeeds = [], mode = "c") {
+  return normalizePaidArenaSideRows(savedSpeeds, mode, normalizePaidArenaChargeSpeedRows, createEmptyPaidArenaChargeSpeeds);
+}
+
+function normalizePaidArenaRosannaSacrificeFrameRows(savedFrames = [], mode = "c") {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, (_, rowIndex) =>
     Array.from({ length: TEAM_SIZE }, (_, slotIndex) => sanitizeSacrificeFrame(savedFrames?.[rowIndex]?.[slotIndex])),
   );
 }
 
-function normalizePaidArenaRedHoodPierceCounts(savedCounts = [], mode = "c") {
+function normalizePaidArenaRosannaSacrificeFrames(savedFrames = [], mode = "c") {
+  return normalizePaidArenaSideRows(savedFrames, mode, normalizePaidArenaRosannaSacrificeFrameRows, createEmptyPaidArenaRosannaSacrificeFrames);
+}
+
+function normalizePaidArenaRedHoodPierceCountRows(savedCounts = [], mode = "c") {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, (_, rowIndex) =>
     Array.from({ length: TEAM_SIZE }, (_, slotIndex) => sanitizeRedHoodPierceCount(savedCounts?.[rowIndex]?.[slotIndex])),
   );
 }
 
-function normalizePaidArenaScarletCounterEnabled(savedValues = [], mode = "c") {
+function normalizePaidArenaRedHoodPierceCounts(savedCounts = [], mode = "c") {
+  return normalizePaidArenaSideRows(savedCounts, mode, normalizePaidArenaRedHoodPierceCountRows, createEmptyPaidArenaRedHoodPierceCounts);
+}
+
+function normalizePaidArenaScarletCounterEnabledRows(savedValues = [], mode = "c") {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, (_, rowIndex) =>
     Array.from({ length: TEAM_SIZE }, (_, slotIndex) => sanitizeScarletCounterEnabled(savedValues?.[rowIndex]?.[slotIndex])),
   );
+}
+
+function normalizePaidArenaScarletCounterEnabled(savedValues = [], mode = "c") {
+  return normalizePaidArenaSideRows(savedValues, mode, normalizePaidArenaScarletCounterEnabledRows, createEmptyPaidArenaScarletCounterEnabled);
 }
 
 function normalizePaidArenaJackalLink(link = {}) {
@@ -4728,9 +4781,13 @@ function normalizePaidArenaJackalLink(link = {}) {
   };
 }
 
-function normalizePaidArenaJackalLinks(savedLinks = [], mode = "c") {
+function normalizePaidArenaJackalLinkRows(savedLinks = [], mode = "c") {
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   return Array.from({ length: teamCount }, (_, rowIndex) => normalizePaidArenaJackalLink(savedLinks?.[rowIndex]));
+}
+
+function normalizePaidArenaJackalLinks(savedLinks = [], mode = "c") {
+  return normalizePaidArenaSideRows(savedLinks, mode, normalizePaidArenaJackalLinkRows, createEmptyPaidArenaJackalLinks);
 }
 
 function normalizePaidArenaLinkForTeam(team = [], link = createEmptyJackalLinkState()) {
@@ -4751,32 +4808,46 @@ function normalizePaidArenaLinkForTeam(team = [], link = createEmptyJackalLinkSt
   return normalizedLink;
 }
 
+function serializePaidArenaBySide(mode, serializeRows) {
+  return {
+    defense: serializeRows("defense"),
+    attack: serializeRows("attack"),
+  };
+}
+
+function serializePaidArenaTeamsFromNormalized(teamsBySide) {
+  return {
+    defense: (teamsBySide?.defense || []).map((team) => team.map((character) => character?.id || null)),
+    attack: (teamsBySide?.attack || []).map((team) => team.map((character) => character?.id || null)),
+  };
+}
+
 function serializePaidArenaTeams(mode) {
-  return getPaidArenaTeams(mode).map((team) => team.map((character) => character?.id || null));
+  return serializePaidArenaBySide(mode, (teamKey) => getPaidArenaTeams(mode, teamKey).map((team) => team.map((character) => character?.id || null)));
 }
 
 function serializePaidArenaUniversalCharges(mode) {
-  return getPaidArenaUniversalCharges(mode).map((teamCharges) => [...teamCharges]);
+  return serializePaidArenaBySide(mode, (teamKey) => getPaidArenaUniversalCharges(mode, teamKey).map((teamCharges) => [...teamCharges]));
 }
 
 function serializePaidArenaChargeSpeeds(mode) {
-  return getPaidArenaChargeSpeeds(mode).map((teamSpeeds) => [...teamSpeeds]);
+  return serializePaidArenaBySide(mode, (teamKey) => getPaidArenaChargeSpeeds(mode, teamKey).map((teamSpeeds) => [...teamSpeeds]));
 }
 
 function serializePaidArenaRosannaSacrificeFrames(mode) {
-  return getPaidArenaRosannaSacrificeFrames(mode).map((teamFrames) => [...teamFrames]);
+  return serializePaidArenaBySide(mode, (teamKey) => getPaidArenaRosannaSacrificeFrames(mode, teamKey).map((teamFrames) => [...teamFrames]));
 }
 
 function serializePaidArenaRedHoodPierceCounts(mode) {
-  return getPaidArenaRedHoodPierceCounts(mode).map((teamCounts) => [...teamCounts]);
+  return serializePaidArenaBySide(mode, (teamKey) => getPaidArenaRedHoodPierceCounts(mode, teamKey).map((teamCounts) => [...teamCounts]));
 }
 
 function serializePaidArenaScarletCounterEnabled(mode) {
-  return getPaidArenaScarletCounterEnabled(mode).map((teamValues) => [...teamValues]);
+  return serializePaidArenaBySide(mode, (teamKey) => getPaidArenaScarletCounterEnabled(mode, teamKey).map((teamValues) => [...teamValues]));
 }
 
 function serializePaidArenaJackalLinks(mode) {
-  return getPaidArenaJackalLinks(mode).map((link) => ({ ...link, targetIds: [...(link.targetIds || [])] }));
+  return serializePaidArenaBySide(mode, (teamKey) => getPaidArenaJackalLinks(mode, teamKey).map((link) => ({ ...link, targetIds: [...(link.targetIds || [])] })));
 }
 
 function serializePaidArenaLineupSlot(mode) {
@@ -4789,12 +4860,13 @@ function serializePaidArenaLineupSlot(mode) {
     scarletCounterEnabled: serializePaidArenaScarletCounterEnabled(mode),
     jackalLinks: serializePaidArenaJackalLinks(mode),
     activeRowIndex: Math.max(0, Math.min((PAID_ARENA_TEAM_COUNTS[mode] || 1) - 1, Number(state.paidArenaActiveRowIndex) || 0)),
+    activeTeamKey: getPaidArenaDataTeamKey(),
   };
 }
 
 function normalizePaidArenaLineupSlot(slot = {}, mode = "c") {
   return {
-    teams: normalizePaidArenaTeams(slot.teams, mode).map((team) => team.map((character) => character?.id || null)),
+    teams: serializePaidArenaTeamsFromNormalized(normalizePaidArenaTeams(slot.teams, mode)),
     universalCharges: normalizePaidArenaUniversalCharges(slot.universalCharges, mode),
     chargeSpeeds: normalizePaidArenaChargeSpeeds(slot.chargeSpeeds, mode),
     rosannaSacrificeFrames: normalizePaidArenaRosannaSacrificeFrames(slot.rosannaSacrificeFrames, mode),
@@ -4802,6 +4874,7 @@ function normalizePaidArenaLineupSlot(slot = {}, mode = "c") {
     scarletCounterEnabled: normalizePaidArenaScarletCounterEnabled(slot.scarletCounterEnabled, mode),
     jackalLinks: normalizePaidArenaJackalLinks(slot.jackalLinks, mode),
     activeRowIndex: Math.max(0, Math.min((PAID_ARENA_TEAM_COUNTS[mode] || 1) - 1, Number(slot.activeRowIndex) || 0)),
+    activeTeamKey: normalizeTeamKey(slot.activeTeamKey || slot.dataTeamKey || "attack"),
   };
 }
 
@@ -4843,12 +4916,16 @@ function loadPaidArenaLineupSlot(mode = state.paidArenaMode, index = getPaidAren
   state.paidArenaScarletCounterEnabled[normalizedMode] = normalizePaidArenaScarletCounterEnabled(slot.scarletCounterEnabled, normalizedMode);
   state.paidArenaJackalLinks[normalizedMode] = normalizePaidArenaJackalLinks(slot.jackalLinks, normalizedMode);
   state.paidArenaActiveRowIndex = slot.activeRowIndex;
+  state.paidArenaDataTeamKey = normalizeTeamKey(slot.activeTeamKey || state.paidArenaDataTeamKey);
 }
 
-function getPaidArenaLineupSlotCount(slot = {}) {
+function getPaidArenaLineupSlotCount(slot = {}, mode = state.paidArenaMode) {
+  const normalizedMode = normalizePaidArenaMode(mode) === "normal" ? "c" : normalizePaidArenaMode(mode);
+  const teamsBySide = normalizePaidArenaTeams(slot.teams, normalizedMode);
+  const universalBySide = normalizePaidArenaUniversalCharges(slot.universalCharges, normalizedMode);
   return [
-    ...(slot.teams || []).flat().filter(Boolean),
-    ...(slot.universalCharges || []).flat().filter((charge) => sanitizeUniversalCharge(charge) > 0),
+    ...["defense", "attack"].flatMap((teamKey) => (teamsBySide[teamKey] || []).flat().filter(Boolean)),
+    ...["defense", "attack"].flatMap((teamKey) => (universalBySide[teamKey] || []).flat().filter((charge) => sanitizeUniversalCharge(charge) > 0)),
   ].length;
 }
 
@@ -5161,7 +5238,7 @@ function renderLineupSlots() {
     const activeIndex = getPaidArenaActiveLineupIndex(mode);
     const fragment = document.createDocumentFragment();
     ensurePaidArenaLineupSlots(mode).forEach((slot, index) => {
-      const count = getPaidArenaLineupSlotCount(slot);
+      const count = getPaidArenaLineupSlotCount(slot, mode);
       const button = document.createElement("button");
       button.type = "button";
       button.className = `lineup-slot-button${index === activeIndex ? " is-active" : ""}${count ? " has-lineup" : ""}`;
@@ -5260,10 +5337,9 @@ function createPaidArenaDataSourceBar() {
   const bar = document.createElement("div");
   bar.className = "paid-arena-data-source-bar";
   bar.innerHTML = `
-    <span>使用角色已保存的${dataTeamKey === "defense" ? "防守" : "进攻"}数据；在此修改会同步回该数据。</span>
-    <div class="paid-arena-data-source-actions" role="group" aria-label="选择角色设置数据来源">
-      <button class="${dataTeamKey === "attack" ? "is-active" : ""}" type="button" data-paid-data-source="attack">进攻数据</button>
-      <button class="${dataTeamKey === "defense" ? "is-active" : ""}" type="button" data-paid-data-source="defense">防守数据</button>
+    <div class="paid-arena-data-source-actions" role="group" aria-label="选择显示队伍">
+      <button class="${dataTeamKey === "attack" ? "is-active" : ""}" type="button" data-paid-data-source="attack">进攻队伍</button>
+      <button class="${dataTeamKey === "defense" ? "is-active" : ""}" type="button" data-paid-data-source="defense">防守队伍</button>
     </div>
   `;
   bar.querySelectorAll("[data-paid-data-source]").forEach((button) => {
@@ -7493,9 +7569,16 @@ function renderResults(battleResults = getBattleResultsSnapshot()) {
   if (isPaidArenaModeActive()) {
     const teams = getPaidArenaTeams();
     const pickedCount = teams.flat().filter(Boolean).length;
-    els.summaryStrip.textContent = `${getPaidArenaModeLabel()}：${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复\n移动端长按，桌面端右键可复制队伍图片`;
+    const activeSide = getPaidArenaDataTeamKey();
+    const activeSideLabel = activeSide === "defense" ? "防守队伍" : "进攻队伍";
+    els.summaryStrip.textContent = `${getPaidArenaModeLabel()}：${activeSideLabel} ${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复\n移动端长按，桌面端右键可复制队伍图片`;
     els.resultPanel.innerHTML = "";
-    renderChargeChart(getActivePaidArenaChartResult(), null);
+    const activeResult = getActivePaidArenaChartResult();
+    if (activeSide === "defense") {
+      renderChargeChart(null, activeResult);
+    } else {
+      renderChargeChart(activeResult, null);
+    }
     return null;
   }
   const { attackResult: result, defenseResult } = battleResults;
@@ -7881,13 +7964,13 @@ function moveTeamSlot(fromTeamKey, fromIndex, toTeamKey, toIndex) {
 
 function clearTeam() {
   if (isPaidArenaModeActive()) {
-    state.paidArenaTeams[state.paidArenaMode] = createEmptyPaidArenaTeams(state.paidArenaMode);
-    state.paidArenaUniversalCharges[state.paidArenaMode] = createEmptyPaidArenaUniversalCharges(state.paidArenaMode);
-    state.paidArenaChargeSpeeds[state.paidArenaMode] = createEmptyPaidArenaChargeSpeeds(state.paidArenaMode);
-    state.paidArenaRosannaSacrificeFrames[state.paidArenaMode] = createEmptyPaidArenaRosannaSacrificeFrames(state.paidArenaMode);
-    state.paidArenaRedHoodPierceCounts[state.paidArenaMode] = createEmptyPaidArenaRedHoodPierceCounts(state.paidArenaMode);
-    state.paidArenaScarletCounterEnabled[state.paidArenaMode] = createEmptyPaidArenaScarletCounterEnabled(state.paidArenaMode);
-    state.paidArenaJackalLinks[state.paidArenaMode] = createEmptyPaidArenaJackalLinks(state.paidArenaMode);
+    state.paidArenaTeams[state.paidArenaMode] = createEmptyPaidArenaTeamsBySide(state.paidArenaMode);
+    state.paidArenaUniversalCharges[state.paidArenaMode] = createEmptyPaidArenaUniversalChargesBySide(state.paidArenaMode);
+    state.paidArenaChargeSpeeds[state.paidArenaMode] = createEmptyPaidArenaChargeSpeedsBySide(state.paidArenaMode);
+    state.paidArenaRosannaSacrificeFrames[state.paidArenaMode] = createEmptyPaidArenaRosannaSacrificeFramesBySide(state.paidArenaMode);
+    state.paidArenaRedHoodPierceCounts[state.paidArenaMode] = createEmptyPaidArenaRedHoodPierceCountsBySide(state.paidArenaMode);
+    state.paidArenaScarletCounterEnabled[state.paidArenaMode] = createEmptyPaidArenaScarletCounterEnabledBySide(state.paidArenaMode);
+    state.paidArenaJackalLinks[state.paidArenaMode] = createEmptyPaidArenaJackalLinksBySide(state.paidArenaMode);
     state.paidArenaActiveRowIndex = 0;
     openSlotSettings = null;
     openRosannaSacrificeSettings = null;
@@ -8309,32 +8392,32 @@ function loadTeam() {
     state.paidArenaActiveLineupIndex = { c: 0, p: 0 };
     state.paidArenaDataTeamKey = "attack";
     state.paidArenaTeams = {
-      c: createEmptyPaidArenaTeams("c"),
-      p: createEmptyPaidArenaTeams("p"),
+      c: createEmptyPaidArenaTeamsBySide("c"),
+      p: createEmptyPaidArenaTeamsBySide("p"),
     };
     state.paidArenaUniversalCharges = {
-      c: createEmptyPaidArenaUniversalCharges("c"),
-      p: createEmptyPaidArenaUniversalCharges("p"),
+      c: createEmptyPaidArenaUniversalChargesBySide("c"),
+      p: createEmptyPaidArenaUniversalChargesBySide("p"),
     };
     state.paidArenaChargeSpeeds = {
-      c: createEmptyPaidArenaChargeSpeeds("c"),
-      p: createEmptyPaidArenaChargeSpeeds("p"),
+      c: createEmptyPaidArenaChargeSpeedsBySide("c"),
+      p: createEmptyPaidArenaChargeSpeedsBySide("p"),
     };
     state.paidArenaRosannaSacrificeFrames = {
-      c: createEmptyPaidArenaRosannaSacrificeFrames("c"),
-      p: createEmptyPaidArenaRosannaSacrificeFrames("p"),
+      c: createEmptyPaidArenaRosannaSacrificeFramesBySide("c"),
+      p: createEmptyPaidArenaRosannaSacrificeFramesBySide("p"),
     };
     state.paidArenaRedHoodPierceCounts = {
-      c: createEmptyPaidArenaRedHoodPierceCounts("c"),
-      p: createEmptyPaidArenaRedHoodPierceCounts("p"),
+      c: createEmptyPaidArenaRedHoodPierceCountsBySide("c"),
+      p: createEmptyPaidArenaRedHoodPierceCountsBySide("p"),
     };
     state.paidArenaScarletCounterEnabled = {
-      c: createEmptyPaidArenaScarletCounterEnabled("c"),
-      p: createEmptyPaidArenaScarletCounterEnabled("p"),
+      c: createEmptyPaidArenaScarletCounterEnabledBySide("c"),
+      p: createEmptyPaidArenaScarletCounterEnabledBySide("p"),
     };
     state.paidArenaJackalLinks = {
-      c: createEmptyPaidArenaJackalLinks("c"),
-      p: createEmptyPaidArenaJackalLinks("p"),
+      c: createEmptyPaidArenaJackalLinksBySide("c"),
+      p: createEmptyPaidArenaJackalLinksBySide("p"),
     };
     state.paidArenaLineupSlots = {
       c: Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyPaidArenaLineupSlot("c")),
@@ -8813,8 +8896,8 @@ async function paidArenaToPngBlob() {
   const scarletCounterRows = getPaidArenaScarletCounterEnabled(mode);
   const jackalLinkRows = getPaidArenaJackalLinks(mode);
   const dataTeamKey = getPaidArenaDataTeamKey();
-  const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守数据" : "进攻数据";
-  const title = `${getPaidArenaModeLabel(mode)}（${dataSourceLabel}）`;
+  const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守队伍" : "进攻队伍";
+  const title = `${getPaidArenaModeLabel(mode)}：${dataSourceLabel}`;
   const padding = 28;
   const slotSize = 100;
   const slotGap = 14;
