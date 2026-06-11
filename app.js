@@ -231,7 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
-  "豺狼链接充能详情补充10 hit触发来源",
+  "豺狼链接充能详情按帧显示10 hit来源",
   "调整队伍栏分享图按钮位置到切换按钮前",
   "队伍栏标题改为中文并恢复队伍分享图按钮",
   "移除分享图头像区重复的攻防队伍标签",
@@ -6543,17 +6543,30 @@ function getJackalLinkedHitSources(entry, linkedPositionIndices) {
 }
 
 function formatJackalHitSources(sources = []) {
-  const sourceParts = sources
+  const groupedSources = new Map();
+  sources
     .filter((source) => source && Number(source.hitCount) > 0)
-    .map((source) => {
-      if (source.attackerPositionIndex < 0) return `${source.characterName} ${formatNumber(Number(source.hitCount), 2)} hit`;
-      const hitTargets = source.hits
-        .map((hit) => `P${hit.positionIndex + 1} ${formatNumber(Number(hit.hitCount), 2)} hit`)
-        .join(", ");
-      const frameText = Number.isFinite(source.frame) ? `${source.frame}F ` : "";
-      return `${frameText}敌方P${source.attackerPositionIndex + 1} ${source.characterName} -> ${hitTargets}`;
+    .forEach((source) => {
+      const key = source.attackerPositionIndex < 0 ? "previous" : `${source.frame}`;
+      groupedSources.set(key, [...(groupedSources.get(key) || []), source]);
     });
-  return sourceParts.length ? sourceParts.join("；") : "";
+  return [...groupedSources.entries()]
+    .map(([key, frameSources]) => {
+      if (key === "previous") {
+        const total = frameSources.reduce((sum, source) => sum + Number(source.hitCount), 0);
+        return `前序累计：${formatNumber(total, 2)} hit`;
+      }
+      const sourceText = frameSources
+        .map((source) => {
+          const hitTargets = source.hits
+            .map((hit) => `P${hit.positionIndex + 1} ${formatNumber(Number(hit.hitCount), 2)} hit`)
+            .join(", ");
+          return `敌方P${source.attackerPositionIndex + 1} ${source.characterName} -> ${hitTargets}`;
+        })
+        .join("；");
+      return `${key}F：${sourceText}`;
+    })
+    .filter(Boolean);
 }
 
 function getPositionHitCount(entry, positionIndex) {
@@ -6705,12 +6718,12 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
 
 function getSpecialChargeTooltipLines(group, entry) {
   if (group.type === "jackalLink") {
-    const sourceText = formatJackalHitSources(entry.triggerSources || []);
+    const sourceLines = formatJackalHitSources(entry.triggerSources || []);
     return [
       group.label,
       `时间：${entry.frame} F`,
       `本次触发：${formatNumber(entry.triggerHitCount || entry.hitCount, 2)} hit`,
-      ...(sourceText ? [`触发来源：${sourceText}`] : []),
+      ...(sourceLines.length ? ["触发来源：", ...sourceLines] : []),
       `受击累计：${entry.accumulatedHits} hit`,
       `连接触发：${entry.triggerCount} × ${formatNumber(group.chargePerLink, 2)}% = ${formatNumber(entry.charge, 2)}%`,
       `累计充能：${formatNumber(entry.cumulativeCharge, 2)}%`,
