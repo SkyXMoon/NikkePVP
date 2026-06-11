@@ -229,6 +229,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "收窄本地缓存范围，仅缓存头像与图标资源并在每次访问时刷新",
   "移除Team栏重复分享按钮，保留悬浮分享入口",
   "调整本地测试环境分享图网址显示为固定正式域名",
   "优化冠军/特殊竞技场双队伍充能轴命名，保留简洁总充能显示",
@@ -236,7 +237,6 @@ const CHANGELOG_ITEMS = [
   "优化普通竞技场与冠军/特殊竞技场默认选中队伍，并强化攻防队伍颜色标识",
   "修复本地测试可能被旧Service Worker缓存页面拦截的问题",
   "冠军/特殊竞技场改为同一方案内切换进攻队伍与防守队伍，并分别保存队伍",
-  "扩展本地缓存机制，主资源、头像、图标与二维码首次访问后可持久缓存",
   "新增侧边栏中英文切换入口，并同步主要界面文案",
   "补充吉儿·华伦泰本地头像回退资源",
 ];
@@ -266,7 +266,6 @@ function getAvatarCacheCandidates() {
   const urls = new Set();
   [
     "assets/icons/site/favicon.png",
-    "assets/qrcodes/qqqrcode.png",
     "assets/icons/ui/settings.svg",
     "assets/icons/ui/pierce.svg",
     "assets/icons/ui/link.svg",
