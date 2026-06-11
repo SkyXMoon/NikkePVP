@@ -229,6 +229,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "冠军/特殊竞技场默认使用攻防显示，并将攻防显示按钮前置",
   "修正冠军/特殊竞技场分享图结构，先汇总队伍信息再展示各ROUND对比充能轴",
   "优化冠军/特殊竞技场分享图，按轮次展示双方头像、充能速度与对比充能轴",
   "冠军/特殊竞技场新增ROUND显示与攻防显示切换",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "收窄本地缓存范围，仅缓存头像与图标资源并在每次访问时刷新",
   "移除Team栏重复分享按钮，保留悬浮分享入口",
   "调整本地测试环境分享图网址显示为固定正式域名",
-  "优化冠军/特殊竞技场双队伍充能轴命名，保留简洁总充能显示",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -5258,6 +5258,7 @@ function setPaidArenaMode(mode) {
     state.paidArenaActiveLineupIndex[nextMode] = getPaidArenaActiveLineupIndex(nextMode);
     loadPaidArenaLineupSlot(nextMode, state.paidArenaActiveLineupIndex[nextMode]);
     state.testMode = false;
+    state.paidArenaDisplayMode = "side";
     state.paidArenaDataTeamKey = "defense";
     state.paidArenaActiveRowIndex = 0;
     syncPaidArenaChargeSpeedsFromSavedData();
@@ -5415,8 +5416,8 @@ function createPaidArenaDisplayModeBar() {
   bar.className = "paid-arena-display-mode-bar";
   bar.innerHTML = `
     <div class="paid-arena-display-mode-actions" role="group" aria-label="显示模式">
-      <button class="${displayMode === "round" ? "is-active" : ""}" type="button" data-paid-display-mode="round">ROUND显示</button>
       <button class="${displayMode === "side" ? "is-active" : ""}" type="button" data-paid-display-mode="side">攻防显示</button>
+      <button class="${displayMode === "round" ? "is-active" : ""}" type="button" data-paid-display-mode="round">ROUND显示</button>
     </div>
   `;
   bar.querySelectorAll("[data-paid-display-mode]").forEach((button) => {
@@ -8527,7 +8528,7 @@ function loadTeam() {
         p: Math.max(0, Math.min(LINEUP_SLOT_COUNT - 1, Number(saved.paidArenaActiveLineupIndex?.p) || 0)),
       };
       state.paidArenaMode = normalizePaidArenaMode(saved.paidArenaMode);
-      state.paidArenaDisplayMode = normalizePaidArenaDisplayMode(saved.paidArenaDisplayMode);
+      state.paidArenaDisplayMode = "side";
       const hasSavedActivePaidArenaLineup = isPaidArenaModeActive() && Array.isArray(saved.paidArenaLineupSlots?.[state.paidArenaMode]);
       if (isPaidArenaModeActive()) loadPaidArenaLineupSlot(state.paidArenaMode, getPaidArenaActiveLineupIndex(state.paidArenaMode));
       if (isPaidArenaModeActive()) {
