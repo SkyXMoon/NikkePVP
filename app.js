@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化普通竞技场与冠军/特殊竞技场默认选中队伍，并强化攻防队伍颜色标识",
   "修复本地测试可能被旧Service Worker缓存页面拦截的问题",
   "冠军/特殊竞技场改为同一方案内切换进攻队伍与防守队伍，并分别保存队伍",
   "扩展本地缓存机制，主资源、头像、图标与二维码首次访问后可持久缓存",
@@ -240,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "移动端分享在不支持原生分享时改为弹出图片预览弹窗，支持查看与下载图片",
   "修复移动端分享与复制图片降级行为",
   "修复移动端分享与复制图标的降级行为",
-  "优化角色设置中蓄速与魔方保存逻辑",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -375,7 +375,7 @@ const state = {
     c: 0,
     p: 0,
   },
-  paidArenaDataTeamKey: "attack",
+  paidArenaDataTeamKey: "defense",
   paidArenaTeams: {
     c: createEmptyPaidArenaTeamsBySide("c"),
     p: createEmptyPaidArenaTeamsBySide("p"),
@@ -412,7 +412,7 @@ const state = {
   battlePowerBase: 0,
   testMode: false,
   compactAvatarIcons: true,
-  activeTeamKey: "attack",
+  activeTeamKey: "defense",
   language: "zh",
   filters: {
     common: "common",
@@ -4611,7 +4611,7 @@ function createEmptyPaidArenaLineupSlot(mode) {
     scarletCounterEnabled: createEmptyPaidArenaScarletCounterEnabledBySide(mode),
     jackalLinks: createEmptyPaidArenaJackalLinksBySide(mode),
     activeRowIndex: 0,
-    activeTeamKey: "attack",
+    activeTeamKey: "defense",
   };
 }
 
@@ -4874,7 +4874,7 @@ function normalizePaidArenaLineupSlot(slot = {}, mode = "c") {
     scarletCounterEnabled: normalizePaidArenaScarletCounterEnabled(slot.scarletCounterEnabled, mode),
     jackalLinks: normalizePaidArenaJackalLinks(slot.jackalLinks, mode),
     activeRowIndex: Math.max(0, Math.min((PAID_ARENA_TEAM_COUNTS[mode] || 1) - 1, Number(slot.activeRowIndex) || 0)),
-    activeTeamKey: normalizeTeamKey(slot.activeTeamKey || slot.dataTeamKey || "attack"),
+    activeTeamKey: normalizeTeamKey(slot.activeTeamKey || slot.dataTeamKey || "defense"),
   };
 }
 
@@ -5202,11 +5202,11 @@ function setPaidArenaMode(mode) {
     state.paidArenaActiveLineupIndex[nextMode] = getPaidArenaActiveLineupIndex(nextMode);
     loadPaidArenaLineupSlot(nextMode, state.paidArenaActiveLineupIndex[nextMode]);
     state.testMode = false;
-    state.paidArenaActiveRowIndex = Math.max(
-      0,
-      Math.min(getPaidArenaTeams().length - 1, Number(state.paidArenaActiveRowIndex) || 0),
-    );
+    state.paidArenaDataTeamKey = "defense";
+    state.paidArenaActiveRowIndex = 0;
     syncPaidArenaChargeSpeedsFromSavedData();
+  } else {
+    setActiveTeam("defense");
   }
   openSlotSettings = null;
   hideChartTooltip();
@@ -5338,8 +5338,8 @@ function createPaidArenaDataSourceBar() {
   bar.className = "paid-arena-data-source-bar";
   bar.innerHTML = `
     <div class="paid-arena-data-source-actions" role="group" aria-label="选择显示队伍">
-      <button class="${dataTeamKey === "attack" ? "is-active" : ""}" type="button" data-paid-data-source="attack">进攻队伍</button>
-      <button class="${dataTeamKey === "defense" ? "is-active" : ""}" type="button" data-paid-data-source="defense">防守队伍</button>
+      <button class="paid-arena-side-button is-defense${dataTeamKey === "defense" ? " is-active" : ""}" type="button" data-paid-data-source="defense">防守队伍</button>
+      <button class="paid-arena-side-button is-attack${dataTeamKey === "attack" ? " is-active" : ""}" type="button" data-paid-data-source="attack">进攻队伍</button>
     </div>
   `;
   bar.querySelectorAll("[data-paid-data-source]").forEach((button) => {
@@ -8291,7 +8291,7 @@ function loadTeam() {
       } else {
         saveCurrentLineupSlot();
       }
-      state.paidArenaDataTeamKey = normalizeTeamKey(saved.paidArenaDataTeamKey || "attack");
+      state.paidArenaDataTeamKey = normalizeTeamKey(saved.paidArenaDataTeamKey || "defense");
       state.paidArenaTeams = {
         c: normalizePaidArenaTeams(saved.paidArenaTeams?.c, "c"),
         p: normalizePaidArenaTeams(saved.paidArenaTeams?.p, "p"),
@@ -8337,9 +8337,16 @@ function loadTeam() {
       state.paidArenaMode = normalizePaidArenaMode(saved.paidArenaMode);
       const hasSavedActivePaidArenaLineup = isPaidArenaModeActive() && Array.isArray(saved.paidArenaLineupSlots?.[state.paidArenaMode]);
       if (isPaidArenaModeActive()) loadPaidArenaLineupSlot(state.paidArenaMode, getPaidArenaActiveLineupIndex(state.paidArenaMode));
+      if (isPaidArenaModeActive()) {
+        state.paidArenaDataTeamKey = "defense";
+        state.paidArenaActiveRowIndex = 0;
+      }
       state.paidArenaActiveRowIndex = Math.max(
         0,
-        Math.min(getPaidArenaTeams().length - 1, Number(hasSavedActivePaidArenaLineup ? state.paidArenaActiveRowIndex : saved.paidArenaActiveRowIndex) || 0),
+        Math.min(
+          getPaidArenaTeams().length - 1,
+          Number(isPaidArenaModeActive() ? 0 : hasSavedActivePaidArenaLineup ? state.paidArenaActiveRowIndex : saved.paidArenaActiveRowIndex) || 0,
+        ),
       );
       if (isPaidArenaModeActive()) syncPaidArenaChargeSpeedsFromSavedData();
       state.allowMissedShots = typeof saved.allowMissedShots === "boolean" ? saved.allowMissedShots : true;
@@ -8358,7 +8365,7 @@ function loadTeam() {
       rememberLoadedTeamRedHoodPierceCounts("defense");
       rememberLoadedTeamRedHoodPierceCounts("attack");
       normalizeJackalLinks();
-      setActiveTeam(saved.activeTeamKey || "attack");
+      setActiveTeam(isPaidArenaModeActive() ? saved.activeTeamKey || "defense" : "defense");
       return;
     }
 
@@ -8390,7 +8397,7 @@ function loadTeam() {
     state.paidArenaMode = "normal";
     state.paidArenaActiveRowIndex = 0;
     state.paidArenaActiveLineupIndex = { c: 0, p: 0 };
-    state.paidArenaDataTeamKey = "attack";
+    state.paidArenaDataTeamKey = "defense";
     state.paidArenaTeams = {
       c: createEmptyPaidArenaTeamsBySide("c"),
       p: createEmptyPaidArenaTeamsBySide("p"),

@@ -326,6 +326,30 @@ input[type="number"]::-webkit-outer-spin-button {
   background: rgba(34, 111, 198, 0.78);
 }
 
+:root[data-theme="light"] .paid-arena-data-source-actions .is-defense {
+  color: #226fc6;
+  border-color: rgba(34, 111, 198, 0.36);
+  background: rgba(34, 111, 198, 0.08);
+}
+
+:root[data-theme="light"] .paid-arena-data-source-actions .is-defense.is-active {
+  color: #ffffff;
+  border-color: rgba(34, 111, 198, 0.84);
+  background: rgba(34, 111, 198, 0.78);
+}
+
+:root[data-theme="light"] .paid-arena-data-source-actions .is-attack {
+  color: #c52d42;
+  border-color: rgba(197, 45, 66, 0.34);
+  background: rgba(197, 45, 66, 0.08);
+}
+
+:root[data-theme="light"] .paid-arena-data-source-actions .is-attack.is-active {
+  color: #ffffff;
+  border-color: rgba(197, 45, 66, 0.82);
+  background: rgba(197, 45, 66, 0.76);
+}
+
 :root[data-theme="light"] .filter-switch:hover,
 :root[data-theme="light"] .lineup-slot-button:hover {
   color: var(--text);
@@ -2096,12 +2120,10 @@ input:focus {
 .paid-arena-data-source-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
+  justify-content: stretch;
   border: 1px solid rgba(242, 245, 250, 0.1);
   border-radius: 6px;
-  padding: 5px 7px;
+  padding: 5px;
   color: var(--muted);
   background: rgba(0, 0, 0, 0.16);
   font-size: 11px;
@@ -2109,15 +2131,16 @@ input:focus {
 }
 
 .paid-arena-data-source-actions {
-  display: flex;
-  gap: 5px;
-  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 100%;
 }
 
 .paid-arena-data-source-actions button {
   border: 1px solid rgba(242, 245, 250, 0.14);
   border-radius: 5px;
-  padding: 3px 7px;
+  padding: 4px 7px;
   color: var(--muted);
   background: rgba(242, 245, 250, 0.04);
   font-size: 11px;
@@ -2125,10 +2148,28 @@ input:focus {
   cursor: pointer;
 }
 
-.paid-arena-data-source-actions button.is-active {
+.paid-arena-data-source-actions .is-defense {
+  border-color: rgba(77, 163, 255, 0.32);
+  color: #8fc6ff;
+  background: rgba(77, 163, 255, 0.08);
+}
+
+.paid-arena-data-source-actions .is-attack {
+  border-color: rgba(255, 94, 108, 0.34);
+  color: #ff9ca6;
+  background: rgba(255, 94, 108, 0.08);
+}
+
+.paid-arena-data-source-actions .is-defense.is-active {
   border-color: rgba(77, 163, 255, 0.8);
   color: var(--text);
   background: rgba(77, 163, 255, 0.18);
+}
+
+.paid-arena-data-source-actions .is-attack.is-active {
+  border-color: rgba(255, 94, 108, 0.82);
+  color: var(--text);
+  background: rgba(255, 94, 108, 0.18);
 }
 
 
