@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "隐藏部分未使用的珍藏角色条目",
   "OCR识别统一先选择区域并支持从图片外起手框选",
   "OCR冒号角色支持头像名别名和多冒号片段匹配",
   "OCR冒号角色支持缺字和单字偏差匹配",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "OCR控制台改为显示最终用于匹配的过滤行",
   "OCR控制台仅显示过滤后结果并优化选区JPG压缩策略",
   "OCR选区后切换为动态识别提示并支持超时重试",
-  "OCR识别图片超过1MB时支持先框选识别区域",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -3837,6 +3837,7 @@ function togglePaidArenaJackalLinkTarget(rowIndex, character, teamKey = getPaidA
 function getFilteredCharacters() {
   const keyword = state.filters.search.trim().toLowerCase();
   return CHARACTERS.filter((character) => {
+    if (character.isHidden) return false;
     const matchesCommon = Boolean(keyword) || state.filters.common === "all" || character.isCommon;
     const matchesRegion = character.regions.includes(state.filters.region);
     const stageFilter = normalizeStageFilter(state.filters.stage);
@@ -3857,7 +3858,8 @@ function renderCharacters() {
   const fragment = document.createDocumentFragment();
   const characters = getFilteredCharacters();
   updateSortSummary();
-  els.listCount.textContent = `${characters.length}/${CHARACTERS.length} 名角色`;
+  const visibleCharacterCount = CHARACTERS.filter((character) => !character.isHidden).length;
+  els.listCount.textContent = `${characters.length}/${visibleCharacterCount} 名角色`;
 
   characters.forEach((character, index) => {
     const tile = document.createElement("button");
