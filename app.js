@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "豺狼链接充能详情补充阶段帧显示",
   "充能数值改为显示完整小数不再固定四舍五入",
   "豺狼链接触发来源改为每个角色独立一行",
   "豺狼链接充能详情按帧显示10 hit来源",
@@ -240,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "冠军/特殊竞技场默认使用攻防显示，并将攻防显示按钮前置",
   "修正冠军/特殊竞技场分享图结构，先汇总队伍信息再展示各ROUND对比充能轴",
   "优化冠军/特殊竞技场分享图，按轮次展示双方头像、充能速度与对比充能轴",
-  "冠军/特殊竞技场新增ROUND显示与攻防显示切换",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -6656,6 +6656,7 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
         let triggeredLinks = 0;
         let pendingTriggerHits = 0;
         let pendingTriggerSources = [];
+        let pendingTriggerStartFrame = null;
         let previousSuppressedByRosanna = false;
         let cumulativeCharge = 0;
         const timeline = opponentTimeline
@@ -6669,6 +6670,7 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
               triggeredLinks = 0;
               pendingTriggerHits = 0;
               pendingTriggerSources = [];
+              pendingTriggerStartFrame = null;
             }
             previousSuppressedByRosanna = suppressedByRosanna;
             const hitCount = suppressedByRosanna
@@ -6677,22 +6679,28 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
             const hitSources = suppressedByRosanna
               ? getJackalLinkedHitSources(entry, [member.positionIndex])
               : getJackalLinkedHitSources(entry, linkedPositionIndices);
+            if (hitCount > 0 && pendingTriggerStartFrame === null) pendingTriggerStartFrame = entry.frame;
             accumulatedHits += hitCount;
             pendingTriggerHits += hitCount;
             pendingTriggerSources.push(...hitSources);
             const nextTriggeredLinks = Math.floor(accumulatedHits / JACKAL_LINK_HIT_THRESHOLD);
             const triggerCount = nextTriggeredLinks - triggeredLinks;
             if (triggerCount <= 0) return null;
+            const stageStartFrame = pendingTriggerStartFrame ?? entry.frame;
+            const stageEndFrame = entry.frame;
             const triggerHitCount = pendingTriggerHits;
             const triggerSources = [...pendingTriggerSources];
             triggeredLinks = nextTriggeredLinks;
             const remainingHits = accumulatedHits - triggeredLinks * JACKAL_LINK_HIT_THRESHOLD;
             pendingTriggerHits = remainingHits;
             pendingTriggerSources = remainingHits > 0 ? [{ hitCount: remainingHits, characterName: "剩余累计", attackerPositionIndex: -1, hits: [] }] : [];
+            pendingTriggerStartFrame = remainingHits > 0 ? entry.frame : null;
             const charge = chargePerLink * triggerCount;
             cumulativeCharge += charge;
             return {
               frame: entry.frame,
+              stageStartFrame,
+              stageEndFrame,
               hitCount,
               accumulatedHits,
               triggerHitCount,
@@ -6723,7 +6731,8 @@ function getSpecialChargeTooltipLines(group, entry) {
     const sourceLines = formatJackalHitSources(entry.triggerSources || []);
     return [
       group.label,
-      `时间：${entry.frame} F`,
+      `阶段：${entry.stageStartFrame ?? entry.frame}F-${entry.stageEndFrame ?? entry.frame}F`,
+      `触发帧：${entry.frame} F`,
       `本次触发：${formatNumber(entry.triggerHitCount || entry.hitCount, 2)} hit`,
       ...(sourceLines.length ? ["触发来源：", ...sourceLines] : []),
       `受击累计：${entry.accumulatedHits} hit`,
