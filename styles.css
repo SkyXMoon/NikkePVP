@@ -3772,6 +3772,24 @@ input:focus {
   font-family: Arial, "Microsoft YaHei", sans-serif;
 }
 
+.copy-image-export[data-theme="light"] {
+  border-color: rgba(84, 103, 126, 0.22);
+  color: #17202c;
+  background: #f4f7fb;
+  --text: #17202c;
+  --muted: #5f6f82;
+  --line-soft: rgba(84, 103, 126, 0.2);
+  --accent: #c52d42;
+  --blue: #226fc6;
+  --cyan: #0c99aa;
+  --gold: #b47a10;
+}
+
+.copy-image-export[data-theme="light"] .sub-metrics div {
+  color: #5f6f82;
+  background: #ffffff;
+}
+
 .copy-image-title {
   margin: 0 0 8px;
   color: var(--text);

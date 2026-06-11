@@ -230,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "分享图片支持跟随深色/浅色主题",
   "冠军/特殊竞技场默认显示进攻队伍并支持攻防队伍交换",
   "修复冠军/特殊竞技场特殊开关写错队伍侧的问题",
   "充能数值改为截断保留最多4位小数",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "诺雅额外机制改为额外效果不再计入hit",
   "总充能详情补充各站位累计造成hit来源",
   "红莲反击充能详情补充受击来源",
-  "简化灰姑娘充能详情描述",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -4427,6 +4427,71 @@ function initTheme() {
 
 function toggleTheme() {
   applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+}
+
+function getExportThemePalette() {
+  const isLight = normalizeTheme(document.documentElement.dataset.theme) === "light";
+  return isLight
+    ? {
+        mode: "light",
+        page: "#f4f7fb",
+        panel: "#ffffff",
+        panelSoft: "#edf3f9",
+        slot: "#f8fbff",
+        emptySlot: "#eef3f8",
+        border: "rgba(84, 103, 126, 0.24)",
+        softBorder: "rgba(84, 103, 126, 0.18)",
+        text: "#17202c",
+        muted: "#5f6f82",
+        subtle: "#7d8c9d",
+        title: "#b47a10",
+        site: "#5f6f82",
+        badge: "rgba(23, 32, 44, 0.76)",
+        chartBg: "#f7faff",
+        chartGrid: "rgba(84, 103, 126, 0.26)",
+        chartText: "#314154",
+        chartLine: "rgba(49, 65, 84, 0.24)",
+        chartSeparator: "rgba(84, 103, 126, 0.38)",
+        chartDodge: "rgba(23, 32, 44, 0.82)",
+      }
+    : {
+        mode: "dark",
+        page: "#0b0e14",
+        panel: "#111821",
+        panelSoft: "#15191f",
+        slot: "#111821",
+        emptySlot: "#15191f",
+        border: "rgba(242, 245, 250, 0.12)",
+        softBorder: "rgba(242, 245, 250, 0.18)",
+        text: "#f2f5fa",
+        muted: "#8f9aaa",
+        subtle: "#7d8796",
+        title: "#f0c45c",
+        site: "#7f8a99",
+        badge: "rgba(0, 0, 0, 0.72)",
+        chartBg: "#0b0e14",
+        chartGrid: "rgba(92, 109, 132, 0.38)",
+        chartText: "#d8dee9",
+        chartLine: "rgba(255, 255, 255, 0.14)",
+        chartSeparator: "rgba(242, 245, 250, 0.42)",
+        chartDodge: "rgba(255, 255, 255, 0.94)",
+      };
+}
+
+function getExportSvgThemeStyles() {
+  const theme = getExportThemePalette();
+  return `
+    .chart-bg { fill: ${theme.chartBg} !important; }
+    .chart-grid line { stroke: ${theme.chartGrid} !important; }
+    .chart-grid text, .chart-name, .chart-axis-label { fill: ${theme.chartText} !important; }
+    .chart-grid.is-full text, .chart-standard.is-full text { fill: ${theme.mode === "light" ? "#c63d4e" : "#ffd9dc"} !important; }
+    .chart-standard text, .chart-standard-label, .chart-standard-name { fill: ${theme.mode === "light" ? "#7b5715" : "#fff7d7"} !important; }
+    .chart-position-line { stroke: ${theme.chartLine} !important; }
+    .chart-team-separator { stroke: ${theme.chartSeparator} !important; }
+    .chart-dodge-track, .chart-dodge-track.team-defense, .chart-dodge-track.team-attack, .chart-dodge-turn { stroke: ${theme.chartDodge} !important; }
+    .chart-burst-label.team-defense, .chart-total-name.team-defense, .chart-scarlet-counter-name.team-defense { fill: ${theme.mode === "light" ? "#226fc6" : "#9bcfff"} !important; }
+    .chart-burst-label.team-attack, .chart-total-name.team-attack, .chart-scarlet-counter-name.team-attack { fill: ${theme.mode === "light" ? "#d9354a" : "#ff9ca6"} !important; }
+  `;
 }
 
 function isWechatMiniProgramRuntime() {
@@ -9016,6 +9081,7 @@ function blobToDataUrl(blob) {
 async function getChargeChartPngBlob() {
   const svg = els.chargeChart?.querySelector("svg");
   if (!svg) throw new Error("charge chart is not rendered");
+  const theme = getExportThemePalette();
 
   const { width, height } = getSvgViewBoxSize(svg);
   const clone = svg.cloneNode(true);
@@ -9025,12 +9091,12 @@ async function getChargeChartPngBlob() {
   clone.style.setProperty("--accent", "#e43f4f");
   clone.style.setProperty("--blue", "#4da3ff");
   clone.style.setProperty("--cyan", "#47c8d4");
-  clone.style.setProperty("--gold", "#f0c45c");
-  clone.style.setProperty("--text", "#f2f5fa");
+  clone.style.setProperty("--gold", theme.title);
+  clone.style.setProperty("--text", theme.text);
   inlineComputedSvgStyles(svg, clone);
 
   const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
-  style.textContent = getInlineSvgStyles();
+  style.textContent = `${getInlineSvgStyles()}\n${getExportSvgThemeStyles()}`;
   clone.insertBefore(style, clone.firstChild);
 
   const svgText = new XMLSerializer().serializeToString(clone);
@@ -9038,7 +9104,7 @@ async function getChargeChartPngBlob() {
   try {
     const image = await loadImageFromUrl(url);
     const { canvas, context } = createHiDpiCanvas(width, height, 2);
-    context.fillStyle = "#0b0e14";
+    context.fillStyle = theme.page;
     context.fillRect(0, 0, width, height);
     context.drawImage(image, 0, 0, width, height);
     return await canvasToPngBlob(canvas);
@@ -9056,7 +9122,7 @@ async function chargeChartResultsToImage(defenseResult, attackResult, width, hei
   );
   const svgText = markup.replace(
     /<svg\b([^>]*)>/,
-    `<svg$1 xmlns="http://www.w3.org/2000/svg"><style>${getInlineSvgStyles()}</style>`,
+    `<svg$1 xmlns="http://www.w3.org/2000/svg"><style>${getInlineSvgStyles()}\n${getExportSvgThemeStyles()}</style>`,
   );
   const url = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml;charset=utf-8" }));
   try {
@@ -9122,11 +9188,12 @@ function getExportSiteUrl() {
 }
 
 function drawExportSiteUrl(context, width, padding, y) {
+  const theme = getExportThemePalette();
   drawCanvasText(context, getExportSiteUrl(), width - padding, y, {
     align: "right",
     size: 22,
     weight: 700,
-    color: "#7f8a99",
+    color: theme.site,
   });
 }
 
@@ -9142,7 +9209,7 @@ function createHiDpiCanvas(width, height, maxScale = 2) {
   return { canvas, context, scale };
 }
 
-function drawPaidArenaSlot(context, slot, x, y, size) {
+function drawPaidArenaSlot(context, slot, x, y, size, theme = getExportThemePalette()) {
   const {
     character,
     universalCharge,
@@ -9162,8 +9229,8 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
   } = slot;
   const radius = 7;
   const drawBadgeBox = (centerX, centerY, width, height, options = {}) => {
-    context.fillStyle = options.fill || "rgba(61, 65, 72, 0.9)";
-    context.strokeStyle = options.stroke || "rgba(235, 241, 248, 0.42)";
+    context.fillStyle = options.fill || (theme.mode === "light" ? "rgba(255, 255, 255, 0.92)" : "rgba(61, 65, 72, 0.9)");
+    context.strokeStyle = options.stroke || (theme.mode === "light" ? "rgba(84, 103, 126, 0.32)" : "rgba(235, 241, 248, 0.42)");
     context.lineWidth = Math.max(1, size * 0.012);
     getCanvasRoundedRectPath(context, centerX - width / 2, centerY - height / 2, width, height, Math.max(4, height * 0.22));
     context.fill();
@@ -9219,7 +9286,7 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
     return true;
   };
   context.save();
-  context.fillStyle = character ? "#111821" : "#15191f";
+  context.fillStyle = character ? theme.slot : theme.emptySlot;
   getCanvasRoundedRectPath(context, x, y, size, size, radius);
   context.fill();
   const rarityColor = character?.rarity === "SR" ? "#a65cff" : character ? "#f0c45c" : "#3a4655";
@@ -9244,20 +9311,20 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
       align: "center",
       size: 18,
       weight: 700,
-      color: "#dfe7f3",
+      color: theme.text,
     });
     drawCanvasText(context, character.weapon, x + size / 2, y + size * 0.64, {
       align: "center",
       size: 15,
       weight: 700,
-      color: "#8f9aaa",
+      color: theme.muted,
     });
   } else {
     drawCanvasText(context, `P${slot.index + 1}`, x + size / 2, y + size * 0.36, {
       align: "center",
       size: 18,
       weight: 700,
-      color: "#7d8796",
+      color: theme.subtle,
     });
     if (universalCharge > 0) {
       drawCanvasText(context, `充 ${formatChargeNumber(universalCharge)}`, x + size / 2, y + size * 0.68, {
@@ -9345,14 +9412,14 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
     }
     if (badgeText) {
       const badgeWidth = Math.max(30, Math.min(44, String(badgeText).length * 8 + 14));
-      context.fillStyle = "rgba(0, 0, 0, 0.72)";
+      context.fillStyle = theme.badge;
       getCanvasRoundedRectPath(context, x + size - badgeWidth - 5, y + size - 25, badgeWidth, 20, 4);
       context.fill();
       drawCanvasText(context, badgeText, x + size - badgeWidth / 2 - 5, y + size - 15, {
         align: "center",
         size: 13,
         weight: 800,
-        color: "#f2f5fa",
+        color: "#ffffff",
       });
     }
     if (cubeIcon) {
@@ -9364,6 +9431,7 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
 }
 
 async function paidArenaToPngBlob() {
+  const theme = getExportThemePalette();
   const mode = state.paidArenaMode;
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   const title = getPaidArenaModeLabel(mode);
@@ -9389,9 +9457,9 @@ async function paidArenaToPngBlob() {
   const chartsHeight = teamCount * chartBlockHeight + Math.max(0, teamCount - 1) * chartBlockGap;
   const height = padding * 2 + headerHeight + summaryHeight + chartsSectionGap + chartsHeight;
   const { canvas, context } = createHiDpiCanvas(width, height, 2);
-  context.fillStyle = "#0b0e14";
+  context.fillStyle = theme.page;
   context.fillRect(0, 0, width, height);
-  drawCanvasText(context, title, padding, padding + 18, { size: 26, weight: 900, color: "#f0c45c" });
+  drawCanvasText(context, title, padding, padding + 18, { size: 26, weight: 900, color: theme.title });
   drawExportSiteUrl(context, width, padding, padding + 18);
 
   const imageCache = new Map();
@@ -9466,7 +9534,7 @@ async function paidArenaToPngBlob() {
       ),
       x + 16,
       y + 39,
-      { size: 18, weight: 800, color: "#f2f5fa" },
+      { size: 18, weight: 800, color: theme.text },
     );
   };
 
@@ -9498,7 +9566,7 @@ async function paidArenaToPngBlob() {
         linkIcon,
         pierceIcon,
       };
-      drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), y, slotSize);
+      drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), y, slotSize, theme);
     }
   };
 
@@ -9518,17 +9586,17 @@ async function paidArenaToPngBlob() {
     const attackX = blockX + teamWidth + vsWidth;
     const vsX = blockX + teamWidth + vsWidth / 2;
 
-    context.fillStyle = "#111821";
+    context.fillStyle = theme.panel;
     getCanvasRoundedRectPath(context, blockX - 14, blockY, contentWidth + 28, summaryRowHeight, 8);
     context.fill();
-    context.strokeStyle = "rgba(242, 245, 250, 0.12)";
+    context.strokeStyle = theme.border;
     context.lineWidth = 1;
     context.stroke();
 
-    drawCanvasText(context, `ROUND ${rowIndex + 1}`, vsX, infoY + infoHeight / 2, { align: "center", size: 20, weight: 900, color: "#f0c45c" });
+    drawCanvasText(context, `ROUND ${rowIndex + 1}`, vsX, infoY + infoHeight / 2, { align: "center", size: 20, weight: 900, color: theme.title });
     drawInfoPill(defenseX, infoY, defenseRow);
     drawInfoPill(attackX, infoY, attackRow);
-    drawCanvasText(context, "VS", vsX, teamsY + slotSize / 2, { align: "center", size: 30, weight: 900, color: "#f0c45c" });
+    drawCanvasText(context, "VS", vsX, teamsY + slotSize / 2, { align: "center", size: 30, weight: 900, color: theme.title });
 
     await drawTeam(defenseRow, defenseX, teamsY);
     await drawTeam(attackRow, attackX, teamsY);
@@ -9544,21 +9612,21 @@ async function paidArenaToPngBlob() {
       const chartImage = await chargeChartResultsToImage(defenseRow.result, attackRow.result, contentWidth, chartHeight);
       context.drawImage(chartImage, chartX, chartY, contentWidth, chartHeight);
     } else {
-      context.fillStyle = "#0b0e14";
+      context.fillStyle = theme.panelSoft;
       getCanvasRoundedRectPath(context, chartX, chartY, contentWidth, chartHeight, 8);
       context.fill();
       drawCanvasText(context, "\u672a\u914d\u7f6e", chartX + contentWidth / 2, chartY + chartHeight / 2, {
         align: "center",
         size: 20,
         weight: 800,
-        color: "#8f9aaa",
+        color: theme.muted,
       });
     }
     drawCanvasText(context, `ROUND ${rowIndex + 1}`, chartX + contentWidth / 2, chartY + chartHeight + 24, {
       align: "center",
       size: 18,
       weight: 900,
-      color: "#f0c45c",
+      color: theme.title,
     });
     y += chartBlockHeight + chartBlockGap;
   }
@@ -9572,6 +9640,7 @@ function getNormalArenaResultLabel(result) {
 }
 
 async function normalArenaToPngBlob() {
+  const theme = getExportThemePalette();
   const battleResults = getBattleResultsSnapshot();
   const { defenseResult, attackResult } = battleResults;
   const defenseTeam = state.defenseTeam;
@@ -9600,7 +9669,7 @@ async function normalArenaToPngBlob() {
   const height = teamsY + slotSize + padding;
   const width = contentWidth + padding * 2;
   const { canvas, context } = createHiDpiCanvas(width, height, 2);
-  context.fillStyle = "#0b0e14";
+  context.fillStyle = theme.page;
   context.fillRect(0, 0, width, height);
   drawExportSiteUrl(context, width, padding, Math.max(18, padding - 12));
 
@@ -9619,14 +9688,14 @@ async function normalArenaToPngBlob() {
     context.lineWidth = 1;
     context.stroke();
     drawCanvasText(context, getTeamLabel(teamKey), x + 18, infoY + 19, { size: 17, weight: 800, color });
-    drawCanvasText(context, getNormalArenaResultLabel(result), x + 18, infoY + 40, { size: 21, weight: 800, color: "#f2f5fa" });
+    drawCanvasText(context, getNormalArenaResultLabel(result), x + 18, infoY + 40, { size: 21, weight: 800, color: theme.text });
   };
 
   drawInfoPill(defenseX, "defense", defenseResult);
-  drawCanvasText(context, "VS", vsX, infoY + infoHeight / 2, { align: "center", size: 32, weight: 900, color: "#f0c45c" });
+  drawCanvasText(context, "VS", vsX, infoY + infoHeight / 2, { align: "center", size: 32, weight: 900, color: theme.title });
   drawInfoPill(attackX, "attack", attackResult);
 
-  drawCanvasText(context, "VS", vsX, teamsY + slotSize / 2, { align: "center", size: 36, weight: 900, color: "#f0c45c" });
+  drawCanvasText(context, "VS", vsX, teamsY + slotSize / 2, { align: "center", size: 36, weight: 900, color: theme.title });
 
   const imageCache = new Map();
   const loadCharacterImage = async (character) => {
@@ -9672,7 +9741,7 @@ async function normalArenaToPngBlob() {
         linkIcon,
         pierceIcon,
       };
-      drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), teamsY, slotSize);
+      drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), teamsY, slotSize, theme);
     }
   };
 
@@ -9765,8 +9834,10 @@ async function inlineExportAssetUrls(root) {
 }
 
 function createExportBlock(title, elements = []) {
+  const themeName = normalizeTheme(document.documentElement.dataset.theme);
   const block = document.createElement("div");
   block.className = "copy-image-export";
+  block.dataset.theme = themeName;
   block.style.position = "fixed";
   block.style.left = "-10000px";
   block.style.top = "0";
@@ -9786,6 +9857,7 @@ function createExportBlock(title, elements = []) {
 }
 
 async function elementToPngBlob(element) {
+  const theme = getExportThemePalette();
   const rect = element.getBoundingClientRect();
   const width = Math.max(1, Math.ceil(rect.width));
   const height = Math.max(1, Math.ceil(rect.height));
@@ -9815,7 +9887,7 @@ async function elementToPngBlob(element) {
     canvas.height = Math.ceil(height * scale);
     const context = canvas.getContext("2d");
     context.scale(scale, scale);
-    context.fillStyle = "#0b0e14";
+    context.fillStyle = theme.page;
     context.fillRect(0, 0, width, height);
     context.drawImage(image, 0, 0, width, height);
     return await canvasToPngBlob(canvas);
@@ -9825,6 +9897,7 @@ async function elementToPngBlob(element) {
 }
 
 async function textToPngBlob(title, text) {
+  const theme = getExportThemePalette();
   const lines = [title, ...String(text || "").split(/\r?\n/)];
   const width = 960;
   const lineHeight = 30;
@@ -9838,11 +9911,11 @@ async function textToPngBlob(title, text) {
       .replace(/"/g, "&quot;");
   const svgText = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <rect width="100%" height="100%" fill="#0b0e14"/>
+      <rect width="100%" height="100%" fill="${theme.page}"/>
       ${lines
         .map((line, index) => {
           const isTitle = index === 0;
-          return `<text x="${padding}" y="${padding + (index + 1) * lineHeight}" fill="${isTitle ? "#f0c45c" : "#f2f5fa"}" font-size="${isTitle ? 22 : 18}" font-family="Arial, Microsoft YaHei, sans-serif">${escapeSvgText(line)}</text>`;
+          return `<text x="${padding}" y="${padding + (index + 1) * lineHeight}" fill="${isTitle ? theme.title : theme.text}" font-size="${isTitle ? 22 : 18}" font-family="Arial, Microsoft YaHei, sans-serif">${escapeSvgText(line)}</text>`;
         })
         .join("")}
     </svg>
