@@ -230,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "简化灰姑娘充能详情描述",
   "灰姑娘充能改为按炮弹波及与额外伤害计算",
   "统一额外伤害按本体命中额外1 hit计算",
   "额外伤害角色命中目标显示为2 hit",
@@ -237,7 +238,6 @@ const CHANGELOG_ITEMS = [
   "豺狼链接充能详情补充阶段帧显示",
   "充能数值改为显示完整小数不再固定四舍五入",
   "豺狼链接触发来源改为每个角色独立一行",
-  "豺狼链接充能详情按帧显示10 hit来源",
   "调整队伍栏分享图按钮位置到切换按钮前",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
@@ -2013,7 +2013,7 @@ function getChargeHitMultiplier(character, shotNumber = null) {
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character), shotNumber = null) {
-  if (isCinderella(character)) return "命中+额外伤害；部分炮弹波及P2，序列：波及/单体/单体/单体/波及/波及，之后单体/单体/单体/单体/波及/波及循环";
+  if (isCinderella(character)) return "命中+额外伤害";
   const hasExtraDamage = hasEffectiveExtraDamage(character);
   if (character.weapon === "RL") return `爆炸命中${hasExtraDamage ? "+额外伤害" : ""}`;
   if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${hasExtraDamage ? "+额外伤害" : ""}`;
