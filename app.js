@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR控制台改为显示最终用于匹配的过滤行",
   "OCR控制台仅显示过滤后结果并优化选区JPG压缩策略",
   "OCR选区后切换为动态识别提示并支持超时重试",
   "OCR识别图片超过1MB时支持先框选识别区域",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "冠军/特殊竞技场默认显示进攻队伍并支持攻防队伍交换",
   "修复冠军/特殊竞技场特殊开关写错队伍侧的问题",
   "充能数值改为截断保留最多4位小数",
-  "总充能hit明细改为目标位分布格式",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -879,6 +879,7 @@ function parseFileNamesFromOcrText(rawText) {
     .split("\n")
     .map((line) => normalizeOcrCharacterName(line).trim())
     .filter(Boolean);
+  console.log("[OCR] 过滤后结果", lines);
 
   const characterNames = Array.isArray(CHARACTERS)
     ? CHARACTERS.map((character) => ({ character, name: normalizeOcrCharacterName(character?.name || "") }))
@@ -1011,9 +1012,7 @@ async function parseImageWithOcrSpace(file) {
     .filter(Boolean)
     .join("\n");
 
-  const cleanedText = cleanOcrTextForRoles(parsedText);
-  console.log("[OCR] 过滤后结果", cleanedText);
-  return cleanedText;
+  return cleanOcrTextForRoles(parsedText);
 }
 
 function wait(ms) {
