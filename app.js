@@ -229,6 +229,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "分享图片生成过程增加动态提示，避免误以为无响应",
   "新增右侧悬浮识别按钮，支持点击上传图片OCR填充队伍",
   "侧边栏版本号移动到NIKKE PVP标题后方，提升可见性",
   "收窄本地缓存范围，仅缓存头像与图标资源并在每次访问时刷新",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "冠军/特殊竞技场充能轴改为同时显示所选队伍与对方队伍数据",
   "优化普通竞技场与冠军/特殊竞技场默认选中队伍，并强化攻防队伍颜色标识",
   "修复本地测试可能被旧Service Worker缓存页面拦截的问题",
-  "冠军/特殊竞技场改为同一方案内切换进攻队伍与防守队伍，并分别保存队伍",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -8480,6 +8480,7 @@ function loadTeam() {
 }
 
 let toastTimer = null;
+let progressToastTimer = null;
 function showToast(message, options = {}) {
   const { persistent = false, duration = 2200 } = options;
   els.toast.textContent = message;
@@ -8488,6 +8489,26 @@ function showToast(message, options = {}) {
   if (!persistent && duration > 0) {
     toastTimer = setTimeout(() => els.toast.classList.remove("show"), duration);
   }
+}
+
+function startProgressToast(message) {
+  stopProgressToast({ keepVisible: true });
+  let dotCount = 0;
+  const update = () => {
+    dotCount = (dotCount % 3) + 1;
+    showToast(`${message}${".".repeat(dotCount)}`, { persistent: true });
+  };
+  update();
+  progressToastTimer = setInterval(update, 450);
+}
+
+function stopProgressToast(options = {}) {
+  const { keepVisible = false } = options;
+  if (progressToastTimer) {
+    clearInterval(progressToastTimer);
+    progressToastTimer = null;
+  }
+  if (!keepVisible) els.toast.classList.remove("show");
 }
 
 async function copyTextToClipboard(text) {
@@ -9466,22 +9487,27 @@ async function copyBattleResultsSummary() {
   }
 }
 
-async function copyArenaImageSummary() {
+async function copyArenaImageSummary(options = {}) {
+  const { showProgress = true } = options;
   const text = getArenaCopyText();
   if (!text && !isPaidArenaModeActive()) {
     showToast("队伍为空，无法复制结果");
     return;
   }
+  if (showProgress) startProgressToast("正在生成分享图");
   try {
     const imageBlobPromise = copyCurrentArenaImage();
     await copyRichImageToClipboard(imageBlobPromise);
+    if (showProgress) stopProgressToast({ keepVisible: true });
     showToast(isPaidArenaModeActive() ? "已复制竞技场队伍图片" : "已复制时间轴和双方队伍图片");
   } catch (error) {
     console.error("copy arena image failed", error);
     try {
       await copyTextToClipboard(text);
+      if (showProgress) stopProgressToast({ keepVisible: true });
       showToast("图片复制失败，已复制文字信息");
     } catch {
+      if (showProgress) stopProgressToast({ keepVisible: true });
       showToast("复制失败，请检查浏览器剪贴板权限");
     }
   }
@@ -9493,6 +9519,7 @@ async function shareArenaImageSummary() {
     showToast("队伍为空，无法分享结果");
     return;
   }
+  startProgressToast("正在生成分享图");
   try {
     const imageBlob = await copyCurrentArenaImage();
     const isMobileCopyChoice = isMobileCopyChoiceRuntime();
@@ -9502,23 +9529,30 @@ async function shareArenaImageSummary() {
         files: [file],
         title: "NIKKE PVP",
       });
+      stopProgressToast({ keepVisible: true });
       showToast("已打开系统分享");
       return;
     }
     if (isMobileCopyChoice) {
       openShareImagePreview(imageBlob);
+      stopProgressToast({ keepVisible: true });
       showToast("不支持直接分享，已打开图片预览（可保存后手动发送）");
       return;
     }
     await copyRichImageToClipboard(imageBlob);
+    stopProgressToast({ keepVisible: true });
     showToast("已复制图片到剪贴板");
   } catch (error) {
-    if (error?.name === "AbortError") return;
+    if (error?.name === "AbortError") {
+      stopProgressToast();
+      return;
+    }
     console.error("share arena image failed", error);
     if (isMobileCopyChoiceRuntime()) {
       try {
         const fallbackBlob = await copyCurrentArenaImage();
         openShareImagePreview(fallbackBlob);
+        stopProgressToast({ keepVisible: true });
         showToast("分享失败，已切换到图片预览，支持下载后手动分享");
         return;
       } catch {
@@ -9528,11 +9562,14 @@ async function shareArenaImageSummary() {
     try {
       if (isMobileCopyChoiceRuntime()) {
         await copyTextToClipboard(text);
+        stopProgressToast({ keepVisible: true });
         showToast("分享失败，已复制文本，建议手动复制后发送");
       } else {
-        await copyArenaImageSummary();
+        stopProgressToast({ keepVisible: true });
+        await copyArenaImageSummary({ showProgress: false });
       }
     } catch {
+      stopProgressToast({ keepVisible: true });
       showToast("分享失败，当前浏览器剪贴板权限受限");
     }
   }
