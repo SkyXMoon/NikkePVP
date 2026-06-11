@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "豺狼链接充能详情补充10 hit触发来源",
   "调整队伍栏分享图按钮位置到切换按钮前",
   "队伍栏标题改为中文并恢复队伍分享图按钮",
   "移除分享图头像区重复的攻防队伍标签",
@@ -240,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "冠军/特殊竞技场新增ROUND显示与攻防显示切换",
   "分享图片生成过程增加动态提示，避免误以为无响应",
   "新增右侧悬浮识别按钮，支持点击上传图片OCR填充队伍",
-  "侧边栏版本号移动到NIKKE PVP标题后方，提升可见性",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -6520,6 +6520,42 @@ function getJackalLinkedHitCount(entry, linkedPositionIndices) {
   }, 0);
 }
 
+function getJackalLinkedHitSources(entry, linkedPositionIndices) {
+  const linkedPositions = new Set(linkedPositionIndices);
+  if (linkedPositions.size === 0) return [];
+  return entry.contributions
+    .map((contribution) => {
+      if (!Array.isArray(contribution.positionHits)) return null;
+      const hits = contribution.positionHits
+        .filter((positionHit) => linkedPositions.has(positionHit.positionIndex) && Number(positionHit.hitCount) > 0)
+        .sort((a, b) => a.positionIndex - b.positionIndex);
+      const hitCount = hits.reduce((sum, positionHit) => sum + Number(positionHit.hitCount), 0);
+      if (hitCount <= 0) return null;
+      return {
+        frame: entry.frame,
+        attackerPositionIndex: contribution.positionIndex,
+        characterName: contribution.characterName,
+        hits,
+        hitCount,
+      };
+    })
+    .filter(Boolean);
+}
+
+function formatJackalHitSources(sources = []) {
+  const sourceParts = sources
+    .filter((source) => source && Number(source.hitCount) > 0)
+    .map((source) => {
+      if (source.attackerPositionIndex < 0) return `${source.characterName} ${formatNumber(Number(source.hitCount), 2)} hit`;
+      const hitTargets = source.hits
+        .map((hit) => `P${hit.positionIndex + 1} ${formatNumber(Number(hit.hitCount), 2)} hit`)
+        .join(", ");
+      const frameText = Number.isFinite(source.frame) ? `${source.frame}F ` : "";
+      return `${frameText}敌方P${source.attackerPositionIndex + 1} ${source.characterName} -> ${hitTargets}`;
+    });
+  return sourceParts.length ? sourceParts.join("；") : "";
+}
+
 function getPositionHitCount(entry, positionIndex) {
   return entry.contributions.reduce((sum, contribution) => {
     if (!Array.isArray(contribution.positionHits)) return sum;
@@ -6603,6 +6639,8 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
         const chargePerLink = getBaseChargeUnit(member.character);
         let accumulatedHits = 0;
         let triggeredLinks = 0;
+        let pendingTriggerHits = 0;
+        let pendingTriggerSources = [];
         let previousSuppressedByRosanna = false;
         let cumulativeCharge = 0;
         const timeline = opponentTimeline
@@ -6614,22 +6652,36 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
             if (suppressedByRosanna && !previousSuppressedByRosanna) {
               accumulatedHits = 0;
               triggeredLinks = 0;
+              pendingTriggerHits = 0;
+              pendingTriggerSources = [];
             }
             previousSuppressedByRosanna = suppressedByRosanna;
             const hitCount = suppressedByRosanna
               ? getPositionHitCount(entry, member.positionIndex)
               : getJackalLinkedHitCount(entry, linkedPositionIndices);
+            const hitSources = suppressedByRosanna
+              ? getJackalLinkedHitSources(entry, [member.positionIndex])
+              : getJackalLinkedHitSources(entry, linkedPositionIndices);
             accumulatedHits += hitCount;
+            pendingTriggerHits += hitCount;
+            pendingTriggerSources.push(...hitSources);
             const nextTriggeredLinks = Math.floor(accumulatedHits / JACKAL_LINK_HIT_THRESHOLD);
             const triggerCount = nextTriggeredLinks - triggeredLinks;
             if (triggerCount <= 0) return null;
+            const triggerHitCount = pendingTriggerHits;
+            const triggerSources = [...pendingTriggerSources];
             triggeredLinks = nextTriggeredLinks;
+            const remainingHits = accumulatedHits - triggeredLinks * JACKAL_LINK_HIT_THRESHOLD;
+            pendingTriggerHits = remainingHits;
+            pendingTriggerSources = remainingHits > 0 ? [{ hitCount: remainingHits, characterName: "剩余累计", attackerPositionIndex: -1, hits: [] }] : [];
             const charge = chargePerLink * triggerCount;
             cumulativeCharge += charge;
             return {
               frame: entry.frame,
               hitCount,
               accumulatedHits,
+              triggerHitCount,
+              triggerSources,
               triggerCount,
               charge,
               cumulativeCharge,
@@ -6653,9 +6705,12 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
 
 function getSpecialChargeTooltipLines(group, entry) {
   if (group.type === "jackalLink") {
+    const sourceText = formatJackalHitSources(entry.triggerSources || []);
     return [
       group.label,
       `时间：${entry.frame} F`,
+      `本次触发：${formatNumber(entry.triggerHitCount || entry.hitCount, 2)} hit`,
+      ...(sourceText ? [`触发来源：${sourceText}`] : []),
       `受击累计：${entry.accumulatedHits} hit`,
       `连接触发：${entry.triggerCount} × ${formatNumber(group.chargePerLink, 2)}% = ${formatNumber(entry.charge, 2)}%`,
       `累计充能：${formatNumber(entry.cumulativeCharge, 2)}%`,
