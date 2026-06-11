@@ -230,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "充能数值改为截断保留最多4位小数",
   "总充能hit明细改为目标位分布格式",
   "总充能详情将hit信息合并到各角色充能行",
   "诺雅额外机制改为额外效果不再计入hit",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "简化灰姑娘充能详情描述",
   "灰姑娘充能改为按炮弹波及与额外伤害计算",
   "统一额外伤害按本体命中额外1 hit计算",
-  "额外伤害角色命中目标显示为2 hit",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -611,7 +611,12 @@ function formatNumber(value, maxDigits = 2) {
 
 function formatChargeNumber(value) {
   const number = Number(value) || 0;
-  return Number.parseFloat(number.toPrecision(12)).toString();
+  const sign = number < 0 ? -1 : 1;
+  const truncated = (Math.trunc(Math.abs(number) * 10000) / 10000) * sign;
+  return truncated
+    .toFixed(4)
+    .replace(/0+$/, "")
+    .replace(/\.$/, "");
 }
 
 function formatFrame(frame) {
