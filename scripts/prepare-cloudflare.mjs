@@ -33,6 +33,7 @@ await preparePublicIndex();
 await copyStaticAsset("data.js");
 await copyStaticAsset("app.js");
 await copyStaticAsset("styles.css");
+await copyStaticAsset("sw.js");
 await copyStaticAsset("assets");
 
 console.log("Cloudflare build assets prepared in .worker-build/");

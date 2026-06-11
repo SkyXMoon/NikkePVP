@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "扩展本地缓存机制，主资源、头像、图标与二维码首次访问后可持久缓存",
   "新增侧边栏中英文切换入口，并同步主要界面文案",
   "补充吉儿·华伦泰本地头像回退资源",
   "调整哈兰中毒充能为固定2hit，基础充能每次触发提升为+5.8%",
@@ -240,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "优化角色设置中蓄速与魔方保存逻辑",
   "新增关于与建议侧边栏目及QQ群快速加入入口",
   "补充冠军场/特殊场方案拖拽复制与互斥选择逻辑",
-  "完善罗珊娜献祭、红莲反击与链接共享逻辑",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -266,6 +266,20 @@ function canUseServiceWorkerForAvatarCache() {
 function getAvatarCacheCandidates() {
   if (!Array.isArray(CHARACTERS)) return [];
   const urls = new Set();
+  [
+    "assets/icons/site/favicon.png",
+    "assets/qrcodes/qqqrcode.png",
+    "assets/icons/ui/settings.svg",
+    "assets/icons/ui/pierce.svg",
+    "assets/icons/ui/link.svg",
+    "assets/icons/ui/share.svg",
+    "assets/icons/ui/cubes/charge-speed.png",
+    "assets/icons/ui/cubes/quantum.png",
+    "assets/icons/ui/cubes/quantum-24x24.webp",
+  ].forEach((url) => urls.add(new URL(url, window.location.href).href));
+  ["1", "2", "3", "4", "5", "6"].forEach((id) => urls.add(new URL(`assets/icons/ui/weapons/${id}.png`, window.location.href).href));
+  ["0", "1", "2", "3"].forEach((id) => urls.add(new URL(`assets/icons/ui/bursts/${id}.png`, window.location.href).href));
+  ["1", "2", "3", "4", "5"].forEach((id) => urls.add(new URL(`assets/icons/ui/elements/${id}.png`, window.location.href).href));
   CHARACTERS.forEach((character) => {
     if (!character) return;
     const avatarUrl = getCharacterAvatarUrl(character);

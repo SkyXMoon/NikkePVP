@@ -19,8 +19,12 @@ const TEXT_CONTENT_TYPES = new Map([
 function normalizeAssetResponseCharset(requestUrl, response) {
   const url = new URL(requestUrl);
   const contentType = response.headers.get("content-type") || "";
+  const baseHeaders = new Headers(response.headers);
+  if (url.pathname === "/sw.js") {
+    baseHeaders.set("cache-control", "no-cache");
+  }
   if (/^image\/svg\+xml/i.test(contentType.trim()) && !/; *charset=/i.test(contentType)) {
-    const imageSvgHeaders = new Headers(response.headers);
+    const imageSvgHeaders = new Headers(baseHeaders);
     imageSvgHeaders.set("content-type", "image/svg+xml; charset=utf-8");
     return new Response(response.body, {
       status: response.status,
@@ -30,10 +34,22 @@ function normalizeAssetResponseCharset(requestUrl, response) {
   }
   const ext = url.pathname.toLowerCase().match(/\.([a-z0-9]+)(?:\?.*)?$/)?.[0] || "";
   const expected = TEXT_CONTENT_TYPES.get(ext);
-  if (!expected) return response;
-  if (/;\\s*charset=/.test(contentType.toLowerCase())) return response;
+  if (!expected) {
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: baseHeaders,
+    });
+  }
+  if (/;\s*charset=/.test(contentType.toLowerCase())) {
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: baseHeaders,
+    });
+  }
 
-  const headers = new Headers(response.headers);
+  const headers = new Headers(baseHeaders);
   headers.set("content-type", expected);
   return new Response(response.body, {
     status: response.status,
