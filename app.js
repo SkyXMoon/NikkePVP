@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR识别统一先选择区域并支持从图片外起手框选",
   "OCR冒号角色支持头像名别名和多冒号片段匹配",
   "OCR冒号角色支持缺字和单字偏差匹配",
   "OCR前端过滤规则改为仅保留中文和冒号",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "OCR控制台仅显示过滤后结果并优化选区JPG压缩策略",
   "OCR选区后切换为动态识别提示并支持超时重试",
   "OCR识别图片超过1MB时支持先框选识别区域",
-  "空枪反推中全发射器共同满足的候选值独立标红",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -1222,6 +1222,7 @@ async function selectOcrImageCrop(file) {
     `;
 
     const stage = backdrop.querySelector(".ocr-crop-stage");
+    const cropBody = backdrop.querySelector(".ocr-crop-body");
     const preview = backdrop.querySelector(".ocr-crop-image");
     const selection = backdrop.querySelector(".ocr-crop-selection");
     const close = () => {
@@ -1256,39 +1257,41 @@ async function selectOcrImageCrop(file) {
     preview.src = imageUrl;
     window.setTimeout(resetDefaultSelection, 0);
 
-    stage.addEventListener("pointerdown", (event) => {
-      event.preventDefault();
+    const getClampedStagePoint = (event) => {
       const rect = stage.getBoundingClientRect();
       displaySize = { width: Math.max(1, rect.width), height: Math.max(1, rect.height) };
-      dragStart = {
+      return {
         x: Math.max(0, Math.min(displaySize.width, event.clientX - rect.left)),
         y: Math.max(0, Math.min(displaySize.height, event.clientY - rect.top)),
       };
-      stage.setPointerCapture?.(event.pointerId);
+    };
+
+    cropBody.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      dragStart = getClampedStagePoint(event);
+      cropBody.setPointerCapture?.(event.pointerId);
       setSelectionRect({ x: dragStart.x, y: dragStart.y, width: 1, height: 1 });
     });
 
-    stage.addEventListener("pointermove", (event) => {
+    cropBody.addEventListener("pointermove", (event) => {
       if (!dragStart) return;
       event.preventDefault();
-      const rect = stage.getBoundingClientRect();
-      const currentX = Math.max(0, Math.min(displaySize.width, event.clientX - rect.left));
-      const currentY = Math.max(0, Math.min(displaySize.height, event.clientY - rect.top));
+      const currentPoint = getClampedStagePoint(event);
       setSelectionRect({
         x: dragStart.x,
         y: dragStart.y,
-        width: currentX - dragStart.x,
-        height: currentY - dragStart.y,
+        width: currentPoint.x - dragStart.x,
+        height: currentPoint.y - dragStart.y,
       });
     });
 
     const finishDrag = (event) => {
       if (!dragStart) return;
-      stage.releasePointerCapture?.(event.pointerId);
+      cropBody.releasePointerCapture?.(event.pointerId);
       dragStart = null;
     };
-    stage.addEventListener("pointerup", finishDrag);
-    stage.addEventListener("pointercancel", finishDrag);
+    cropBody.addEventListener("pointerup", finishDrag);
+    cropBody.addEventListener("pointercancel", finishDrag);
 
     backdrop.querySelector(".ocr-crop-confirm").addEventListener("click", async (event) => {
       event.preventDefault();
@@ -1314,11 +1317,8 @@ async function selectOcrImageCrop(file) {
 }
 
 async function prepareOcrImageFile(file) {
-  if (!file || Number(file.size) <= OCR_LARGE_IMAGE_THRESHOLD_BYTES) {
-    startProgressToast("OCR识别中");
-    return file;
-  }
-  showToast("图片超过1MB，请选择识别区域。", { persistent: true });
+  if (!file) return file;
+  showToast("请选择OCR识别区域。", { persistent: true });
   const croppedFile = await selectOcrImageCrop(file);
   startProgressToast("OCR识别中");
   return croppedFile;
