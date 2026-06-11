@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "豺狼链接触发来源改为每个角色独立一行",
   "豺狼链接充能详情按帧显示10 hit来源",
   "调整队伍栏分享图按钮位置到切换按钮前",
   "队伍栏标题改为中文并恢复队伍分享图按钮",
@@ -240,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "优化冠军/特殊竞技场分享图，按轮次展示双方头像、充能速度与对比充能轴",
   "冠军/特殊竞技场新增ROUND显示与攻防显示切换",
   "分享图片生成过程增加动态提示，避免误以为无响应",
-  "新增右侧悬浮识别按钮，支持点击上传图片OCR填充队伍",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -6551,20 +6551,17 @@ function formatJackalHitSources(sources = []) {
       groupedSources.set(key, [...(groupedSources.get(key) || []), source]);
     });
   return [...groupedSources.entries()]
-    .map(([key, frameSources]) => {
+    .flatMap(([key, frameSources]) => {
       if (key === "previous") {
         const total = frameSources.reduce((sum, source) => sum + Number(source.hitCount), 0);
-        return `前序累计：${formatNumber(total, 2)} hit`;
+        return [`前序累计：${formatNumber(total, 2)} hit`];
       }
-      const sourceText = frameSources
-        .map((source) => {
-          const hitTargets = source.hits
-            .map((hit) => `P${hit.positionIndex + 1} ${formatNumber(Number(hit.hitCount), 2)} hit`)
-            .join(", ");
-          return `敌方P${source.attackerPositionIndex + 1} ${source.characterName} -> ${hitTargets}`;
-        })
-        .join("；");
-      return `${key}F：${sourceText}`;
+      return frameSources.map((source) => {
+        const hitTargets = source.hits
+          .map((hit) => `P${hit.positionIndex + 1} ${formatNumber(Number(hit.hitCount), 2)} hit`)
+          .join(", ");
+        return `${key}F：敌方P${source.attackerPositionIndex + 1} ${source.characterName} -> ${hitTargets}`;
+      });
     })
     .filter(Boolean);
 }
