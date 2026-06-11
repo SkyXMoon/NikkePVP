@@ -229,7 +229,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
-  "优化冠军/特殊竞技场分享图，按队伍展示充能速度、头像与充能轴",
+  "优化冠军/特殊竞技场分享图，按轮次展示双方头像、充能速度与对比充能轴",
   "冠军/特殊竞技场新增ROUND显示与攻防显示切换",
   "分享图片生成过程增加动态提示，避免误以为无响应",
   "新增右侧悬浮识别按钮，支持点击上传图片OCR填充队伍",
@@ -8813,12 +8813,11 @@ async function getChargeChartPngBlob() {
   }
 }
 
-async function chargeChartResultToImage(result, teamKey, width, height) {
-  const normalizedTeamKey = normalizeTeamKey(teamKey);
+async function chargeChartResultsToImage(defenseResult, attackResult, width, height) {
   const markup = getChargeChartMarkup(
-    normalizedTeamKey === "attack" ? result : null,
+    attackResult && !attackResult.error ? attackResult : null,
     null,
-    normalizedTeamKey === "defense" ? result : null,
+    defenseResult && !defenseResult.error ? defenseResult : null,
     { width, height },
   );
   const svgText = markup.replace(
@@ -9132,32 +9131,28 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
 
 async function paidArenaToPngBlob() {
   const mode = state.paidArenaMode;
-  const displayRows = getPaidArenaDisplayRows();
-  const dataSourceLabel =
-    getPaidArenaDisplayMode() === "round"
-      ? `ROUND ${Number(state.paidArenaActiveRowIndex || 0) + 1}`
-      : getPaidArenaSelectedDataTeamKey() === "defense"
-        ? "\u9632\u5b88\u961f\u4f0d"
-        : "\u8fdb\u653b\u961f\u4f0d";
-  const title = `${getPaidArenaModeLabel(mode)}\uff1a${dataSourceLabel}`;
-  const padding = 28;
-  const slotSize = 92;
-  const slotGap = 14;
-  const sideLabelWidth = 82;
-  const teamSlotsWidth = TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap;
-  const rowInnerPadding = 18;
-  const chartWidth = sideLabelWidth + teamSlotsWidth;
-  const width = padding * 2 + rowInnerPadding * 2 + chartWidth;
-  const rowGap = 26;
-  const headerHeight = 56;
-  const chartHeight = 320;
-  const rowHeaderHeight = slotSize + 18;
-  const rowHeight = rowHeaderHeight + chartHeight + 18;
-  const height = padding * 2 + headerHeight + displayRows.length * rowHeight + Math.max(0, displayRows.length - 1) * rowGap;
+  const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
+  const title = getPaidArenaModeLabel(mode);
+  const padding = 36;
+  const slotSize = 86;
+  const slotGap = 12;
+  const teamWidth = TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap;
+  const vsWidth = 82;
+  const contentWidth = teamWidth * 2 + vsWidth;
+  const infoHeight = 52;
+  const chartHeight = 360;
+  const blockPadding = 18;
+  const blockGap = 30;
+  const rowHeaderGap = 24;
+  const chartGap = 28;
+  const rowHeight = blockPadding + infoHeight + rowHeaderGap + slotSize + chartGap + chartHeight + blockPadding;
+  const headerHeight = 54;
+  const width = contentWidth + padding * 2;
+  const height = padding * 2 + headerHeight + teamCount * rowHeight + Math.max(0, teamCount - 1) * blockGap;
   const { canvas, context } = createHiDpiCanvas(width, height, 2);
   context.fillStyle = "#0b0e14";
   context.fillRect(0, 0, width, height);
-  drawCanvasText(context, title, padding, padding + 18, { size: 24, weight: 800, color: "#f0c45c" });
+  drawCanvasText(context, title, padding, padding + 18, { size: 26, weight: 900, color: "#f0c45c" });
   drawExportSiteUrl(context, width, padding, padding + 18);
 
   const imageCache = new Map();
@@ -9175,85 +9170,145 @@ async function paidArenaToPngBlob() {
   const linkIcon = await loadExportAsset("assets/icons/ui/link.svg");
   const pierceIcon = await loadExportAsset("assets/icons/ui/pierce.svg");
 
-  let y = padding + headerHeight;
-  for (const rowEntry of displayRows) {
-    const { dataTeamKey, rowIndex, team, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, jackalLinkState } = rowEntry;
-    const jackalLink = normalizePaidArenaLinkForTeam(team, jackalLinkState);
-    const jackalTargetIds = new Set(jackalLink.targetIds || []);
-    const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
-    const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, jackalLink, dataTeamKey);
-    const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
-    const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey, chargeSpeeds)?.positionIndex ?? null;
-    const teamHasRosanna = team.some((member) => member && isRosanna(member));
-    const rowX = padding;
-    const rowWidth = width - padding * 2;
-
-    context.fillStyle = "#111821";
-    getCanvasRoundedRectPath(context, rowX, y - 10, rowWidth, rowHeight + 12, 8);
-    context.fill();
-    context.strokeStyle = dataTeamKey === "defense" ? "rgba(77, 163, 255, 0.42)" : "rgba(255, 94, 108, 0.42)";
-    context.lineWidth = 1;
-    context.stroke();
-
-    const sideColor = dataTeamKey === "defense" ? "#9dccff" : "#ff9ba5";
-    const sideLabel = dataTeamKey === "defense" ? "\u9632\u5b88" : "\u8fdb\u653b";
-    const resultText = getPaidArenaResultText(
+  const getExportRow = (teamKey, rowIndex) => {
+    const normalizedTeamKey = normalizeTeamKey(teamKey);
+    const team = getPaidArenaTeams(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(null);
+    const universalCharges = getPaidArenaUniversalCharges(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(0);
+    const sacrificeFrames = getPaidArenaRosannaSacrificeFrames(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(null);
+    const redHoodPierceCounts = getPaidArenaRedHoodPierceCounts(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(0);
+    const scarletCounterEnabled = getPaidArenaScarletCounterEnabled(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(true);
+    const jackalLink = normalizePaidArenaLinkForTeam(team, getPaidArenaJackalLinks(mode, normalizedTeamKey)[rowIndex]);
+    const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, normalizedTeamKey);
+    const result = simulatePaidArenaBurst(
       team,
-      universalCharges,
       chargeSpeeds,
-      result,
+      universalCharges,
       sacrificeFrames,
       redHoodPierceCounts,
       scarletCounterEnabled,
       jackalLink,
-      dataTeamKey,
+      normalizedTeamKey,
     );
-    drawCanvasText(context, `${sideLabel}${rowIndex + 1}`, rowX + rowInnerPadding + 4, y + 25, { size: 18, weight: 900, color: sideColor });
-    drawCanvasText(context, resultText, rowX + rowInnerPadding + 4, y + 55, { size: 18, weight: 800, color: "#f2f5fa" });
+    return {
+      teamKey: normalizedTeamKey,
+      team,
+      universalCharges,
+      sacrificeFrames,
+      redHoodPierceCounts,
+      scarletCounterEnabled,
+      jackalLink,
+      chargeSpeeds,
+      result,
+    };
+  };
 
-    const slotsStartX = rowX + rowInnerPadding + sideLabelWidth;
-    for (let slotIndex = 0; slotIndex < TEAM_SIZE; slotIndex += 1) {
-      const character = team[slotIndex];
-      const chargeSpeed = chargeSpeeds[slotIndex];
-      const sacrificeFrame = sanitizeSacrificeFrame(sacrificeFrames[slotIndex]);
-      const cubeIconSrc = character ? getCubeIconSrc(getSavedCharacterCubeType(character, dataTeamKey)) : "";
+  const drawInfoPill = (x, y, rowData) => {
+    const isDefense = rowData.teamKey === "defense";
+    const color = isDefense ? "#4da3ff" : "#e43f4f";
+    context.fillStyle = isDefense ? "rgba(77, 163, 255, 0.14)" : "rgba(228, 63, 79, 0.14)";
+    getCanvasRoundedRectPath(context, x, y, teamWidth, infoHeight, 7);
+    context.fill();
+    context.strokeStyle = isDefense ? "rgba(77, 163, 255, 0.58)" : "rgba(228, 63, 79, 0.58)";
+    context.lineWidth = 1;
+    context.stroke();
+    drawCanvasText(context, isDefense ? "\u9632\u5b88\u961f\u4f0d" : "\u8fdb\u653b\u961f\u4f0d", x + 16, y + 18, { size: 16, weight: 800, color });
+    drawCanvasText(
+      context,
+      getPaidArenaResultText(
+        rowData.team,
+        rowData.universalCharges,
+        rowData.chargeSpeeds,
+        rowData.result,
+        rowData.sacrificeFrames,
+        rowData.redHoodPierceCounts,
+        rowData.scarletCounterEnabled,
+        rowData.jackalLink,
+        rowData.teamKey,
+      ),
+      x + 16,
+      y + 39,
+      { size: 18, weight: 800, color: "#f2f5fa" },
+    );
+  };
+
+  const drawTeam = async (rowData, x, y) => {
+    const { team, teamKey, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, jackalLink, chargeSpeeds, result } = rowData;
+    const finishers = new Set(result && !result.error ? result.finishingPositionIndices : []);
+    const tauntTarget = getTauntTargetState(team, teamKey, chargeSpeeds)?.positionIndex ?? null;
+    const linkTargetIds = new Set(jackalLink.targetIds || []);
+    const teamHasRosanna = team.some((member) => member && isRosanna(member));
+    for (let index = 0; index < TEAM_SIZE; index += 1) {
+      const character = team[index];
+      const sacrificeFrame = sanitizeSacrificeFrame(sacrificeFrames[index]);
+      const cubeIconSrc = character ? getCubeIconSrc(getSavedCharacterCubeType(character, teamKey)) : "";
       const slot = {
-        index: slotIndex,
+        index,
         character,
-        universalCharge: sanitizeUniversalCharge(universalCharges[slotIndex]),
+        universalCharge: sanitizeUniversalCharge(universalCharges[index]),
         image: await loadCharacterImage(character),
-        isFinisher: finishingPositions.has(slotIndex) && canShowFinishMarker(character),
-        isTauntTarget: character && slotIndex === tauntTargetPositionIndex,
+        isFinisher: finishers.has(index) && canShowFinishMarker(character),
+        isTauntTarget: character && index === tauntTarget,
         isSacrificedTarget: character && teamHasRosanna && !isRosanna(character) && sacrificeFrame !== null,
         sacrificeFrame,
-        badgeText: getPaidArenaSlotBadgeText(character, chargeSpeed, dataTeamKey),
-        redHoodPierceCount: character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[slotIndex]) : 0,
-        isScarletCounterEnabled: character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[slotIndex]) : false,
+        badgeText: getPaidArenaSlotBadgeText(character, sanitizeChargeSpeed(chargeSpeeds[index]), teamKey),
+        redHoodPierceCount: character && isRedHood(character) ? sanitizeRedHoodPierceCount(redHoodPierceCounts[index]) : 0,
+        isScarletCounterEnabled: character && isScarlet(character) ? sanitizeScarletCounterEnabled(scarletCounterEnabled[index]) : false,
         isActiveLinkOwner: character && jackalLink.enabled && jackalLink.ownerId === character.id,
-        isLinkTarget: character && jackalTargetIds.has(character.id),
+        isLinkTarget: character && linkTargetIds.has(character.id),
         cubeIcon: await loadExportAsset(cubeIconSrc),
         linkIcon,
         pierceIcon,
       };
-      drawPaidArenaSlot(context, slot, slotsStartX + slotIndex * (slotSize + slotGap), y, slotSize);
+      drawPaidArenaSlot(context, slot, x + index * (slotSize + slotGap), y, slotSize);
     }
+  };
 
-    const chartY = y + rowHeaderHeight;
-    if (result && !result.error) {
-      const chartImage = await chargeChartResultToImage(result, dataTeamKey, chartWidth, chartHeight);
-      context.drawImage(chartImage, rowX + rowInnerPadding, chartY, chartWidth, chartHeight);
+  let y = padding + headerHeight;
+  for (let rowIndex = 0; rowIndex < teamCount; rowIndex += 1) {
+    const defenseRow = getExportRow("defense", rowIndex);
+    const attackRow = getExportRow("attack", rowIndex);
+    const blockX = padding;
+    const blockY = y;
+    const infoY = blockY + blockPadding;
+    const teamsY = infoY + infoHeight + rowHeaderGap;
+    const chartY = teamsY + slotSize + chartGap;
+    const defenseX = blockX;
+    const attackX = blockX + teamWidth + vsWidth;
+    const vsX = blockX + teamWidth + vsWidth / 2;
+
+    context.fillStyle = "#111821";
+    getCanvasRoundedRectPath(context, blockX - 14, blockY, contentWidth + 28, rowHeight, 8);
+    context.fill();
+    context.strokeStyle = "rgba(242, 245, 250, 0.12)";
+    context.lineWidth = 1;
+    context.stroke();
+
+    drawCanvasText(context, "R" + (rowIndex + 1), vsX, infoY + infoHeight / 2, { align: "center", size: 24, weight: 900, color: "#f0c45c" });
+    drawInfoPill(defenseX, infoY, defenseRow);
+    drawInfoPill(attackX, infoY, attackRow);
+    drawCanvasText(context, "???", defenseX, teamsY - 11, { size: 17, weight: 900, color: "#9dccff" });
+    drawCanvasText(context, "VS", vsX, teamsY + slotSize / 2, { align: "center", size: 30, weight: 900, color: "#f0c45c" });
+    drawCanvasText(context, "???", attackX + teamWidth, teamsY - 11, { align: "right", size: 17, weight: 900, color: "#ff9ba5" });
+
+    await drawTeam(defenseRow, defenseX, teamsY);
+    await drawTeam(attackRow, attackX, teamsY);
+
+    if ((defenseRow.result && !defenseRow.result.error) || (attackRow.result && !attackRow.result.error)) {
+      const chartImage = await chargeChartResultsToImage(defenseRow.result, attackRow.result, contentWidth, chartHeight);
+      context.drawImage(chartImage, blockX, chartY, contentWidth, chartHeight);
     } else {
       context.fillStyle = "#0b0e14";
-      getCanvasRoundedRectPath(context, rowX + rowInnerPadding, chartY, chartWidth, chartHeight, 8);
+      getCanvasRoundedRectPath(context, blockX, chartY, contentWidth, chartHeight, 8);
       context.fill();
-      drawCanvasText(context, result?.error || "\u672a\u914d\u7f6e", rowX + rowInnerPadding + chartWidth / 2, chartY + chartHeight / 2, {
+      drawCanvasText(context, "???", blockX + contentWidth / 2, chartY + chartHeight / 2, {
         align: "center",
         size: 20,
         weight: 800,
         color: "#8f9aaa",
       });
     }
-    y += rowHeight + rowGap;
+
+    y += rowHeight + blockGap;
   }
 
   return canvasToPngBlob(canvas);
