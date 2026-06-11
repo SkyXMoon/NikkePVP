@@ -1099,7 +1099,8 @@ const CHARACTERS = [
       "turnFrames": 16
     },
     "hasPenetration": false,
-    "hasExtraDamage": true,
+    "hasExtraDamage": false,
+    "hasExtraChargeEffect": true,
     "delayedExtraHits": [],
     "hitCountExtraEvents": [],
     "flatBurstBonus": 0,

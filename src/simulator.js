@@ -418,6 +418,16 @@ function getBaseChargeUnit(character) {
   return baseChargeUnit + (character.superstarChargeSupplementValue || 0);
 }
 
+function hasExtraChargeMultiplier(character) {
+  return Boolean(character?.hasExtraDamage || character?.hasExtraChargeEffect);
+}
+
+function getExtraChargeLabel(character) {
+  if (character?.hasExtraDamage) return "额外伤害";
+  if (character?.hasExtraChargeEffect) return "额外效果";
+  return "";
+}
+
 function getChargeValue(character, shotNumber = null) {
   const coverMultiplier = isCinderella(character)
     ? getCinderellaPositionHits(DEFAULT_RL_TARGET_INDEX, 1, shotNumber).length
@@ -426,7 +436,7 @@ function getChargeValue(character, shotNumber = null) {
       : character.hasPenetration
         ? 2
         : 1;
-  const extraMultiplier = character.hasExtraDamage ? 2 : 1;
+  const extraMultiplier = hasExtraChargeMultiplier(character) ? 2 : 1;
   return getBaseChargeUnit(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
@@ -437,7 +447,7 @@ function getAttackChargeValue(character, shotNumber = null, hitProfile = null, s
     (sum, [, hitCount]) => sum + (Number(hitCount) || 0),
     0,
   );
-  const extraMultiplier = character.hasExtraDamage ? 2 : 1;
+  const extraMultiplier = hasExtraChargeMultiplier(character) ? 2 : 1;
   return getBaseChargeUnit(character) * actualHitMultiplier * extraMultiplier + (character.flatBurstBonus || 0) * shotCount;
 }
 
@@ -446,7 +456,7 @@ function isHarran(character) {
 }
 
 function getHarranPoisonChargeValue(character) {
-  return getBaseChargeUnit(character) * (character.hasExtraDamage ? 2 : 1);
+  return getBaseChargeUnit(character) * (hasExtraChargeMultiplier(character) ? 2 : 1);
 }
 
 function getHarranPoisonEvent(event, currentFrame) {
@@ -479,7 +489,7 @@ function getDelayedExtraEvents(event, currentFrame, hitProfile = null) {
     character: event.character,
     positionIndex: event.positionIndex,
     frame: currentFrame + extra.delayFrames,
-    chargeValue: getBaseChargeUnit(event.character) * extra.segments * (event.character.hasExtraDamage ? 2 : 1),
+    chargeValue: getBaseChargeUnit(event.character) * extra.segments * (hasExtraChargeMultiplier(event.character) ? 2 : 1),
     positionHits: getDelayedExtraPositionHits(extra, hitProfile),
     source: "delayed",
     label: extra.label,
@@ -505,16 +515,18 @@ function getVestiTacticalFollowUpEvents(event, currentFrame, hitProfile = null) 
 
 function getAttackContributionLabel(character, shotCount = 1, shotNumber = null) {
   const supplementLabel = character.superstarChargeSupplementValue ? "+超阿补充" : "";
-  if (character.weapon === "RL") return `爆炸命中${character.hasExtraDamage ? "+额外伤害" : ""}${supplementLabel}`;
-  if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${character.hasExtraDamage ? "+额外伤害" : ""}${supplementLabel}`;
-  return `命中${character.hasExtraDamage ? "+额外伤害" : ""}${supplementLabel}`;
+  const extraChargeLabel = getExtraChargeLabel(character);
+  const extraText = extraChargeLabel ? `+${extraChargeLabel}` : "";
+  if (character.weapon === "RL") return `爆炸命中${extraText}${supplementLabel}`;
+  if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${extraText}${supplementLabel}`;
+  return `命中${extraText}${supplementLabel}`;
 }
 
 function getHitCountExtraCharge(event) {
   return (event.character.hitCountExtraEvents || [])
     .filter((extra) => extra.hit === event.hits)
     .reduce((sum, extra) => {
-      const extraMultiplier = event.character.hasExtraDamage ? 2 : 1;
+      const extraMultiplier = hasExtraChargeMultiplier(event.character) ? 2 : 1;
       return sum + getBaseChargeUnit(event.character) * extra.segments * extraMultiplier;
     }, 0);
 }
