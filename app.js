@@ -230,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "总充能hit明细改为目标位分布格式",
   "总充能详情将hit信息合并到各角色充能行",
   "诺雅额外机制改为额外效果不再计入hit",
   "总充能详情补充各站位累计造成hit来源",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "灰姑娘充能改为按炮弹波及与额外伤害计算",
   "统一额外伤害按本体命中额外1 hit计算",
   "额外伤害角色命中目标显示为2 hit",
-  "额外伤害角色受击hit计入红莲反击与豺狼链接",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -7063,11 +7063,10 @@ function getCumulativeDealtHitMap(result, frame = 0) {
 
 function formatDealtHitSummary(hitItem) {
   if (!hitItem || hitItem.total <= 0) return "";
-  const targetText = [...hitItem.byTarget.entries()]
+  return [...hitItem.byTarget.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([targetPositionIndex, hitCount]) => `P${targetPositionIndex + 1} ${formatNumber(hitCount, 2)} hit`)
+    .map(([targetPositionIndex, hitCount]) => `P${targetPositionIndex + 1}：${formatNumber(hitCount, 2)}hit`)
     .join("，");
-  return `${formatNumber(hitItem.total, 2)} hit${targetText ? `：${targetText}` : ""}`;
 }
 
 function getCumulativeContributionLines(result, frame) {
@@ -7090,7 +7089,7 @@ function getCumulativeContributionLines(result, frame) {
       const cumulative = cumulativeByPosition.get(member.positionIndex) || 0;
       if (cumulative <= BURST_EPSILON) return null;
       const dealtHitText = formatDealtHitSummary(dealtHitMap.get(member.positionIndex));
-      return `${member.character.name}：${formatChargeNumber(cumulative)}%${dealtHitText ? ` [${dealtHitText}]` : ""}`;
+      return `${member.character.name}：${formatChargeNumber(cumulative)}%${dealtHitText ? `（${dealtHitText}）` : ""}`;
     })
     .filter(Boolean);
 }
