@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "爱蜜莉雅增加额外伤害",
   "删除爱蜜莉雅21.49%角色条目",
   "爱蜜莉雅爆炸范围调整为2",
   "隐藏部分未使用的珍藏角色条目",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "OCR冒号角色支持缺字和单字偏差匹配",
   "OCR前端过滤规则改为仅保留中文和冒号",
   "OCR无冒号识别结果支持匹配冒号角色名",
-  "OCR控制台改为显示最终用于匹配的过滤行",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
