@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修正爱蜜莉雅额外伤害仅作用本体",
   "爱蜜莉雅增加额外伤害",
   "删除爱蜜莉雅21.49%角色条目",
   "爱蜜莉雅爆炸范围调整为2",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "OCR冒号角色支持头像名别名和多冒号片段匹配",
   "OCR冒号角色支持缺字和单字偏差匹配",
   "OCR前端过滤规则改为仅保留中文和冒号",
-  "OCR无冒号识别结果支持匹配冒号角色名",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -2319,11 +2319,16 @@ function hasEffectiveExtraDamage(character) {
   return Boolean(character.hasExtraDamage);
 }
 
+function hasBodyOnlyExtraDamage(character) {
+  return hasEffectiveExtraDamage(character) && character?.extraDamageTargetMode === "body";
+}
+
 function hasEffectiveExtraChargeEffect(character) {
   return Boolean(character.hasExtraChargeEffect);
 }
 
 function hasEffectiveExtraChargeMultiplier(character) {
+  if (hasBodyOnlyExtraDamage(character)) return false;
   return hasEffectiveExtraDamage(character) || hasEffectiveExtraChargeEffect(character);
 }
 
@@ -2340,6 +2345,18 @@ function getChargeHitMultiplier(character, shotNumber = null) {
   return 1 + getPenetrationExtraHitCount(character, shotNumber);
 }
 
+function getBodyOnlyExtraDamageHitMultiplier(character, shotNumber = null) {
+  if (!hasBodyOnlyExtraDamage(character)) return 0;
+  if (isCinderella(character)) return getCinderellaBodyHits(DEFAULT_RL_TARGET_INDEX, 1, shotNumber).length;
+  if (character.weapon === "RL") {
+    const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
+    const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
+    const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
+    return end - start + 1;
+  }
+  return 1;
+}
+
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character), shotNumber = null) {
   if (isCinderella(character)) return "命中+额外伤害";
   const extraChargeLabel = getExtraChargeLabel(character);
@@ -2351,8 +2368,9 @@ function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(cha
 
 function getChargeValue(character, shotNumber = null) {
   const coverMultiplier = getChargeHitMultiplier(character, shotNumber);
+  const bodyOnlyExtraMultiplier = getBodyOnlyExtraDamageHitMultiplier(character, shotNumber);
   const extraMultiplier = hasEffectiveExtraChargeMultiplier(character) ? 2 : 1;
-  return getBaseChargeUnit(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
+  return getBaseChargeUnit(character) * (coverMultiplier + bodyOnlyExtraMultiplier) * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
 function getDelayedExtraChargeTotal(character) {
@@ -2380,9 +2398,12 @@ function getAttackChargeValue(character, shotNumber = null, hitProfile = null, s
   if (!hitProfile) return getChargeValue(character, shotNumber) * shotCount;
   if (hitProfile.p5CinderellaDecoy && character.flatBurstBonus) return (character.flatBurstBonus || 0) * shotCount;
   const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
+  const bodyOnlyExtraMultiplier = hasBodyOnlyExtraDamage(character)
+    ? (hitProfile.bodyHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0)
+    : 0;
   const extraMultiplier = hasEffectiveExtraChargeMultiplier(character) ? 2 : 1;
   const flatBonus = (character.flatBurstBonus || 0) * shotCount;
-  return getBaseChargeUnit(character) * actualHitMultiplier * extraMultiplier + flatBonus;
+  return getBaseChargeUnit(character) * (actualHitMultiplier + bodyOnlyExtraMultiplier) * extraMultiplier + flatBonus;
 }
 
 function getDelayedExtraLabel(character) {
@@ -2413,6 +2434,7 @@ function getHarranPoisonEvent(event, currentFrame) {
 
 function getChargeBreakdown(character) {
   const hitMultiplier = getChargeHitMultiplier(character);
+  const bodyOnlyExtraMultiplier = getBodyOnlyExtraDamageHitMultiplier(character);
   const extraMultiplier = hasEffectiveExtraChargeMultiplier(character) ? 2 : 1;
   const hitLabel = getChargeHitLabel(character, hitMultiplier);
   const baseChargeUnit = getBaseChargeUnit(character);
@@ -2423,7 +2445,13 @@ function getChargeBreakdown(character) {
   const delayedExtraChargeTotal = getDelayedExtraChargeTotal(character);
   const fixedSequenceChargeTotal = getFixedSequenceChargeTotal(character);
   const fixedSequenceMultiplier = isVestiTacticalUpgrade(character) ? VESTI_TACTICAL_HIT_OFFSETS.length : 1;
-  const mainChargeFormula = `${formatChargeNumber(baseChargeUnit)} × ${hitMultiplier} × ${extraMultiplier}${
+  const bodyOnlyHitPerTarget = bodyOnlyExtraMultiplier
+    ? (hitMultiplier + bodyOnlyExtraMultiplier) / bodyOnlyExtraMultiplier
+    : 0;
+  const mainHitFormula = bodyOnlyExtraMultiplier
+    ? `${formatChargeNumber(bodyOnlyHitPerTarget)} × ${bodyOnlyExtraMultiplier}`
+    : `${hitMultiplier} × ${extraMultiplier}`;
+  const mainChargeFormula = `${formatChargeNumber(baseChargeUnit)} × ${mainHitFormula}${
     fixedSequenceMultiplier > 1 ? ` × ${fixedSequenceMultiplier}` : ""
   }`;
   const chargeFormulaParts = [
@@ -2445,7 +2473,13 @@ function getChargeBreakdown(character) {
   ];
 
   const extraChargeLabel = getExtraChargeLabel(character);
-  if (extraChargeLabel) lines.push(`${extraChargeLabel} ×2`);
+  if (extraChargeLabel) {
+    if (bodyOnlyExtraMultiplier) {
+      lines.push(`${extraChargeLabel}：仅本体 +${formatChargeNumber(baseChargeUnit * bodyOnlyExtraMultiplier)}%`);
+    } else {
+      lines.push(`${extraChargeLabel} ×2`);
+    }
+  }
   if (superstarSupplementValue) lines.push(`超阿补充：基础 +${formatChargeNumber(superstarSupplementValue)}%`);
   if (isRedHood(character)) lines.push(`攻击蓄速：每次攻击 +${formatNumber(RED_HOOD_CHARGE_SPEED_PER_ATTACK, 2)}%，最多 ${RED_HOOD_MAX_CHARGE_SPEED_STACKS} 层`);
   if (flatBonus) lines.push(`固定补充 +${formatChargeNumber(flatBonus)}%`);

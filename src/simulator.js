@@ -419,7 +419,12 @@ function getBaseChargeUnit(character) {
 }
 
 function hasExtraChargeMultiplier(character) {
+  if (character?.hasExtraDamage && character?.extraDamageTargetMode === "body") return false;
   return Boolean(character?.hasExtraDamage || character?.hasExtraChargeEffect);
+}
+
+function hasBodyOnlyExtraDamage(character) {
+  return Boolean(character?.hasExtraDamage && character?.extraDamageTargetMode === "body");
 }
 
 function getExtraChargeLabel(character) {
@@ -436,8 +441,14 @@ function getChargeValue(character, shotNumber = null) {
       : character.hasPenetration
         ? 2
         : 1;
+  const bodyOnlyExtraMultiplier =
+    hasBodyOnlyExtraDamage(character) && character.weapon === "RL"
+      ? Math.max(0, getRlHitSegments(character) / 2)
+      : hasBodyOnlyExtraDamage(character)
+        ? 1
+        : 0;
   const extraMultiplier = hasExtraChargeMultiplier(character) ? 2 : 1;
-  return getBaseChargeUnit(character) * coverMultiplier * extraMultiplier + (character.flatBurstBonus || 0);
+  return getBaseChargeUnit(character) * (coverMultiplier + bodyOnlyExtraMultiplier) * extraMultiplier + (character.flatBurstBonus || 0);
 }
 
 function getAttackChargeValue(character, shotNumber = null, hitProfile = null, shotCount = 1) {
@@ -447,8 +458,11 @@ function getAttackChargeValue(character, shotNumber = null, hitProfile = null, s
     (sum, [, hitCount]) => sum + (Number(hitCount) || 0),
     0,
   );
+  const bodyOnlyExtraMultiplier = hasBodyOnlyExtraDamage(character)
+    ? (hitProfile.positionHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0)
+    : 0;
   const extraMultiplier = hasExtraChargeMultiplier(character) ? 2 : 1;
-  return getBaseChargeUnit(character) * actualHitMultiplier * extraMultiplier + (character.flatBurstBonus || 0) * shotCount;
+  return getBaseChargeUnit(character) * (actualHitMultiplier + bodyOnlyExtraMultiplier) * extraMultiplier + (character.flatBurstBonus || 0) * shotCount;
 }
 
 function isHarran(character) {
