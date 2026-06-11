@@ -229,6 +229,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修正冠军/特殊竞技场分享图结构，先汇总队伍信息再展示各ROUND对比充能轴",
   "优化冠军/特殊竞技场分享图，按轮次展示双方头像、充能速度与对比充能轴",
   "冠军/特殊竞技场新增ROUND显示与攻防显示切换",
   "分享图片生成过程增加动态提示，避免误以为无响应",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "移除Team栏重复分享按钮，保留悬浮分享入口",
   "调整本地测试环境分享图网址显示为固定正式域名",
   "优化冠军/特殊竞技场双队伍充能轴命名，保留简洁总充能显示",
-  "冠军/特殊竞技场充能轴改为同时显示所选队伍与对方队伍数据",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -9142,13 +9142,18 @@ async function paidArenaToPngBlob() {
   const infoHeight = 52;
   const chartHeight = 360;
   const blockPadding = 18;
-  const blockGap = 30;
-  const rowHeaderGap = 24;
-  const chartGap = 28;
-  const rowHeight = blockPadding + infoHeight + rowHeaderGap + slotSize + chartGap + chartHeight + blockPadding;
+  const summaryRowGap = 18;
+  const summaryInnerGap = 18;
+  const summaryRowHeight = blockPadding + infoHeight + summaryInnerGap + slotSize + blockPadding;
+  const chartsSectionGap = 34;
+  const chartBlockGap = 26;
+  const chartLabelHeight = 34;
+  const chartBlockHeight = chartHeight + chartLabelHeight;
   const headerHeight = 54;
   const width = contentWidth + padding * 2;
-  const height = padding * 2 + headerHeight + teamCount * rowHeight + Math.max(0, teamCount - 1) * blockGap;
+  const summaryHeight = teamCount * summaryRowHeight + Math.max(0, teamCount - 1) * summaryRowGap;
+  const chartsHeight = teamCount * chartBlockHeight + Math.max(0, teamCount - 1) * chartBlockGap;
+  const height = padding * 2 + headerHeight + summaryHeight + chartsSectionGap + chartsHeight;
   const { canvas, context } = createHiDpiCanvas(width, height, 2);
   context.fillStyle = "#0b0e14";
   context.fillRect(0, 0, width, height);
@@ -9263,52 +9268,67 @@ async function paidArenaToPngBlob() {
     }
   };
 
+  const exportRows = Array.from({ length: teamCount }, (_, rowIndex) => ({
+    rowIndex,
+    defenseRow: getExportRow("defense", rowIndex),
+    attackRow: getExportRow("attack", rowIndex),
+  }));
+
   let y = padding + headerHeight;
-  for (let rowIndex = 0; rowIndex < teamCount; rowIndex += 1) {
-    const defenseRow = getExportRow("defense", rowIndex);
-    const attackRow = getExportRow("attack", rowIndex);
+  for (const { rowIndex, defenseRow, attackRow } of exportRows) {
     const blockX = padding;
     const blockY = y;
     const infoY = blockY + blockPadding;
-    const teamsY = infoY + infoHeight + rowHeaderGap;
-    const chartY = teamsY + slotSize + chartGap;
+    const teamsY = infoY + infoHeight + summaryInnerGap;
     const defenseX = blockX;
     const attackX = blockX + teamWidth + vsWidth;
     const vsX = blockX + teamWidth + vsWidth / 2;
 
     context.fillStyle = "#111821";
-    getCanvasRoundedRectPath(context, blockX - 14, blockY, contentWidth + 28, rowHeight, 8);
+    getCanvasRoundedRectPath(context, blockX - 14, blockY, contentWidth + 28, summaryRowHeight, 8);
     context.fill();
     context.strokeStyle = "rgba(242, 245, 250, 0.12)";
     context.lineWidth = 1;
     context.stroke();
 
-    drawCanvasText(context, "R" + (rowIndex + 1), vsX, infoY + infoHeight / 2, { align: "center", size: 24, weight: 900, color: "#f0c45c" });
+    drawCanvasText(context, `ROUND ${rowIndex + 1}`, vsX, infoY + infoHeight / 2, { align: "center", size: 20, weight: 900, color: "#f0c45c" });
     drawInfoPill(defenseX, infoY, defenseRow);
     drawInfoPill(attackX, infoY, attackRow);
-    drawCanvasText(context, "???", defenseX, teamsY - 11, { size: 17, weight: 900, color: "#9dccff" });
+    drawCanvasText(context, "\u9632\u5b88\u961f", defenseX, teamsY - 11, { size: 17, weight: 900, color: "#9dccff" });
     drawCanvasText(context, "VS", vsX, teamsY + slotSize / 2, { align: "center", size: 30, weight: 900, color: "#f0c45c" });
-    drawCanvasText(context, "???", attackX + teamWidth, teamsY - 11, { align: "right", size: 17, weight: 900, color: "#ff9ba5" });
+    drawCanvasText(context, "\u8fdb\u653b\u961f", attackX + teamWidth, teamsY - 11, { align: "right", size: 17, weight: 900, color: "#ff9ba5" });
 
     await drawTeam(defenseRow, defenseX, teamsY);
     await drawTeam(attackRow, attackX, teamsY);
 
+    y += summaryRowHeight + summaryRowGap;
+  }
+
+  y += chartsSectionGap - summaryRowGap;
+  for (const { rowIndex, defenseRow, attackRow } of exportRows) {
+    const chartX = padding;
+    const chartY = y;
     if ((defenseRow.result && !defenseRow.result.error) || (attackRow.result && !attackRow.result.error)) {
       const chartImage = await chargeChartResultsToImage(defenseRow.result, attackRow.result, contentWidth, chartHeight);
-      context.drawImage(chartImage, blockX, chartY, contentWidth, chartHeight);
+      context.drawImage(chartImage, chartX, chartY, contentWidth, chartHeight);
     } else {
       context.fillStyle = "#0b0e14";
-      getCanvasRoundedRectPath(context, blockX, chartY, contentWidth, chartHeight, 8);
+      getCanvasRoundedRectPath(context, chartX, chartY, contentWidth, chartHeight, 8);
       context.fill();
-      drawCanvasText(context, "???", blockX + contentWidth / 2, chartY + chartHeight / 2, {
+      drawCanvasText(context, "\u672a\u914d\u7f6e", chartX + contentWidth / 2, chartY + chartHeight / 2, {
         align: "center",
         size: 20,
         weight: 800,
         color: "#8f9aaa",
       });
     }
-
-    y += rowHeight + blockGap;
+    drawCanvasText(context, `ROUND ${rowIndex + 1}`, chartX + contentWidth / 2, chartY + chartHeight + 24, {
+      align: "center",
+      size: 18,
+      weight: 900,
+      color: "#f0c45c",
+    });
+    y += chartBlockHeight + chartBlockGap;
   }
 
   return canvasToPngBlob(canvas);
