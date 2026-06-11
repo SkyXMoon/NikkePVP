@@ -229,6 +229,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "新增右侧悬浮识别按钮，支持点击上传图片OCR填充队伍",
   "侧边栏版本号移动到NIKKE PVP标题后方，提升可见性",
   "收窄本地缓存范围，仅缓存头像与图标资源并在每次访问时刷新",
   "移除Team栏重复分享按钮，保留悬浮分享入口",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "优化普通竞技场与冠军/特殊竞技场默认选中队伍，并强化攻防队伍颜色标识",
   "修复本地测试可能被旧Service Worker缓存页面拦截的问题",
   "冠军/特殊竞技场改为同一方案内切换进攻队伍与防守队伍，并分别保存队伍",
-  "新增侧边栏中英文切换入口，并同步主要界面文案",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -456,6 +456,8 @@ const els = {
   languageToggleButton: document.querySelector("#languageToggleButton"),
   helpButton: document.querySelector("#helpButton"),
   mobileShareFab: document.querySelector("#mobileShareFab"),
+  ocrUploadButton: document.querySelector("#ocrUploadButton"),
+  ocrUploadInput: document.querySelector("#ocrUploadInput"),
   toast: document.querySelector("#toast"),
   summaryStrip: document.querySelector("#summaryStrip"),
   sortSummary: document.querySelector("#sortSummary"),
@@ -1019,7 +1021,7 @@ function formatOcrToastMessage(result, teamLabel) {
 }
 
 async function handleOcrFill(teamKey, startIndex, files) {
-  showToast("检测到图片拖入，正在识别。", { persistent: true });
+  showToast("检测到图片，正在识别。", { persistent: true });
   const result = await fillTeamSlotsWithOcrResult(teamKey, startIndex, files);
   console.log("[OCR] 普通场景识别完成", {
     teamKey,
@@ -1032,7 +1034,7 @@ async function handleOcrFill(teamKey, startIndex, files) {
 }
 
 async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
-  showToast("检测到图片拖入，正在识别。", { persistent: true });
+  showToast("检测到图片，正在识别。", { persistent: true });
   console.log("[OCR] 特殊场景识别开始", { mode, rowIndex, startIndex, files: files?.length || 0 });
   const normalizedMode = normalizePaidArenaMode(mode);
   const teams = getPaidArenaTeams(normalizedMode);
@@ -1344,6 +1346,31 @@ function getOcrFallbackContext(event) {
     return { mode: "paid", rowIndex: activeRow, slotIndex: 0 };
   }
   return { mode: "normal", teamKey: state.activeTeamKey, slotIndex: 0 };
+}
+
+function getOcrUploadContext() {
+  if (isPaidArenaModeActive()) return { mode: "paid", rowIndex: 0, slotIndex: 0 };
+  return { mode: "normal", teamKey: "defense", slotIndex: 0 };
+}
+
+function openOcrUploadDialog() {
+  if (!els.ocrUploadInput) return;
+  els.ocrUploadInput.value = "";
+  els.ocrUploadInput.click();
+}
+
+function handleOcrUploadFiles(files) {
+  const context = getOcrUploadContext();
+  if (!context) return;
+  if (context.mode === "paid") {
+    handlePaidArenaOcrFill(state.paidArenaMode, context.rowIndex, context.slotIndex, files).catch(() => {
+      showToast("OCR识别失败，请重试");
+    });
+    return;
+  }
+  handleOcrFill(context.teamKey, context.slotIndex, files).catch(() => {
+    showToast("OCR识别失败，请重试");
+  });
 }
 
 function isImageFile(file) {
@@ -9569,6 +9596,12 @@ function bindEvents() {
   els.paidPModeButton?.addEventListener("click", () => openPaidArenaFeature("p"));
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.mobileShareFab?.addEventListener("click", handleCopyButtonClick);
+  els.ocrUploadButton?.addEventListener("click", openOcrUploadDialog);
+  els.ocrUploadInput?.addEventListener("change", (event) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    handleOcrUploadFiles(files);
+  });
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
   els.allowMissedShotsToggle.addEventListener("change", (event) => {
     state.allowMissedShots = event.target.checked;

@@ -1567,6 +1567,14 @@ input:focus {
   gap: 10px;
 }
 
+.visually-hidden-file-input {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .app-share-fab:hover,
 .app-share-fab:active {
   border-color: rgba(71, 200, 212, 0.95);
