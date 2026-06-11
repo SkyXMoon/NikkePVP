@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR前端过滤规则改为仅保留中文和冒号",
   "OCR无冒号识别结果支持匹配冒号角色名",
   "OCR控制台改为显示最终用于匹配的过滤行",
   "OCR控制台仅显示过滤后结果并优化选区JPG压缩策略",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "空枪反推中全发射器共同满足的候选值独立标红",
   "分享图片支持跟随深色/浅色主题",
   "冠军/特殊竞技场默认显示进攻队伍并支持攻防队伍交换",
-  "修复冠军/特殊竞技场特殊开关写错队伍侧的问题",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -864,9 +864,7 @@ function getRosannaSacrificeFrameState(teamKey = state.activeTeamKey) {
 function normalizeOcrCharacterName(rawName) {
   return String(rawName || "")
     .replace(/[：\uFE13\uFE55\uFF1A]/g, ":")
-    .replace(/[0-9]/g, "")
-    .replace(/[A-Za-z]/g, "")
-    .replace(/\s+/g, "");
+    .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:]/g, "");
 }
 
 const OCR_COLON_PREFERRED_VARIANTS = {
@@ -984,7 +982,7 @@ function cleanOcrTextForRoles(rawText) {
     .replace(/\r/g, "")
     .replace(/[：\uFE13\uFE55\uFF1A]/g, ":")
     .replace(/[\s\u00A0\u3000]+/g, "\n")
-    .replace(/[A-Za-z0-9]/g, "");
+    .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:\n]/g, "");
 }
 
 async function parseImageWithOcrSpace(file) {
