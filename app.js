@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "爱蜜莉雅爆炸范围调整为2",
   "隐藏部分未使用的珍藏角色条目",
   "OCR识别统一先选择区域并支持从图片外起手框选",
   "OCR冒号角色支持头像名别名和多冒号片段匹配",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "OCR无冒号识别结果支持匹配冒号角色名",
   "OCR控制台改为显示最终用于匹配的过滤行",
   "OCR控制台仅显示过滤后结果并优化选区JPG压缩策略",
-  "OCR选区后切换为动态识别提示并支持超时重试",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;

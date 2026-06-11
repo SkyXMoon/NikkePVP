@@ -890,7 +890,7 @@ const CHARACTERS = [
     "burstGen": 1.4,
     "burstCoefficient": 0.014,
     "chargeSpeedPercent": 0,
-    "rlExplosionRange": 1,
+    "rlExplosionRange": 2,
     "firstFrameOverride": null,
     "attackIntervalFrames": null,
     "projectileFlightFrames": null,
@@ -964,7 +964,7 @@ const CHARACTERS = [
       "attack": "↗",
       "defense": "↙"
     },
-    "notes": "发射器；系数 0.014；RL爆炸范围 1",
+    "notes": "发射器；系数 0.014；RL爆炸范围 2",
     "source": "NIKKE PVP 充能计算器 v2.3.20（更新20260516）.xlsx"
   },
   {
@@ -985,7 +985,7 @@ const CHARACTERS = [
     "burstGen": 1.4,
     "burstCoefficient": 0.014,
     "chargeSpeedPercent": 0,
-    "rlExplosionRange": 1,
+    "rlExplosionRange": 2,
     "firstFrameOverride": null,
     "attackIntervalFrames": null,
     "projectileFlightFrames": null,
@@ -1059,7 +1059,7 @@ const CHARACTERS = [
       "attack": "↗",
       "defense": "↙"
     },
-    "notes": "发射器；系数 0.014；RL爆炸范围 1",
+    "notes": "发射器；系数 0.014；RL爆炸范围 2",
     "source": "NIKKE PVP 充能计算器 v2.3.20（更新20260516）.xlsx"
   },
   {
