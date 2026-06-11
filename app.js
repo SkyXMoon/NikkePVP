@@ -243,6 +243,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复充能图表关键点英文角色名",
   "修复英文筛选与空枪按钮显示",
   "补全充能轴英文提示",
   "调整筛选按钮和分享图角标",
@@ -252,7 +253,6 @@ const CHANGELOG_ITEMS = [
   "优化帮助页使用顺序说明",
   "优化帮助页正式文案",
   "更新页面使用说明内容",
-  "爱蜜莉雅第二发起增加蓄力速度",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -547,6 +547,13 @@ function getLocalizedCharacterNameByName(name) {
     (character) => character && (character.name === rawName || character.enName === rawName || character.slug === rawName),
   );
   return matchedCharacter?.enName || rawName;
+}
+
+function getLocalizedContributionCharacterName(contribution) {
+  if (!contribution) return "";
+  const character = getCharacterById(contribution.characterId);
+  if (character) return getCharacterLocalizedName(character);
+  return getLocalizedCharacterNameByName(contribution.characterName);
 }
 
 function applyLanguage(language) {
@@ -3507,6 +3514,7 @@ function simulateBurst(
         totalCharge,
         contributions: [...contributions.values()].map((contribution) => ({
           positionIndex: contribution.positionIndex,
+          characterId: contribution.character.id,
           characterName: contribution.character.name,
           charge: contribution.charge,
           cumulativeCharge: contribution.cumulativeCharge,
@@ -7427,7 +7435,8 @@ function getPositionHitSources(entry, targetPositionIndices) {
       return {
         frame: entry.frame,
         attackerPositionIndex: contribution.positionIndex,
-        characterName: getLocalizedCharacterNameByName(contribution.characterName),
+        characterId: contribution.characterId,
+        characterName: getLocalizedContributionCharacterName(contribution),
         hits,
         hitCount,
       };
@@ -7453,7 +7462,7 @@ function formatJackalHitSources(sources = []) {
         const hitTargets = source.hits
           .map((hit) => `P${hit.positionIndex + 1} ${formatNumber(Number(hit.hitCount), 2)} hit`)
           .join(", ");
-        return `${key}F: ${localize("敌方", "Enemy")} P${source.attackerPositionIndex + 1} ${getLocalizedCharacterNameByName(source.characterName)} -> ${hitTargets}`;
+        return `${key}F: ${localize("敌方", "Enemy")} P${source.attackerPositionIndex + 1} ${getLocalizedContributionCharacterName(source)} -> ${hitTargets}`;
       });
     })
     .filter(Boolean);
@@ -8479,7 +8488,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           `${localize("时间", "Time")}: ${entry.frame} F`,
           `${localize("充能", "Charge")}: ${formatChargeNumber(entry.charge)}%`,
           `${localize("组成", "Breakdown")}:`,
-          ...entry.contributions.map((contribution) => `${getLocalizedCharacterNameByName(contribution.characterName)}: ${formatChargeNumber(contribution.charge)}%`),
+          ...entry.contributions.map((contribution) => `${getLocalizedContributionCharacterName(contribution)}: ${formatChargeNumber(contribution.charge)}%`),
         ];
         return `<circle class="chart-universal-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${formatTooltipLines(lines)}"></circle>`;
       }),
@@ -8495,7 +8504,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const entry = pointDetail?.entry || timelineByFrame.get(`${point.teamKey}-${point.frame}`);
       const tooltip = contribution
         ? formatTooltipLines([
-            getLocalizedCharacterNameByName(contribution.characterName),
+            getLocalizedContributionCharacterName(contribution),
             `${localize("时间", "Time")}: ${point.frame} F`,
             `${localize("充能", "Charge")}: ${formatChargeNumber(contribution.charge)}%`,
             `${localize("累积充能", "Cumulative")}: ${formatChargeNumber(contribution.cumulativeCharge)}%`,
