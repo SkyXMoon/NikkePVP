@@ -115,6 +115,9 @@ const OCR_SPACE_ENGINE = 3;
 const OCR_LARGE_IMAGE_THRESHOLD_BYTES = 1024 * 1024;
 const OCR_RETRY_DELAY_MS = 5000;
 const OCR_MAX_RETRY_COUNT = 5;
+const OCR_JPEG_QUALITIES = [0.9, 0.82, 0.74, 0.66, 0.58];
+const OCR_IMAGE_SCALE_STEP = 0.86;
+const OCR_MIN_IMAGE_SCALE = 0.45;
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
   AR: "步枪",
@@ -233,6 +236,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR选区图片改为JPG并压缩到1MB以内再上传",
   "OCR选区后切换为动态识别提示并支持超时重试",
   "OCR识别图片超过1MB时支持先框选识别区域",
   "空枪反推中全发射器共同满足的候选值独立标红",
@@ -241,7 +245,6 @@ const CHANGELOG_ITEMS = [
   "修复冠军/特殊竞技场特殊开关写错队伍侧的问题",
   "充能数值改为截断保留最多4位小数",
   "总充能hit明细改为目标位分布格式",
-  "总充能详情将hit信息合并到各角色充能行",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -1026,12 +1029,14 @@ function wait(ms) {
 
 function isRetryableOcrError(error) {
   const message = String(error?.message || error || "");
+  if (/\b413\b/.test(message)) return false;
   if (/\b(403|408|409|425|429|500|502|503|504|513|522|524)\b/.test(message)) return true;
   return /timeout|timed?\s*out|network|fetch|failed to fetch|temporar|gateway|overload/i.test(message);
 }
 
 function formatOcrErrorMessage(error) {
   const message = error?.message || "请检查网络后重试";
+  if (/\b413\b/.test(message)) return "图片仍超过1MB，请缩小选区后重试";
   if (error?.ocrRetried) return `${message}（已重试${error.ocrRetryCount}次）`;
   return message;
 }
@@ -1083,7 +1088,37 @@ function canvasToBlob(canvas, type = "image/png", quality) {
 
 function createOcrCropFileName(file) {
   const rawName = String(file?.name || "ocr-image").replace(/\.[^.]+$/, "");
-  return `${rawName}-crop.png`;
+  return `${rawName}-crop.jpg`;
+}
+
+async function canvasToSizedOcrJpegFile(canvas, file) {
+  let scale = 1;
+  let lastBlob = null;
+
+  while (scale >= OCR_MIN_IMAGE_SCALE) {
+    const outputCanvas = scale === 1 ? canvas : document.createElement("canvas");
+    if (scale !== 1) {
+      outputCanvas.width = Math.max(1, Math.round(canvas.width * scale));
+      outputCanvas.height = Math.max(1, Math.round(canvas.height * scale));
+      const outputContext = outputCanvas.getContext("2d");
+      outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+    }
+
+    for (const quality of OCR_JPEG_QUALITIES) {
+      const blob = await canvasToBlob(outputCanvas, "image/jpeg", quality);
+      lastBlob = blob;
+      if (blob.size <= OCR_LARGE_IMAGE_THRESHOLD_BYTES) {
+        return new File([blob], createOcrCropFileName(file), { type: "image/jpeg" });
+      }
+    }
+
+    scale *= OCR_IMAGE_SCALE_STEP;
+  }
+
+  if (lastBlob?.size <= OCR_LARGE_IMAGE_THRESHOLD_BYTES) {
+    return new File([lastBlob], createOcrCropFileName(file), { type: "image/jpeg" });
+  }
+  throw new Error("选区压缩后仍超过1MB，请缩小选区后重试");
 }
 
 function normalizeCropRect(rect, bounds) {
@@ -1111,8 +1146,7 @@ async function cropImageFile(file, cropRect, displaySize, image) {
   canvas.height = sourceHeight;
   const context = canvas.getContext("2d");
   context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
-  const blob = await canvasToBlob(canvas, "image/png");
-  return new File([blob], createOcrCropFileName(file), { type: "image/png" });
+  return canvasToSizedOcrJpegFile(canvas, file);
 }
 
 async function selectOcrImageCrop(file) {
