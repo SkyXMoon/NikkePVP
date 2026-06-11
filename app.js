@@ -15,7 +15,94 @@ const STORAGE_KEY = "nikke-arena-charge-team-v2";
 const LEGACY_STORAGE_KEY = "nikke-arena-charge-team-v1";
 const PAID_DEV_ACCESS_KEY = "nikke-paid-dev-access";
 const THEME_STORAGE_KEY = "nikke-arena-theme";
+const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
+const UI_TEXTS = {
+  zh: {
+    appTitle: "NIKKE 竞技场充能计算器",
+    sidebarMenuButtonLabel: "打开侧边栏",
+    sidebarMenuButtonTitle: "打开侧边栏",
+    sidebarCloseButtonLabel: "关闭侧边栏",
+    changelogLabel: "更新日志",
+    helpLabel: "使用说明",
+    suggestionLabel: "关于&建议",
+    themeToggleDarkLabel: "切换为黑色主题",
+    themeToggleLightLabel: "切换为白色主题",
+    languageLabelToEn: "切换为英文",
+    languageLabelToZh: "切换为中文",
+    languageButtonText: "En",
+    searchPlaceholder: "角色名 / 英文名",
+    teamPanelTitle: "Team",
+    battlePower: {
+      defense: "可防",
+      attack: "可攻",
+      summaryEmpty: "队伍为空，选择角色后开始计算",
+      baseLabel: "战压基准值",
+    },
+    sidebarHelp: "打开页面说明",
+    shareButton: "分享",
+    sortSummaryLabel: "排序：",
+    sortSummaryBy: "充能从高到低",
+    filterCommon: "常用",
+    filterRegionCN: "国服",
+    filterRegionGlobal: "国际服",
+    summaryTeamLabels: {
+      defense: "防守队",
+      attack: "进攻队",
+    },
+    filterTitle: "筛选",
+    listCountSuffix: "名角色",
+    helpModalTitle: "使用说明",
+    paidInference: "空枪反推",
+    paidCMode: "冠军竞技场",
+    paidPMode: "特殊竞技场",
+    copyTeam: "分享双方队伍信息",
+    swapTeam: "切换进攻防守队伍",
+    clearTeam: "清空双方队伍",
+  },
+  en: {
+    appTitle: "NIKKE Arena Charge Calculator",
+    sidebarMenuButtonLabel: "Open sidebar",
+    sidebarMenuButtonTitle: "Open sidebar",
+    sidebarCloseButtonLabel: "Close sidebar",
+    changelogLabel: "Changelog",
+    helpLabel: "Help",
+    suggestionLabel: "About & Feedback",
+    themeToggleDarkLabel: "Switch to dark theme",
+    themeToggleLightLabel: "Switch to light theme",
+    languageLabelToEn: "Switch to English",
+    languageLabelToZh: "Switch to Chinese",
+    languageButtonText: "中",
+    searchPlaceholder: "Search / English name",
+    teamPanelTitle: "Team",
+    battlePower: {
+      defense: "Defense",
+      attack: "Attack",
+      summaryEmpty: "Team is empty. Select members to calculate.",
+      baseLabel: "Power threshold",
+    },
+    sidebarHelp: "Open help panel",
+    shareButton: "Share",
+    sortSummaryLabel: "Sort:",
+    sortSummaryBy: "Charge desc",
+    filterCommon: "Common",
+    filterRegionCN: "CN",
+    filterRegionGlobal: "Global",
+    summaryTeamLabels: {
+      defense: "Defense",
+      attack: "Attack",
+    },
+    filterTitle: "Filters",
+    listCountSuffix: "characters",
+    helpModalTitle: "Help",
+    paidInference: "Missed shots estimate",
+    paidCMode: "Championship",
+    paidPMode: "Special",
+    copyTeam: "Share both teams",
+    swapTeam: "Swap attack/defense",
+    clearTeam: "Clear both teams",
+  },
+};
 const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
 const TEST_NOAH_ID = 12;
 const TEST_SCARLET_ID = 37;
@@ -144,6 +231,8 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "新增侧边栏中英文切换入口，并同步主要界面文案",
+  "补充吉儿·华伦泰本地头像回退资源",
   "调整哈兰中毒充能为固定2hit，基础充能每次触发提升为+5.8%",
   "移动端分享在不支持原生分享时改为弹出图片预览弹窗，支持查看与下载图片",
   "修复移动端分享与复制图片降级行为",
@@ -152,8 +241,6 @@ const CHANGELOG_ITEMS = [
   "新增关于与建议侧边栏目及QQ群快速加入入口",
   "补充冠军场/特殊场方案拖拽复制与互斥选择逻辑",
   "完善罗珊娜献祭、红莲反击与链接共享逻辑",
-  "新增常用角色与国服/国际服切换筛选按钮",
-  "补充角色头像两层回退与本地缓存机制",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -312,6 +399,7 @@ const state = {
   testMode: false,
   compactAvatarIcons: true,
   activeTeamKey: "attack",
+  language: "zh",
   filters: {
     common: "common",
     weapon: "all",
@@ -355,6 +443,7 @@ const els = {
   sidebarHelpButton: document.querySelector("#sidebarHelpButton"),
   sidebarSuggestionButton: document.querySelector("#sidebarSuggestionButton"),
   themeToggleButton: document.querySelector("#themeToggleButton"),
+  languageToggleButton: document.querySelector("#languageToggleButton"),
   helpButton: document.querySelector("#helpButton"),
   mobileShareFab: document.querySelector("#mobileShareFab"),
   toast: document.querySelector("#toast"),
@@ -385,9 +474,99 @@ const localPaidInferenceState = {
 };
 
 const TEAM_LABELS = {
-  defense: "防守队",
-  attack: "进攻队",
+  zh: {
+    defense: "防守队",
+    attack: "进攻队",
+  },
+  en: {
+    defense: "Defense",
+    attack: "Attack",
+  },
 };
+
+function getTeamLabel(teamKey) {
+  const labels = TEAM_LABELS[state?.language] || TEAM_LABELS.zh;
+  return labels[teamKey] || TEAM_LABELS.zh[teamKey] || teamKey;
+}
+
+function normalizeLanguage(language = "zh") {
+  return language === "en" ? "en" : "zh";
+}
+
+function getCurrentLanguageText() {
+  return UI_TEXTS[normalizeLanguage(state.language)] || UI_TEXTS.zh;
+}
+
+function applyLanguage(language) {
+  state.language = normalizeLanguage(language);
+  const ui = getCurrentLanguageText();
+  document.documentElement.lang = state.language === "en" ? "en" : "zh-CN";
+  localStorage.setItem(LANGUAGE_STORAGE_KEY, state.language);
+  document.title = ui.appTitle;
+
+  if (els.sidebarMenuButton) {
+    els.sidebarMenuButton.setAttribute("aria-label", ui.sidebarMenuButtonLabel);
+    els.sidebarMenuButton.setAttribute("title", ui.sidebarMenuButtonTitle);
+  }
+  if (els.sidebarCloseButton) {
+    els.sidebarCloseButton.setAttribute("aria-label", ui.sidebarCloseButtonLabel);
+  }
+  if (els.changelogButton) {
+    els.changelogButton.textContent = ui.changelogLabel;
+  }
+  if (els.sidebarHelpButton) {
+    els.sidebarHelpButton.textContent = ui.helpLabel;
+  }
+  if (els.sidebarSuggestionButton) {
+    els.sidebarSuggestionButton.textContent = ui.suggestionLabel;
+  }
+  if (els.themeToggleButton) {
+    const isLightTheme = document.documentElement.dataset.theme === "light";
+    els.themeToggleButton.setAttribute("aria-label", isLightTheme ? ui.themeToggleDarkLabel : ui.themeToggleLightLabel);
+    els.themeToggleButton.setAttribute("title", isLightTheme ? ui.themeToggleDarkLabel : ui.themeToggleLightLabel);
+  }
+  if (els.languageToggleButton) {
+    els.languageToggleButton.textContent = ui.languageButtonText;
+    const nextLabel = state.language === "zh" ? ui.languageLabelToEn : ui.languageLabelToZh;
+    els.languageToggleButton.setAttribute("aria-label", nextLabel);
+    els.languageToggleButton.setAttribute("title", nextLabel);
+  }
+  if (els.paidInferenceButton) els.paidInferenceButton.setAttribute("title", ui.paidInference);
+  if (els.paidCModeButton) els.paidCModeButton.setAttribute("title", ui.paidCMode);
+  if (els.paidPModeButton) els.paidPModeButton.setAttribute("title", ui.paidPMode);
+  if (els.copyTeamButton) els.copyTeamButton.setAttribute("title", ui.copyTeam);
+  if (els.swapTeamButton) els.swapTeamButton.setAttribute("title", ui.swapTeam);
+  if (els.clearTeamButton) els.clearTeamButton.setAttribute("title", ui.clearTeam);
+  if (els.searchInput) els.searchInput.placeholder = ui.searchPlaceholder;
+  if (els.helpButton) {
+    els.helpButton.setAttribute("aria-label", ui.sidebarHelp);
+    els.helpButton.setAttribute("title", ui.sidebarHelp);
+  }
+  if (els.summaryStrip && state.paidArenaMode === "normal") {
+    renderSummaryStrip(getBattleResultsSnapshot()?.attackResult || null, getBattleResultsSnapshot()?.defenseResult || null);
+  }
+  if (els.sortSummary) {
+    updateSortSummary();
+  }
+  if (els.battlePowerDefense) {
+    const base = sanitizeBattlePowerBase(state.battlePowerBase);
+    const ratio = 1 - BATTLE_POWER_ADVANTAGE_RATE;
+    els.battlePowerDefense.textContent = `${ui.battlePower.defense} ${formatBattlePower(base * ratio)}`;
+  }
+  if (els.battlePowerAttack) {
+    const base = sanitizeBattlePowerBase(state.battlePowerBase);
+    const ratio = 1 - BATTLE_POWER_ADVANTAGE_RATE;
+    els.battlePowerAttack.textContent = `${ui.battlePower.attack} ${formatBattlePower(base / ratio)}`;
+  }
+  if (els.teamSlots) {
+    renderTeam(getBattleResultsSnapshot());
+  }
+}
+
+function toggleLanguage() {
+  applyLanguage(state.language === "zh" ? "en" : "zh");
+  render();
+}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -550,7 +729,7 @@ function getBattleResultsCopyText(battleResults = getBattleResultsSnapshot()) {
   ].filter((entry) => entry.result && !entry.result.error);
 
   return entries
-    .map((entry) => `${TEAM_LABELS[entry.teamKey]}\n${getResultCopyText(entry.result, entry.teamKey)}`)
+    .map((entry) => `${getTeamLabel(entry.teamKey)}\n${getResultCopyText(entry.result, entry.teamKey)}`)
     .join("\n\n");
 }
 
@@ -839,7 +1018,7 @@ async function handleOcrFill(teamKey, startIndex, files) {
     added: result?.added?.length || 0,
     warnings: result?.warnings?.length || 0,
   });
-  const message = formatOcrToastMessage(result, TEAM_LABELS[normalizeTeamKey(teamKey)] || "当前队伍");
+  const message = formatOcrToastMessage(result, getTeamLabel(normalizeTeamKey(teamKey)) || "当前队伍");
   if (message) showToast(message);
 }
 
@@ -3444,7 +3623,7 @@ function getSlotSettingsContext() {
     index,
     teamKey,
     simulationTeamKey: teamKey,
-    title: `${TEAM_LABELS[teamKey]} P${index + 1}`,
+    title: `${getTeamLabel(teamKey)} P${index + 1}`,
     isPaidArena: false,
   };
 }
@@ -3743,7 +3922,7 @@ function createRosannaSacrificeModal() {
     <section class="slot-settings-modal rosanna-sacrifice-modal" role="dialog" aria-modal="true" aria-label="罗珊娜献祭设置">
       <div class="slot-settings-modal-head">
         <div>
-          <span class="slot-settings-team">${escapeHtml(isPaidArena ? `${getPaidArenaModeLabel(paidArenaMode)} P${rowIndex + 1}` : TEAM_LABELS[teamKey])}</span>
+          <span class="slot-settings-team">${escapeHtml(isPaidArena ? `${getPaidArenaModeLabel(paidArenaMode)} P${rowIndex + 1}` : getTeamLabel(teamKey))}</span>
           <strong>罗珊娜献祭</strong>
         </div>
         <button class="slot-settings-close" type="button" aria-label="关闭献祭设置">X</button>
@@ -4093,12 +4272,13 @@ function normalizeTheme(theme) {
 
 function applyTheme(theme) {
   const nextTheme = normalizeTheme(theme);
+  const ui = getCurrentLanguageText();
   document.documentElement.dataset.theme = nextTheme;
   localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
   els.themeToggleButton?.querySelector(".theme-sun")?.classList.toggle("is-active", nextTheme === "light");
   els.themeToggleButton?.querySelector(".theme-moon")?.classList.toggle("is-active", nextTheme === "dark");
-  els.themeToggleButton?.setAttribute("aria-label", nextTheme === "light" ? "切换为黑色主题" : "切换为白色主题");
-  els.themeToggleButton?.setAttribute("title", nextTheme === "light" ? "切换为黑色主题" : "切换为白色主题");
+  els.themeToggleButton?.setAttribute("aria-label", nextTheme === "light" ? ui.themeToggleDarkLabel : ui.themeToggleLightLabel);
+  els.themeToggleButton?.setAttribute("title", nextTheme === "light" ? ui.themeToggleDarkLabel : ui.themeToggleLightLabel);
 }
 
 function initTheme() {
@@ -5549,7 +5729,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
     const row = document.createElement("section");
     row.className = `team-row${state.activeTeamKey === teamKey ? " is-active" : ""}`;
     row.dataset.teamKey = teamKey;
-    row.setAttribute("aria-label", TEAM_LABELS[teamKey]);
+    row.setAttribute("aria-label", getTeamLabel(teamKey));
     row.innerHTML = '<div class="team-slots-row"></div>';
     row.addEventListener("click", () => {
       const wasActive = state.activeTeamKey === teamKey;
@@ -6890,13 +7070,13 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const markers = [
         {
           frame: Math.min(stun.startFrame, maxFrame),
-          tooltip: `${TEAM_LABELS[stun.teamKey]} P${stun.positionIndex + 1}\n时间：${stun.startFrame} F\n状态：被晕眩`,
+          tooltip: `${getTeamLabel(stun.teamKey)} P${stun.positionIndex + 1}\n时间：${stun.startFrame} F\n状态：被晕眩`,
         },
       ];
       if (endFrame >= stun.endFrame) {
         markers.push({
           frame: endFrame,
-          tooltip: `${TEAM_LABELS[stun.teamKey]} P${stun.positionIndex + 1}\n时间：${stun.endFrame} F\n状态：晕眩解除`,
+          tooltip: `${getTeamLabel(stun.teamKey)} P${stun.positionIndex + 1}\n时间：${stun.endFrame} F\n状态：晕眩解除`,
         });
       }
       return markers.map(
@@ -7046,7 +7226,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         .map((marker) => {
           const x = xForFrame(marker.frame);
           const y = yForTeamTotal(group.teamKey);
-          const tooltip = escapeHtml(`${TEAM_LABELS[group.teamKey]} ${marker.label} · ${marker.frame} F`);
+          const tooltip = escapeHtml(`${getTeamLabel(group.teamKey)} ${marker.label} · ${marker.frame} F`);
           return `<circle class="chart-burst-point team-${group.teamKey}" cx="${x}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle><text class="chart-burst-label team-${group.teamKey}" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(marker.label)}</text>`;
         }),
     )
@@ -7243,6 +7423,7 @@ function formatBattlePower(value) {
 }
 
 function renderBattlePowerStrip() {
+  const ui = getCurrentLanguageText();
   if (els.battlePowerStrip) {
     const shouldHide = isPaidArenaModeActive();
     els.battlePowerStrip.hidden = shouldHide;
@@ -7257,21 +7438,22 @@ function renderBattlePowerStrip() {
     els.battlePowerBaseInput.value = base ? String(base) : "0";
   }
   if (els.battlePowerDefense) {
-    els.battlePowerDefense.textContent = `可防 ${formatBattlePower(base * ratio)}`;
+    els.battlePowerDefense.textContent = `${ui.battlePower.defense} ${formatBattlePower(base * ratio)}`;
   }
   if (els.battlePowerAttack) {
-    els.battlePowerAttack.textContent = `可攻 ${formatBattlePower(base / ratio)}`;
+    els.battlePowerAttack.textContent = `${ui.battlePower.attack} ${formatBattlePower(base / ratio)}`;
   }
 }
 
 function renderSummaryStrip(attackResult, defenseResult) {
+  const ui = getCurrentLanguageText();
   const entries = [
     { teamKey: "defense", result: defenseResult },
     { teamKey: "attack", result: attackResult },
   ].filter((entry) => entry.result && !entry.result.error);
 
   if (entries.length === 0) {
-    els.summaryStrip.textContent = "队伍为空，选择角色后开始计算";
+    els.summaryStrip.textContent = ui.battlePower.summaryEmpty;
     els.summaryStrip.onpointerdown = null;
     els.summaryStrip.oncontextmenu = null;
     return;
@@ -7282,7 +7464,7 @@ function renderSummaryStrip(attackResult, defenseResult) {
       (entry, index) => `
         ${index > 0 ? '<span class="summary-vs">VS</span>' : ""}
         <span class="summary-team summary-${entry.teamKey}">
-          <span>${TEAM_LABELS[entry.teamKey]}</span>
+          <span>${getTeamLabel(entry.teamKey)}</span>
           <strong>${entry.result.fullFrame}F</strong>
         </span>
       `,
@@ -7553,13 +7735,13 @@ function addCharacter(character) {
   const scarletCounterEnabled = getScarletCounterEnabledState();
   const sacrificeFrames = getRosannaSacrificeFrameState();
   if (team.some((member) => member && member.id === character.id)) {
-    showToast(`${character.name} 已在${TEAM_LABELS[state.activeTeamKey]}中`);
+    showToast(`${character.name} 已在${getTeamLabel(state.activeTeamKey)}中`);
     return;
   }
 
   const emptyIndex = team.findIndex((member) => !member);
   if (emptyIndex === -1) {
-    showToast(`${TEAM_LABELS[state.activeTeamKey]}已满，请先移除一个槽位`);
+    showToast(`${getTeamLabel(state.activeTeamKey)}已满，请先移除一个槽位`);
     return;
   }
 
@@ -8777,7 +8959,7 @@ async function normalArenaToPngBlob() {
     context.strokeStyle = teamKey === "defense" ? "rgba(77, 163, 255, 0.58)" : "rgba(228, 63, 79, 0.58)";
     context.lineWidth = 1;
     context.stroke();
-    drawCanvasText(context, TEAM_LABELS[teamKey], x + 18, infoY + 19, { size: 17, weight: 800, color });
+    drawCanvasText(context, getTeamLabel(teamKey), x + 18, infoY + 19, { size: 17, weight: 800, color });
     drawCanvasText(context, getNormalArenaResultLabel(result), x + 18, infoY + 40, { size: 21, weight: 800, color: "#f2f5fa" });
   };
 
@@ -9257,6 +9439,7 @@ function bindEvents() {
     openHelpModal();
   });
   els.themeToggleButton?.addEventListener("click", toggleTheme);
+  els.languageToggleButton?.addEventListener("click", toggleLanguage);
   els.appVersion?.addEventListener("click", toggleLocalPaidDevAccess);
   els.appVersion?.addEventListener("keydown", (event) => {
     if (!isLocalDevRuntime() || !["Enter", " "].includes(event.key)) return;
@@ -9381,14 +9564,16 @@ function bindEvents() {
 }
 
 function updateSortSummary() {
+  const ui = getCurrentLanguageText();
   const filters = [];
   const stage = normalizeStageFilter(state.filters.stage);
-  if (stage !== "all") filters.push(`爆裂${stage.replace("B", "")}`);
-  if (state.filters.common === "common") filters.push("常用");
-  if (state.filters.region === "cn") filters.push("国服");
-  els.sortSummary.textContent = "排序：";
+  if (stage !== "all") filters.push(`${ui.filterBurst || "爆裂"}${stage.replace("B", "")}`);
+  if (state.filters.common === "common") filters.push(ui.filterCommon);
+  if (state.filters.region === "cn") filters.push(ui.filterRegionCN);
+  if (state.filters.region === "global") filters.push(ui.filterRegionGlobal);
+  els.sortSummary.textContent = ui.sortSummaryLabel;
   const sortText = document.createElement("strong");
-  sortText.textContent = "充能从高到低";
+  sortText.textContent = ui.sortSummaryBy;
   els.sortSummary.append(sortText);
   filters.forEach((filter) => {
     const dot = document.createElement("span");
@@ -9416,6 +9601,7 @@ function syncFilterControls() {
 
 async function bootstrap() {
   initTheme();
+  applyLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY) || "zh");
   await loadCharacterData();
   void warmAvatarCacheInServiceWorker();
   bindEvents();

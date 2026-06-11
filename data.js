@@ -5066,6 +5066,7 @@ const CHARACTERS = [
     "enName": "吉儿·华伦泰",
     "rarity": "SSR",
     "avatarUrl": null,
+    "nameCodeAvatarUrl": "assets/avatars/namecode/5153.webp",
     "avatarSourceUrl": "https://cdnimg-v2.gamekee.com/wiki2.0/images/w_310/h_402/1253/4408/2025/8/29/394368.png",
     "isCommon": false,
     "weapon": "AR",

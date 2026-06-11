@@ -237,7 +237,18 @@ input[type="number"]::-webkit-outer-spin-button {
   align-items: center;
   justify-content: center;
   gap: 12px;
+}
+
+.theme-controls {
+  display: flex;
+  gap: 8px;
   margin-top: 14px;
+}
+
+.theme-controls .theme-toggle-button {
+  width: auto;
+  flex: 1;
+  margin-top: 0;
 }
 
 .theme-icon {
