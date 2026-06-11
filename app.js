@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复充能数值浮点尾差显示",
   "修正爱蜜莉雅额外伤害仅作用本体",
   "爱蜜莉雅增加额外伤害",
   "删除爱蜜莉雅21.49%角色条目",
@@ -614,7 +615,8 @@ function formatNumber(value, maxDigits = 2) {
 }
 
 function formatChargeNumber(value) {
-  const number = Number(value) || 0;
+  const rawNumber = Number(value) || 0;
+  const number = Math.round(rawNumber * 1e10) / 1e10;
   const sign = number < 0 ? -1 : 1;
   const truncated = (Math.trunc(Math.abs(number) * 10000) / 10000) * sign;
   return truncated
