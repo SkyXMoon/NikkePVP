@@ -230,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "总充能详情将hit信息合并到各角色充能行",
   "诺雅额外机制改为额外效果不再计入hit",
   "总充能详情补充各站位累计造成hit来源",
   "红莲反击充能详情补充受击来源",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "统一额外伤害按本体命中额外1 hit计算",
   "额外伤害角色命中目标显示为2 hit",
   "额外伤害角色受击hit计入红莲反击与豺狼链接",
-  "调整队伍栏分享图按钮位置到切换按钮前",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -7034,32 +7034,9 @@ function estimateChartLabelWidth(label) {
   return [...String(label)].reduce((width, char) => width + (char.charCodeAt(0) > 255 ? 15 : 8), 0);
 }
 
-function getCumulativeContributionLines(result, frame) {
-  const cumulativeByPosition = new Map();
-  result.timeline
-    .filter((entry) => entry.frame <= frame)
-    .forEach((entry) => {
-      entry.contributions.forEach((contribution) => {
-        if (contribution.showOnMember === false) return;
-        cumulativeByPosition.set(
-          contribution.positionIndex,
-          (cumulativeByPosition.get(contribution.positionIndex) || 0) + contribution.charge,
-        );
-      });
-    });
-
-  return result.members
-    .map((member) => {
-      const cumulative = cumulativeByPosition.get(member.positionIndex) || 0;
-      if (cumulative <= BURST_EPSILON) return null;
-      return `${member.character.name}：${formatChargeNumber(cumulative)}%`;
-    })
-    .filter(Boolean);
-}
-
-function getCumulativeDealtHitLines(result, frame = 0) {
-  if (!result || result.error) return [];
+function getCumulativeDealtHitMap(result, frame = 0) {
   const hitsByPosition = new Map();
+  if (!result || result.error) return hitsByPosition;
   result.timeline
     .filter((entry) => entry.frame <= frame)
     .forEach((entry) => {
@@ -7081,17 +7058,41 @@ function getCumulativeDealtHitLines(result, frame = 0) {
         });
       });
     });
+  return hitsByPosition;
+}
 
-  return Array.from({ length: TEAM_SIZE }, (_, positionIndex) => {
-    const item = hitsByPosition.get(positionIndex);
-    if (!item || item.total <= 0) return null;
-    const memberName = result.members.find((member) => member.positionIndex === positionIndex)?.character?.name || `P${positionIndex + 1}`;
-    const targetText = [...item.byTarget.entries()]
-      .sort((a, b) => a[0] - b[0])
-      .map(([targetPositionIndex, hitCount]) => `P${targetPositionIndex + 1}（${formatNumber(hitCount, 2)} hit）`)
-      .join("，");
-    return `P${positionIndex + 1} ${memberName}（${formatNumber(item.total, 2)} hit）：${targetText}`;
-  }).filter(Boolean);
+function formatDealtHitSummary(hitItem) {
+  if (!hitItem || hitItem.total <= 0) return "";
+  const targetText = [...hitItem.byTarget.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([targetPositionIndex, hitCount]) => `P${targetPositionIndex + 1} ${formatNumber(hitCount, 2)} hit`)
+    .join("，");
+  return `${formatNumber(hitItem.total, 2)} hit${targetText ? `：${targetText}` : ""}`;
+}
+
+function getCumulativeContributionLines(result, frame) {
+  const cumulativeByPosition = new Map();
+  const dealtHitMap = getCumulativeDealtHitMap(result, frame);
+  result.timeline
+    .filter((entry) => entry.frame <= frame)
+    .forEach((entry) => {
+      entry.contributions.forEach((contribution) => {
+        if (contribution.showOnMember === false) return;
+        cumulativeByPosition.set(
+          contribution.positionIndex,
+          (cumulativeByPosition.get(contribution.positionIndex) || 0) + contribution.charge,
+        );
+      });
+    });
+
+  return result.members
+    .map((member) => {
+      const cumulative = cumulativeByPosition.get(member.positionIndex) || 0;
+      if (cumulative <= BURST_EPSILON) return null;
+      const dealtHitText = formatDealtHitSummary(dealtHitMap.get(member.positionIndex));
+      return `${member.character.name}：${formatChargeNumber(cumulative)}%${dealtHitText ? ` [${dealtHitText}]` : ""}`;
+    })
+    .filter(Boolean);
 }
 
 function getSpecialContributionTotal(result, frame, labelText) {
@@ -7661,7 +7662,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const universalChargeTotal = getSpecialContributionTotal(group.result, entry.frame, "万能充能");
         const rosannaSacrificeTotal = getSpecialContributionTotal(group.result, entry.frame, "罗珊娜献祭");
         const characterChargeLines = getCumulativeContributionLines(group.result, entry.frame);
-        const dealtHitLines = getCumulativeDealtHitLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
           `累计总充能：${formatChargeNumber(entry.totalCharge)}%`,
@@ -7669,7 +7669,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           ...(rosannaSacrificeTotal > BURST_EPSILON ? [`罗珊娜献祭充能：${formatChargeNumber(rosannaSacrificeTotal)}%`] : []),
           ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${formatChargeNumber(jackalLinkTotal)}%`] : []),
           ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${formatChargeNumber(scarletCounterTotal)}%`] : []),
-          ...(dealtHitLines.length ? ["各站位造成 hit：", ...dealtHitLines] : []),
           ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
         ]);
         return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle>`;
