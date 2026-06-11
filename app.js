@@ -235,6 +235,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化帮助页正式文案",
   "更新页面使用说明内容",
   "爱蜜莉雅第二发起增加蓄力速度",
   "统一角色充能计算为基础充能乘hit乘人数展示",
@@ -244,7 +245,6 @@ const CHANGELOG_ITEMS = [
   "删除爱蜜莉雅21.49%角色条目",
   "爱蜜莉雅爆炸范围调整为2",
   "隐藏部分未使用的珍藏角色条目",
-  "OCR识别统一先选择区域并支持从图片外起手框选",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -4577,7 +4577,7 @@ function createHelpModal(options = {}) {
         "点击“冠”进入冠军竞技场，显示 5 队；点击“特”进入特殊竞技场，显示 3 队。",
         "冠军/特殊竞技场支持攻防显示与 ROUND 显示：攻防显示按队伍侧查看，ROUND 显示按防守 N 对进攻 N 查看。",
         "冠军/特殊竞技场同一模式内共用妮姬不可重复选择，并各自拥有 10 套方案。",
-        "“测”为空枪反推入口；未开放或不可用时会给出提示。",
+        "“测”为空枪反推入口，可根据进攻队发射节奏推测对方诺雅蓄速或红莲弹容。",
       ],
     },
     {
@@ -4644,12 +4644,12 @@ function createHelpModal(options = {}) {
       ],
     },
     {
-      title: "复制与分享",
+      title: "分享",
       items: [
-        "普通竞技场复制会生成充能轴、防守 VS 进攻信息和双方队伍图片。",
+        "普通竞技场分享会生成充能轴、防守 VS 进攻信息和双方队伍图片。",
         "冠军/特殊竞技场分享图会把各队充能结果、头像队伍和对应充能轴组合成长图。",
-        "分享图右上角会显示当前访问入口网址；测试环境分享图固定显示正式域名。",
-        "桌面端优先复制图片到剪贴板；移动端优先调用系统分享图片。",
+        "分享图右上角会显示当前访问入口网址。",
+        "桌面端优先将图片放入剪贴板；移动端优先调用系统分享图片。",
         "移动端浏览器不支持原生分享时，会弹出生成好的图片，用户可自行长按保存或分享。",
       ],
     },
@@ -4664,7 +4664,7 @@ function createHelpModal(options = {}) {
       ],
     },
   ];
-  const copyShareIndex = sections.findIndex((section) => section.title === "复制与分享");
+  const copyShareIndex = sections.findIndex((section) => section.title === "分享");
   if (copyShareIndex > 1) {
     const [copyShareSection] = sections.splice(copyShareIndex, 1);
     sections.splice(1, 0, copyShareSection);
