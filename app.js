@@ -115,9 +115,7 @@ const OCR_SPACE_ENGINE = 3;
 const OCR_LARGE_IMAGE_THRESHOLD_BYTES = 1024 * 1024;
 const OCR_RETRY_DELAY_MS = 5000;
 const OCR_MAX_RETRY_COUNT = 5;
-const OCR_JPEG_QUALITIES = [0.9, 0.82, 0.74, 0.66, 0.58];
-const OCR_IMAGE_SCALE_STEP = 0.86;
-const OCR_MIN_IMAGE_SCALE = 0.45;
+const OCR_JPEG_QUALITIES = [1, 0.95, 0.9, 0.85, 0.8];
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
   AR: "步枪",
@@ -236,7 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
-  "OCR选区图片改为JPG并压缩到1MB以内再上传",
+  "OCR控制台仅显示过滤后结果并优化选区JPG压缩策略",
   "OCR选区后切换为动态识别提示并支持超时重试",
   "OCR识别图片超过1MB时支持先框选识别区域",
   "空枪反推中全发射器共同满足的候选值独立标红",
@@ -972,12 +970,6 @@ function parseFileNamesFromOcrText(rawText) {
     if (bestMatch) matched.push(bestMatch.character);
   });
 
-  console.log("[OCR] 匹配结果", {
-    inputLines: lines,
-    matchedNames: matched.map((character) => String(character?.name || "")),
-    unmatched: warnings.slice(),
-  });
-
   return {
     matchedCharacters: matched,
     warnings,
@@ -1019,8 +1011,9 @@ async function parseImageWithOcrSpace(file) {
     .filter(Boolean)
     .join("\n");
 
-  console.log("[OCR] 原始识别文本", parsedText);
-  return cleanOcrTextForRoles(parsedText);
+  const cleanedText = cleanOcrTextForRoles(parsedText);
+  console.log("[OCR] 过滤后结果", cleanedText);
+  return cleanedText;
 }
 
 function wait(ms) {
@@ -1092,31 +1085,11 @@ function createOcrCropFileName(file) {
 }
 
 async function canvasToSizedOcrJpegFile(canvas, file) {
-  let scale = 1;
-  let lastBlob = null;
-
-  while (scale >= OCR_MIN_IMAGE_SCALE) {
-    const outputCanvas = scale === 1 ? canvas : document.createElement("canvas");
-    if (scale !== 1) {
-      outputCanvas.width = Math.max(1, Math.round(canvas.width * scale));
-      outputCanvas.height = Math.max(1, Math.round(canvas.height * scale));
-      const outputContext = outputCanvas.getContext("2d");
-      outputContext.drawImage(canvas, 0, 0, outputCanvas.width, outputCanvas.height);
+  for (const quality of OCR_JPEG_QUALITIES) {
+    const blob = await canvasToBlob(canvas, "image/jpeg", quality);
+    if (blob.size <= OCR_LARGE_IMAGE_THRESHOLD_BYTES) {
+      return new File([blob], createOcrCropFileName(file), { type: "image/jpeg" });
     }
-
-    for (const quality of OCR_JPEG_QUALITIES) {
-      const blob = await canvasToBlob(outputCanvas, "image/jpeg", quality);
-      lastBlob = blob;
-      if (blob.size <= OCR_LARGE_IMAGE_THRESHOLD_BYTES) {
-        return new File([blob], createOcrCropFileName(file), { type: "image/jpeg" });
-      }
-    }
-
-    scale *= OCR_IMAGE_SCALE_STEP;
-  }
-
-  if (lastBlob?.size <= OCR_LARGE_IMAGE_THRESHOLD_BYTES) {
-    return new File([lastBlob], createOcrCropFileName(file), { type: "image/jpeg" });
   }
   throw new Error("选区压缩后仍超过1MB，请缩小选区后重试");
 }
@@ -1303,12 +1276,6 @@ async function handleOcrFill(teamKey, startIndex, files) {
   showToast("检测到图片，准备识别。", { persistent: true });
   try {
     const result = await fillTeamSlotsWithOcrResult(teamKey, startIndex, files);
-    console.log("[OCR] 普通场景识别完成", {
-      teamKey,
-      startIndex,
-      added: result?.added?.length || 0,
-      warnings: result?.warnings?.length || 0,
-    });
     const message = formatOcrToastMessage(result, getTeamLabel(normalizeTeamKey(teamKey)) || "当前队伍");
     stopProgressToast({ keepVisible: true });
     if (message) showToast(message);
@@ -1321,7 +1288,6 @@ async function handleOcrFill(teamKey, startIndex, files) {
 
 async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
   showToast("检测到图片，准备识别。", { persistent: true });
-  console.log("[OCR] 特殊场景识别开始", { mode, rowIndex, startIndex, files: files?.length || 0 });
   try {
     const normalizedMode = normalizePaidArenaMode(mode);
     const teams = getPaidArenaTeams(normalizedMode);
@@ -1332,12 +1298,6 @@ async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
       return;
     }
     const result = await fillPaidArenaSlotsWithOcrResult(normalizedRow, startIndex, files);
-    console.log("[OCR] 特殊场景识别完成", {
-      mode,
-      rowIndex: normalizedRow,
-      added: result?.added?.length || 0,
-      warnings: result?.warnings?.length || 0,
-    });
     const label = mode === "c" ? "冠军竞技场" : "特殊竞技场";
     const message = formatOcrToastMessage(result, `${label}队伍`);
     stopProgressToast({ keepVisible: true });
