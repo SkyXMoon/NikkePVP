@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR无冒号识别结果支持匹配冒号角色名",
   "OCR控制台改为显示最终用于匹配的过滤行",
   "OCR控制台仅显示过滤后结果并优化选区JPG压缩策略",
   "OCR选区后切换为动态识别提示并支持超时重试",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "分享图片支持跟随深色/浅色主题",
   "冠军/特殊竞技场默认显示进攻队伍并支持攻防队伍交换",
   "修复冠军/特殊竞技场特殊开关写错队伍侧的问题",
-  "充能数值改为截断保留最多4位小数",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -884,7 +884,7 @@ function parseFileNamesFromOcrText(rawText) {
   const characterNames = Array.isArray(CHARACTERS)
     ? CHARACTERS.map((character) => ({ character, name: normalizeOcrCharacterName(character?.name || "") }))
         .filter((entry) => entry.name)
-        .map((entry) => ({ ...entry, hasColon: entry.name.includes(":") }))
+        .map((entry) => ({ ...entry, hasColon: entry.name.includes(":"), nameNoColon: entry.name.replace(/:/g, "") }))
         .sort((a, b) => b.name.length - a.name.length)
     : [];
 
@@ -894,7 +894,7 @@ function parseFileNamesFromOcrText(rawText) {
   lines.forEach((line) => {
     const containsColon = line.includes(":");
     const bareColonPreferredName = OCR_COLON_PREFERRED_VARIANTS[line];
-    const scopedCharacterNames = characterNames.filter((entry) => (containsColon ? entry.hasColon : !entry.hasColon));
+    const scopedCharacterNames = characterNames.filter((entry) => (containsColon ? entry.hasColon : true));
     const matchedInLine = [];
     scopedCharacterNames.forEach((entry) => {
       const name = entry.name;
@@ -905,7 +905,7 @@ function parseFileNamesFromOcrText(rawText) {
           position: exactPosition,
           partial: false,
           length: name.length,
-          priority: 200,
+          priority: !containsColon && !entry.hasColon && line === name ? 240 : 200,
         });
         return;
       }
@@ -913,15 +913,17 @@ function parseFileNamesFromOcrText(rawText) {
       const lineLength = line.length;
       const nameLength = name.length;
       if (lineLength >= 2 && nameLength >= 2) {
-        if (!containsColon && nameLength - lineLength <= 2) {
-          const containsPartial = name.includes(line);
+        if (!containsColon) {
+          const comparableName = entry.hasColon ? entry.nameNoColon : name;
+          const comparableLength = comparableName.length;
+          const containsPartial = comparableName.includes(line);
           if (containsPartial) {
             matchedInLine.push({
               ...entry,
-              position: 0,
+              position: comparableName.indexOf(line),
               partial: true,
-              length: nameLength,
-              priority: 100,
+              length: comparableLength,
+              priority: entry.hasColon ? 220 : 100,
             });
           }
           return;
