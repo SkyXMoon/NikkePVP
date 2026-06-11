@@ -1,5 +1,5 @@
-const APP_CACHE_NAME = "nikke-app-cache-v1-25-160";
-const ASSET_CACHE_NAME = "nikke-asset-cache-v1-25-160";
+const APP_CACHE_NAME = "nikke-app-cache-v1-25-161";
+const ASSET_CACHE_NAME = "nikke-asset-cache-v1-25-161";
 const OLD_CACHE_PREFIXES = ["nikke-app-cache-", "nikke-asset-cache-", "nikke-avatar-cache-"];
 const AVATAR_PATH_SNIPPET = "/assets/avatars/";
 const ICON_PATH_SNIPPET = "/assets/icons/";
@@ -65,6 +65,19 @@ async function getCacheFirst(request, cacheName) {
   const response = await fetch(request);
   await cacheResponse(cache, request, response.clone());
   return response;
+}
+
+async function getNetworkFirst(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  try {
+    const response = await fetch(request);
+    await cacheResponse(cache, request, response.clone());
+    return response;
+  } catch {
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) return cachedResponse;
+    throw new Error("network unavailable and no cached response");
+  }
 }
 
 async function precacheAppShell() {
@@ -140,7 +153,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   if (isAppShellRequestUrl(event.request.url)) {
-    event.respondWith(getCacheFirst(event.request, APP_CACHE_NAME));
+    event.respondWith(getNetworkFirst(event.request, APP_CACHE_NAME));
     return;
   }
   if (isLocalAssetRequestUrl(event.request.url)) {

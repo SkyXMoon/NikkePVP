@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复本地测试可能被旧Service Worker缓存页面拦截的问题",
   "冠军/特殊竞技场改为同一方案内切换进攻队伍与防守队伍，并分别保存队伍",
   "扩展本地缓存机制，主资源、头像、图标与二维码首次访问后可持久缓存",
   "新增侧边栏中英文切换入口，并同步主要界面文案",
@@ -240,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "修复移动端分享与复制图片降级行为",
   "修复移动端分享与复制图标的降级行为",
   "优化角色设置中蓄速与魔方保存逻辑",
-  "新增关于与建议侧边栏目及QQ群快速加入入口",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;

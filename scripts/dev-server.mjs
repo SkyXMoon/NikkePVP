@@ -57,6 +57,7 @@ const server = createServer((request, response) => {
   }
   response.writeHead(200, {
     "content-type": contentType,
+    "cache-control": "no-store",
   });
   createReadStream(filePath).pipe(response);
 });
