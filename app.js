@@ -45,8 +45,8 @@ const UI_TEXTS = {
     recognizeButton: "识别图片填充队伍",
     sortSummaryLabel: "排序：",
     sortSummaryBy: "充能从高到低",
-    filterCommon: "常用",
-    filterRegionCN: "国服",
+    filterCommon: "PVP",
+    filterRegionCN: "CN",
     filterRegionGlobal: "国际服",
     filterBurst: "爆裂",
     summaryTeamLabels: {
@@ -89,7 +89,7 @@ const UI_TEXTS = {
     recognizeButton: "Recognize image",
     sortSummaryLabel: "Sort:",
     sortSummaryBy: "Charge desc",
-    filterCommon: "Common",
+    filterCommon: "PVP",
     filterRegionCN: "CN",
     filterRegionGlobal: "Global",
     filterBurst: "Burst ",
@@ -239,6 +239,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "调整筛选按钮和分享图角标",
   "补全英文界面核心内容",
   "优化角色数量统计口径",
   "调整帮助页图片识别排序",
@@ -248,7 +249,6 @@ const CHANGELOG_ITEMS = [
   "爱蜜莉雅第二发起增加蓄力速度",
   "统一角色充能计算为基础充能乘hit乘人数展示",
   "修复充能数值浮点尾差显示",
-  "修正爱蜜莉雅额外伤害仅作用本体",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -576,7 +576,7 @@ function applyLanguage(language) {
   if (els.paidInferenceButton) els.paidInferenceButton.textContent = isEnglishLanguage() ? "Test" : "测";
   if (els.paidCModeButton) els.paidCModeButton.textContent = isEnglishLanguage() ? "C" : "冠";
   if (els.paidPModeButton) els.paidPModeButton.textContent = isEnglishLanguage() ? "P" : "特";
-  els.allowMissedShotsToggle?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Miss" : "空"));
+  els.allowMissedShotsToggle?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode("E"));
   els.teamShareButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Img" : "图"));
   els.swapTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Swap" : "换"));
   els.clearTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Clear" : "清"));
@@ -10030,7 +10030,7 @@ function drawPaidArenaSlot(context, slot, x, y, size, theme = getExportThemePale
       context.arc(centerX, centerY, markSize / 2, 0, Math.PI * 2);
       context.fill();
       context.stroke();
-      drawCanvasText(context, "嘲", centerX, centerY + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, "T", centerX, centerY + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
     }
     if (isSacrificedTarget) {
       const frameText = `${sanitizeSacrificeFrame(sacrificeFrame)}F`;
@@ -10056,7 +10056,7 @@ function drawPaidArenaSlot(context, slot, x, y, size, theme = getExportThemePale
       context.arc(x + size / 2, y + size / 2, markSize / 2, 0, Math.PI * 2);
       context.fill();
       context.stroke();
-      drawCanvasText(context, "定", x + size / 2, y + size / 2 + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, "F", x + size / 2, y + size / 2 + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
     }
     if (isActiveLinkOwner || isLinkTarget) {
       const badgeSize = Math.max(22, size * 0.24);
