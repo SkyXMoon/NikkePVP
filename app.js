@@ -245,7 +245,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
-  "补充缩写与图标说明",
+  "整合帮助页缩写与图标说明",
   "修复充能图表关键点英文角色名",
   "修复英文筛选与空枪按钮显示",
   "补全充能轴英文提示",
@@ -4696,7 +4696,7 @@ function createHelpModal(options = {}) {
         {
           title: "Arena Modes",
           items: [
-            "Tap C for Champion Arena with 5 teams, or P for Special Arena with 3 teams.",
+            "Tap C for Champion Arena with 5 teams, or P for Special Arena with 3 teams. Test opens missed-shot inference.",
             "Without switching modes, the page stays in Normal Arena with defense and attack teams.",
             "Champion and Special Arena support Side view and ROUND view. ROUND view compares defense N against attack N.",
             "Each Champion/Special mode has 10 saved plans, and Nikkes cannot be reused within the same mode.",
@@ -4731,6 +4731,8 @@ function createHelpModal(options = {}) {
             "Selecting a character replaces the universal charge in that slot. Removing the character resets that value to 0.",
             "Enter a power threshold above the team area to calculate attack and defense battle-power ranges.",
             "Drag a Normal Arena plan button from 1-10 to copy that plan into another slot.",
+            "P1-P5 are position slots from left to right. T marks the taunt target, and F marks the fixed-axis finishing character.",
+            "Small numbers on avatars show charge speed or Scarlet magazine when applicable.",
           ],
         },
         {
@@ -4747,18 +4749,19 @@ function createHelpModal(options = {}) {
         {
           title: "Character Settings",
           items: [
-            "Tap the gear on a team icon to edit charge-speed rolls, final charge speed, charge/quantum cube, Scarlet magazine, and other parameters.",
+            "Tap the gear icon on a team avatar to edit charge-speed rolls, final charge speed, charge/quantum cube, Scarlet magazine, and other parameters.",
             "Identical charge-speed rolls are combined before rounding; different rolls are rounded separately and then added.",
             "You can also type final charge speed directly. Manual input clears the four roll selectors.",
-            "Charge cube adds 2.12% charge speed, rounded as +2. Quantum cube increases base burst generation.",
+            "Charge cube adds 2.12% charge speed, rounded as +2. Quantum cube increases base burst generation. Cube icons on avatars indicate the selected cube.",
             "Characters that do not use charge speed do not show charge-speed settings or charge cube options.",
             "Scarlet supports counter and magazine settings. Red Hood supports pierce count. Rosanna supports sacrifice frames and reset.",
+            "Link icons mark Jackal/Poli link. Swords icons can mean counter, pierce, or Rosanna sacrifice depending on the character.",
           ],
         },
         {
           title: "Special Mechanics",
           items: [
-            "The Miss toggle enables missed-shot calculation, including Scarlet magazine, RL/SR turn windows, and reload windows.",
+            "The E button means missed-shot evaluation. When enabled, RL/SR turn windows, reload windows, and Scarlet magazine can cause missed shots.",
             "Jackal and Poli can enable link behavior. Jackal link generates charge; Poli link only affects shared hit intake and Scarlet counter.",
             "Scarlet counter, Red Hood pierce, Cinderella firing logic, Snow White: Heavy Arms damage sequence, Liberatio extra hits, Raven DOT, taunt, and stun are included.",
             "Noah/Noise taunt affects targets starting from the second shot.",
@@ -4768,7 +4771,7 @@ function createHelpModal(options = {}) {
         {
           title: "Character List",
           items: [
-            "Search supports Chinese and English names. Buttons 1/2/3 filter Burst stages. Common and region toggles are saved locally.",
+            "Search supports Chinese and English names. Buttons 1/2/3 filter Burst stages. PVP filters commonly used PvP characters, and CN filters China-server characters.",
             "The list searches within the current region/common filters and sorts by final charge efficiency from high to low.",
             "Tap an already selected character to remove it from the active team.",
             "Right-click a character card to copy its visible charge details. Hover or tap to view charge details.",
@@ -4781,19 +4784,7 @@ function createHelpModal(options = {}) {
             "The question-mark button opens this help page. First-time visitors see this help automatically.",
             "The sidebar includes dark/light theme and Chinese/English language switches.",
             "The right-side Share button generates a team image. Recognize fills teams from an image.",
-            "Team bar buttons: Image shares the team image, Swap exchanges attack/defense teams, and Clear clears both teams.",
-          ],
-        },
-        {
-          title: "Abbreviations & Icons",
-          items: [
-            "E means missed-shot evaluation. When enabled, RL/SR turn windows, reload windows, and Scarlet magazine can cause missed shots.",
-            "PVP means the commonly used PvP character filter. CN means the China server character filter. Buttons 1/2/3 filter Burst stages 1/2/3.",
-            "C means Champion Arena. P means Special Arena. Test opens missed-shot inference.",
-            "Img means generate/share the team image. Swap exchanges attack and defense teams. Clear removes both teams.",
-            "P1-P5 are position slots from left to right. T marks the taunt target, and F marks the fixed-axis finishing character.",
-            "Gear opens character settings. Link marks Jackal/Poli link. Swords mark counter, pierce, or Rosanna sacrifice depending on the character.",
-            "Cube icons mark charge-speed cube or quantum cube. A small number on the avatar shows charge speed or Scarlet magazine when applicable.",
+            "Team bar buttons: Img shares the team image, Swap exchanges attack/defense teams, and Clear clears both teams.",
           ],
         },
       ]
@@ -4801,11 +4792,11 @@ function createHelpModal(options = {}) {
     {
       title: "竞技场模式",
       items: [
-        "点击“冠”进入冠军竞技场，显示 5 队；点击“特”进入特殊竞技场，显示 3 队。",
+        "点击“冠”进入冠军竞技场，显示 5 队；点击“特”进入特殊竞技场，显示 3 队；点击“测”进入空枪反推。",
         "不切换模式时为普通竞技场，默认显示防守队与进攻队。",
         "冠军/特殊竞技场支持攻防显示与 ROUND 显示：攻防显示按队伍侧查看，ROUND 显示按防守 N 对进攻 N 查看。",
         "冠军/特殊竞技场同一模式内共用妮姬不可重复选择，并各自拥有 10 套方案。",
-        "点击“测”进入空枪反推，可根据进攻队发射节奏推测对方诺雅蓄速或红莲弹容。",
+        "空枪反推可根据进攻队发射节奏推测对方诺雅蓄速或红莲弹容。",
       ],
     },
     {
@@ -4817,6 +4808,7 @@ function createHelpModal(options = {}) {
         "选择角色会直接覆盖空槽万能充能；取消角色后该槽万能充能会重置为 0。",
         "在队伍栏上方填写战力基准值后，会自动换算可防与可攻战压。",
         "拖动普通竞技场的 1-10 方案按钮，可将一套方案复制到另一套方案。",
+        "P1-P5 表示从左到右的站位；“嘲”表示嘲讽目标，“定”表示充能完成定轴角色。",
         "队伍头像上的“定”“嘲”、蓄速/弹容、魔方、链接、反击、穿透、献祭等标记会同步影响计算或分享图。",
       ],
     },
@@ -4834,19 +4826,20 @@ function createHelpModal(options = {}) {
     {
       title: "角色设置",
       items: [
-        "点击头像右上角齿轮，可设置蓄力速度词条、最终蓄速、蓄速/量子魔方、红莲弹容等参数。",
+        "点击头像右上角齿轮图标，可设置蓄力速度词条、最终蓄速、蓄速/量子魔方、红莲弹容等参数。",
         "蓄速词条会按相同词条先合并再四舍五入；也可以直接手填最终蓄速，手填后会清空词条。",
-        "选择蓄速魔方后会额外增加 2.12% 蓄速，取整后为 +2；选择量子魔方后会提高单发基础充能。",
+        "选择蓄速魔方后会额外增加 2.12% 蓄速，取整后为 +2；选择量子魔方后会提高单发基础充能，头像上的魔方图标表示当前选择。",
         "非 RL/SR 等不吃蓄速的角色不会显示蓄速设置或蓄速魔方。",
         "红莲可设置反击开关和弹容；小红帽可设置穿透计数。",
         "罗珊娜可设置队友献祭帧，并可一键重置默认。",
+        "链条图标表示豺狼/波莉链接；双剑图标按角色不同表示反击、穿透或罗珊娜献祭。",
         "角色参数按进攻/防守分别保存；冠军/特殊竞技场会使用对应攻防队伍数据。",
       ],
     },
     {
       title: "特殊机制",
       items: [
-        "“空”开关用于计算空枪；开启后红莲弹容、RL/SR 转身和换弹空枪判定才会参与。",
+        "“空”开关用于计算空枪；开启后红莲弹容、RL/SR 转身和换弹空枪判定才会参与。英文界面中该按钮显示为 E。",
         "豺狼、波莉可开启链接；豺狼链接会产生充能，波莉链接只影响共同受击与红莲反击。",
         "红莲反击、小红帽穿透、灰姑娘特殊发射、重装白雪连续伤害、莉贝雷利奥额外伤害、渡鸦 DOT、嘲讽、晕眩等都会进入计算。",
         "诺雅/诺伊斯嘲讽从第二发起影响目标；同速时按当前规则判定嘲讽来源。",
@@ -4857,7 +4850,7 @@ function createHelpModal(options = {}) {
     {
       title: "角色选择",
       items: [
-        "搜索支持中文名和英文名；1/2/3 可筛选爆裂阶段，常/国开关会本地保存。",
+        "搜索支持中文名和英文名；1/2/3 可筛选爆裂阶段，“常”筛选常用 PVP 角色，“国”筛选国服角色，这些开关会本地保存。",
         "搜索会在当前服务器、常用等条件下检索全部可用角色；角色默认按最终单发充能效率从高到低排序。",
         "再次点击已选角色会从当前队伍中移除；冠军/特殊竞技场会阻止同模式内重复选择同一妮姬。",
         "右键角色卡可复制该角色当前显示的详细充能信息；悬停或点击可查看充能详情。",
@@ -4889,20 +4882,7 @@ function createHelpModal(options = {}) {
         "右上角问号同样可打开本说明；首次进入页面会自动显示说明，关闭后收缩到右上角。",
         "侧边栏支持深色/浅色主题切换，也提供中英文切换入口。",
         "右侧“分享”用于生成队伍分享图；“识别”用于从图片填入队伍。",
-        "队伍栏按钮中，“图”分享当前队伍图片，“换”互换攻防队伍，“清”清空双方队伍。",
-      ],
-    },
-    {
-      title: "缩写与图标说明",
-      items: [
-        "中文界面显示“空/常/国/图/换/清”等短按钮；英文界面对应显示 E/PVP/CN/Img/Swap/Clear。",
-        "“空”或 E 表示空枪判定开关；开启后 RL/SR 转身、换弹窗口、红莲弹容等空枪逻辑会参与计算。",
-        "“常”或 PVP 表示常用 PVP 角色筛选；“国”或 CN 表示国服角色筛选；1/2/3 表示筛选爆裂 1/2/3 阶段。",
-        "冠/C 表示冠军竞技场，特/P 表示特殊竞技场，测/Test 表示空枪反推。",
-        "图/Img 表示生成或分享队伍图片，换/Swap 表示互换进攻与防守队伍，清/Clear 表示清空双方队伍。",
-        "P1-P5 表示从左到右的站位；T/嘲表示嘲讽目标，F/定表示充能完成定轴角色。",
-        "齿轮表示角色设置；链条表示豺狼/波莉链接；双剑图标按角色不同表示反击、穿透或罗珊娜献祭。",
-        "魔方图标表示蓄速魔方或量子魔方；头像上的小数字会显示蓄速或红莲弹容等参数。",
+        "队伍栏按钮中，“图”分享当前队伍图片，“换”互换攻防队伍，“清”清空双方队伍；英文界面对应显示 Img/Swap/Clear。",
       ],
     },
   ];
