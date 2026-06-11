@@ -1,4 +1,4 @@
-const ASSET_CACHE_NAME = "nikke-asset-cache-v1-25-188";
+const ASSET_CACHE_NAME = "nikke-asset-cache-v1-25-189";
 const OLD_CACHE_PREFIXES = ["nikke-app-cache-", "nikke-asset-cache-", "nikke-avatar-cache-"];
 const AVATAR_PATH_SNIPPET = "/assets/avatars/";
 const ICON_PATH_SNIPPET = "/assets/icons/";

@@ -230,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "红莲反击充能详情补充受击来源",
   "简化灰姑娘充能详情描述",
   "灰姑娘充能改为按炮弹波及与额外伤害计算",
   "统一额外伤害按本体命中额外1 hit计算",
@@ -237,7 +238,6 @@ const CHANGELOG_ITEMS = [
   "额外伤害角色受击hit计入红莲反击与豺狼链接",
   "豺狼链接充能详情补充阶段帧显示",
   "充能数值改为显示完整小数不再固定四舍五入",
-  "豺狼链接触发来源改为每个角色独立一行",
   "调整队伍栏分享图按钮位置到切换按钮前",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
@@ -6551,14 +6551,14 @@ function getJackalLinkedHitCount(entry, linkedPositionIndices) {
   }, 0);
 }
 
-function getJackalLinkedHitSources(entry, linkedPositionIndices) {
-  const linkedPositions = new Set(linkedPositionIndices);
-  if (linkedPositions.size === 0) return [];
+function getPositionHitSources(entry, targetPositionIndices) {
+  const targetPositions = new Set(targetPositionIndices);
+  if (targetPositions.size === 0) return [];
   return entry.contributions
     .map((contribution) => {
       if (!Array.isArray(contribution.positionHits)) return null;
       const hits = contribution.positionHits
-        .filter((positionHit) => linkedPositions.has(positionHit.positionIndex) && Number(positionHit.hitCount) > 0)
+        .filter((positionHit) => targetPositions.has(positionHit.positionIndex) && Number(positionHit.hitCount) > 0)
         .sort((a, b) => a.positionIndex - b.positionIndex);
       const hitCount = hits.reduce((sum, positionHit) => sum + Number(positionHit.hitCount), 0);
       if (hitCount <= 0) return null;
@@ -6610,6 +6610,14 @@ function getPositionHitCount(entry, positionIndex) {
   }, 0);
 }
 
+function getScarletCounterTriggerSources(result, member, entry, opponentResult = null) {
+  const linkedPositionIndices = getJackalLinkedPositionIndices(result);
+  if (linkedPositionIndices.includes(member.positionIndex) && !isLinkSuppressedByRosanna(opponentResult, entry.frame)) {
+    return getPositionHitSources(entry, linkedPositionIndices);
+  }
+  return getPositionHitSources(entry, [member.positionIndex]);
+}
+
 function isLinkSuppressedByRosanna(opponentResult, frame) {
   return frame >= ROSANNA_BUFF_REMOVE_FRAME && resultHasRosanna(opponentResult);
 }
@@ -6640,12 +6648,14 @@ function getScarletCounterGroups(chartResults, visibleTimelineByTeam) {
           .map((entry) => {
             const opponentResult = chartResults.find((resultItem) => resultItem.teamKey === opponentTeamKey)?.result || null;
             const triggerCount = getScarletCounterTriggerCount(item.result, member, entry, opponentResult);
+            const triggerSources = getScarletCounterTriggerSources(item.result, member, entry, opponentResult);
             const charge = chargePerCounter * triggerCount;
             if (charge <= BURST_EPSILON) return null;
             cumulativeCharge += charge;
             return {
               frame: entry.frame,
               triggerCount,
+              triggerSources,
               charge,
               cumulativeCharge,
             };
@@ -6703,8 +6713,8 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
               ? getPositionHitCount(entry, member.positionIndex)
               : getJackalLinkedHitCount(entry, linkedPositionIndices);
             const hitSources = suppressedByRosanna
-              ? getJackalLinkedHitSources(entry, [member.positionIndex])
-              : getJackalLinkedHitSources(entry, linkedPositionIndices);
+              ? getPositionHitSources(entry, [member.positionIndex])
+              : getPositionHitSources(entry, linkedPositionIndices);
             if (hitCount > 0 && pendingTriggerStartFrame === null) pendingTriggerStartFrame = entry.frame;
             accumulatedHits += hitCount;
             pendingTriggerHits += hitCount;
@@ -6767,9 +6777,11 @@ function getSpecialChargeTooltipLines(group, entry) {
     ];
   }
 
+  const sourceLines = group.type === "scarletCounter" ? formatJackalHitSources(entry.triggerSources || []) : [];
   return [
     group.label,
     `时间：${entry.frame} F`,
+    ...(sourceLines.length ? ["反击来源：", ...sourceLines] : []),
     `期望反击：${entry.triggerCount} × ${formatChargeNumber(group.chargePerCounter)}% = ${formatChargeNumber(entry.charge)}%`,
     `累计充能：${formatChargeNumber(entry.cumulativeCharge)}%`,
   ];
