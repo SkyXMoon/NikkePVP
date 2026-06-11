@@ -43,10 +43,11 @@ const UI_TEXTS = {
     shareButton: "分享",
     shareImageButton: "分享队伍图片",
     recognizeButton: "识别图片填充队伍",
+    missShotToggle: "计算空枪",
     sortSummaryLabel: "排序：",
     sortSummaryBy: "充能从高到低",
-    filterCommon: "PVP",
-    filterRegionCN: "CN",
+    filterCommon: "常",
+    filterRegionCN: "国",
     filterRegionGlobal: "国际服",
     filterBurst: "爆裂",
     summaryTeamLabels: {
@@ -87,6 +88,7 @@ const UI_TEXTS = {
     shareButton: "Share",
     shareImageButton: "Share team image",
     recognizeButton: "Recognize image",
+    missShotToggle: "Enable missed-shot calculation",
     sortSummaryLabel: "Sort:",
     sortSummaryBy: "Charge desc",
     filterCommon: "PVP",
@@ -243,6 +245,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "补充缩写与图标说明",
   "修复充能图表关键点英文角色名",
   "修复英文筛选与空枪按钮显示",
   "补全充能轴英文提示",
@@ -252,7 +255,6 @@ const CHANGELOG_ITEMS = [
   "调整帮助页图片识别排序",
   "优化帮助页使用顺序说明",
   "优化帮助页正式文案",
-  "更新页面使用说明内容",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -596,7 +598,12 @@ function applyLanguage(language) {
   if (els.paidInferenceButton) els.paidInferenceButton.textContent = isEnglishLanguage() ? "Test" : "测";
   if (els.paidCModeButton) els.paidCModeButton.textContent = isEnglishLanguage() ? "C" : "冠";
   if (els.paidPModeButton) els.paidPModeButton.textContent = isEnglishLanguage() ? "P" : "特";
-  els.allowMissedShotsToggle?.closest("label")?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode("E"));
+  const missShotLabel = els.allowMissedShotsToggle?.closest("label");
+  if (missShotLabel) {
+    missShotLabel.setAttribute("aria-label", ui.missShotToggle);
+    missShotLabel.setAttribute("title", ui.missShotToggle);
+    missShotLabel.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "E" : "空"));
+  }
   els.teamShareButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Img" : "图"));
   els.swapTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Swap" : "换"));
   els.clearTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Clear" : "清"));
@@ -4777,6 +4784,18 @@ function createHelpModal(options = {}) {
             "Team bar buttons: Image shares the team image, Swap exchanges attack/defense teams, and Clear clears both teams.",
           ],
         },
+        {
+          title: "Abbreviations & Icons",
+          items: [
+            "E means missed-shot evaluation. When enabled, RL/SR turn windows, reload windows, and Scarlet magazine can cause missed shots.",
+            "PVP means the commonly used PvP character filter. CN means the China server character filter. Buttons 1/2/3 filter Burst stages 1/2/3.",
+            "C means Champion Arena. P means Special Arena. Test opens missed-shot inference.",
+            "Img means generate/share the team image. Swap exchanges attack and defense teams. Clear removes both teams.",
+            "P1-P5 are position slots from left to right. T marks the taunt target, and F marks the fixed-axis finishing character.",
+            "Gear opens character settings. Link marks Jackal/Poli link. Swords mark counter, pierce, or Rosanna sacrifice depending on the character.",
+            "Cube icons mark charge-speed cube or quantum cube. A small number on the avatar shows charge speed or Scarlet magazine when applicable.",
+          ],
+        },
       ]
     : [
     {
@@ -4871,6 +4890,19 @@ function createHelpModal(options = {}) {
         "侧边栏支持深色/浅色主题切换，也提供中英文切换入口。",
         "右侧“分享”用于生成队伍分享图；“识别”用于从图片填入队伍。",
         "队伍栏按钮中，“图”分享当前队伍图片，“换”互换攻防队伍，“清”清空双方队伍。",
+      ],
+    },
+    {
+      title: "缩写与图标说明",
+      items: [
+        "中文界面显示“空/常/国/图/换/清”等短按钮；英文界面对应显示 E/PVP/CN/Img/Swap/Clear。",
+        "“空”或 E 表示空枪判定开关；开启后 RL/SR 转身、换弹窗口、红莲弹容等空枪逻辑会参与计算。",
+        "“常”或 PVP 表示常用 PVP 角色筛选；“国”或 CN 表示国服角色筛选；1/2/3 表示筛选爆裂 1/2/3 阶段。",
+        "冠/C 表示冠军竞技场，特/P 表示特殊竞技场，测/Test 表示空枪反推。",
+        "图/Img 表示生成或分享队伍图片，换/Swap 表示互换进攻与防守队伍，清/Clear 表示清空双方队伍。",
+        "P1-P5 表示从左到右的站位；T/嘲表示嘲讽目标，F/定表示充能完成定轴角色。",
+        "齿轮表示角色设置；链条表示豺狼/波莉链接；双剑图标按角色不同表示反击、穿透或罗珊娜献祭。",
+        "魔方图标表示蓄速魔方或量子魔方；头像上的小数字会显示蓄速或红莲弹容等参数。",
       ],
     },
   ];
