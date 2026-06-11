@@ -231,6 +231,8 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化冠军/特殊竞技场双队伍充能轴命名，保留简洁总充能显示",
+  "冠军/特殊竞技场充能轴改为同时显示所选队伍与对方队伍数据",
   "优化普通竞技场与冠军/特殊竞技场默认选中队伍，并强化攻防队伍颜色标识",
   "修复本地测试可能被旧Service Worker缓存页面拦截的问题",
   "冠军/特殊竞技场改为同一方案内切换进攻队伍与防守队伍，并分别保存队伍",
@@ -240,7 +242,6 @@ const CHANGELOG_ITEMS = [
   "调整哈兰中毒充能为固定2hit，基础充能每次触发提升为+5.8%",
   "移动端分享在不支持原生分享时改为弹出图片预览弹窗，支持查看与下载图片",
   "修复移动端分享与复制图片降级行为",
-  "修复移动端分享与复制图标的降级行为",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -4974,8 +4975,9 @@ function simulatePaidArenaBurst(
   redHoodPierceCounts = Array(TEAM_SIZE).fill(0),
   scarletCounterEnabled = Array(TEAM_SIZE).fill(true),
   jackalLink = createEmptyJackalLinkState(),
+  teamKey = getPaidArenaDataTeamKey(),
 ) {
-  const dataTeamKey = getPaidArenaDataTeamKey();
+  const dataTeamKey = normalizeTeamKey(teamKey);
   const previousTeam = state.team;
   const previousDefenseTeam = state.defenseTeam;
   const previousChargeSpeeds = state.chargeSpeeds;
@@ -6675,20 +6677,41 @@ function invalidateBattleResults() {
   state.battleResults = null;
 }
 
-function getActivePaidArenaChartResult() {
+function getPaidArenaChartResultForTeam(teamKey, rowIndex = state.paidArenaActiveRowIndex) {
   if (!isPaidArenaModeActive()) return null;
   const mode = state.paidArenaMode;
-  const teams = getPaidArenaTeams(mode);
+  const normalizedTeamKey = normalizeTeamKey(teamKey);
+  const teams = getPaidArenaTeams(mode, normalizedTeamKey);
   if (!teams.length) return null;
+  const normalizedRowIndex = Math.max(0, Math.min(teams.length - 1, Number(rowIndex) || 0));
+  const team = teams[normalizedRowIndex] || [];
+  const universalCharges = getPaidArenaUniversalCharges(mode, normalizedTeamKey)[normalizedRowIndex] || Array(TEAM_SIZE).fill(0);
+  const sacrificeFrames = getPaidArenaRosannaSacrificeFrames(mode, normalizedTeamKey)[normalizedRowIndex] || Array(TEAM_SIZE).fill(null);
+  const redHoodPierceCounts = getPaidArenaRedHoodPierceCounts(mode, normalizedTeamKey)[normalizedRowIndex] || Array(TEAM_SIZE).fill(0);
+  const scarletCounterEnabled = getPaidArenaScarletCounterEnabled(mode, normalizedTeamKey)[normalizedRowIndex] || Array(TEAM_SIZE).fill(true);
+  const jackalLink = normalizePaidArenaLinkForTeam(team, getPaidArenaJackalLinks(mode, normalizedTeamKey)[normalizedRowIndex]);
+  const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, normalizedTeamKey);
+  return simulatePaidArenaBurst(
+    team,
+    chargeSpeeds,
+    universalCharges,
+    sacrificeFrames,
+    redHoodPierceCounts,
+    scarletCounterEnabled,
+    jackalLink,
+    normalizedTeamKey,
+  );
+}
+
+function getActivePaidArenaChartResults() {
+  if (!isPaidArenaModeActive()) return { attackResult: null, defenseResult: null };
+  const mode = state.paidArenaMode;
+  const teams = getPaidArenaTeams(mode);
   const rowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
-  const team = teams[rowIndex] || [];
-  const universalCharges = getPaidArenaUniversalCharges(mode)[rowIndex] || Array(TEAM_SIZE).fill(0);
-  const sacrificeFrames = getPaidArenaRosannaSacrificeFrames(mode)[rowIndex] || Array(TEAM_SIZE).fill(null);
-  const redHoodPierceCounts = getPaidArenaRedHoodPierceCounts(mode)[rowIndex] || Array(TEAM_SIZE).fill(0);
-  const scarletCounterEnabled = getPaidArenaScarletCounterEnabled(mode)[rowIndex] || Array(TEAM_SIZE).fill(true);
-  const jackalLink = normalizePaidArenaLinkForTeam(team, getPaidArenaJackalLinks(mode)[rowIndex]);
-  const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, getPaidArenaDataTeamKey());
-  return simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, jackalLink);
+  return {
+    attackResult: getPaidArenaChartResultForTeam("attack", rowIndex),
+    defenseResult: getPaidArenaChartResultForTeam("defense", rowIndex),
+  };
 }
 
 function estimateChartLabelWidth(label) {
@@ -7573,12 +7596,8 @@ function renderResults(battleResults = getBattleResultsSnapshot()) {
     const activeSideLabel = activeSide === "defense" ? "防守队伍" : "进攻队伍";
     els.summaryStrip.textContent = `${getPaidArenaModeLabel()}：${activeSideLabel} ${pickedCount}/${teams.length * TEAM_SIZE}，共用妮姬不可重复\n移动端长按，桌面端右键可复制队伍图片`;
     els.resultPanel.innerHTML = "";
-    const activeResult = getActivePaidArenaChartResult();
-    if (activeSide === "defense") {
-      renderChargeChart(null, activeResult);
-    } else {
-      renderChargeChart(activeResult, null);
-    }
+    const { attackResult, defenseResult } = getActivePaidArenaChartResults();
+    renderChargeChart(attackResult, defenseResult);
     return null;
   }
   const { attackResult: result, defenseResult } = battleResults;
