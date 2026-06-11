@@ -229,6 +229,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "侧边栏版本号移动到NIKKE PVP标题后方，提升可见性",
   "收窄本地缓存范围，仅缓存头像与图标资源并在每次访问时刷新",
   "移除Team栏重复分享按钮，保留悬浮分享入口",
   "调整本地测试环境分享图网址显示为固定正式域名",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "修复本地测试可能被旧Service Worker缓存页面拦截的问题",
   "冠军/特殊竞技场改为同一方案内切换进攻队伍与防守队伍，并分别保存队伍",
   "新增侧边栏中英文切换入口，并同步主要界面文案",
-  "补充吉儿·华伦泰本地头像回退资源",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;

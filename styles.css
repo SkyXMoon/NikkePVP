@@ -189,6 +189,13 @@ input[type="number"]::-webkit-outer-spin-button {
   font-weight: 900;
 }
 
+.app-sidebar-head strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .app-sidebar-close {
   display: grid;
   place-items: center;
@@ -276,9 +283,12 @@ input[type="number"]::-webkit-outer-spin-button {
   background: #34435a;
 }
 
-.app-sidebar .app-version {
-  margin-top: auto;
-  align-self: flex-start;
+.app-sidebar-head .app-version {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-top: 0;
+  vertical-align: middle;
 }
 
 :root[data-theme="light"] .app-version {
