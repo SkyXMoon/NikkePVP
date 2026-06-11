@@ -174,6 +174,7 @@ const JACKAL_LINK_HIT_THRESHOLD = 10;
 const ROSANNA_SACRIFICE_CHARGE = 36.54;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
+const EMILIA_CHARGE_SPEED_AFTER_FIRST_SHOT = 13.01;
 const MISS_DODGE_WINDOW_FRAMES = 6;
 const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [0, 60],
@@ -234,6 +235,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "爱蜜莉雅第二发起增加蓄力速度",
   "统一角色充能计算为基础充能乘hit乘人数展示",
   "修复充能数值浮点尾差显示",
   "修正爱蜜莉雅额外伤害仅作用本体",
@@ -243,7 +245,6 @@ const CHANGELOG_ITEMS = [
   "隐藏部分未使用的珍藏角色条目",
   "OCR识别统一先选择区域并支持从图片外起手框选",
   "OCR冒号角色支持头像名别名和多冒号片段匹配",
-  "OCR冒号角色支持缺字和单字偏差匹配",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -2139,6 +2140,10 @@ function isAnisSuperstar(character) {
   return character?.id === 2 || character?.enName === "Anis: Star";
 }
 
+function isEmilia(character) {
+  return character?.id === 11 || character?.enName === "Emilia" || character?.name === "爱蜜莉雅" || character?.slug === "爱蜜莉雅";
+}
+
 function getAnisSuperstarSupplementValue(team = []) {
   const anis = team.find((member) => member && isAnisSuperstar(member));
   return anis ? (Number(anis.burstGen) || 0) * ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE : 0;
@@ -2497,6 +2502,7 @@ function getChargeBreakdown(character) {
   }
   if (superstarSupplementValue) lines.push(`超阿补充：基础 +${formatChargeNumber(superstarSupplementValue)}%`);
   if (isRedHood(character)) lines.push(`攻击蓄速：每次攻击 +${formatNumber(RED_HOOD_CHARGE_SPEED_PER_ATTACK, 2)}%，最多 ${RED_HOOD_MAX_CHARGE_SPEED_STACKS} 层`);
+  if (isEmilia(character)) lines.push(`蓄速变化：第二发起 +${formatChargeNumber(EMILIA_CHARGE_SPEED_AFTER_FIRST_SHOT)}%`);
   if (flatBonus) lines.push(`固定补充 +${formatChargeNumber(flatBonus)}%`);
   if (character.hitCountExtraEvents?.length) {
     lines.push(
@@ -2924,10 +2930,20 @@ function getRedHoodStackedInterval(event, stacks = event.redHoodChargeSpeedStack
   return applyChargeSpeedIntervalFrames(baseChargeFrames, fixedIntervalFrames, getRedHoodStackedChargeSpeed(event.character, stacks));
 }
 
+function getEmiliaFollowUpInterval(event) {
+  const baseChargeFrames = event.baseChargeFrames || event.chargeFrames || 0;
+  const fixedIntervalFrames = Math.max(0, (event.baseIntervalFrames || event.interval) - baseChargeFrames);
+  const baseSpeed = Number(event.character.chargeSpeedPercent) || 0;
+  return applyChargeSpeedIntervalFrames(baseChargeFrames, fixedIntervalFrames, baseSpeed + EMILIA_CHARGE_SPEED_AFTER_FIRST_SHOT);
+}
+
 function getBaseNextAttackFrame(event, currentFrame, shotCount = 1) {
   if (event.character.weapon !== "MG") {
     if (isRedHood(event.character)) {
       return currentFrame + getRedHoodStackedInterval(event, getRedHoodChargeSpeedStacksAfterAttack(event, shotCount));
+    }
+    if (isEmilia(event.character) && event.hits > 0) {
+      return currentFrame + getEmiliaFollowUpInterval(event);
     }
     return currentFrame + event.interval;
   }

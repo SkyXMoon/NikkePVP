@@ -969,7 +969,7 @@ const CHARACTERS = [
       "attack": "↗",
       "defense": "↙"
     },
-    "notes": "发射器；系数 0.014；RL爆炸范围 2；本体额外伤害",
+    "notes": "发射器；系数 0.014；RL爆炸范围 2；本体额外伤害；第二发起蓄速+13.01%",
     "source": "NIKKE PVP 充能计算器 v2.3.20（更新20260516）.xlsx"
   },
   {

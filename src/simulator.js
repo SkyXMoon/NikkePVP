@@ -12,6 +12,7 @@ const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
+const EMILIA_CHARGE_SPEED_AFTER_FIRST_SHOT = 13.01;
 const MISS_DODGE_WINDOW_FRAMES = 6;
 const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [0, 60],
@@ -158,6 +159,10 @@ function isScarlet(character) {
 
 function isRedHood(character) {
   return character?.id === 111 || character?.name === "小红帽" || character?.slug === "小红帽";
+}
+
+function isEmilia(character) {
+  return character?.id === 11 || character?.enName === "Emilia" || character?.name === "爱蜜莉雅" || character?.slug === "爱蜜莉雅";
 }
 
 function isSnowWhiteHeavyArms(character) {
@@ -686,10 +691,20 @@ function getRedHoodStackedInterval(event, stacks = event.redHoodChargeSpeedStack
   return applyChargeSpeedIntervalFrames(baseChargeFrames, fixedIntervalFrames, getRedHoodStackedChargeSpeed(event.character, stacks));
 }
 
+function getEmiliaFollowUpInterval(event) {
+  const baseChargeFrames = event.baseChargeFrames || event.chargeFrames || 0;
+  const fixedIntervalFrames = Math.max(0, (event.baseIntervalFrames || event.interval) - baseChargeFrames);
+  const baseSpeed = Number(event.character.chargeSpeedPercent) || 0;
+  return applyChargeSpeedIntervalFrames(baseChargeFrames, fixedIntervalFrames, baseSpeed + EMILIA_CHARGE_SPEED_AFTER_FIRST_SHOT);
+}
+
 function getBaseNextAttackFrame(event, currentFrame, shotCount = 1) {
   if (event.character.weapon !== "MG") {
     if (isRedHood(event.character)) {
       return currentFrame + getRedHoodStackedInterval(event, getRedHoodChargeSpeedStacksAfterAttack(event, shotCount));
+    }
+    if (isEmilia(event.character) && event.hits > 0) {
+      return currentFrame + getEmiliaFollowUpInterval(event);
     }
     return currentFrame + event.interval;
   }
