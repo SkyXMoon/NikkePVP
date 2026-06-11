@@ -3354,6 +3354,10 @@ input:focus {
   color: var(--green);
 }
 
+.test-candidate.has-test-match .test-candidate-result strong.is-all-launcher-match {
+  color: #ff5f63;
+}
+
 .test-candidate.is-error .test-candidate-result strong {
   color: #ffd9dc;
 }

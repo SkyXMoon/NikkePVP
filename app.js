@@ -230,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "空枪反推中全发射器共同满足的候选值独立标红",
   "分享图片支持跟随深色/浅色主题",
   "冠军/特殊竞技场默认显示进攻队伍并支持攻防队伍交换",
   "修复冠军/特殊竞技场特殊开关写错队伍侧的问题",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "总充能详情将hit信息合并到各角色充能行",
   "诺雅额外机制改为额外效果不再计入hit",
   "总充能详情补充各站位累计造成hit来源",
-  "红莲反击充能详情补充受击来源",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -4622,6 +4622,23 @@ function formatInferenceValues(values = [], suffix = "") {
   return groupNumberRanges(values).map((value) => `${value}${suffix}`);
 }
 
+function getAllLauncherInferenceValues(attackWindows = [], matches = [], key) {
+  const launcherKeys = [
+    ...new Set(attackWindows.map((window) => `${window.positionIndex}:${window.characterId}`)),
+  ];
+  if (launcherKeys.length <= 1) return [];
+  const valueSetsByLauncher = new Map(launcherKeys.map((launcherKey) => [launcherKey, new Set()]));
+  matches.forEach((match) => {
+    const window = match.attackWindow;
+    const launcherKey = window ? `${window.positionIndex}:${window.characterId}` : "";
+    if (!valueSetsByLauncher.has(launcherKey)) return;
+    (match[key] || []).forEach((value) => valueSetsByLauncher.get(launcherKey).add(value));
+  });
+  if ([...valueSetsByLauncher.values()].some((valueSet) => valueSet.size === 0)) return [];
+  const [firstSet, ...restSets] = [...valueSetsByLauncher.values()];
+  return [...firstSet].filter((value) => restSets.every((valueSet) => valueSet.has(value))).sort((a, b) => a - b);
+}
+
 function getNoahChargeSpeedsForAttackWindow(attackWindow) {
   const noah = getCharacterById(TEST_NOAH_ID);
   if (!noah || !attackWindow) return [];
@@ -4685,6 +4702,16 @@ function inferMissCandidates(payload = {}) {
   const scarletMatches = attackWindows
     .map((attackWindow) => ({ attackWindow, values: getScarletMagazinesForAttackWindow(attackWindow) }))
     .filter((entry) => entry.values.length > 0);
+  const noahAllLauncherValues = getAllLauncherInferenceValues(
+    attackWindows,
+    noahMatches.map((entry) => ({ attackWindow: entry.attackWindow, chargeSpeeds: entry.values })),
+    "chargeSpeeds",
+  );
+  const scarletAllLauncherValues = getAllLauncherInferenceValues(
+    attackWindows,
+    scarletMatches.map((entry) => ({ attackWindow: entry.attackWindow, magazines: entry.values })),
+    "magazines",
+  );
 
   return {
     attackWindows,
@@ -4693,6 +4720,8 @@ function inferMissCandidates(payload = {}) {
         type: "noah-charge-speed",
         characterId: noah?.id ?? TEST_NOAH_ID,
         characterName: noah?.name ?? "诺雅",
+        allLauncherValues: noahAllLauncherValues,
+        allLauncherDisplayValues: formatInferenceValues(noahAllLauncherValues, "%"),
         matches: noahMatches.map((entry) => ({
           attackPosition: entry.attackWindow.positionIndex + 1,
           attackCharacterName: entry.attackWindow.characterName,
@@ -4705,6 +4734,8 @@ function inferMissCandidates(payload = {}) {
         type: "scarlet-magazine",
         characterId: scarlet?.id ?? TEST_SCARLET_ID,
         characterName: scarlet?.name ?? "红莲",
+        allLauncherValues: scarletAllLauncherValues,
+        allLauncherDisplayValues: formatInferenceValues(scarletAllLauncherValues),
         matches: scarletMatches.map((entry) => ({
           attackPosition: entry.attackWindow.positionIndex + 1,
           attackCharacterName: entry.attackWindow.characterName,
@@ -5286,6 +5317,10 @@ function formatPaidInferenceMatch(match, key) {
   return `P${match.attackPosition} ${match.attackCharacterName} 第${match.shotNumber}发：${values || "无匹配"}`;
 }
 
+function createPaidCandidateLine(text, highlight = false) {
+  return { text: String(text || ""), highlight: Boolean(highlight) };
+}
+
 function scheduleLocalPaidInferenceRefresh() {
   if (!state.testMode) return;
   const signature = getLocalPaidInferenceSignature();
@@ -5312,10 +5347,14 @@ function refreshLocalPaidInference() {
 
 function getPaidCandidateLines(candidateType, valueKey) {
   const candidate = localPaidInferenceState.result?.candidates?.find((item) => item.type === candidateType);
-  if (localPaidInferenceState.loading) return ["计算中..."];
-  if (localPaidInferenceState.error) return [localPaidInferenceState.error];
-  if (!candidate?.matches?.length) return ["无匹配"];
-  return candidate.matches.map((match) => formatPaidInferenceMatch(match, valueKey));
+  if (localPaidInferenceState.loading) return [createPaidCandidateLine("计算中...")];
+  if (localPaidInferenceState.error) return [createPaidCandidateLine(localPaidInferenceState.error)];
+  if (!candidate?.matches?.length) return [createPaidCandidateLine("无匹配")];
+  const allLauncherValues = candidate.allLauncherDisplayValues?.length ? candidate.allLauncherDisplayValues.join(" / ") : "";
+  return [
+    ...(allLauncherValues ? [createPaidCandidateLine(`全发射器：${allLauncherValues}`, true)] : []),
+    ...candidate.matches.map((match) => createPaidCandidateLine(formatPaidInferenceMatch(match, valueKey))),
+  ];
 }
 
 function renderTestDefenseRow() {
@@ -5351,7 +5390,7 @@ function renderTestDefenseRow() {
         <span class="team-avatar">${candidate.character ? getAvatarMarkup(candidate.character) : ""}</span>
       </span>
       <span class="test-candidate-result">
-        ${candidate.lines.map((line) => `<strong>${escapeHtml(line)}</strong>`).join("")}
+        ${candidate.lines.map((line) => `<strong${line.highlight ? ' class="is-all-launcher-match"' : ""}>${escapeHtml(line.text)}</strong>`).join("")}
       </span>
     `;
     slotsRow.append(slot);
