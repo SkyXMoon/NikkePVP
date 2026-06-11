@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "统一额外伤害按本体命中额外1 hit计算",
   "额外伤害角色命中目标显示为2 hit",
   "额外伤害角色受击hit计入红莲反击与豺狼链接",
   "豺狼链接充能详情补充阶段帧显示",
@@ -239,8 +240,6 @@ const CHANGELOG_ITEMS = [
   "豺狼链接充能详情按帧显示10 hit来源",
   "调整队伍栏分享图按钮位置到切换按钮前",
   "队伍栏标题改为中文并恢复队伍分享图按钮",
-  "移除分享图头像区重复的攻防队伍标签",
-  "冠军/特殊竞技场默认使用攻防显示，并将攻防显示按钮前置",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -2269,6 +2268,7 @@ function getVestiTacticalFollowUpEvents(event, currentFrame, hitProfile = null) 
     chargeValue,
     positionHits,
     targetHits,
+    displayExtraBodyHits: hitProfile?.bodyHits || [],
     source: "vesti-tactical-follow-up",
     label: getAttackContributionLabel(event.character, 1, null, hitProfile),
     countAsHitFrame: true,
@@ -2435,10 +2435,13 @@ function applyReceivedExtraDamageHits(character, positionHits = []) {
   return positionHits.map(([positionIndex, hitCount]) => [positionIndex, hitCount * multiplier]);
 }
 
-function applyDisplayedExtraDamageHits(character, targetHits = []) {
-  const multiplier = hasEffectiveExtraDamage(character) ? 2 : 1;
-  if (multiplier === 1) return targetHits;
-  return targetHits.map(([positionIndex, hitCount]) => [positionIndex, hitCount * multiplier]);
+function applyDisplayedExtraDamageHits(character, targetHits = [], bodyHits = []) {
+  if (!hasEffectiveExtraDamage(character)) return targetHits;
+  const mergedHits = new Map(targetHits.map(([positionIndex, hitCount]) => [positionIndex, Number(hitCount) || 0]));
+  bodyHits.forEach(([positionIndex, hitCount]) => {
+    mergedHits.set(positionIndex, (mergedHits.get(positionIndex) || 0) + (Number(hitCount) || 0));
+  });
+  return [...mergedHits.entries()].sort((a, b) => a[0] - b[0]);
 }
 
 function getReceivedPositionHits(character, hitProfile, frame, opponentReloadTimeline = []) {
@@ -2845,10 +2848,10 @@ function simulateBurst(
         current.positionHits.set(positionIndex, (current.positionHits.get(positionIndex) || 0) + hitCount);
       });
     };
-    const addTargetHits = (event, targetHits) => {
+    const addTargetHits = (event, targetHits, bodyHits = []) => {
       const current = contributions.get(getContributionKey(event, true));
       if (!current) return;
-      applyDisplayedExtraDamageHits(event.character, targetHits).forEach(([positionIndex, hitCount]) => {
+      applyDisplayedExtraDamageHits(event.character, targetHits, bodyHits).forEach(([positionIndex, hitCount]) => {
         current.targetHits.set(positionIndex, (current.targetHits.get(positionIndex) || 0) + hitCount);
       });
     };
@@ -2903,7 +2906,7 @@ function simulateBurst(
       }
       addContribution(owner, extra.chargeValue, extra.label || getDelayedExtraLabel(owner.character));
       addPositionHits(owner, extra.positionHits || []);
-      addTargetHits(owner, extra.targetHits || []);
+      addTargetHits(owner, extra.targetHits || [], extra.displayExtraBodyHits || []);
       if (extra.repeatFrames) {
         pendingExtraEvents.push({
           ...extra,
@@ -2988,7 +2991,7 @@ function simulateBurst(
         currentContribution.counterHits += Math.max(receivedHitTotal - 1, 0);
       }
       addPositionHits(event, receivedPositionHits);
-      addTargetHits(event, hitProfile.targetHits);
+      addTargetHits(event, hitProfile.targetHits, hitProfile.bodyHits);
       const hitCountExtraCharge = getHitCountExtraCharge(event);
       totalCharge += hitCountExtraCharge;
       event.totalCharge += hitCountExtraCharge;

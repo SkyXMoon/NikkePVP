@@ -609,9 +609,17 @@ function isReloadingAtFrame(positionIndex, frame, reloadTimeline = []) {
   return reloadTimeline.some((reload) => reload.positionIndex === positionIndex && reload.startFrame < frame && reload.endFrame > frame);
 }
 
+function applyReceivedExtraDamageHits(character, positionHits = []) {
+  if (!character.hasExtraDamage) return positionHits;
+  return positionHits.map(([positionIndex, hitCount]) => [positionIndex, hitCount * 2]);
+}
+
 function getReceivedPositionHits(character, hitProfile, frame, opponentReloadTimeline = []) {
-  if (character.weapon === "RL" || character.hasPenetration) return hitProfile.positionHits;
-  return hitProfile.positionHits.filter(([positionIndex]) => !isReloadingAtFrame(positionIndex, frame, opponentReloadTimeline));
+  const positionHits =
+    character.weapon === "RL" || character.hasPenetration
+      ? hitProfile.positionHits
+      : hitProfile.positionHits.filter(([positionIndex]) => !isReloadingAtFrame(positionIndex, frame, opponentReloadTimeline));
+  return applyReceivedExtraDamageHits(character, positionHits);
 }
 
 function getMagazineSize(character) {
