@@ -229,6 +229,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "移除分享图头像区重复的攻防队伍标签",
   "冠军/特殊竞技场默认使用攻防显示，并将攻防显示按钮前置",
   "修正冠军/特殊竞技场分享图结构，先汇总队伍信息再展示各ROUND对比充能轴",
   "优化冠军/特殊竞技场分享图，按轮次展示双方头像、充能速度与对比充能轴",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "侧边栏版本号移动到NIKKE PVP标题后方，提升可见性",
   "收窄本地缓存范围，仅缓存头像与图标资源并在每次访问时刷新",
   "移除Team栏重复分享按钮，保留悬浮分享入口",
-  "调整本地测试环境分享图网址显示为固定正式域名",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -9144,7 +9144,7 @@ async function paidArenaToPngBlob() {
   const chartHeight = 360;
   const blockPadding = 18;
   const summaryRowGap = 18;
-  const summaryInnerGap = 18;
+  const summaryInnerGap = 10;
   const summaryRowHeight = blockPadding + infoHeight + summaryInnerGap + slotSize + blockPadding;
   const chartsSectionGap = 34;
   const chartBlockGap = 26;
@@ -9295,9 +9295,7 @@ async function paidArenaToPngBlob() {
     drawCanvasText(context, `ROUND ${rowIndex + 1}`, vsX, infoY + infoHeight / 2, { align: "center", size: 20, weight: 900, color: "#f0c45c" });
     drawInfoPill(defenseX, infoY, defenseRow);
     drawInfoPill(attackX, infoY, attackRow);
-    drawCanvasText(context, "\u9632\u5b88\u961f", defenseX, teamsY - 11, { size: 17, weight: 900, color: "#9dccff" });
     drawCanvasText(context, "VS", vsX, teamsY + slotSize / 2, { align: "center", size: 30, weight: 900, color: "#f0c45c" });
-    drawCanvasText(context, "\u8fdb\u653b\u961f", attackX + teamWidth, teamsY - 11, { align: "right", size: 17, weight: 900, color: "#ff9ba5" });
 
     await drawTeam(defenseRow, defenseX, teamsY);
     await drawTeam(attackRow, attackX, teamsY);
@@ -9365,8 +9363,7 @@ async function normalArenaToPngBlob() {
   const chartY = padding;
   const infoY = chartY + chartHeight + 36;
   const infoHeight = 58;
-  const teamsY = infoY + infoHeight + 38;
-  const labelY = teamsY - 18;
+  const teamsY = infoY + infoHeight + 24;
   const height = teamsY + slotSize + padding;
   const width = contentWidth + padding * 2;
   const { canvas, context } = createHiDpiCanvas(width, height, 2);
@@ -9396,9 +9393,7 @@ async function normalArenaToPngBlob() {
   drawCanvasText(context, "VS", vsX, infoY + infoHeight / 2, { align: "center", size: 32, weight: 900, color: "#f0c45c" });
   drawInfoPill(attackX, "attack", attackResult);
 
-  drawCanvasText(context, "防守队", defenseX, labelY, { size: 20, weight: 900, color: "#9dccff" });
   drawCanvasText(context, "VS", vsX, teamsY + slotSize / 2, { align: "center", size: 36, weight: 900, color: "#f0c45c" });
-  drawCanvasText(context, "进攻队", attackX + teamWidth, labelY, { align: "right", size: 20, weight: 900, color: "#ff9ba5" });
 
   const imageCache = new Map();
   const loadCharacterImage = async (character) => {
