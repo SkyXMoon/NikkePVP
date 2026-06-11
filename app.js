@@ -230,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "总充能详情补充各站位累计造成hit来源",
   "红莲反击充能详情补充受击来源",
   "简化灰姑娘充能详情描述",
   "灰姑娘充能改为按炮弹波及与额外伤害计算",
@@ -237,7 +238,6 @@ const CHANGELOG_ITEMS = [
   "额外伤害角色命中目标显示为2 hit",
   "额外伤害角色受击hit计入红莲反击与豺狼链接",
   "豺狼链接充能详情补充阶段帧显示",
-  "充能数值改为显示完整小数不再固定四舍五入",
   "调整队伍栏分享图按钮位置到切换按钮前",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
@@ -7040,6 +7040,43 @@ function getCumulativeContributionLines(result, frame) {
     .filter(Boolean);
 }
 
+function getCumulativeDealtHitLines(result, frame = 0) {
+  if (!result || result.error) return [];
+  const hitsByPosition = new Map();
+  result.timeline
+    .filter((entry) => entry.frame <= frame)
+    .forEach((entry) => {
+      entry.contributions.forEach((contribution) => {
+        if (!Array.isArray(contribution.positionHits) || contribution.positionHits.length === 0) return;
+        const attackerPositionIndex = Number(contribution.positionIndex);
+        if (!Number.isInteger(attackerPositionIndex)) return;
+        contribution.positionHits.forEach((positionHit) => {
+          const targetPositionIndex = Number(positionHit.positionIndex);
+          const hitCount = Number(positionHit.hitCount) || 0;
+          if (!Number.isInteger(targetPositionIndex) || hitCount <= 0) return;
+          const current = hitsByPosition.get(attackerPositionIndex) || {
+            total: 0,
+            byTarget: new Map(),
+          };
+          current.total += hitCount;
+          current.byTarget.set(targetPositionIndex, (current.byTarget.get(targetPositionIndex) || 0) + hitCount);
+          hitsByPosition.set(attackerPositionIndex, current);
+        });
+      });
+    });
+
+  return Array.from({ length: TEAM_SIZE }, (_, positionIndex) => {
+    const item = hitsByPosition.get(positionIndex);
+    if (!item || item.total <= 0) return null;
+    const memberName = result.members.find((member) => member.positionIndex === positionIndex)?.character?.name || `P${positionIndex + 1}`;
+    const targetText = [...item.byTarget.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([targetPositionIndex, hitCount]) => `P${targetPositionIndex + 1}（${formatNumber(hitCount, 2)} hit）`)
+      .join("，");
+    return `P${positionIndex + 1} ${memberName}（${formatNumber(item.total, 2)} hit）：${targetText}`;
+  }).filter(Boolean);
+}
+
 function getSpecialContributionTotal(result, frame, labelText) {
   let cumulative = 0;
   result.timeline
@@ -7607,6 +7644,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const universalChargeTotal = getSpecialContributionTotal(group.result, entry.frame, "万能充能");
         const rosannaSacrificeTotal = getSpecialContributionTotal(group.result, entry.frame, "罗珊娜献祭");
         const characterChargeLines = getCumulativeContributionLines(group.result, entry.frame);
+        const dealtHitLines = getCumulativeDealtHitLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
           `累计总充能：${formatChargeNumber(entry.totalCharge)}%`,
@@ -7614,6 +7652,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           ...(rosannaSacrificeTotal > BURST_EPSILON ? [`罗珊娜献祭充能：${formatChargeNumber(rosannaSacrificeTotal)}%`] : []),
           ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${formatChargeNumber(jackalLinkTotal)}%`] : []),
           ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${formatChargeNumber(scarletCounterTotal)}%`] : []),
+          ...(dealtHitLines.length ? ["各站位造成 hit：", ...dealtHitLines] : []),
           ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
         ]);
         return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle>`;
