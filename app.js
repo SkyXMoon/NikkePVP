@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "充能数值改为显示完整小数不再固定四舍五入",
   "豺狼链接触发来源改为每个角色独立一行",
   "豺狼链接充能详情按帧显示10 hit来源",
   "调整队伍栏分享图按钮位置到切换按钮前",
@@ -240,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "修正冠军/特殊竞技场分享图结构，先汇总队伍信息再展示各ROUND对比充能轴",
   "优化冠军/特殊竞技场分享图，按轮次展示双方头像、充能速度与对比充能轴",
   "冠军/特殊竞技场新增ROUND显示与攻防显示切换",
-  "分享图片生成过程增加动态提示，避免误以为无响应",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -611,6 +611,11 @@ function formatNumber(value, maxDigits = 2) {
     .replace(/\.$/, "");
 }
 
+function formatChargeNumber(value) {
+  const number = Number(value) || 0;
+  return Number.parseFloat(number.toPrecision(12)).toString();
+}
+
 function formatFrame(frame) {
   return `${frame} 帧 / ${frameToSeconds(frame)} 秒`;
 }
@@ -780,7 +785,7 @@ function getPaidArenaCopyText() {
         if (chargeSpeed > 0 && canEditChargeSpeed(character)) return `${character.name}(${chargeSpeed})`;
         return character.name;
       }
-      return universalCharge > 0 ? `充${formatNumber(universalCharge, 2)}%` : "空";
+      return universalCharge > 0 ? `充${formatChargeNumber(universalCharge)}%` : "空";
     }).join("，");
     return `第${rowIndex + 1}队：${members}\n${getPaidArenaResultText(
       team,
@@ -2083,21 +2088,21 @@ function getChargeBreakdown(character) {
   const delayedExtraChargeTotal = getDelayedExtraChargeTotal(character);
   const fixedSequenceChargeTotal = getFixedSequenceChargeTotal(character);
   const fixedSequenceMultiplier = isVestiTacticalUpgrade(character) ? VESTI_TACTICAL_HIT_OFFSETS.length : 1;
-  const mainChargeFormula = `${formatNumber(baseChargeUnit, 5)} × ${hitMultiplier} × ${extraMultiplier}${
+  const mainChargeFormula = `${formatChargeNumber(baseChargeUnit)} × ${hitMultiplier} × ${extraMultiplier}${
     fixedSequenceMultiplier > 1 ? ` × ${fixedSequenceMultiplier}` : ""
   }`;
   const chargeFormulaParts = [
     mainChargeFormula,
-    ...(flatBonus ? [formatNumber(flatBonus, 2)] : []),
-    ...(delayedExtraChargeTotal ? [formatNumber(delayedExtraChargeTotal, 2)] : []),
-    ...(fixedSequenceChargeTotal && fixedSequenceMultiplier === 1 ? [formatNumber(fixedSequenceChargeTotal, 2)] : []),
+    ...(flatBonus ? [formatChargeNumber(flatBonus)] : []),
+    ...(delayedExtraChargeTotal ? [formatChargeNumber(delayedExtraChargeTotal)] : []),
+    ...(fixedSequenceChargeTotal && fixedSequenceMultiplier === 1 ? [formatChargeNumber(fixedSequenceChargeTotal)] : []),
   ];
   const lines = [
-    `充能计算：${chargeFormulaParts.join(" + ")} = ${formatNumber(getSingleShotChargeValue(character), 2)}%`,
-    `基础：${formatNumber(baseChargeUnit, 5)}%${
+    `充能计算：${chargeFormulaParts.join(" + ")} = ${formatChargeNumber(getSingleShotChargeValue(character))}%`,
+    `基础：${formatChargeNumber(baseChargeUnit)}%${
       character.quantumRelicCubeEnabled || superstarSupplementValue
-        ? `（${formatNumber(rawBaseChargeUnit, 5)}${superstarSupplementValue ? ` + ${formatNumber(superstarSupplementValue, 3)} 超阿补充` : ""}${
-            character.quantumRelicCubeEnabled ? `；${formatNumber(character.burstGen, 2)} × 1.0466` : ""
+        ? `（${formatChargeNumber(rawBaseChargeUnit)}${superstarSupplementValue ? ` + ${formatChargeNumber(superstarSupplementValue)} 超阿补充` : ""}${
+            character.quantumRelicCubeEnabled ? `；${formatChargeNumber(character.burstGen)} × 1.0466` : ""
           }）`
         : ""
     }`,
@@ -2105,32 +2110,32 @@ function getChargeBreakdown(character) {
   ];
 
   if (hasEffectiveExtraDamage(character)) lines.push("额外伤害 ×2");
-  if (superstarSupplementValue) lines.push(`超阿补充：基础 +${formatNumber(superstarSupplementValue, 3)}%`);
+  if (superstarSupplementValue) lines.push(`超阿补充：基础 +${formatChargeNumber(superstarSupplementValue)}%`);
   if (isRedHood(character)) lines.push(`攻击蓄速：每次攻击 +${formatNumber(RED_HOOD_CHARGE_SPEED_PER_ATTACK, 2)}%，最多 ${RED_HOOD_MAX_CHARGE_SPEED_STACKS} 层`);
-  if (flatBonus) lines.push(`固定补充 +${formatNumber(flatBonus, 2)}%`);
+  if (flatBonus) lines.push(`固定补充 +${formatChargeNumber(flatBonus)}%`);
   if (character.hitCountExtraEvents?.length) {
     lines.push(
       `攻击追加：${character.hitCountExtraEvents
         .map((event) => {
           const triggerText = event.every ? `每${event.every}发` : `第${event.hit}次`;
           const delayText = event.delayFrames ? `${event.delayFrames}帧后 ` : "";
-          return `${triggerText}${delayText} +${formatNumber(baseChargeUnit * event.segments * extraMultiplier, 2)}%`;
+          return `${triggerText}${delayText} +${formatChargeNumber(baseChargeUnit * event.segments * extraMultiplier)}%`;
         })
         .join("，")}`,
     );
   }
   if (character.magazineEmptyExtraCharge) {
     lines.push(
-      `尾弹追加：打完弹夹后${Number(character.magazineEmptyExtraDelayFrames) || 12}帧 +${formatNumber(character.magazineEmptyExtraCharge, 2)}%`,
+      `尾弹追加：打完弹夹后${Number(character.magazineEmptyExtraDelayFrames) || 12}帧 +${formatChargeNumber(character.magazineEmptyExtraCharge)}%`,
     );
   }
   if (isHarran(character)) {
-    lines.push(`中毒充能：第一发命中后每60F +${formatNumber(getHarranPoisonChargeValue(character), 2)}%`);
+    lines.push(`中毒充能：第一发命中后每60F +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`);
   } else if (character.delayedExtraHits?.length) {
     const delayedLabel = getDelayedExtraLabel(character);
     lines.push(
       `${delayedLabel}：${character.delayedExtraHits
-        .map((event) => `${event.delayFrames}帧后 +${formatNumber(baseChargeUnit * event.segments * extraMultiplier, 2)}%`)
+        .map((event) => `${event.delayFrames}帧后 +${formatChargeNumber(baseChargeUnit * event.segments * extraMultiplier)}%`)
         .join("，")}`,
     );
   }
@@ -2144,7 +2149,7 @@ function getChargeBreakdown(character) {
 function getCharacterDetailText(character) {
   return [
     `${getCharacterDisplayName(character)}（${character.rarity || "SSR"}）（${character.weapon || "-"}）`,
-    `最终单发充能：${formatNumber(getSingleShotChargeValue(character), 2)}%`,
+    `最终单发充能：${formatChargeNumber(getSingleShotChargeValue(character))}%`,
     ...getChargeWeaponDetailLines(character),
     getChargeBreakdown(character),
   ].join("\n");
@@ -2203,7 +2208,7 @@ function showCharacterTooltip(character, index, tile) {
     <div class="character-tooltip-meta">
       #${index + 1} · ${escapeHtml(character.rarity || "SSR")} · ${escapeHtml(character.weapon)} · ${escapeHtml(character.burstStage)} · ${escapeHtml(getRegionLabel(character))}
     </div>
-    <div class="character-tooltip-main">最终单发 ${formatNumber(getSingleShotChargeValue(character), 2)}%</div>
+    <div class="character-tooltip-main">最终单发 ${formatChargeNumber(getSingleShotChargeValue(character))}%</div>
     <div class="character-tooltip-lines">
       ${detailLines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}
     </div>
@@ -3477,7 +3482,7 @@ function renderCharacters() {
     const tile = document.createElement("button");
     tile.type = "button";
     tile.className = `character-tile rarity-${getRarityClass(character)}${pickedIds.has(character.id) ? " is-picked" : ""}`;
-    tile.setAttribute("aria-label", `加入 ${character.name}，${character.weapon}，单发 ${formatNumber(getSingleShotChargeValue(character), 2)}%`);
+    tile.setAttribute("aria-label", `加入 ${character.name}，${character.weapon}，单发 ${formatChargeNumber(getSingleShotChargeValue(character))}%`);
     tile.innerHTML = `
       <span class="tile-avatar">${getAvatarMarkup(character)}</span>
       ${
@@ -3489,7 +3494,7 @@ function renderCharacters() {
             ${getIconMarkup(getElementIcon(character), character.element, "element-icon")}
           `
       }
-      <span class="tile-charge">${formatNumber(getSingleShotChargeValue(character), 1)}</span>
+      <span class="tile-charge">${formatChargeNumber(getSingleShotChargeValue(character))}</span>
       <span class="tile-check" aria-hidden="true">✓</span>
     `;
     tile.addEventListener("mouseenter", () => {
@@ -6722,16 +6727,16 @@ function getSpecialChargeTooltipLines(group, entry) {
       `本次触发：${formatNumber(entry.triggerHitCount || entry.hitCount, 2)} hit`,
       ...(sourceLines.length ? ["触发来源：", ...sourceLines] : []),
       `受击累计：${entry.accumulatedHits} hit`,
-      `连接触发：${entry.triggerCount} × ${formatNumber(group.chargePerLink, 2)}% = ${formatNumber(entry.charge, 2)}%`,
-      `累计充能：${formatNumber(entry.cumulativeCharge, 2)}%`,
+      `连接触发：${entry.triggerCount} × ${formatChargeNumber(group.chargePerLink)}% = ${formatChargeNumber(entry.charge)}%`,
+      `累计充能：${formatChargeNumber(entry.cumulativeCharge)}%`,
     ];
   }
 
   return [
     group.label,
     `时间：${entry.frame} F`,
-    `期望反击：${entry.triggerCount} × ${formatNumber(group.chargePerCounter, 3)}% = ${formatNumber(entry.charge, 3)}%`,
-    `累计充能：${formatNumber(entry.cumulativeCharge, 3)}%`,
+    `期望反击：${entry.triggerCount} × ${formatChargeNumber(group.chargePerCounter)}% = ${formatChargeNumber(entry.charge)}%`,
+    `累计充能：${formatChargeNumber(entry.cumulativeCharge)}%`,
   ];
 }
 
@@ -6983,7 +6988,7 @@ function getCumulativeContributionLines(result, frame) {
     .map((member) => {
       const cumulative = cumulativeByPosition.get(member.positionIndex) || 0;
       if (cumulative <= BURST_EPSILON) return null;
-      return `${member.character.name}：${formatNumber(cumulative, 2)}%`;
+      return `${member.character.name}：${formatChargeNumber(cumulative)}%`;
     })
     .filter(Boolean);
 }
@@ -7511,9 +7516,9 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const lines = [
           group.label,
           `时间：${entry.frame} F`,
-          `充能：${formatNumber(entry.charge, 2)}%`,
+          `充能：${formatChargeNumber(entry.charge)}%`,
           "组成：",
-          ...entry.contributions.map((contribution) => `${contribution.characterName}：${formatNumber(contribution.charge, 2)}%`),
+          ...entry.contributions.map((contribution) => `${contribution.characterName}：${formatChargeNumber(contribution.charge)}%`),
         ];
         return `<circle class="chart-universal-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${formatTooltipLines(lines)}"></circle>`;
       }),
@@ -7531,8 +7536,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         ? formatTooltipLines([
             contribution.characterName,
             `时间：${point.frame} F`,
-            `充能：${formatNumber(contribution.charge, 2)}%`,
-            `累积充能：${formatNumber(contribution.cumulativeCharge, 2)}%`,
+            `充能：${formatChargeNumber(contribution.charge)}%`,
+            `累积充能：${formatChargeNumber(contribution.cumulativeCharge)}%`,
             `充能组成：${formatContributionSourceLabels(contribution.labels)}`,
             formatContributionTargetHits(contribution.targetHits, contribution.labels),
           ].filter(Boolean))
@@ -7557,11 +7562,11 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         const characterChargeLines = getCumulativeContributionLines(group.result, entry.frame);
         const tooltip = formatTooltipLines([
           `${group.label} · ${entry.frame}F`,
-          `累计总充能：${formatNumber(entry.totalCharge, 2)}%`,
-          ...(universalChargeTotal > BURST_EPSILON ? [`万能充能：${formatNumber(universalChargeTotal, 2)}%`] : []),
-          ...(rosannaSacrificeTotal > BURST_EPSILON ? [`罗珊娜献祭充能：${formatNumber(rosannaSacrificeTotal, 2)}%`] : []),
-          ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${formatNumber(jackalLinkTotal, 2)}%`] : []),
-          ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${formatNumber(scarletCounterTotal, 2)}%`] : []),
+          `累计总充能：${formatChargeNumber(entry.totalCharge)}%`,
+          ...(universalChargeTotal > BURST_EPSILON ? [`万能充能：${formatChargeNumber(universalChargeTotal)}%`] : []),
+          ...(rosannaSacrificeTotal > BURST_EPSILON ? [`罗珊娜献祭充能：${formatChargeNumber(rosannaSacrificeTotal)}%`] : []),
+          ...(jackalLinkTotal > BURST_EPSILON ? [`豺狼链接充能：${formatChargeNumber(jackalLinkTotal)}%`] : []),
+          ...(scarletCounterTotal > BURST_EPSILON ? [`红莲反击充能：${formatChargeNumber(scarletCounterTotal)}%`] : []),
           ...(characterChargeLines.length ? ["各角色充能：", ...characterChargeLines] : []),
         ]);
         return `<circle class="chart-total-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle>`;
@@ -9101,7 +9106,7 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
       color: "#7d8796",
     });
     if (universalCharge > 0) {
-      drawCanvasText(context, `充 ${formatNumber(universalCharge, 2)}`, x + size / 2, y + size * 0.68, {
+      drawCanvasText(context, `充 ${formatChargeNumber(universalCharge)}`, x + size / 2, y + size * 0.68, {
         align: "center",
         size: 17,
         weight: 700,
