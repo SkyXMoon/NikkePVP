@@ -235,6 +235,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化角色数量统计口径",
   "调整帮助页图片识别排序",
   "优化帮助页使用顺序说明",
   "优化帮助页正式文案",
@@ -244,7 +245,6 @@ const CHANGELOG_ITEMS = [
   "修复充能数值浮点尾差显示",
   "修正爱蜜莉雅额外伤害仅作用本体",
   "爱蜜莉雅增加额外伤害",
-  "删除爱蜜莉雅21.49%角色条目",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -3923,7 +3923,9 @@ function renderCharacters() {
   const fragment = document.createDocumentFragment();
   const characters = getFilteredCharacters();
   updateSortSummary();
-  const visibleCharacterCount = CHARACTERS.filter((character) => !character.isHidden).length;
+  const visibleCharacterCount = CHARACTERS.filter(
+    (character) => !character.isHidden && character.regions.includes(state.filters.region),
+  ).length;
   els.listCount.textContent = `${characters.length}/${visibleCharacterCount} 名角色`;
 
   characters.forEach((character, index) => {
