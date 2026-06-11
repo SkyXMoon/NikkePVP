@@ -149,7 +149,11 @@ const MG_WARMUP_EVENTS = [
   { frame: 180, shots: 14 },
 ];
 const STANDARD_TIMELINE_EVENTS = [
-  { label: "罗珊娜", tooltip: "罗珊娜（96F）消除BUFF", frame: 96 },
+  {
+    label: "罗珊娜",
+    getTooltip: () => localize("罗珊娜（96F）消除BUFF", "Rosanna (96F) removes buffs"),
+    frame: 96,
+  },
 ];
 const ROSANNA_BUFF_REMOVE_FRAME = 96;
 const LITTLE_MERMAID_STUN_FRAME = 196;
@@ -157,7 +161,7 @@ const LITTLE_MERMAID_STUN_DURATION_FRAMES = 180;
 const LITTLE_MERMAID_STUN_TARGET_INDEX = 0;
 const LITTLE_MERMAID_TIMELINE_EVENT = {
   label: "小美人鱼",
-  tooltip: "小美人鱼（196F）晕眩P1，持续3秒",
+  getTooltip: () => localize("小美人鱼（196F）晕眩P1，持续3秒", "Little Mermaid (196F) stuns P1 for 3 seconds"),
   frame: LITTLE_MERMAID_STUN_FRAME,
 };
 const CINDERELLA_PROJECTILE_FLIGHT_FRAMES = 0;
@@ -239,6 +243,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "补全充能轴英文提示",
   "调整筛选按钮和分享图角标",
   "补全英文界面核心内容",
   "优化角色数量统计口径",
@@ -248,7 +253,6 @@ const CHANGELOG_ITEMS = [
   "更新页面使用说明内容",
   "爱蜜莉雅第二发起增加蓄力速度",
   "统一角色充能计算为基础充能乘hit乘人数展示",
-  "修复充能数值浮点尾差显示",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -534,6 +538,15 @@ function localize(zhText, enText) {
 function getCharacterLocalizedName(character) {
   if (!character) return "";
   return isEnglishLanguage() && character.enName ? character.enName : character.name;
+}
+
+function getLocalizedCharacterNameByName(name) {
+  const rawName = String(name || "");
+  if (!rawName || !isEnglishLanguage() || !Array.isArray(globalThis.CHARACTERS)) return rawName;
+  const matchedCharacter = globalThis.CHARACTERS.find(
+    (character) => character && (character.name === rawName || character.enName === rawName || character.slug === rawName),
+  );
+  return matchedCharacter?.enName || rawName;
 }
 
 function applyLanguage(language) {
@@ -7249,9 +7262,46 @@ function getChartGroupLabel(label) {
   return labels[label] || label;
 }
 
+function getLocalizedContributionLabel(label) {
+  const text = String(label || "");
+  if (!text) return "";
+  const hitMatch = text.match(/^(?:命中|Hit)[：:]\s*([\d.]+)\s*hit/i);
+  if (hitMatch) return `${localize("命中", "Hit")}: ${hitMatch[1]} hit`;
+  if (text.includes("+")) {
+    return text
+      .split("+")
+      .map((part) => getLocalizedContributionLabel(part.trim()))
+      .filter(Boolean)
+      .join(" + ");
+  }
+  const simpleLabels = {
+    命中: localize("命中", "Hit"),
+    hit: localize("命中", "Hit"),
+    爆炸命中: localize("爆炸命中", "Explosion hit"),
+    "命中+穿透": localize("命中+穿透", "Hit + pierce"),
+    "命中+额外伤害": localize("命中+额外伤害", "Hit + extra damage"),
+    额外伤害: localize("额外伤害", "Extra damage"),
+    额外效果: localize("额外效果", "Extra effect"),
+    额外触发: localize("额外触发", "Extra trigger"),
+    中毒充能: localize("中毒充能", "Poison charge"),
+    延迟额外: localize("延迟额外", "Delayed extra"),
+    万能充能: localize("万能充能", "Universal charge"),
+    红莲反击: localize("红莲反击", "Scarlet counter"),
+    豺狼链接: localize("豺狼链接", "Jackal link"),
+    罗珊娜献祭: localize("罗珊娜献祭", "Rosanna sacrifice"),
+    剩余累计: localize("剩余累计", "Remaining accumulated"),
+  };
+  if (simpleLabels[text]) return simpleLabels[text];
+  if (text.includes("额外触发")) return text.replace("额外触发", localize("额外触发", "Extra trigger"));
+  if (text.includes("中毒充能")) return text.replace("中毒充能", localize("中毒充能", "Poison charge"));
+  if (text.includes("万能充能")) return text.replace("万能充能", localize("万能充能", "Universal charge"));
+  if (text.includes("罗珊娜献祭")) return text.replace("罗珊娜献祭", localize("罗珊娜献祭", "Rosanna sacrifice"));
+  return getChartGroupLabel(text);
+}
+
 function formatContributionSourceLabels(labels = []) {
   const normalizedLabels = labels
-    .map((label) => (String(label).startsWith("命中：") || String(label).startsWith("Hit:") ? localize("命中", "hit") : label))
+    .map(getLocalizedContributionLabel)
     .filter(Boolean);
   return [...new Set(normalizedLabels)].join(" + ");
 }
@@ -7375,7 +7425,7 @@ function getPositionHitSources(entry, targetPositionIndices) {
       return {
         frame: entry.frame,
         attackerPositionIndex: contribution.positionIndex,
-        characterName: contribution.characterName,
+        characterName: getLocalizedCharacterNameByName(contribution.characterName),
         hits,
         hitCount,
       };
@@ -7401,7 +7451,7 @@ function formatJackalHitSources(sources = []) {
         const hitTargets = source.hits
           .map((hit) => `P${hit.positionIndex + 1} ${formatNumber(Number(hit.hitCount), 2)} hit`)
           .join(", ");
-        return `${key}F: ${localize("敌方", "Enemy")} P${source.attackerPositionIndex + 1} ${source.characterName} -> ${hitTargets}`;
+        return `${key}F: ${localize("敌方", "Enemy")} P${source.attackerPositionIndex + 1} ${getLocalizedCharacterNameByName(source.characterName)} -> ${hitTargets}`;
       });
     })
     .filter(Boolean);
@@ -7539,7 +7589,10 @@ function getJackalLinkGroups(chartResults, visibleTimelineByTeam) {
             triggeredLinks = nextTriggeredLinks;
             const remainingHits = accumulatedHits - triggeredLinks * JACKAL_LINK_HIT_THRESHOLD;
             pendingTriggerHits = remainingHits;
-            pendingTriggerSources = remainingHits > 0 ? [{ hitCount: remainingHits, characterName: "剩余累计", attackerPositionIndex: -1, hits: [] }] : [];
+            pendingTriggerSources =
+              remainingHits > 0
+                ? [{ hitCount: remainingHits, characterName: localize("剩余累计", "Remaining accumulated"), attackerPositionIndex: -1, hits: [] }]
+                : [];
             pendingTriggerStartFrame = remainingHits > 0 ? entry.frame : null;
             const charge = chargePerLink * triggerCount;
             cumulativeCharge += charge;
@@ -8083,13 +8136,23 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, ...counterFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
   const rlStandards = Array.from({ length: Math.floor(maxFrame / 76) }, (_, index) => ({
     label: `${index + 1}RL`,
-    tooltip: `${index + 1}RL · ${(index + 1) * 76} F`,
+    tooltip: localize(`${index + 1}RL · ${(index + 1) * 76} F`, `${index + 1} RL · ${(index + 1) * 76} F`),
     frame: (index + 1) * 76,
   }));
   const standardEvents = [
     ...(hasRosanna ? STANDARD_TIMELINE_EVENTS : []),
     ...(hasLittleMermaid ? [LITTLE_MERMAID_TIMELINE_EVENT] : []),
-  ].filter((event) => event.frame <= maxFrame);
+  ]
+    .map((event) => ({
+      ...event,
+      label:
+        event.label === "罗珊娜"
+          ? localize("罗珊娜", "Rosanna")
+          : event.label === "小美人鱼"
+            ? localize("小美人鱼", "Little Mermaid")
+            : event.label,
+    }))
+    .filter((event) => event.frame <= maxFrame);
   const standardMarkers = [...rlStandards, ...standardEvents].sort((a, b) => a.frame - b.frame);
   const tickStep = maxFrame <= 180 ? 20 : maxFrame <= 320 ? 40 : 60;
   const tickFrames = Array.from({ length: Math.floor(maxFrame / tickStep) + 1 }, (_, index) => index * tickStep);
@@ -8206,7 +8269,8 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     .map((standard) => {
       const x = xForFrame(standard.frame);
       const y = yForStandard();
-      const tooltip = escapeHtml(standard.tooltip || `${standard.label} · ${standard.frame} F`);
+      const tooltipText = typeof standard.getTooltip === "function" ? standard.getTooltip() : standard.tooltip;
+      const tooltip = escapeHtml(tooltipText || `${standard.label} · ${standard.frame} F`);
       return `<circle class="chart-standard-point" cx="${x}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle><text class="chart-standard-label" x="${x}" y="${y - 10}" text-anchor="middle">${escapeHtml(standard.label)}</text>`;
     })
     .join("");
@@ -8356,7 +8420,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const dodgeEndFrame = Math.min(reload.endFrame, reload.startFrame + MISS_DODGE_WINDOW_FRAMES);
       const visibleDodgeEndFrame = Math.min(dodgeEndFrame, maxFrame, reload.displayEndFrame);
       const tooltip = escapeHtml(
-        `${reload.characterName}\n${localize("换弹", "Reload")}: ${reload.startFrame}F → ${reload.endFrame}F\n${localize("可空判定", "Miss window")}: ${reload.startFrame}F → ${dodgeEndFrame}F`,
+        `${getLocalizedCharacterNameByName(reload.characterName)}\n${localize("换弹", "Reload")}: ${reload.startFrame}F → ${reload.endFrame}F\n${localize("可空判定", "Miss window")}: ${reload.startFrame}F → ${dodgeEndFrame}F`,
       );
       const lines = [];
       if (visibleDodgeEndFrame > startFrame) {
@@ -8380,7 +8444,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const endFrame = Math.min(window.endFrame, maxFrame, window.displayEndFrame);
       if (endFrame <= startFrame) return "";
       const label = window.type === "reload" ? localize("换弹可空", "Reload miss window") : localize("转身可空", "Turn miss window");
-      const tooltip = escapeHtml(`${window.characterName}\n${label}: ${window.startFrame}F → ${window.endFrame}F\n${localize("判定", "Window")}: ${window.durationFrames}F`);
+      const tooltip = escapeHtml(`${getLocalizedCharacterNameByName(window.characterName)}\n${label}: ${window.startFrame}F → ${window.endFrame}F\n${localize("判定", "Window")}: ${window.durationFrames}F`);
       return `<line class="chart-dodge-track chart-dodge-${window.type} team-${window.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
     })
     .join("");
@@ -8389,7 +8453,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const y = yForGroup(`${miss.teamKey}-${miss.positionIndex}`);
       const dodgeLabel = miss.dodgeType === "reload" ? localize("换弹可空", "Reload miss window") : localize("转身可空", "Turn miss window");
       const tooltip = escapeHtml(
-        `${miss.characterName}\n${localize("时间", "Time")}: ${miss.frame} F\n${localize("结果", "Result")}: ${localize("空枪，未命中", "Missed shot")}\n${dodgeLabel}: ${miss.dodgeStartFrame}F → ${miss.dodgeEndFrame}F`,
+        `${getLocalizedCharacterNameByName(miss.characterName)}\n${localize("时间", "Time")}: ${miss.frame} F\n${localize("结果", "Result")}: ${localize("空枪，未命中", "Missed shot")}\n${dodgeLabel}: ${miss.dodgeStartFrame}F → ${miss.dodgeEndFrame}F`,
       );
       return `<circle class="chart-missed-point" cx="${xForFrame(miss.frame)}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle>`;
     })
@@ -8413,7 +8477,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
           `${localize("时间", "Time")}: ${entry.frame} F`,
           `${localize("充能", "Charge")}: ${formatChargeNumber(entry.charge)}%`,
           `${localize("组成", "Breakdown")}:`,
-          ...entry.contributions.map((contribution) => `${contribution.characterName}: ${formatChargeNumber(contribution.charge)}%`),
+          ...entry.contributions.map((contribution) => `${getLocalizedCharacterNameByName(contribution.characterName)}: ${formatChargeNumber(contribution.charge)}%`),
         ];
         return `<circle class="chart-universal-point team-${group.teamKey}" cx="${x}" cy="${y}" r="4" data-tooltip="${formatTooltipLines(lines)}"></circle>`;
       }),
@@ -8429,7 +8493,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       const entry = pointDetail?.entry || timelineByFrame.get(`${point.teamKey}-${point.frame}`);
       const tooltip = contribution
         ? formatTooltipLines([
-            contribution.characterName,
+            getLocalizedCharacterNameByName(contribution.characterName),
             `${localize("时间", "Time")}: ${point.frame} F`,
             `${localize("充能", "Charge")}: ${formatChargeNumber(contribution.charge)}%`,
             `${localize("累积充能", "Cumulative")}: ${formatChargeNumber(contribution.cumulativeCharge)}%`,
