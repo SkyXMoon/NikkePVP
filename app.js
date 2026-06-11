@@ -230,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复冠军/特殊竞技场特殊开关写错队伍侧的问题",
   "充能数值改为截断保留最多4位小数",
   "总充能hit明细改为目标位分布格式",
   "总充能详情将hit信息合并到各角色充能行",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "红莲反击充能详情补充受击来源",
   "简化灰姑娘充能详情描述",
   "灰姑娘充能改为按炮弹波及与额外伤害计算",
-  "统一额外伤害按本体命中额外1 hit计算",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -3461,10 +3461,34 @@ function toggleJackalLinkTarget(teamKey, character) {
   render();
 }
 
-function togglePaidArenaJackalLink(rowIndex, owner) {
+function togglePaidArenaRedHoodPierceCount(rowIndex, slotIndex, character, teamKey = getPaidArenaDataTeamKey()) {
+  if (!character || !isRedHood(character)) return;
+  const counts = getPaidArenaRedHoodPierceCounts(state.paidArenaMode, teamKey);
+  const row = counts[rowIndex];
+  if (!row) return;
+  row[slotIndex] = (sanitizeRedHoodPierceCount(row[slotIndex]) + 1) % 3;
+  saveCharacterRedHoodPierceCount(character, row[slotIndex], teamKey);
+  openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
+  saveTeam();
+  render();
+}
+
+function togglePaidArenaScarletCounter(rowIndex, slotIndex, teamKey = getPaidArenaDataTeamKey()) {
+  const rows = getPaidArenaScarletCounterEnabled(state.paidArenaMode, teamKey);
+  const row = rows[rowIndex];
+  if (!row) return;
+  row[slotIndex] = !sanitizeScarletCounterEnabled(row[slotIndex]);
+  openSlotSettings = null;
+  openRosannaSacrificeSettings = null;
+  saveTeam();
+  render();
+}
+
+function togglePaidArenaJackalLink(rowIndex, owner, teamKey = getPaidArenaDataTeamKey()) {
   if (!owner || !isLinkProvider(owner)) return;
-  const teams = getPaidArenaTeams();
-  const links = getPaidArenaJackalLinks();
+  const teams = getPaidArenaTeams(state.paidArenaMode, teamKey);
+  const links = getPaidArenaJackalLinks(state.paidArenaMode, teamKey);
   const team = teams[rowIndex] || [];
   const linkState = normalizePaidArenaLinkForTeam(team, links[rowIndex]);
   const isSameOwner = linkState.enabled && linkState.ownerId === owner.id;
@@ -3479,9 +3503,9 @@ function togglePaidArenaJackalLink(rowIndex, owner) {
   render();
 }
 
-function togglePaidArenaJackalLinkTarget(rowIndex, character) {
-  const teams = getPaidArenaTeams();
-  const links = getPaidArenaJackalLinks();
+function togglePaidArenaJackalLinkTarget(rowIndex, character, teamKey = getPaidArenaDataTeamKey()) {
+  const teams = getPaidArenaTeams(state.paidArenaMode, teamKey);
+  const links = getPaidArenaJackalLinks(state.paidArenaMode, teamKey);
   const team = teams[rowIndex] || [];
   const linkState = normalizePaidArenaLinkForTeam(team, links[rowIndex]);
   if (!linkState.enabled || !character || character.id === linkState.ownerId) return;
@@ -5895,10 +5919,7 @@ function renderPaidArenaTeams() {
           event.stopPropagation();
           state.paidArenaActiveRowIndex = rowIndex;
           state.paidArenaDataTeamKey = dataTeamKey;
-          redHoodPierceCounts[slotIndex] = (sanitizeRedHoodPierceCount(redHoodPierceCounts[slotIndex]) + 1) % 3;
-          saveCharacterRedHoodPierceCount(character, redHoodPierceCounts[slotIndex], dataTeamKey);
-          saveTeam();
-          render();
+          togglePaidArenaRedHoodPierceCount(rowIndex, slotIndex, character, dataTeamKey);
         });
         slot.querySelector(".slot-pierce-count")?.addEventListener("pointerdown", (event) => event.stopPropagation());
         slot.querySelector(".slot-pierce-count")?.addEventListener("dragstart", (event) => {
@@ -5910,9 +5931,7 @@ function renderPaidArenaTeams() {
           event.stopPropagation();
           state.paidArenaActiveRowIndex = rowIndex;
           state.paidArenaDataTeamKey = dataTeamKey;
-          scarletCounterEnabled[slotIndex] = !sanitizeScarletCounterEnabled(scarletCounterEnabled[slotIndex]);
-          saveTeam();
-          render();
+          togglePaidArenaScarletCounter(rowIndex, slotIndex, dataTeamKey);
         });
         slot.querySelector(".slot-counter-toggle")?.addEventListener("pointerdown", (event) => event.stopPropagation());
         slot.querySelector(".slot-counter-toggle")?.addEventListener("dragstart", (event) => {
@@ -5924,7 +5943,7 @@ function renderPaidArenaTeams() {
           event.stopPropagation();
           state.paidArenaActiveRowIndex = rowIndex;
           state.paidArenaDataTeamKey = dataTeamKey;
-          togglePaidArenaJackalLink(rowIndex, character);
+          togglePaidArenaJackalLink(rowIndex, character, dataTeamKey);
         });
         slot.querySelector(".slot-link-toggle")?.addEventListener("pointerdown", (event) => event.stopPropagation());
         slot.querySelector(".slot-link-toggle")?.addEventListener("dragstart", (event) => {
@@ -5936,7 +5955,7 @@ function renderPaidArenaTeams() {
           event.stopPropagation();
           state.paidArenaActiveRowIndex = rowIndex;
           state.paidArenaDataTeamKey = dataTeamKey;
-          togglePaidArenaJackalLinkTarget(rowIndex, character);
+          togglePaidArenaJackalLinkTarget(rowIndex, character, dataTeamKey);
         });
         slot.querySelector(".slot-link-target")?.addEventListener("pointerdown", (event) => event.stopPropagation());
         slot.querySelector(".slot-link-target")?.addEventListener("dragstart", (event) => {
