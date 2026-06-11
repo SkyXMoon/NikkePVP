@@ -113,6 +113,8 @@ const OCR_SPACE_API_URL = "https://api.ocr.space/parse/image";
 const OCR_SPACE_LANGUAGE = "chs";
 const OCR_SPACE_ENGINE = 3;
 const OCR_LARGE_IMAGE_THRESHOLD_BYTES = 1024 * 1024;
+const OCR_RETRY_DELAY_MS = 5000;
+const OCR_MAX_RETRY_COUNT = 5;
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
   AR: "步枪",
@@ -231,6 +233,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR选区后切换为动态识别提示并支持超时重试",
   "OCR识别图片超过1MB时支持先框选识别区域",
   "空枪反推中全发射器共同满足的候选值独立标红",
   "分享图片支持跟随深色/浅色主题",
@@ -239,7 +242,6 @@ const CHANGELOG_ITEMS = [
   "充能数值改为截断保留最多4位小数",
   "总充能hit明细改为目标位分布格式",
   "总充能详情将hit信息合并到各角色充能行",
-  "诺雅额外机制改为额外效果不再计入hit",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -1018,6 +1020,42 @@ async function parseImageWithOcrSpace(file) {
   return cleanOcrTextForRoles(parsedText);
 }
 
+function wait(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function isRetryableOcrError(error) {
+  const message = String(error?.message || error || "");
+  if (/\b(403|408|409|425|429|500|502|503|504|513|522|524)\b/.test(message)) return true;
+  return /timeout|timed?\s*out|network|fetch|failed to fetch|temporar|gateway|overload/i.test(message);
+}
+
+function formatOcrErrorMessage(error) {
+  const message = error?.message || "请检查网络后重试";
+  if (error?.ocrRetried) return `${message}（已重试${error.ocrRetryCount}次）`;
+  return message;
+}
+
+async function parseImageWithOcrSpaceRetry(file, maxRetries = OCR_MAX_RETRY_COUNT) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    try {
+      return await parseImageWithOcrSpace(file);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= maxRetries || !isRetryableOcrError(error)) break;
+      startProgressToast(`OCR识别重试 ${attempt + 1}/${maxRetries}`);
+      await wait(OCR_RETRY_DELAY_MS);
+      startProgressToast("OCR识别中");
+    }
+  }
+  if (lastError && isRetryableOcrError(lastError)) {
+    lastError.ocrRetried = true;
+    lastError.ocrRetryCount = maxRetries;
+  }
+  throw lastError;
+}
+
 function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -1195,9 +1233,14 @@ async function selectOcrImageCrop(file) {
 }
 
 async function prepareOcrImageFile(file) {
-  if (!file || Number(file.size) <= OCR_LARGE_IMAGE_THRESHOLD_BYTES) return file;
+  if (!file || Number(file.size) <= OCR_LARGE_IMAGE_THRESHOLD_BYTES) {
+    startProgressToast("OCR识别中");
+    return file;
+  }
   showToast("图片超过1MB，请选择识别区域。", { persistent: true });
-  return selectOcrImageCrop(file);
+  const croppedFile = await selectOcrImageCrop(file);
+  startProgressToast("OCR识别中");
+  return croppedFile;
 }
 
 function formatOcrToastMessage(result, teamLabel) {
@@ -1223,38 +1266,53 @@ function formatOcrToastMessage(result, teamLabel) {
 }
 
 async function handleOcrFill(teamKey, startIndex, files) {
-  showToast("检测到图片，正在识别。", { persistent: true });
-  const result = await fillTeamSlotsWithOcrResult(teamKey, startIndex, files);
-  console.log("[OCR] 普通场景识别完成", {
-    teamKey,
-    startIndex,
-    added: result?.added?.length || 0,
-    warnings: result?.warnings?.length || 0,
-  });
-  const message = formatOcrToastMessage(result, getTeamLabel(normalizeTeamKey(teamKey)) || "当前队伍");
-  if (message) showToast(message);
+  showToast("检测到图片，准备识别。", { persistent: true });
+  try {
+    const result = await fillTeamSlotsWithOcrResult(teamKey, startIndex, files);
+    console.log("[OCR] 普通场景识别完成", {
+      teamKey,
+      startIndex,
+      added: result?.added?.length || 0,
+      warnings: result?.warnings?.length || 0,
+    });
+    const message = formatOcrToastMessage(result, getTeamLabel(normalizeTeamKey(teamKey)) || "当前队伍");
+    stopProgressToast({ keepVisible: true });
+    if (message) showToast(message);
+    else showToast("OCR未识别到可填充角色");
+  } catch (error) {
+    stopProgressToast({ keepVisible: true });
+    throw error;
+  }
 }
 
 async function handlePaidArenaOcrFill(mode, rowIndex, startIndex, files) {
-  showToast("检测到图片，正在识别。", { persistent: true });
+  showToast("检测到图片，准备识别。", { persistent: true });
   console.log("[OCR] 特殊场景识别开始", { mode, rowIndex, startIndex, files: files?.length || 0 });
-  const normalizedMode = normalizePaidArenaMode(mode);
-  const teams = getPaidArenaTeams(normalizedMode);
-  const normalizedRow = Number(rowIndex);
-  if (!Number.isInteger(normalizedRow) || normalizedRow < 0 || normalizedRow >= teams.length) {
-    showToast("无效的队伍行");
-    return;
+  try {
+    const normalizedMode = normalizePaidArenaMode(mode);
+    const teams = getPaidArenaTeams(normalizedMode);
+    const normalizedRow = Number(rowIndex);
+    if (!Number.isInteger(normalizedRow) || normalizedRow < 0 || normalizedRow >= teams.length) {
+      stopProgressToast({ keepVisible: true });
+      showToast("无效的队伍行");
+      return;
+    }
+    const result = await fillPaidArenaSlotsWithOcrResult(normalizedRow, startIndex, files);
+    console.log("[OCR] 特殊场景识别完成", {
+      mode,
+      rowIndex: normalizedRow,
+      added: result?.added?.length || 0,
+      warnings: result?.warnings?.length || 0,
+    });
+    const label = mode === "c" ? "冠军竞技场" : "特殊竞技场";
+    const message = formatOcrToastMessage(result, `${label}队伍`);
+    stopProgressToast({ keepVisible: true });
+    if (message) showToast(message);
+    else showToast("OCR未识别到可填充角色");
+  } catch (error) {
+    stopProgressToast({ keepVisible: true });
+    throw error;
   }
-  const result = await fillPaidArenaSlotsWithOcrResult(normalizedRow, startIndex, files);
-  console.log("[OCR] 特殊场景识别完成", {
-    mode,
-    rowIndex: normalizedRow,
-    added: result?.added?.length || 0,
-    warnings: result?.warnings?.length || 0,
-  });
-  const label = mode === "c" ? "冠军竞技场" : "特殊竞技场";
-  const message = formatOcrToastMessage(result, `${label}队伍`);
-  if (message) showToast(message);
 }
 
 function getSortedEmptyTeamSlots(team, startIndex, includeLoop = true) {
@@ -1299,11 +1357,11 @@ async function fillTeamSlotsWithOcrResult(teamKey, startIndex, files) {
   let recognizedCharacters = [];
   try {
     const file = await prepareOcrImageFile(imageFiles[0]);
-    const rawText = await parseImageWithOcrSpace(file);
+    const rawText = await parseImageWithOcrSpaceRetry(file);
     const result = parseFileNamesFromOcrText(rawText);
     recognizedCharacters = result.matchedCharacters || [];
   } catch (error) {
-    warnings.push(`OCR识别失败: ${error?.message || "请检查网络后重试"}`);
+    warnings.push(`OCR识别失败: ${formatOcrErrorMessage(error)}`);
   }
 
   if (recognizedCharacters.length === 0) {
@@ -1392,11 +1450,11 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
   let recognizedCharacters = [];
   try {
     const file = await prepareOcrImageFile(imageFiles[0]);
-    const rawText = await parseImageWithOcrSpace(file);
+    const rawText = await parseImageWithOcrSpaceRetry(file);
     const result = parseFileNamesFromOcrText(rawText);
     recognizedCharacters = result.matchedCharacters || [];
   } catch (error) {
-    warnings.push(`OCR识别失败: ${error?.message || "请检查网络后重试"}`);
+    warnings.push(`OCR识别失败: ${formatOcrErrorMessage(error)}`);
   }
 
   if (recognizedCharacters.length === 0) {
