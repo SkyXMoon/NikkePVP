@@ -1501,6 +1501,7 @@ input:focus {
 }
 
 .swap-team-button,
+.team-share-button,
 .clear-team-button {
   cursor: pointer;
 }

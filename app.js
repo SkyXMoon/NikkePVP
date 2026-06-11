@@ -32,7 +32,7 @@ const UI_TEXTS = {
     languageLabelToZh: "切换为中文",
     languageButtonText: "En",
     searchPlaceholder: "角色名 / 英文名",
-    teamPanelTitle: "Team",
+    teamPanelTitle: "队伍",
     battlePower: {
       defense: "可防",
       attack: "可攻",
@@ -41,6 +41,7 @@ const UI_TEXTS = {
     },
     sidebarHelp: "打开页面说明",
     shareButton: "分享",
+    shareImageButton: "分享队伍图片",
     sortSummaryLabel: "排序：",
     sortSummaryBy: "充能从高到低",
     filterCommon: "常用",
@@ -82,6 +83,7 @@ const UI_TEXTS = {
     },
     sidebarHelp: "Open help panel",
     shareButton: "Share",
+    shareImageButton: "Share team image",
     sortSummaryLabel: "Sort:",
     sortSummaryBy: "Charge desc",
     filterCommon: "Common",
@@ -229,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "队伍栏标题改为中文并恢复队伍分享图按钮",
   "移除分享图头像区重复的攻防队伍标签",
   "冠军/特殊竞技场默认使用攻防显示，并将攻防显示按钮前置",
   "修正冠军/特殊竞技场分享图结构，先汇总队伍信息再展示各ROUND对比充能轴",
@@ -238,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "新增右侧悬浮识别按钮，支持点击上传图片OCR填充队伍",
   "侧边栏版本号移动到NIKKE PVP标题后方，提升可见性",
   "收窄本地缓存范围，仅缓存头像与图标资源并在每次访问时刷新",
-  "移除Team栏重复分享按钮，保留悬浮分享入口",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -431,10 +433,12 @@ const els = {
   chargeChart: document.querySelector("#chargeChart"),
   lineupSlots: document.querySelector("#lineupSlots"),
   appVersion: document.querySelector("#appVersion"),
+  teamPanelTitle: document.querySelector("#teamPanelTitle"),
   battlePowerStrip: document.querySelector(".battle-power-strip"),
   paidInferenceButton: document.querySelector("#paidInferenceButton"),
   paidCModeButton: document.querySelector("#paidCModeButton"),
   paidPModeButton: document.querySelector("#paidPModeButton"),
+  teamShareButton: document.querySelector("#teamShareButton"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
   allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
@@ -548,6 +552,11 @@ function applyLanguage(language) {
   if (els.paidInferenceButton) els.paidInferenceButton.setAttribute("title", ui.paidInference);
   if (els.paidCModeButton) els.paidCModeButton.setAttribute("title", ui.paidCMode);
   if (els.paidPModeButton) els.paidPModeButton.setAttribute("title", ui.paidPMode);
+  if (els.teamPanelTitle) els.teamPanelTitle.textContent = ui.teamPanelTitle;
+  if (els.teamShareButton) {
+    els.teamShareButton.setAttribute("aria-label", ui.shareImageButton);
+    els.teamShareButton.setAttribute("title", ui.shareImageButton);
+  }
   if (els.swapTeamButton) els.swapTeamButton.setAttribute("title", ui.swapTeam);
   if (els.clearTeamButton) els.clearTeamButton.setAttribute("title", ui.clearTeam);
   if (els.searchInput) els.searchInput.placeholder = ui.searchPlaceholder;
@@ -9890,6 +9899,7 @@ function bindEvents() {
   els.paidCModeButton?.addEventListener("click", () => openPaidArenaFeature("c"));
   els.paidPModeButton?.addEventListener("click", () => openPaidArenaFeature("p"));
   els.clearTeamButton.addEventListener("click", clearTeam);
+  els.teamShareButton?.addEventListener("click", handleCopyButtonClick);
   els.mobileShareFab?.addEventListener("click", handleCopyButtonClick);
   els.ocrUploadButton?.addEventListener("click", openOcrUploadDialog);
   els.ocrUploadInput?.addEventListener("change", (event) => {
