@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "调整队伍栏分享图按钮位置到切换按钮前",
   "队伍栏标题改为中文并恢复队伍分享图按钮",
   "移除分享图头像区重复的攻防队伍标签",
   "冠军/特殊竞技场默认使用攻防显示，并将攻防显示按钮前置",
@@ -240,7 +241,6 @@ const CHANGELOG_ITEMS = [
   "分享图片生成过程增加动态提示，避免误以为无响应",
   "新增右侧悬浮识别按钮，支持点击上传图片OCR填充队伍",
   "侧边栏版本号移动到NIKKE PVP标题后方，提升可见性",
-  "收窄本地缓存范围，仅缓存头像与图标资源并在每次访问时刷新",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
