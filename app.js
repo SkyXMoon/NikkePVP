@@ -243,6 +243,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复英文筛选与空枪按钮显示",
   "补全充能轴英文提示",
   "调整筛选按钮和分享图角标",
   "补全英文界面核心内容",
@@ -252,7 +253,6 @@ const CHANGELOG_ITEMS = [
   "优化帮助页正式文案",
   "更新页面使用说明内容",
   "爱蜜莉雅第二发起增加蓄力速度",
-  "统一角色充能计算为基础充能乘hit乘人数展示",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -589,10 +589,12 @@ function applyLanguage(language) {
   if (els.paidInferenceButton) els.paidInferenceButton.textContent = isEnglishLanguage() ? "Test" : "测";
   if (els.paidCModeButton) els.paidCModeButton.textContent = isEnglishLanguage() ? "C" : "冠";
   if (els.paidPModeButton) els.paidPModeButton.textContent = isEnglishLanguage() ? "P" : "特";
-  els.allowMissedShotsToggle?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode("E"));
+  els.allowMissedShotsToggle?.closest("label")?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode("E"));
   els.teamShareButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Img" : "图"));
   els.swapTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Swap" : "换"));
   els.clearTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Clear" : "清"));
+  els.commonToggle?.closest("label")?.querySelector("span")?.replaceChildren(document.createTextNode(ui.filterCommon));
+  els.regionToggle?.closest("label")?.querySelector("span")?.replaceChildren(document.createTextNode(ui.filterRegionCN));
   els.mobileShareFab?.querySelector(".share-fab-text")?.replaceChildren(document.createTextNode(ui.shareButton));
   els.ocrUploadButton?.querySelector(".share-fab-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "OCR" : "识别"));
   if (els.mobileShareFab) {
