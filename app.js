@@ -157,9 +157,8 @@ const VESTI_TACTICAL_PROJECTILE_FLIGHT_FRAMES = 12;
 const VESTI_TACTICAL_GUIDE_FRAMES = 2;
 const VESTI_TACTICAL_HIT_OFFSETS = [0, 22, 44, 66];
 const CINDERELLA_ATTACK_INTERVAL_FRAMES = 22;
-const CINDERELLA_INITIAL_CHARGE_SEQUENCE = [4, 2, 2, 2, 4, 4];
-const CINDERELLA_LOOP_CHARGE_SEQUENCE = [2, 2, 2, 2, 4, 4];
-const CINDERELLA_TARGET_HIT_COUNT = 2;
+const CINDERELLA_INITIAL_SPLASH_SEQUENCE = [true, false, false, false, true, true];
+const CINDERELLA_LOOP_SPLASH_SEQUENCE = [false, false, false, false, true, true];
 const CINDERELLA_INITIAL_CHARGE_FRAMES = 70;
 const DEFAULT_CHARGE_WEAPON_CHARGE_FRAMES = 60;
 const CHART_MAX_FRAME = 600;
@@ -231,6 +230,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "灰姑娘充能改为按炮弹波及与额外伤害计算",
   "统一额外伤害按本体命中额外1 hit计算",
   "额外伤害角色命中目标显示为2 hit",
   "额外伤害角色受击hit计入红莲反击与豺狼链接",
@@ -239,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "豺狼链接触发来源改为每个角色独立一行",
   "豺狼链接充能详情按帧显示10 hit来源",
   "调整队伍栏分享图按钮位置到切换按钮前",
-  "队伍栏标题改为中文并恢复队伍分享图按钮",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -1852,13 +1851,21 @@ function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = 
   );
 }
 
-function getCinderellaChargeMultiplier(shotNumber = 1) {
+function doesCinderellaShotSplash(shotNumber = 1) {
   const normalizedShotNumber = Math.max(1, Math.floor(Number(shotNumber) || 1));
-  if (normalizedShotNumber <= CINDERELLA_INITIAL_CHARGE_SEQUENCE.length) {
-    return CINDERELLA_INITIAL_CHARGE_SEQUENCE[normalizedShotNumber - 1];
+  if (normalizedShotNumber <= CINDERELLA_INITIAL_SPLASH_SEQUENCE.length) {
+    return CINDERELLA_INITIAL_SPLASH_SEQUENCE[normalizedShotNumber - 1];
   }
-  const loopIndex = (normalizedShotNumber - CINDERELLA_INITIAL_CHARGE_SEQUENCE.length - 1) % CINDERELLA_LOOP_CHARGE_SEQUENCE.length;
-  return CINDERELLA_LOOP_CHARGE_SEQUENCE[loopIndex];
+  const loopIndex = (normalizedShotNumber - CINDERELLA_INITIAL_SPLASH_SEQUENCE.length - 1) % CINDERELLA_LOOP_SPLASH_SEQUENCE.length;
+  return CINDERELLA_LOOP_SPLASH_SEQUENCE[loopIndex];
+}
+
+function getCinderellaBodyHits(targetPositionIndex = DEFAULT_RL_TARGET_INDEX, shotCount = 1, shotNumber = 1) {
+  const hits = [[targetPositionIndex, shotCount]];
+  if (doesCinderellaShotSplash(shotNumber) && targetPositionIndex < ENEMY_TEAM_SIZE - 1) {
+    hits.push([targetPositionIndex + 1, shotCount]);
+  }
+  return hits;
 }
 
 function getRlProjectileFlightFrames(character, positionIndex, teamKey = "attack") {
@@ -1974,7 +1981,7 @@ function getChargeFrames(character, positionIndex, teamKey = "attack") {
 }
 
 function getRlHitSegments(character) {
-  if (isCinderella(character)) return CINDERELLA_TARGET_HIT_COUNT;
+  if (isCinderella(character)) return getCinderellaBodyHits(DEFAULT_RL_TARGET_INDEX, 1, 1).length;
   if (isRaven(character)) return 5;
   const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
   const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
@@ -1999,14 +2006,14 @@ function hasEffectiveExtraDamage(character) {
 }
 
 function getChargeHitMultiplier(character, shotNumber = null) {
-  if (isCinderella(character)) return getCinderellaChargeMultiplier(shotNumber);
+  if (isCinderella(character)) return getCinderellaBodyHits(DEFAULT_RL_TARGET_INDEX, 1, shotNumber).length;
   if (character.weapon === "RL") return getRlHitSegments(character);
   if (character.weapon === "SG") return 10;
   return 1 + getPenetrationExtraHitCount(character, shotNumber);
 }
 
 function getChargeHitLabel(character, hitMultiplier = getChargeHitMultiplier(character), shotNumber = null) {
-  if (isCinderella(character)) return `命中：${CINDERELLA_TARGET_HIT_COUNT} hit；充能倍率：4/2/2/2/4/4，之后 2/2/2/2/4/4 循环`;
+  if (isCinderella(character)) return "命中+额外伤害；部分炮弹波及P2，序列：波及/单体/单体/单体/波及/波及，之后单体/单体/单体/单体/波及/波及循环";
   const hasExtraDamage = hasEffectiveExtraDamage(character);
   if (character.weapon === "RL") return `爆炸命中${hasExtraDamage ? "+额外伤害" : ""}`;
   if (getPenetrationExtraHitCount(character, shotNumber) > 0) return `命中+穿透${hasExtraDamage ? "+额外伤害" : ""}`;
@@ -2041,7 +2048,7 @@ function getSingleShotChargeValue(character, shotNumber = null) {
 }
 
 function getAttackChargeValue(character, shotNumber = null, hitProfile = null, shotCount = 1) {
-  if (!hitProfile || isCinderella(character)) return getChargeValue(character, shotNumber) * shotCount;
+  if (!hitProfile) return getChargeValue(character, shotNumber) * shotCount;
   if (hitProfile.p5CinderellaDecoy && character.flatBurstBonus) return (character.flatBurstBonus || 0) * shotCount;
   const actualHitMultiplier = (hitProfile.targetHits || []).reduce((sum, [, hitCount]) => sum + (Number(hitCount) || 0), 0);
   const extraMultiplier = hasEffectiveExtraDamage(character) ? 2 : 1;
@@ -2365,10 +2372,11 @@ function getAttackHitProfile(
   const p5CinderellaDecoy = isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam);
 
   if (isCinderella(character)) {
+    const bodyHits = getCinderellaBodyHits(targetPositionIndex, shotCount, shotNumber);
     return {
       totalHits: shotHits,
-      bodyHits: [[targetPositionIndex, shotCount]],
-      targetHits: [[targetPositionIndex, CINDERELLA_TARGET_HIT_COUNT]],
+      bodyHits,
+      targetHits: bodyHits,
       p5CinderellaDecoy: false,
     };
   }
