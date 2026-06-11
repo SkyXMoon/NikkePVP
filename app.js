@@ -235,6 +235,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "调整帮助页图片识别排序",
   "优化帮助页使用顺序说明",
   "优化帮助页正式文案",
   "更新页面使用说明内容",
@@ -244,7 +245,6 @@ const CHANGELOG_ITEMS = [
   "修正爱蜜莉雅额外伤害仅作用本体",
   "爱蜜莉雅增加额外伤害",
   "删除爱蜜莉雅21.49%角色条目",
-  "爱蜜莉雅爆炸范围调整为2",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -4669,6 +4669,11 @@ function createHelpModal(options = {}) {
   if (copyShareIndex > 1) {
     const [copyShareSection] = sections.splice(copyShareIndex, 1);
     sections.splice(1, 0, copyShareSection);
+  }
+  const ocrIndex = sections.findIndex((section) => section.title === "图片识别");
+  if (ocrIndex > 2) {
+    const [ocrSection] = sections.splice(ocrIndex, 1);
+    sections.splice(2, 0, ocrSection);
   }
 
   const backdrop = document.createElement("div");
