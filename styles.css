@@ -1392,10 +1392,6 @@ input:focus {
   mask: var(--team-action-icon) center / contain no-repeat;
 }
 
-.copy-team-button .team-action-icon {
-  --team-action-icon: url("assets/icons/ui/share.svg");
-}
-
 .icon-toggle,
 .icon-button {
   position: relative;
@@ -1486,7 +1482,6 @@ input:focus {
   box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.16) inset;
 }
 
-.copy-team-button,
 .swap-team-button,
 .clear-team-button {
   cursor: pointer;
