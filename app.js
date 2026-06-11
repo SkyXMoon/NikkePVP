@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "统一角色充能计算为基础充能乘hit乘人数展示",
   "修复充能数值浮点尾差显示",
   "修正爱蜜莉雅额外伤害仅作用本体",
   "爱蜜莉雅增加额外伤害",
@@ -243,7 +244,6 @@ const CHANGELOG_ITEMS = [
   "OCR识别统一先选择区域并支持从图片外起手框选",
   "OCR冒号角色支持头像名别名和多冒号片段匹配",
   "OCR冒号角色支持缺字和单字偏差匹配",
-  "OCR前端过滤规则改为仅保留中文和冒号",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -2347,6 +2347,27 @@ function getChargeHitMultiplier(character, shotNumber = null) {
   return 1 + getPenetrationExtraHitCount(character, shotNumber);
 }
 
+function getChargeFormulaTargetCount(character, shotNumber = null) {
+  if (isCinderella(character)) return getCinderellaBodyHits(DEFAULT_RL_TARGET_INDEX, 1, shotNumber).length;
+  if (character.weapon === "RL") {
+    const range = Number.isFinite(character.rlExplosionRange) ? character.rlExplosionRange : 1;
+    const start = Math.max(0, DEFAULT_RL_TARGET_INDEX - range);
+    const end = Math.min(ENEMY_TEAM_SIZE - 1, DEFAULT_RL_TARGET_INDEX + range);
+    return end - start + 1;
+  }
+  return 1;
+}
+
+function getChargeFormulaText(character, shotNumber = null) {
+  const targetCount = Math.max(1, getChargeFormulaTargetCount(character, shotNumber));
+  const hitMultiplier = getChargeHitMultiplier(character, shotNumber);
+  const bodyOnlyExtraMultiplier = getBodyOnlyExtraDamageHitMultiplier(character, shotNumber);
+  const extraMultiplier = hasEffectiveExtraChargeMultiplier(character) ? 2 : 1;
+  const equivalentHits = (hitMultiplier + bodyOnlyExtraMultiplier) * extraMultiplier;
+  const hitPerTarget = equivalentHits / targetCount;
+  return `${formatChargeNumber(getBaseChargeUnit(character))} × ${formatChargeNumber(hitPerTarget)} hit × ${targetCount}人`;
+}
+
 function getBodyOnlyExtraDamageHitMultiplier(character, shotNumber = null) {
   if (!hasBodyOnlyExtraDamage(character)) return 0;
   if (isCinderella(character)) return getCinderellaBodyHits(DEFAULT_RL_TARGET_INDEX, 1, shotNumber).length;
@@ -2435,10 +2456,8 @@ function getHarranPoisonEvent(event, currentFrame) {
 }
 
 function getChargeBreakdown(character) {
-  const hitMultiplier = getChargeHitMultiplier(character);
   const bodyOnlyExtraMultiplier = getBodyOnlyExtraDamageHitMultiplier(character);
   const extraMultiplier = hasEffectiveExtraChargeMultiplier(character) ? 2 : 1;
-  const hitLabel = getChargeHitLabel(character, hitMultiplier);
   const baseChargeUnit = getBaseChargeUnit(character);
   const effectiveBurstGen = getEffectiveBurstGen(character);
   const flatBonus = character.flatBurstBonus || 0;
@@ -2447,13 +2466,7 @@ function getChargeBreakdown(character) {
   const delayedExtraChargeTotal = getDelayedExtraChargeTotal(character);
   const fixedSequenceChargeTotal = getFixedSequenceChargeTotal(character);
   const fixedSequenceMultiplier = isVestiTacticalUpgrade(character) ? VESTI_TACTICAL_HIT_OFFSETS.length : 1;
-  const bodyOnlyHitPerTarget = bodyOnlyExtraMultiplier
-    ? (hitMultiplier + bodyOnlyExtraMultiplier) / bodyOnlyExtraMultiplier
-    : 0;
-  const mainHitFormula = bodyOnlyExtraMultiplier
-    ? `${formatChargeNumber(bodyOnlyHitPerTarget)} × ${bodyOnlyExtraMultiplier}`
-    : `${hitMultiplier} × ${extraMultiplier}`;
-  const mainChargeFormula = `${formatChargeNumber(baseChargeUnit)} × ${mainHitFormula}${
+  const mainChargeFormula = `${getChargeFormulaText(character)}${
     fixedSequenceMultiplier > 1 ? ` × ${fixedSequenceMultiplier}` : ""
   }`;
   const chargeFormulaParts = [
@@ -2471,15 +2484,15 @@ function getChargeBreakdown(character) {
           }）`
         : ""
     }`,
-    `充能组成：${hitLabel}`,
+    `充能组成：${getChargeHitLabel(character)}`,
   ];
 
   const extraChargeLabel = getExtraChargeLabel(character);
   if (extraChargeLabel) {
     if (bodyOnlyExtraMultiplier) {
-      lines.push(`${extraChargeLabel}：仅本体 +${formatChargeNumber(baseChargeUnit * bodyOnlyExtraMultiplier)}%`);
+      lines.push(`${extraChargeLabel}：仅本体，已计入 hit`);
     } else {
-      lines.push(`${extraChargeLabel} ×2`);
+      lines.push(`${extraChargeLabel}：已计入 hit`);
     }
   }
   if (superstarSupplementValue) lines.push(`超阿补充：基础 +${formatChargeNumber(superstarSupplementValue)}%`);
