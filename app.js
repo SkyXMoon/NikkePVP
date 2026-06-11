@@ -234,6 +234,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR冒号角色支持头像名别名和多冒号片段匹配",
   "OCR冒号角色支持缺字和单字偏差匹配",
   "OCR前端过滤规则改为仅保留中文和冒号",
   "OCR无冒号识别结果支持匹配冒号角色名",
@@ -242,7 +243,6 @@ const CHANGELOG_ITEMS = [
   "OCR选区后切换为动态识别提示并支持超时重试",
   "OCR识别图片超过1MB时支持先框选识别区域",
   "空枪反推中全发射器共同满足的候选值独立标红",
-  "分享图片支持跟随深色/浅色主题",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -908,8 +908,12 @@ function isOcrSegmentMatch(inputSegment, targetSegment) {
 
 function getOcrColonMatchPriority(line, entry) {
   if (!entry?.hasColon || !line.includes(":") || !entry.name.includes(":")) return 0;
-  const [lineBase = "", lineVariant = ""] = line.split(":");
-  const [nameBase = "", nameVariant = ""] = entry.name.split(":");
+  const lineParts = line.split(":").map((part) => normalizeOcrCharacterName(part)).filter(Boolean);
+  const nameParts = entry.name.split(":").map((part) => normalizeOcrCharacterName(part)).filter(Boolean);
+  const [lineBase = "", ...lineVariantParts] = lineParts;
+  const [nameBase = "", ...nameVariantParts] = nameParts;
+  const lineVariant = lineVariantParts.join("");
+  const nameVariant = nameVariantParts.join("");
   if (!lineBase || !lineVariant || !nameBase || !nameVariant) return 0;
   const baseMatched = isOcrSegmentMatch(lineBase, nameBase);
   const variantMatched = isOcrSegmentMatch(lineVariant, nameVariant);
@@ -928,8 +932,18 @@ function parseFileNamesFromOcrText(rawText) {
   console.log("[OCR] 过滤后结果", lines);
 
   const characterNames = Array.isArray(CHARACTERS)
-    ? CHARACTERS.map((character) => ({ character, name: normalizeOcrCharacterName(character?.name || "") }))
-        .filter((entry) => entry.name)
+    ? CHARACTERS.flatMap((character) => {
+        const names = [character?.name, character?.nameCodeName];
+        const seen = new Set();
+        return names
+          .map((name) => normalizeOcrCharacterName(name || ""))
+          .filter((name) => {
+            if (!name || seen.has(name)) return false;
+            seen.add(name);
+            return true;
+          })
+          .map((name) => ({ character, name }));
+      })
         .map((entry) => ({ ...entry, hasColon: entry.name.includes(":"), nameNoColon: entry.name.replace(/:/g, "") }))
         .sort((a, b) => b.name.length - a.name.length)
     : [];
