@@ -229,6 +229,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化冠军/特殊竞技场分享图，按队伍展示充能速度、头像与充能轴",
   "冠军/特殊竞技场新增ROUND显示与攻防显示切换",
   "分享图片生成过程增加动态提示，避免误以为无响应",
   "新增右侧悬浮识别按钮，支持点击上传图片OCR填充队伍",
@@ -238,7 +239,6 @@ const CHANGELOG_ITEMS = [
   "调整本地测试环境分享图网址显示为固定正式域名",
   "优化冠军/特殊竞技场双队伍充能轴命名，保留简洁总充能显示",
   "冠军/特殊竞技场充能轴改为同时显示所选队伍与对方队伍数据",
-  "优化普通竞技场与冠军/特殊竞技场默认选中队伍，并强化攻防队伍颜色标识",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -8813,6 +8813,26 @@ async function getChargeChartPngBlob() {
   }
 }
 
+async function chargeChartResultToImage(result, teamKey, width, height) {
+  const normalizedTeamKey = normalizeTeamKey(teamKey);
+  const markup = getChargeChartMarkup(
+    normalizedTeamKey === "attack" ? result : null,
+    null,
+    normalizedTeamKey === "defense" ? result : null,
+    { width, height },
+  );
+  const svgText = markup.replace(
+    /<svg\b([^>]*)>/,
+    `<svg$1 xmlns="http://www.w3.org/2000/svg"><style>${getInlineSvgStyles()}</style>`,
+  );
+  const url = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml;charset=utf-8" }));
+  try {
+    return await loadImageFromUrl(url);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 function getCanvasRoundedRectPath(context, x, y, width, height, radius) {
   const corner = Math.min(radius, width / 2, height / 2);
   context.beginPath();
@@ -9112,27 +9132,28 @@ function drawPaidArenaSlot(context, slot, x, y, size) {
 
 async function paidArenaToPngBlob() {
   const mode = state.paidArenaMode;
-  const teams = getPaidArenaTeams(mode);
-  const universalRows = getPaidArenaUniversalCharges(mode);
-  const sacrificeRows = getPaidArenaRosannaSacrificeFrames(mode);
-  const redHoodPierceRows = getPaidArenaRedHoodPierceCounts(mode);
-  const scarletCounterRows = getPaidArenaScarletCounterEnabled(mode);
-  const jackalLinkRows = getPaidArenaJackalLinks(mode);
-  const dataTeamKey = getPaidArenaDataTeamKey();
-  const dataSourceLabel = getPaidArenaSelectedDataTeamKey() === "defense" ? "防守队伍" : "进攻队伍";
-  const title = `${getPaidArenaModeLabel(mode)}：${dataSourceLabel}`;
+  const displayRows = getPaidArenaDisplayRows();
+  const dataSourceLabel =
+    getPaidArenaDisplayMode() === "round"
+      ? `ROUND ${Number(state.paidArenaActiveRowIndex || 0) + 1}`
+      : getPaidArenaSelectedDataTeamKey() === "defense"
+        ? "\u9632\u5b88\u961f\u4f0d"
+        : "\u8fdb\u653b\u961f\u4f0d";
+  const title = `${getPaidArenaModeLabel(mode)}\uff1a${dataSourceLabel}`;
   const padding = 28;
-  const slotSize = 100;
+  const slotSize = 92;
   const slotGap = 14;
-  const teamLabelWidth = 100;
+  const sideLabelWidth = 82;
   const teamSlotsWidth = TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap;
-  const rowInnerRightPadding = 24;
-  const width = padding * 2 + teamLabelWidth + teamSlotsWidth + rowInnerRightPadding;
-  const rowGap = 24;
+  const rowInnerPadding = 18;
+  const chartWidth = sideLabelWidth + teamSlotsWidth;
+  const width = padding * 2 + rowInnerPadding * 2 + chartWidth;
+  const rowGap = 26;
   const headerHeight = 56;
-  const resultHeight = 30;
-  const rowHeight = slotSize + resultHeight + 16;
-  const height = padding * 2 + headerHeight + teams.length * rowHeight + Math.max(0, teams.length - 1) * rowGap;
+  const chartHeight = 320;
+  const rowHeaderHeight = slotSize + 18;
+  const rowHeight = rowHeaderHeight + chartHeight + 18;
+  const height = padding * 2 + headerHeight + displayRows.length * rowHeight + Math.max(0, displayRows.length - 1) * rowGap;
   const { canvas, context } = createHiDpiCanvas(width, height, 2);
   context.fillStyle = "#0b0e14";
   context.fillRect(0, 0, width, height);
@@ -9155,15 +9176,12 @@ async function paidArenaToPngBlob() {
   const pierceIcon = await loadExportAsset("assets/icons/ui/pierce.svg");
 
   let y = padding + headerHeight;
-  for (const [rowIndex, team] of teams.entries()) {
-    const universalCharges = universalRows[rowIndex] || Array(TEAM_SIZE).fill(0);
-    const sacrificeFrames = sacrificeRows[rowIndex] || Array(TEAM_SIZE).fill(null);
-    const redHoodPierceCounts = redHoodPierceRows[rowIndex] || Array(TEAM_SIZE).fill(0);
-    const scarletCounterEnabled = scarletCounterRows[rowIndex] || Array(TEAM_SIZE).fill(true);
-    const jackalLink = normalizePaidArenaLinkForTeam(team, jackalLinkRows[rowIndex]);
+  for (const rowEntry of displayRows) {
+    const { dataTeamKey, rowIndex, team, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, jackalLinkState } = rowEntry;
+    const jackalLink = normalizePaidArenaLinkForTeam(team, jackalLinkState);
     const jackalTargetIds = new Set(jackalLink.targetIds || []);
     const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, dataTeamKey);
-    const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, jackalLink);
+    const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, jackalLink, dataTeamKey);
     const finishingPositions = new Set(result && !result.error ? result.finishingPositionIndices : []);
     const tauntTargetPositionIndex = getTauntTargetState(team, dataTeamKey, chargeSpeeds)?.positionIndex ?? null;
     const teamHasRosanna = team.some((member) => member && isRosanna(member));
@@ -9173,12 +9191,27 @@ async function paidArenaToPngBlob() {
     context.fillStyle = "#111821";
     getCanvasRoundedRectPath(context, rowX, y - 10, rowWidth, rowHeight + 12, 8);
     context.fill();
-    context.strokeStyle = "#263140";
+    context.strokeStyle = dataTeamKey === "defense" ? "rgba(77, 163, 255, 0.42)" : "rgba(255, 94, 108, 0.42)";
     context.lineWidth = 1;
     context.stroke();
-    drawCanvasText(context, `第${rowIndex + 1}队`, rowX + 18, y + slotSize / 2, { size: 18, weight: 800, color: "#dfe7f3" });
 
-    const slotsStartX = rowX + teamLabelWidth;
+    const sideColor = dataTeamKey === "defense" ? "#9dccff" : "#ff9ba5";
+    const sideLabel = dataTeamKey === "defense" ? "\u9632\u5b88" : "\u8fdb\u653b";
+    const resultText = getPaidArenaResultText(
+      team,
+      universalCharges,
+      chargeSpeeds,
+      result,
+      sacrificeFrames,
+      redHoodPierceCounts,
+      scarletCounterEnabled,
+      jackalLink,
+      dataTeamKey,
+    );
+    drawCanvasText(context, `${sideLabel}${rowIndex + 1}`, rowX + rowInnerPadding + 4, y + 25, { size: 18, weight: 900, color: sideColor });
+    drawCanvasText(context, resultText, rowX + rowInnerPadding + 4, y + 55, { size: 18, weight: 800, color: "#f2f5fa" });
+
+    const slotsStartX = rowX + rowInnerPadding + sideLabelWidth;
     for (let slotIndex = 0; slotIndex < TEAM_SIZE; slotIndex += 1) {
       const character = team[slotIndex];
       const chargeSpeed = chargeSpeeds[slotIndex];
@@ -9205,21 +9238,21 @@ async function paidArenaToPngBlob() {
       drawPaidArenaSlot(context, slot, slotsStartX + slotIndex * (slotSize + slotGap), y, slotSize);
     }
 
-    const resultText = getPaidArenaResultText(
-      team,
-      universalCharges,
-      chargeSpeeds,
-      result,
-      sacrificeFrames,
-      redHoodPierceCounts,
-      scarletCounterEnabled,
-      jackalLink,
-    );
-    const resultY = y + slotSize + 19;
-    context.fillStyle = "#17202b";
-    getCanvasRoundedRectPath(context, slotsStartX, resultY - 13, teamSlotsWidth, 26, 5);
-    context.fill();
-    drawCanvasText(context, resultText, slotsStartX + 12, resultY, { size: 16, weight: 700, color: "#f2f5fa" });
+    const chartY = y + rowHeaderHeight;
+    if (result && !result.error) {
+      const chartImage = await chargeChartResultToImage(result, dataTeamKey, chartWidth, chartHeight);
+      context.drawImage(chartImage, rowX + rowInnerPadding, chartY, chartWidth, chartHeight);
+    } else {
+      context.fillStyle = "#0b0e14";
+      getCanvasRoundedRectPath(context, rowX + rowInnerPadding, chartY, chartWidth, chartHeight, 8);
+      context.fill();
+      drawCanvasText(context, result?.error || "\u672a\u914d\u7f6e", rowX + rowInnerPadding + chartWidth / 2, chartY + chartHeight / 2, {
+        align: "center",
+        size: 20,
+        weight: 800,
+        color: "#8f9aaa",
+      });
+    }
     y += rowHeight + rowGap;
   }
 
