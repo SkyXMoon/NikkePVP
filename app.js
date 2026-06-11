@@ -231,6 +231,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "调整本地测试环境分享图网址显示为固定正式域名",
   "优化冠军/特殊竞技场双队伍充能轴命名，保留简洁总充能显示",
   "冠军/特殊竞技场充能轴改为同时显示所选队伍与对方队伍数据",
   "优化普通竞技场与冠军/特殊竞技场默认选中队伍，并强化攻防队伍颜色标识",
@@ -241,7 +242,6 @@ const CHANGELOG_ITEMS = [
   "补充吉儿·华伦泰本地头像回退资源",
   "调整哈兰中毒充能为固定2hit，基础充能每次触发提升为+5.8%",
   "移动端分享在不支持原生分享时改为弹出图片预览弹窗，支持查看与下载图片",
-  "修复移动端分享与复制图片降级行为",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -8666,8 +8666,9 @@ function drawCanvasText(context, text, x, y, options = {}) {
 }
 
 function getExportSiteUrl() {
-  const fallbackUrl = "https://nikke.skyxmoon.workers.dev";
-  if (window.location.protocol !== "http:" && window.location.protocol !== "https:") return fallbackUrl;
+  const canonicalUrl = "nikke.skyxmoon.cn";
+  if (isLocalDevRuntime()) return canonicalUrl;
+  if (window.location.protocol !== "http:" && window.location.protocol !== "https:") return canonicalUrl;
   return window.location.origin;
 }
 
