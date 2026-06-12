@@ -3725,6 +3725,12 @@ input:focus {
   background: rgba(12, 153, 170, 0.1);
 }
 
+:root[data-theme="light"] .report-preview-round {
+  border-color: rgba(176, 119, 0, 0.34);
+  color: #9a6800;
+  background: rgba(240, 196, 92, 0.18);
+}
+
 :root[data-theme="light"] .report-choice-card.team-defense.is-selected {
   border-color: rgba(34, 111, 198, 0.82);
   background: rgba(34, 111, 198, 0.12);
@@ -3983,11 +3989,13 @@ input:focus {
 }
 
 .report-modal {
-  width: min(1040px, calc(100vw - 32px));
-  max-height: min(86vh, 760px);
+  width: min(1180px, calc(100vw - 32px));
+  max-height: min(90vh, 820px);
 }
 
 .report-modal-content {
+  display: block;
+  grid-template-columns: none;
   padding: 16px;
 }
 
@@ -4069,13 +4077,14 @@ input:focus {
 
 .report-round-teams {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
+  grid-template-columns: minmax(360px, 1fr) 38px minmax(360px, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 14px;
 }
 
 .report-round-team {
   width: 100%;
+  min-width: 0;
   gap: 10px;
   padding: 10px;
 }
@@ -4088,14 +4097,15 @@ input:focus {
 }
 
 .report-preview-round {
-  justify-self: start;
-  border: 1px solid rgba(71, 200, 212, 0.28);
+  justify-self: center;
+  border: 1px solid rgba(240, 196, 92, 0.46);
   border-radius: 999px;
-  padding: 3px 8px;
-  color: var(--cyan);
-  background: rgba(71, 200, 212, 0.08);
-  font-size: 11px;
-  font-weight: 900;
+  padding: 4px 14px;
+  color: #f0c45c;
+  background: rgba(240, 196, 92, 0.1);
+  font-size: 12px;
+  font-weight: 950;
+  text-align: center;
 }
 
 .report-preview-slots {
@@ -4310,6 +4320,12 @@ summary {
     width: 34px;
     height: 34px;
     font-size: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .report-round-teams {
+    grid-template-columns: 1fr;
   }
 }
 

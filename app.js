@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.239";
+const APP_VERSION = "V1.28.240";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化上报弹窗ROUND展示与分栏布局",
   "调整对局上报为数组结构",
   "优化冠军和特殊竞技场上报胜方选择",
   "冠军和特殊竞技场上报按ROUND展示并要求5v5",
@@ -11166,7 +11167,7 @@ function getReportPreviewRows() {
   const defenseRows = getPaidArenaTeams(mode, "defense");
   const attackRows = getPaidArenaTeams(mode, "attack");
   return Array.from({ length: count }, (_, index) => ({
-    label: localize(`对局 ${index + 1}`, `Match ${index + 1}`),
+    label: `ROUND ${index + 1}`,
     defense: defenseRows[index] || Array(TEAM_SIZE).fill(null),
     attack: attackRows[index] || Array(TEAM_SIZE).fill(null),
   }));
