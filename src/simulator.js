@@ -481,7 +481,7 @@ function isHarran(character) {
 }
 
 function getHarranPoisonChargeValue(character) {
-  return getBaseChargeUnit(character) * 2 * (hasExtraChargeMultiplier(character) ? 2 : 1);
+  return getBaseChargeUnit(character) * (hasExtraChargeMultiplier(character) ? 2 : 1);
 }
 
 function getHarranPoisonTargetPositions(hitProfile = null) {
@@ -503,8 +503,8 @@ function getHarranPoisonEvents(event, currentFrame, hitProfile = null) {
         targetPositionIndex,
         frame: currentFrame + 2,
         chargeValue: getHarranPoisonChargeValue(event.character),
-        positionHits: [[targetPositionIndex, 2]],
-        targetHits: [[targetPositionIndex, 2]],
+        positionHits: [[targetPositionIndex, 1]],
+        targetHits: [[targetPositionIndex, 1]],
         source: "harran-poison",
         label: `中毒充能：${targetLabel}`,
         repeatFrames: 60,

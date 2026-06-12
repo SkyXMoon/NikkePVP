@@ -245,6 +245,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修正哈兰中毒仅本体1hit",
   "调整哈兰中毒按目标触发",
   "修复冠军/特殊竞技场空枪成对计算",
   "修正灰姑娘被RL命中或波及时的诱饵hit",
@@ -254,7 +255,6 @@ const CHANGELOG_ITEMS = [
   "补全充能轴英文提示",
   "调整筛选按钮和分享图角标",
   "补全英文界面核心内容",
-  "优化角色数量统计口径",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -2519,7 +2519,7 @@ function isHarran(character) {
 }
 
 function getHarranPoisonChargeValue(character) {
-  return getBaseChargeUnit(character) * 2;
+  return getBaseChargeUnit(character);
 }
 
 function getHarranPoisonTargetPositions(hitProfile = null) {
@@ -2541,8 +2541,8 @@ function getHarranPoisonEvents(event, currentFrame, hitProfile = null) {
         targetPositionIndex,
         frame: currentFrame + 2,
         chargeValue: getHarranPoisonChargeValue(event.character),
-        positionHits: [[targetPositionIndex, 2]],
-        targetHits: [[targetPositionIndex, 2]],
+        positionHits: [[targetPositionIndex, 1]],
+        targetHits: [[targetPositionIndex, 1]],
         source: "harran-poison",
         label: `中毒充能：${targetLabel}`,
         repeatFrames: 60,
