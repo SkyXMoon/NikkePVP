@@ -3241,6 +3241,7 @@ input:focus {
 }
 
 .ocr-crop-close,
+.ocr-crop-clear,
 .ocr-crop-cancel,
 .ocr-crop-confirm {
   min-height: 32px;
@@ -3287,17 +3288,57 @@ input:focus {
   pointer-events: none;
 }
 
-.ocr-crop-selection {
+.ocr-crop-selection,
+.ocr-crop-draft-selection {
   position: absolute;
   display: none;
   border: 2px solid #4da3ff;
   background: rgba(77, 163, 255, 0.16);
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.42);
   pointer-events: none;
 }
 
-.ocr-crop-selection.is-visible {
+.ocr-crop-draft-selection {
+  border-style: dashed;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.32);
+}
+
+.ocr-crop-selection::after {
+  content: attr(data-index);
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: #06111d;
+  background: #4da3ff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.ocr-crop-selection.is-visible,
+.ocr-crop-draft-selection.is-visible {
   display: block;
+}
+
+.ocr-crop-selection-list {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ocr-crop-selection-list span {
+  min-height: 24px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(235, 241, 248, 0.18);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .ocr-crop-tip {
@@ -3696,6 +3737,7 @@ input:focus {
 :root[data-theme="light"] .slot-settings-close,
 :root[data-theme="light"] .paid-modal-close,
 :root[data-theme="light"] .ocr-crop-close,
+:root[data-theme="light"] .ocr-crop-clear,
 :root[data-theme="light"] .ocr-crop-cancel,
 :root[data-theme="light"] .ocr-crop-confirm {
   border-color: rgba(84, 103, 126, 0.28);

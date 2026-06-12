@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.246";
+const APP_VERSION = "V1.29.247";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -129,6 +129,7 @@ const OCR_LARGE_IMAGE_THRESHOLD_BYTES = 1024 * 1024;
 const OCR_RETRY_DELAY_MS = 5000;
 const OCR_MAX_RETRY_COUNT = 5;
 const OCR_JPEG_QUALITIES = [1, 0.95, 0.9, 0.85, 0.8];
+const OCR_MAX_CROP_SELECTIONS = 2;
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
   AR: "步枪",
@@ -252,6 +253,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR图片识别支持最多2个不重叠选区",
   "整理更新日志展示内容",
   "恢复哈兰中毒后续60F跳",
   "临时关闭哈兰中毒后续跳",
@@ -1270,6 +1272,14 @@ function normalizeCropRect(rect, bounds) {
   };
 }
 
+function doCropRectsOverlap(first, second) {
+  if (!first || !second) return false;
+  return first.x < second.x + second.width
+    && first.x + first.width > second.x
+    && first.y < second.y + second.height
+    && first.y + first.height > second.y;
+}
+
 async function cropImageFile(file, cropRect, displaySize, image) {
   const scaleX = image.naturalWidth / displaySize.width;
   const scaleY = image.naturalHeight / displaySize.height;
@@ -1285,7 +1295,7 @@ async function cropImageFile(file, cropRect, displaySize, image) {
   return canvasToSizedOcrJpegFile(canvas, file);
 }
 
-async function selectOcrImageCrop(file) {
+async function selectOcrImageCrops(file) {
   const image = await loadImageFromFile(file);
   return new Promise((resolve, reject) => {
     const backdrop = document.createElement("div");
@@ -1299,11 +1309,13 @@ async function selectOcrImageCrop(file) {
         <div class="ocr-crop-body">
           <div class="ocr-crop-stage">
             <img class="ocr-crop-image" alt="${escapeHtml(localize("待识别图片预览", "OCR image preview"))}" />
-            <div class="ocr-crop-selection" aria-hidden="true"></div>
+            <div class="ocr-crop-draft-selection" aria-hidden="true"></div>
           </div>
-          <p class="ocr-crop-tip">${escapeHtml(localize("拖拽框选需要识别的队伍区域，只会上传选区内容。", "Drag to select the team area. Only the selected region will be uploaded."))}</p>
+          <div class="ocr-crop-selection-list" aria-live="polite"></div>
+          <p class="ocr-crop-tip">${escapeHtml(localize("拖拽框选需要识别的队伍区域，最多2个不重叠选区，会按选区顺序识别。", "Drag to select up to 2 non-overlapping areas. They will be recognized in selection order."))}</p>
         </div>
         <div class="ocr-crop-actions">
+          <button class="ocr-crop-clear" type="button">${escapeHtml(localize("清空选区", "Clear selections"))}</button>
           <button class="ocr-crop-cancel" type="button">${escapeHtml(localize("取消", "Cancel"))}</button>
           <button class="ocr-crop-confirm" type="button">${escapeHtml(localize("识别选区", "Recognize selection"))}</button>
         </div>
@@ -1313,7 +1325,8 @@ async function selectOcrImageCrop(file) {
     const stage = backdrop.querySelector(".ocr-crop-stage");
     const cropBody = backdrop.querySelector(".ocr-crop-body");
     const preview = backdrop.querySelector(".ocr-crop-image");
-    const selection = backdrop.querySelector(".ocr-crop-selection");
+    const draftSelection = backdrop.querySelector(".ocr-crop-draft-selection");
+    const selectionList = backdrop.querySelector(".ocr-crop-selection-list");
     const close = () => {
       URL.revokeObjectURL(preview.src);
       backdrop.remove();
@@ -1323,22 +1336,42 @@ async function selectOcrImageCrop(file) {
       reject(new Error("已取消识别"));
     };
     let displaySize = { width: 1, height: 1 };
-    let cropRect = null;
+    let draftRect = null;
+    const cropRects = [];
     let dragStart = null;
 
-    const setSelectionRect = (rect) => {
-      cropRect = normalizeCropRect(rect, displaySize);
-      selection.style.left = `${cropRect.x}px`;
-      selection.style.top = `${cropRect.y}px`;
-      selection.style.width = `${cropRect.width}px`;
-      selection.style.height = `${cropRect.height}px`;
-      selection.classList.toggle("is-visible", cropRect.width > 2 && cropRect.height > 2);
+    const applyRectToElement = (element, rect) => {
+      element.style.left = `${rect.x}px`;
+      element.style.top = `${rect.y}px`;
+      element.style.width = `${rect.width}px`;
+      element.style.height = `${rect.height}px`;
+    };
+
+    const renderCropSelections = () => {
+      stage.querySelectorAll(".ocr-crop-selection").forEach((node) => node.remove());
+      cropRects.forEach((rect, index) => {
+        const element = document.createElement("div");
+        element.className = "ocr-crop-selection is-visible";
+        element.setAttribute("aria-hidden", "true");
+        element.dataset.index = String(index + 1);
+        applyRectToElement(element, rect);
+        stage.append(element);
+      });
+      selectionList.innerHTML = cropRects.length
+        ? cropRects.map((_, index) => `<span>${escapeHtml(localize(`选区${index + 1}`, `Area ${index + 1}`))}</span>`).join("")
+        : `<span>${escapeHtml(localize("尚未选择区域，直接识别将使用全图", "No area selected. Full image will be used."))}</span>`;
+    };
+
+    const setDraftRect = (rect) => {
+      draftRect = normalizeCropRect(rect, displaySize);
+      applyRectToElement(draftSelection, draftRect);
+      draftSelection.classList.toggle("is-visible", draftRect.width > 2 && draftRect.height > 2);
     };
 
     const resetDefaultSelection = () => {
       const rect = preview.getBoundingClientRect();
       displaySize = { width: Math.max(1, rect.width), height: Math.max(1, rect.height) };
-      setSelectionRect({ x: 0, y: 0, width: displaySize.width, height: displaySize.height });
+      renderCropSelections();
     };
 
     preview.addEventListener("load", resetDefaultSelection, { once: true });
@@ -1359,14 +1392,14 @@ async function selectOcrImageCrop(file) {
       event.preventDefault();
       dragStart = getClampedStagePoint(event);
       cropBody.setPointerCapture?.(event.pointerId);
-      setSelectionRect({ x: dragStart.x, y: dragStart.y, width: 1, height: 1 });
+      setDraftRect({ x: dragStart.x, y: dragStart.y, width: 1, height: 1 });
     });
 
     cropBody.addEventListener("pointermove", (event) => {
       if (!dragStart) return;
       event.preventDefault();
       const currentPoint = getClampedStagePoint(event);
-      setSelectionRect({
+      setDraftRect({
         x: dragStart.x,
         y: dragStart.y,
         width: currentPoint.x - dragStart.x,
@@ -1378,6 +1411,27 @@ async function selectOcrImageCrop(file) {
       if (!dragStart) return;
       cropBody.releasePointerCapture?.(event.pointerId);
       dragStart = null;
+      if (!draftRect || draftRect.width <= 2 || draftRect.height <= 2) {
+        draftRect = null;
+        draftSelection.classList.remove("is-visible");
+        return;
+      }
+      if (cropRects.length >= OCR_MAX_CROP_SELECTIONS) {
+        showToast(localize("最多只能选择2个区域", "You can select at most 2 areas"));
+        draftRect = null;
+        draftSelection.classList.remove("is-visible");
+        return;
+      }
+      if (cropRects.some((rect) => doCropRectsOverlap(rect, draftRect))) {
+        showToast(localize("选区不能重叠", "Selected areas cannot overlap"));
+        draftRect = null;
+        draftSelection.classList.remove("is-visible");
+        return;
+      }
+      cropRects.push({ ...draftRect });
+      draftRect = null;
+      draftSelection.classList.remove("is-visible");
+      renderCropSelections();
     };
     cropBody.addEventListener("pointerup", finishDrag);
     cropBody.addEventListener("pointercancel", finishDrag);
@@ -1385,14 +1439,26 @@ async function selectOcrImageCrop(file) {
     backdrop.querySelector(".ocr-crop-confirm").addEventListener("click", async (event) => {
       event.preventDefault();
       try {
-        const normalizedRect = cropRect || { x: 0, y: 0, width: displaySize.width, height: displaySize.height };
-        const croppedFile = await cropImageFile(file, normalizedRect, displaySize, image);
+        const normalizedRects = cropRects.length > 0
+          ? cropRects
+          : [{ x: 0, y: 0, width: displaySize.width, height: displaySize.height }];
+        const croppedFiles = [];
+        for (const normalizedRect of normalizedRects) {
+          croppedFiles.push(await cropImageFile(file, normalizedRect, displaySize, image));
+        }
         close();
-        resolve(croppedFile);
+        resolve(croppedFiles);
       } catch (error) {
         close();
         reject(error);
       }
+    });
+    backdrop.querySelector(".ocr-crop-clear").addEventListener("click", (event) => {
+      event.preventDefault();
+      cropRects.length = 0;
+      draftRect = null;
+      draftSelection.classList.remove("is-visible");
+      renderCropSelections();
     });
     backdrop.querySelector(".ocr-crop-close").addEventListener("click", rejectCancel);
     backdrop.querySelector(".ocr-crop-cancel").addEventListener("click", rejectCancel);
@@ -1402,15 +1468,30 @@ async function selectOcrImageCrop(file) {
     backdrop.querySelector(".ocr-crop-modal").addEventListener("click", (event) => event.stopPropagation());
 
     document.body.append(backdrop);
+    renderCropSelections();
   });
 }
 
-async function prepareOcrImageFile(file) {
-  if (!file) return file;
+async function prepareOcrImageFiles(file) {
+  if (!file) return [];
   showToast(localize("请选择OCR识别区域。", "Please select the OCR area."), { persistent: true });
-  const croppedFile = await selectOcrImageCrop(file);
+  const croppedFiles = await selectOcrImageCrops(file);
   startProgressToast(localize("OCR识别中", "Recognizing OCR"));
-  return croppedFile;
+  return croppedFiles;
+}
+
+async function recognizeCharactersFromOcrImage(file) {
+  const croppedFiles = await prepareOcrImageFiles(file);
+  const matchedCharacters = [];
+  for (let index = 0; index < croppedFiles.length; index += 1) {
+    if (croppedFiles.length > 1) {
+      startProgressToast(localize(`OCR识别中 ${index + 1}/${croppedFiles.length}`, `Recognizing OCR ${index + 1}/${croppedFiles.length}`));
+    }
+    const rawText = await parseImageWithOcrSpaceRetry(croppedFiles[index]);
+    const result = parseFileNamesFromOcrText(rawText);
+    matchedCharacters.push(...(result.matchedCharacters || []));
+  }
+  return matchedCharacters;
 }
 
 function formatOcrToastMessage(result, teamLabel) {
@@ -1513,10 +1594,7 @@ async function fillTeamSlotsWithOcrResult(teamKey, startIndex, files) {
 
   let recognizedCharacters = [];
   try {
-    const file = await prepareOcrImageFile(imageFiles[0]);
-    const rawText = await parseImageWithOcrSpaceRetry(file);
-    const result = parseFileNamesFromOcrText(rawText);
-    recognizedCharacters = result.matchedCharacters || [];
+    recognizedCharacters = await recognizeCharactersFromOcrImage(imageFiles[0]);
   } catch (error) {
     warnings.push(`OCR识别失败: ${formatOcrErrorMessage(error)}`);
   }
@@ -1606,10 +1684,7 @@ async function fillPaidArenaSlotsWithOcrResult(rowIndex, startIndex, files) {
 
   let recognizedCharacters = [];
   try {
-    const file = await prepareOcrImageFile(imageFiles[0]);
-    const rawText = await parseImageWithOcrSpaceRetry(file);
-    const result = parseFileNamesFromOcrText(rawText);
-    recognizedCharacters = result.matchedCharacters || [];
+    recognizedCharacters = await recognizeCharactersFromOcrImage(imageFiles[0]);
   } catch (error) {
     warnings.push(`OCR识别失败: ${formatOcrErrorMessage(error)}`);
   }
@@ -4749,7 +4824,7 @@ function createHelpModal(options = {}) {
           title: "Image Recognition",
           items: [
             "Tap Recognize to upload an image, or drag an image onto the timeline area.",
-            "Select the region to scan, then the page recognizes character names inside that region.",
+            "Select up to 2 non-overlapping regions. The page recognizes them in selection order.",
             "Matched characters are filled into empty slots from the first team in the current mode; full teams continue into the next row.",
             "Matched names and recognition errors are shown in the toast message.",
           ],
@@ -4892,7 +4967,7 @@ function createHelpModal(options = {}) {
       title: "图片识别",
       items: [
         "右侧“识别”按钮可上传本地图片；也可以把图片拖入充能图表区域触发识别。",
-        "选择图片区域后，系统会识别区域内的角色文字。",
+        "最多可框选2个不重叠区域，系统会按选区顺序识别区域内的角色文字。",
         "识别成功后，会按顺序从当前模式第一队开始填入空位，满队后自动进入下一队。",
         "识别到的角色会在提示中列出；识别失败、超时或图片过大时会显示提示。",
       ],
