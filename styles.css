@@ -3716,8 +3716,13 @@ input:focus {
 }
 
 :root[data-theme="light"] .report-round-match {
-  border-color: rgba(84, 103, 126, 0.14);
-  background: rgba(232, 239, 248, 0.46);
+  border-color: rgba(12, 153, 170, 0.22);
+  background: rgba(12, 153, 170, 0.07);
+}
+
+:root[data-theme="light"] .report-round-match.has-selection {
+  border-color: rgba(12, 153, 170, 0.46);
+  background: rgba(12, 153, 170, 0.1);
 }
 
 :root[data-theme="light"] .report-choice-card.team-defense.is-selected {
@@ -4044,16 +4049,22 @@ input:focus {
 
 .report-round-list {
   display: grid;
-  gap: 14px;
+  gap: 18px;
 }
 
 .report-round-match {
   display: grid;
-  gap: 8px;
-  border: 1px solid rgba(235, 241, 248, 0.12);
+  gap: 10px;
+  border: 1px solid rgba(71, 200, 212, 0.26);
   border-radius: 8px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.028);
+  padding: 12px;
+  background: rgba(71, 200, 212, 0.045);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.025) inset;
+}
+
+.report-round-match.has-selection {
+  border-color: rgba(71, 200, 212, 0.5);
+  background: rgba(71, 200, 212, 0.07);
 }
 
 .report-round-teams {
@@ -4065,6 +4076,8 @@ input:focus {
 
 .report-round-team {
   width: 100%;
+  gap: 10px;
+  padding: 10px;
 }
 
 .report-round-vs {
@@ -4075,20 +4088,22 @@ input:focus {
 }
 
 .report-preview-round {
-  color: var(--muted);
+  justify-self: start;
+  border: 1px solid rgba(71, 200, 212, 0.28);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: var(--cyan);
+  background: rgba(71, 200, 212, 0.08);
   font-size: 11px;
   font-weight: 900;
 }
 
 .report-preview-slots {
   display: grid;
-  grid-template-columns: repeat(5, 64px);
+  grid-template-columns: repeat(5, 60px);
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
   width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 2px;
 }
 
 .report-preview-slot {
@@ -4096,8 +4111,8 @@ input:focus {
   display: grid;
   gap: 4px;
   justify-items: center;
-  width: 64px;
-  min-width: 64px;
+  width: 60px;
+  min-width: 0;
 }
 
 .report-preview-slot .position {
@@ -4109,8 +4124,8 @@ input:focus {
 }
 
 .report-preview-slot .team-avatar {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
 }
 
 .report-preview-slot.filled.rarity-ssr .team-avatar {
@@ -4316,18 +4331,18 @@ summary {
   }
 
   .report-preview-slot .team-avatar {
-    width: 56px;
-    height: 56px;
+    width: 50px;
+    height: 50px;
   }
 
   .report-preview-slots {
-    grid-template-columns: repeat(5, 60px);
-    gap: 6px;
+    grid-template-columns: repeat(5, 52px);
+    gap: 5px;
   }
 
   .report-preview-slot {
-    width: 60px;
-    min-width: 60px;
+    width: 52px;
+    min-width: 0;
   }
 
   .filters {

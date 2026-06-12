@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.237";
+const APP_VERSION = "V1.28.238";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化冠军和特殊竞技场上报ROUND选择",
   "冠军和特殊竞技场上报按ROUND展示并要求5v5",
   "优化上报胜方选择窗口布局",
   "上报前增加胜方选择确认窗口",
@@ -5003,7 +5004,7 @@ function openChangelogModal() {
         <article class="help-section">
           <h2>${escapeHtml(localize("最近 10 条", "Latest 10 updates"))}</h2>
           <ul>
-            ${CHANGELOG_ITEMS.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            ${CHANGELOG_ITEMS.slice(0, 10).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
           </ul>
         </article>
       </div>
@@ -11101,9 +11102,13 @@ function serializePaidReportTeamRow(mode, teamKey, rowIndex) {
   };
 }
 
-function buildPaidArenaReportPayload(winner = "unknown") {
+function buildPaidArenaReportPayload(roundWinners = []) {
   const mode = state.paidArenaMode;
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
+  const normalizedRoundWinners = Array.from({ length: teamCount }, (_, rowIndex) => normalizeReportWinner(roundWinners[rowIndex]));
+  const attackWinCount = normalizedRoundWinners.filter((winner) => winner === "attack").length;
+  const defenseWinCount = normalizedRoundWinners.filter((winner) => winner === "defense").length;
+  const matchWinner = attackWinCount > defenseWinCount ? "attack" : defenseWinCount > attackWinCount ? "defense" : "unknown";
   const defenseTeam = Array.from({ length: teamCount }, (_, rowIndex) => serializePaidReportTeamRow(mode, "defense", rowIndex));
   const attackTeam = Array.from({ length: teamCount }, (_, rowIndex) => serializePaidReportTeamRow(mode, "attack", rowIndex));
   const rowResults = Array.from({ length: teamCount }, (_, rowIndex) => {
@@ -11120,18 +11125,26 @@ function buildPaidArenaReportPayload(winner = "unknown") {
     region: state.filters.region === "global" ? "global" : "cn",
     defenseTeam,
     attackTeam,
-    defenseResult: { rows: rowResults.map((entry) => ({ row: entry.row, result: entry.defense })) },
-    attackResult: { rows: rowResults.map((entry) => ({ row: entry.row, result: entry.attack })) },
-    winner: normalizeReportWinner(winner),
+    defenseResult: {
+      rows: rowResults.map((entry) => ({ row: entry.row, result: entry.defense })),
+      roundWinners: normalizedRoundWinners.map((winner, index) => ({ row: index + 1, winner })),
+    },
+    attackResult: {
+      rows: rowResults.map((entry) => ({ row: entry.row, result: entry.attack })),
+      roundWinners: normalizedRoundWinners.map((winner, index) => ({ row: index + 1, winner })),
+    },
+    winner: matchWinner,
     reportNote: null,
     clientFingerprint: getReportClientFingerprint(),
     source: "web",
   };
 }
 
-function buildMatchReportPayload(winner = "unknown") {
+function buildMatchReportPayload(options = {}) {
   saveTeam();
-  return isPaidArenaModeActive() ? buildPaidArenaReportPayload(winner) : buildNormalReportPayload(winner);
+  return isPaidArenaModeActive()
+    ? buildPaidArenaReportPayload(options.roundWinners || [])
+    : buildNormalReportPayload(options.winner || "unknown");
 }
 
 function getReportPreviewRows() {
@@ -11215,17 +11228,17 @@ function getReportPreviewRowMarkup(row, teamKey) {
   `;
 }
 
-function getReportRoundMatchMarkup(row) {
+function getReportRoundMatchMarkup(row, rowIndex) {
   return `
     <div class="report-round-match">
       <span class="report-preview-round">${escapeHtml(row.label)}</span>
       <div class="report-round-teams">
-        <button class="report-choice-card report-round-team team-defense" type="button" data-winner="defense">
+        <button class="report-choice-card report-round-team team-defense" type="button" data-winner="defense" data-round-index="${rowIndex}">
           <strong>${escapeHtml(getTeamLabel("defense"))}</strong>
           ${getReportPreviewRowMarkup({ ...row, label: "" }, "defense")}
         </button>
         <span class="report-round-vs">VS</span>
-        <button class="report-choice-card report-round-team team-attack" type="button" data-winner="attack">
+        <button class="report-choice-card report-round-team team-attack" type="button" data-winner="attack" data-round-index="${rowIndex}">
           <strong>${escapeHtml(getTeamLabel("attack"))}</strong>
           ${getReportPreviewRowMarkup({ ...row, label: "" }, "attack")}
         </button>
@@ -11254,6 +11267,9 @@ function openReportMatchModal() {
       )
     : "";
 
+  const reportTitle = isPaidReport
+    ? localize("请选择每个 ROUND 获胜的队伍。", "Select the winning team for each ROUND.")
+    : localize("请选择获胜的队伍。", "Select the winning team.");
   const backdrop = document.createElement("div");
   backdrop.className = "help-modal-backdrop report-modal-backdrop";
   backdrop.innerHTML = `
@@ -11261,13 +11277,13 @@ function openReportMatchModal() {
       <div class="help-modal-head">
         <div>
           <span class="help-modal-kicker">Report</span>
-          <strong>${escapeHtml(localize("请选择获胜的队伍。", "Select the winning team."))}</strong>
+          <strong>${escapeHtml(reportTitle)}</strong>
         </div>
         <button class="help-modal-close" type="button" aria-label="${escapeHtml(localize("关闭", "Close"))}">X</button>
       </div>
       <div class="help-modal-content report-modal-content">
         ${isPaidReport
-          ? `<div class="report-round-list">${rows.map((row) => getReportRoundMatchMarkup(row)).join("")}</div>`
+          ? `<div class="report-round-list">${rows.map((row, rowIndex) => getReportRoundMatchMarkup(row, rowIndex)).join("")}</div>`
           : `<div class="report-choice-grid">
               <button class="report-choice-card team-defense" type="button" data-winner="defense" ${defenseHasMember ? "" : "disabled"}>
                 <strong>${escapeHtml(getTeamLabel("defense"))}</strong>
@@ -11289,18 +11305,31 @@ function openReportMatchModal() {
   `;
 
   let selectedWinner = null;
+  const selectedRoundWinners = new Map();
   const submitButton = backdrop.querySelector(".report-modal-submit");
   const updateSubmitState = () => {
-    submitButton.disabled = !canSubmitReport || !selectedWinner;
+    const hasWinnerSelection = isPaidReport ? selectedRoundWinners.size === rows.length : Boolean(selectedWinner);
+    submitButton.disabled = !canSubmitReport || !hasWinnerSelection;
   };
 
   backdrop.querySelectorAll(".report-choice-card").forEach((button) => {
     button.addEventListener("click", () => {
       if (button.disabled) return;
-      selectedWinner = button.dataset.winner;
-      backdrop.querySelectorAll(".report-choice-card").forEach((card) => {
-        card.classList.toggle("is-selected", card === button);
-      });
+      if (isPaidReport) {
+        const roundIndex = Number(button.dataset.roundIndex);
+        if (!Number.isInteger(roundIndex)) return;
+        selectedRoundWinners.set(roundIndex, button.dataset.winner);
+        const roundCard = button.closest(".report-round-match");
+        roundCard?.classList.add("has-selection");
+        roundCard?.querySelectorAll(".report-choice-card").forEach((card) => {
+          card.classList.toggle("is-selected", card === button);
+        });
+      } else {
+        selectedWinner = button.dataset.winner;
+        backdrop.querySelectorAll(".report-choice-card").forEach((card) => {
+          card.classList.toggle("is-selected", card === button);
+        });
+      }
       updateSubmitState();
     });
   });
@@ -11308,10 +11337,16 @@ function openReportMatchModal() {
   backdrop.querySelector(".help-modal-close").addEventListener("click", closeReportMatchModal);
   backdrop.querySelector(".report-modal-cancel").addEventListener("click", closeReportMatchModal);
   submitButton.addEventListener("click", async () => {
-    if (!selectedWinner || submitButton.disabled) return;
+    if (submitButton.disabled) return;
+    if (!isPaidReport && !selectedWinner) return;
     submitButton.disabled = true;
     closeReportMatchModal();
-    await submitMatchReport({ winner: selectedWinner });
+    if (isPaidReport) {
+      const roundWinners = rows.map((_, rowIndex) => selectedRoundWinners.get(rowIndex) || "unknown");
+      await submitMatchReport({ roundWinners });
+    } else {
+      await submitMatchReport({ winner: selectedWinner });
+    }
   });
   backdrop.addEventListener("click", (event) => {
     if (event.target === backdrop) closeReportMatchModal();
@@ -11330,7 +11365,7 @@ async function submitMatchReport(options = {}) {
     ));
     return;
   }
-  const payload = buildMatchReportPayload(options.winner);
+  const payload = buildMatchReportPayload(options);
   if (!hasReportableMembers(payload.defenseTeam) && !hasReportableMembers(payload.attackTeam)) {
     showToast(localize("队伍为空，无法上报", "Team is empty. Nothing to report."));
     return;
