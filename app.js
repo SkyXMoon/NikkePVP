@@ -245,6 +245,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修正灰姑娘被RL命中或波及时的诱饵hit",
   "整合帮助页缩写与图标说明",
   "修复充能图表关键点英文角色名",
   "修复英文筛选与空枪按钮显示",
@@ -254,7 +255,6 @@ const CHANGELOG_ITEMS = [
   "优化角色数量统计口径",
   "调整帮助页图片识别排序",
   "优化帮助页使用顺序说明",
-  "优化帮助页正式文案",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -2240,6 +2240,12 @@ function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = 
   );
 }
 
+function getRlTargetHitMultiplier(character, positionIndex, targetPositionIndex, opponentTeam = []) {
+  if (isCinderella(opponentTeam?.[positionIndex])) return 3;
+  if (isRaven(character) && positionIndex === targetPositionIndex) return 3;
+  return 2;
+}
+
 function doesCinderellaShotSplash(shotNumber = 1) {
   const normalizedShotNumber = Math.max(1, Math.floor(Number(shotNumber) || 1));
   if (normalizedShotNumber <= CINDERELLA_INITIAL_SPLASH_SEQUENCE.length) {
@@ -2876,18 +2882,13 @@ function getAttackHitProfile(
     const start = Math.max(0, targetPositionIndex - range);
     const end = Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndex + range);
     const bodyHits = Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]);
-    if (isRaven(character)) {
-      return {
-        totalHits: shotHits,
-        bodyHits,
-        targetHits: bodyHits.map(([positionIndex]) => [positionIndex, (positionIndex === targetPositionIndex ? 3 : 2) * shotCount]),
-        p5CinderellaDecoy: false,
-      };
-    }
     return {
       totalHits: shotHits,
       bodyHits,
-      targetHits: bodyHits.map(([positionIndex, hitCount]) => [positionIndex, hitCount * 2]),
+      targetHits: bodyHits.map(([positionIndex, hitCount]) => [
+        positionIndex,
+        hitCount * getRlTargetHitMultiplier(character, positionIndex, targetPositionIndex, opponentTeam),
+      ]),
       p5CinderellaDecoy: false,
     };
   }

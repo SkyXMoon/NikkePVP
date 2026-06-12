@@ -237,6 +237,12 @@ function isTargetingP5Cinderella(character, targetPositionIndex, opponentTeam = 
   );
 }
 
+function getRlTargetHitMultiplier(character, positionIndex, targetPositionIndex, opponentTeam = []) {
+  if (isCinderella(opponentTeam?.[positionIndex])) return 3;
+  if (isRaven(character) && positionIndex === targetPositionIndex) return 3;
+  return 2;
+}
+
 function doesCinderellaShotSplash(shotNumber = 1) {
   const normalizedShotNumber = Math.max(1, Math.floor(Number(shotNumber) || 1));
   if (normalizedShotNumber <= CINDERELLA_INITIAL_SPLASH_SEQUENCE.length) {
@@ -599,18 +605,13 @@ function getAttackHitProfile(character, shotCount = 1, teamKey = "attack", shotN
     const start = Math.max(0, targetPositionIndex - range);
     const end = Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndex + range);
     const positionHits = Array.from({ length: end - start + 1 }, (_, offset) => [start + offset, shotCount]);
-    if (isRaven(character)) {
-      return {
-        totalHits: shotHits,
-        positionHits,
-        targetHits: positionHits.map(([positionIndex]) => [positionIndex, (positionIndex === targetPositionIndex ? 3 : 2) * shotCount]),
-        p5CinderellaDecoy: false,
-      };
-    }
     return {
       totalHits: shotHits,
       positionHits,
-      targetHits: positionHits.map(([positionIndex, hitCount]) => [positionIndex, hitCount * 2]),
+      targetHits: positionHits.map(([positionIndex, hitCount]) => [
+        positionIndex,
+        hitCount * getRlTargetHitMultiplier(character, positionIndex, targetPositionIndex, opponentTeam),
+      ]),
       p5CinderellaDecoy: false,
     };
   }
