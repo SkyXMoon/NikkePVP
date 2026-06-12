@@ -3201,7 +3201,7 @@ input:focus {
   z-index: 96;
   display: grid;
   place-items: center;
-  padding: 18px;
+  padding: 10px;
   background: rgba(0, 0, 0, 0.66);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
@@ -3209,7 +3209,8 @@ input:focus {
 
 .ocr-crop-modal {
   width: min(920px, calc(100vw - 28px));
-  max-height: min(92vh, 780px);
+  height: min(92vh, 780px);
+  max-height: calc(100vh - 20px);
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(242, 251, 255, 0.2);
@@ -3229,8 +3230,8 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 8px 12px;
   border-bottom: 1px solid rgba(242, 245, 250, 0.1);
 }
 
@@ -3244,10 +3245,10 @@ input:focus {
 .ocr-crop-clear,
 .ocr-crop-cancel,
 .ocr-crop-confirm {
-  min-height: 32px;
+  min-height: 28px;
   border: 1px solid rgba(235, 241, 248, 0.28);
   border-radius: 6px;
-  padding: 0 12px;
+  padding: 0 10px;
   color: var(--text);
   background: rgba(255, 255, 255, 0.08);
   font-size: 12px;
@@ -3263,15 +3264,15 @@ input:focus {
 .ocr-crop-quick-actions {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  margin: 10px 0 0;
+  gap: 6px;
+  margin: 7px 0 0;
 }
 
 .ocr-crop-quick-actions button {
-  min-height: 28px;
+  min-height: 26px;
   border: 1px solid rgba(77, 163, 255, 0.42);
   border-radius: 999px;
-  padding: 0 12px;
+  padding: 0 10px;
   color: var(--text);
   background: rgba(77, 163, 255, 0.12);
   font-size: 12px;
@@ -3280,16 +3281,20 @@ input:focus {
 }
 
 .ocr-crop-body {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
   min-height: 0;
-  padding: 14px;
-  overflow: auto;
+  padding: 10px;
+  overflow: hidden;
 }
 
 .ocr-crop-stage {
   position: relative;
   width: fit-content;
   max-width: 100%;
-  max-height: min(62vh, 560px);
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
   margin: 0 auto;
   overflow: hidden;
   border: 1px solid rgba(242, 245, 250, 0.16);
@@ -3302,7 +3307,9 @@ input:focus {
 .ocr-crop-image {
   display: block;
   max-width: min(100%, 860px);
-  max-height: min(62vh, 560px);
+  max-height: 100%;
+  width: auto;
+  height: auto;
   user-select: none;
   pointer-events: none;
 }
@@ -3344,14 +3351,14 @@ input:focus {
 .ocr-crop-selection-list {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  margin: 10px 0 0;
+  gap: 6px;
+  margin: 7px 0 0;
   color: var(--muted);
   font-size: 12px;
 }
 
 .ocr-crop-selection-list span {
-  min-height: 24px;
+  min-height: 22px;
   display: inline-grid;
   place-items: center;
   border: 1px solid rgba(235, 241, 248, 0.18);
@@ -3361,10 +3368,29 @@ input:focus {
 }
 
 .ocr-crop-tip {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   text-align: center;
+}
+
+@media (max-height: 640px) {
+  .ocr-crop-modal {
+    height: calc(100vh - 12px);
+  }
+
+  .ocr-crop-head,
+  .ocr-crop-actions {
+    padding: 6px 10px;
+  }
+
+  .ocr-crop-body {
+    padding: 8px;
+  }
+
+  .ocr-crop-tip {
+    display: none;
+  }
 }
 
 .help-modal-content {
