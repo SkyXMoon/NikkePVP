@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.29.253";
+const APP_VERSION = "V1.29.254";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -130,6 +130,7 @@ const OCR_RETRY_DELAY_MS = 5000;
 const OCR_MAX_RETRY_COUNT = 5;
 const OCR_JPEG_QUALITIES = [1, 0.95, 0.9, 0.85, 0.8];
 const OCR_MAX_CROP_SELECTIONS = 2;
+const OCR_MIN_TEXT_LUMINANCE_THRESHOLD = 118;
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
   AR: "步枪",
@@ -253,6 +254,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化OCR图片预处理减少暗背景文字干扰",
   "修复OCR过滤前文本被提前清洗",
   "OCR控制台补充过滤前结果",
   "优化OCR清洗避免角色名粘连",
@@ -1371,6 +1373,29 @@ async function canvasToSizedOcrJpegFile(canvas, file) {
   throw new Error("选区压缩后仍超过1MB，请缩小选区后重试");
 }
 
+function preprocessOcrCanvasForText(canvas) {
+  const context = canvas.getContext("2d");
+  if (!context) return canvas;
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  const luminanceValues = [];
+  for (let index = 0; index < data.length; index += 4) {
+    luminanceValues.push(0.299 * data[index] + 0.587 * data[index + 1] + 0.114 * data[index + 2]);
+  }
+  const sorted = [...luminanceValues].sort((a, b) => a - b);
+  const percentileIndex = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.72));
+  const threshold = Math.max(OCR_MIN_TEXT_LUMINANCE_THRESHOLD, sorted[percentileIndex] || OCR_MIN_TEXT_LUMINANCE_THRESHOLD);
+  for (let index = 0, pixelIndex = 0; index < data.length; index += 4, pixelIndex += 1) {
+    const value = luminanceValues[pixelIndex] >= threshold ? 0 : 255;
+    data[index] = value;
+    data[index + 1] = value;
+    data[index + 2] = value;
+    data[index + 3] = 255;
+  }
+  context.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
 function normalizeCropRect(rect, bounds) {
   const x1 = Math.max(0, Math.min(bounds.width, Math.min(rect.x, rect.x + rect.width)));
   const y1 = Math.max(0, Math.min(bounds.height, Math.min(rect.y, rect.y + rect.height)));
@@ -1404,6 +1429,7 @@ async function cropImageFile(file, cropRect, displaySize, image) {
   canvas.height = sourceHeight;
   const context = canvas.getContext("2d");
   context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
+  preprocessOcrCanvasForText(canvas);
   return canvasToSizedOcrJpegFile(canvas, file);
 }
 
