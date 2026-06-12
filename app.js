@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.233";
+const APP_VERSION = "V1.28.234";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "新增右侧悬浮上报入口",
   "新增对局结果上报入口，为后续队伍推荐功能积累数据",
   "恢复哈兰中毒后续60F跳",
   "临时关闭哈兰中毒后续跳",
@@ -261,7 +262,6 @@ const CHANGELOG_ITEMS = [
   "修复冠军/特殊竞技场空枪成对计算",
   "修正灰姑娘被RL命中或波及时的诱饵hit",
   "整合帮助页缩写与图标说明",
-  "修复充能图表关键点英文角色名",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -484,6 +484,7 @@ const els = {
   helpButton: document.querySelector("#helpButton"),
   mobileShareFab: document.querySelector("#mobileShareFab"),
   ocrUploadButton: document.querySelector("#ocrUploadButton"),
+  floatingReportButton: document.querySelector("#floatingReportButton"),
   ocrUploadInput: document.querySelector("#ocrUploadInput"),
   toast: document.querySelector("#toast"),
   summaryStrip: document.querySelector("#summaryStrip"),
@@ -620,6 +621,7 @@ function applyLanguage(language) {
   els.regionToggle?.closest("label")?.querySelector("span")?.replaceChildren(document.createTextNode(ui.filterRegionCN));
   els.mobileShareFab?.querySelector(".share-fab-text")?.replaceChildren(document.createTextNode(ui.shareButton));
   els.ocrUploadButton?.querySelector(".share-fab-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "OCR" : "识别"));
+  els.floatingReportButton?.querySelector(".share-fab-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Report" : "上报"));
   if (els.mobileShareFab) {
     els.mobileShareFab.setAttribute("aria-label", ui.shareButton);
     els.mobileShareFab.setAttribute("title", ui.shareButton);
@@ -627,6 +629,11 @@ function applyLanguage(language) {
   if (els.ocrUploadButton) {
     els.ocrUploadButton.setAttribute("aria-label", ui.recognizeButton);
     els.ocrUploadButton.setAttribute("title", ui.recognizeButton);
+  }
+  if (els.floatingReportButton) {
+    const reportLabel = localize("上报对局结果", "Report match result");
+    els.floatingReportButton.setAttribute("aria-label", reportLabel);
+    els.floatingReportButton.setAttribute("title", reportLabel);
   }
   if (els.teamPanelTitle) els.teamPanelTitle.textContent = ui.teamPanelTitle;
   if (els.teamShareButton) {
@@ -11335,6 +11342,7 @@ function bindEvents() {
   els.reportMatchButton?.addEventListener("click", submitMatchReport);
   els.mobileShareFab?.addEventListener("click", handleCopyButtonClick);
   els.ocrUploadButton?.addEventListener("click", openOcrUploadDialog);
+  els.floatingReportButton?.addEventListener("click", submitMatchReport);
   els.ocrUploadInput?.addEventListener("change", (event) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
