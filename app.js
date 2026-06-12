@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.238";
+const APP_VERSION = "V1.28.239";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,7 +252,8 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
-  "优化冠军和特殊竞技场上报ROUND选择",
+  "调整对局上报为数组结构",
+  "优化冠军和特殊竞技场上报胜方选择",
   "冠军和特殊竞技场上报按ROUND展示并要求5v5",
   "优化上报胜方选择窗口布局",
   "上报前增加胜方选择确认窗口",
@@ -11065,6 +11066,13 @@ function hasReportableMembers(teamPayload) {
   return Array.isArray(teamPayload?.members) && teamPayload.members.some(Boolean);
 }
 
+function hasReportablePayloadMembers(payload) {
+  if (Array.isArray(payload?.reports)) {
+    return payload.reports.some((report) => hasReportableMembers(report.defenseTeam) || hasReportableMembers(report.attackTeam));
+  }
+  return hasReportableMembers(payload?.defenseTeam) || hasReportableMembers(payload?.attackTeam);
+}
+
 function normalizeReportWinner(winner) {
   return ["attack", "defense", "unknown"].includes(winner) ? winner : "unknown";
 }
@@ -11086,6 +11094,12 @@ function buildNormalReportPayload(winner = "unknown") {
   };
 }
 
+function wrapReportPayload(reports) {
+  return {
+    reports: reports.filter(Boolean),
+  };
+}
+
 function serializePaidReportTeamRow(mode, teamKey, rowIndex) {
   const team = getPaidArenaTeams(mode, teamKey)[rowIndex] || Array(TEAM_SIZE).fill(null);
   const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, teamKey);
@@ -11102,49 +11116,39 @@ function serializePaidReportTeamRow(mode, teamKey, rowIndex) {
   };
 }
 
-function buildPaidArenaReportPayload(roundWinners = []) {
+function buildPaidArenaReportPayload(winners = []) {
   const mode = state.paidArenaMode;
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
-  const normalizedRoundWinners = Array.from({ length: teamCount }, (_, rowIndex) => normalizeReportWinner(roundWinners[rowIndex]));
-  const attackWinCount = normalizedRoundWinners.filter((winner) => winner === "attack").length;
-  const defenseWinCount = normalizedRoundWinners.filter((winner) => winner === "defense").length;
-  const matchWinner = attackWinCount > defenseWinCount ? "attack" : defenseWinCount > attackWinCount ? "defense" : "unknown";
-  const defenseTeam = Array.from({ length: teamCount }, (_, rowIndex) => serializePaidReportTeamRow(mode, "defense", rowIndex));
-  const attackTeam = Array.from({ length: teamCount }, (_, rowIndex) => serializePaidReportTeamRow(mode, "attack", rowIndex));
-  const rowResults = Array.from({ length: teamCount }, (_, rowIndex) => {
+  return Array.from({ length: teamCount }, (_, rowIndex) => {
     const { attackResult, defenseResult } = computePaidArenaBattleResultsForRow(rowIndex);
     return {
-      row: rowIndex + 1,
-      defense: serializeReportResult(defenseResult),
-      attack: serializeReportResult(attackResult),
+      appVersion: APP_VERSION,
+      arenaMode: getReportArenaMode(),
+      region: state.filters.region === "global" ? "global" : "cn",
+      defenseTeam: serializePaidReportTeamRow(mode, "defense", rowIndex),
+      attackTeam: serializePaidReportTeamRow(mode, "attack", rowIndex),
+      defenseResult: {
+        matchup: rowIndex + 1,
+        result: serializeReportResult(defenseResult),
+      },
+      attackResult: {
+        matchup: rowIndex + 1,
+        result: serializeReportResult(attackResult),
+      },
+      winner: normalizeReportWinner(winners[rowIndex]),
+      reportNote: null,
+      clientFingerprint: getReportClientFingerprint(),
+      source: "web",
     };
   });
-  return {
-    appVersion: APP_VERSION,
-    arenaMode: getReportArenaMode(),
-    region: state.filters.region === "global" ? "global" : "cn",
-    defenseTeam,
-    attackTeam,
-    defenseResult: {
-      rows: rowResults.map((entry) => ({ row: entry.row, result: entry.defense })),
-      roundWinners: normalizedRoundWinners.map((winner, index) => ({ row: index + 1, winner })),
-    },
-    attackResult: {
-      rows: rowResults.map((entry) => ({ row: entry.row, result: entry.attack })),
-      roundWinners: normalizedRoundWinners.map((winner, index) => ({ row: index + 1, winner })),
-    },
-    winner: matchWinner,
-    reportNote: null,
-    clientFingerprint: getReportClientFingerprint(),
-    source: "web",
-  };
 }
 
 function buildMatchReportPayload(options = {}) {
   saveTeam();
-  return isPaidArenaModeActive()
-    ? buildPaidArenaReportPayload(options.roundWinners || [])
-    : buildNormalReportPayload(options.winner || "unknown");
+  const reports = isPaidArenaModeActive()
+    ? buildPaidArenaReportPayload(options.winners || [])
+    : [buildNormalReportPayload(options.winner || "unknown")];
+  return wrapReportPayload(reports);
 }
 
 function getReportPreviewRows() {
@@ -11162,7 +11166,7 @@ function getReportPreviewRows() {
   const defenseRows = getPaidArenaTeams(mode, "defense");
   const attackRows = getPaidArenaTeams(mode, "attack");
   return Array.from({ length: count }, (_, index) => ({
-    label: `ROUND ${index + 1}`,
+    label: localize(`对局 ${index + 1}`, `Match ${index + 1}`),
     defense: defenseRows[index] || Array(TEAM_SIZE).fill(null),
     attack: attackRows[index] || Array(TEAM_SIZE).fill(null),
   }));
@@ -11262,14 +11266,12 @@ function openReportMatchModal() {
   const isPaidReport = isPaidArenaModeActive();
   const incompleteText = paidFullState.incompleteRounds.length
     ? localize(
-        `请补满 ROUND ${paidFullState.incompleteRounds.join(", ")} 的 5v5 队伍后再提交。`,
-        `Fill ROUND ${paidFullState.incompleteRounds.join(", ")} as 5v5 before submitting.`,
+        `请补满对局 ${paidFullState.incompleteRounds.join(", ")} 的 5v5 队伍后再提交。`,
+        `Fill match ${paidFullState.incompleteRounds.join(", ")} as 5v5 before submitting.`,
       )
     : "";
 
-  const reportTitle = isPaidReport
-    ? localize("请选择每个 ROUND 获胜的队伍。", "Select the winning team for each ROUND.")
-    : localize("请选择获胜的队伍。", "Select the winning team.");
+  const reportTitle = localize("请选择获胜的队伍。", "Select the winning team.");
   const backdrop = document.createElement("div");
   backdrop.className = "help-modal-backdrop report-modal-backdrop";
   backdrop.innerHTML = `
@@ -11305,10 +11307,10 @@ function openReportMatchModal() {
   `;
 
   let selectedWinner = null;
-  const selectedRoundWinners = new Map();
+  const selectedWinners = new Map();
   const submitButton = backdrop.querySelector(".report-modal-submit");
   const updateSubmitState = () => {
-    const hasWinnerSelection = isPaidReport ? selectedRoundWinners.size === rows.length : Boolean(selectedWinner);
+    const hasWinnerSelection = isPaidReport ? selectedWinners.size === rows.length : Boolean(selectedWinner);
     submitButton.disabled = !canSubmitReport || !hasWinnerSelection;
   };
 
@@ -11318,7 +11320,7 @@ function openReportMatchModal() {
       if (isPaidReport) {
         const roundIndex = Number(button.dataset.roundIndex);
         if (!Number.isInteger(roundIndex)) return;
-        selectedRoundWinners.set(roundIndex, button.dataset.winner);
+        selectedWinners.set(roundIndex, button.dataset.winner);
         const roundCard = button.closest(".report-round-match");
         roundCard?.classList.add("has-selection");
         roundCard?.querySelectorAll(".report-choice-card").forEach((card) => {
@@ -11342,8 +11344,8 @@ function openReportMatchModal() {
     submitButton.disabled = true;
     closeReportMatchModal();
     if (isPaidReport) {
-      const roundWinners = rows.map((_, rowIndex) => selectedRoundWinners.get(rowIndex) || "unknown");
-      await submitMatchReport({ roundWinners });
+      const winners = rows.map((_, rowIndex) => selectedWinners.get(rowIndex) || "unknown");
+      await submitMatchReport({ winners });
     } else {
       await submitMatchReport({ winner: selectedWinner });
     }
@@ -11360,13 +11362,13 @@ async function submitMatchReport(options = {}) {
   const fullState = getReportRowsFullState();
   if (!fullState.isFull) {
     showToast(localize(
-      `请补满 ROUND ${fullState.incompleteRounds.join(", ")} 的 5v5 队伍后再提交。`,
-      `Fill ROUND ${fullState.incompleteRounds.join(", ")} as 5v5 before submitting.`,
+      `请补满对局 ${fullState.incompleteRounds.join(", ")} 的 5v5 队伍后再提交。`,
+      `Fill match ${fullState.incompleteRounds.join(", ")} as 5v5 before submitting.`,
     ));
     return;
   }
   const payload = buildMatchReportPayload(options);
-  if (!hasReportableMembers(payload.defenseTeam) && !hasReportableMembers(payload.attackTeam)) {
+  if (!hasReportablePayloadMembers(payload)) {
     showToast(localize("队伍为空，无法上报", "Team is empty. Nothing to report."));
     return;
   }
