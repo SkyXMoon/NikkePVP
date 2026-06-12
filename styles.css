@@ -4077,7 +4077,7 @@ input:focus {
 
 .report-round-teams {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) 34px minmax(320px, 1fr);
+  grid-template-columns: minmax(360px, 1fr) 34px minmax(360px, 1fr);
   align-items: center;
   gap: 12px;
 }
@@ -4110,7 +4110,7 @@ input:focus {
 
 .report-preview-slots {
   display: grid;
-  grid-template-columns: repeat(5, 56px);
+  grid-template-columns: repeat(5, 66px);
   justify-content: center;
   gap: 6px;
   width: 100%;
@@ -4121,21 +4121,17 @@ input:focus {
   display: grid;
   gap: 4px;
   justify-items: center;
-  width: 56px;
+  width: 66px;
   min-width: 0;
 }
 
 .report-preview-slot .position {
-  position: static;
-  color: var(--quiet);
-  background: transparent;
-  font-size: 11px;
-  font-weight: 900;
+  display: none;
 }
 
 .report-preview-slot .team-avatar {
-  width: 52px;
-  height: 52px;
+  width: 62px;
+  height: 62px;
 }
 
 .report-preview-slot.filled.rarity-ssr .team-avatar {
@@ -4347,17 +4343,17 @@ summary {
   }
 
   .report-preview-slot .team-avatar {
-    width: 50px;
-    height: 50px;
+    width: 54px;
+    height: 54px;
   }
 
   .report-preview-slots {
-    grid-template-columns: repeat(5, 52px);
+    grid-template-columns: repeat(5, 56px);
     gap: 5px;
   }
 
   .report-preview-slot {
-    width: 52px;
+    width: 56px;
     min-width: 0;
   }
 
