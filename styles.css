@@ -3372,6 +3372,13 @@ input:focus {
   color: var(--muted);
   font-size: 12px;
   text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .ocr-crop-tip {
+    font-size: 11px;
+  }
 }
 
 @media (max-height: 640px) {

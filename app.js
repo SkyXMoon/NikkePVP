@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.29.255";
+const APP_VERSION = "V1.29.256";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -254,6 +254,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "精简OCR预览窗口提示文案",
   "优化OCR预览窗口减少滚动条",
   "优化OCR图片预处理减少暗背景文字干扰",
   "修复OCR过滤前文本被提前清洗",
@@ -1455,7 +1456,7 @@ async function selectOcrImageCrops(file) {
             <button class="ocr-crop-split-top-bottom" type="button">${escapeHtml(localize("上下框选", "Top / Bottom"))}</button>
           </div>
           <div class="ocr-crop-selection-list" aria-live="polite"></div>
-          <p class="ocr-crop-tip">${escapeHtml(localize("拖拽框选需要识别的队伍区域，最多2个不重叠选区，会按选区顺序识别。", "Drag to select up to 2 non-overlapping areas. They will be recognized in selection order."))}</p>
+          <p class="ocr-crop-tip">${escapeHtml(localize("最多2个选区，按顺序识别。", "Up to 2 areas, in order."))}</p>
         </div>
         <div class="ocr-crop-actions">
           <button class="ocr-crop-clear" type="button">${escapeHtml(localize("清空选区", "Clear selections"))}</button>
@@ -1502,7 +1503,7 @@ async function selectOcrImageCrops(file) {
       });
       selectionList.innerHTML = cropRects.length
         ? cropRects.map((_, index) => `<span>${escapeHtml(localize(`选区${index + 1}`, `Area ${index + 1}`))}</span>`).join("")
-        : `<span>${escapeHtml(localize("尚未选择区域，直接识别将使用全图", "No area selected. Full image will be used."))}</span>`;
+        : `<span>${escapeHtml(localize("未选则识别全图", "Full image if none"))}</span>`;
     };
 
     const setDraftRect = (rect) => {
