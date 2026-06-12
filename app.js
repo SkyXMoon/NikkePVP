@@ -19,8 +19,10 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
-const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.29.258";
+const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
+const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
+const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
+const APP_VERSION = "V1.29.259";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -256,6 +258,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "支持本地后端上报测试",
   "优化对局上报身份兼容性",
   "收窄OCR英数角色名匹配范围",
   "精简OCR预览窗口提示文案",
@@ -294,6 +297,14 @@ async function loadCharacterData() {
 function canUseServiceWorkerForAvatarCache() {
   if (!("serviceWorker" in navigator) || window.location.protocol === "file:") return false;
   return window.isSecureContext || ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+}
+
+function getSupabaseReportEndpoint() {
+  const override = globalThis.__NIKKE_REPORT_ENDPOINT__;
+  if (typeof override === "string" && override.startsWith("http")) return override;
+  const hostname = window.location.hostname;
+  if (["localhost", "127.0.0.1", "::1"].includes(hostname)) return LOCAL_SUPABASE_REPORT_ENDPOINT;
+  return ONLINE_SUPABASE_REPORT_ENDPOINT;
 }
 
 function getAvatarCacheCandidates() {
