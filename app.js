@@ -245,6 +245,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "调整哈兰中毒按目标触发",
   "修复冠军/特殊竞技场空枪成对计算",
   "修正灰姑娘被RL命中或波及时的诱饵hit",
   "整合帮助页缩写与图标说明",
@@ -254,7 +255,6 @@ const CHANGELOG_ITEMS = [
   "调整筛选按钮和分享图角标",
   "补全英文界面核心内容",
   "优化角色数量统计口径",
-  "调整帮助页图片识别排序",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -2522,18 +2522,32 @@ function getHarranPoisonChargeValue(character) {
   return getBaseChargeUnit(character) * 2;
 }
 
-function getHarranPoisonEvent(event, currentFrame) {
-  if (!isHarran(event.character) || event.poisonChargeStarted) return null;
-  event.poisonChargeStarted = true;
-  return {
-    character: event.character,
-    positionIndex: event.positionIndex,
-    frame: currentFrame + 60,
-    chargeValue: getHarranPoisonChargeValue(event.character),
-    source: "harran-poison",
-    label: "中毒充能",
-    repeatFrames: 60,
-  };
+function getHarranPoisonTargetPositions(hitProfile = null) {
+  const targetHits = Array.isArray(hitProfile?.targetHits) ? hitProfile.targetHits : [];
+  return [...new Set(targetHits.map(([positionIndex]) => positionIndex).filter((positionIndex) => Number.isInteger(positionIndex)))];
+}
+
+function getHarranPoisonEvents(event, currentFrame, hitProfile = null) {
+  if (!isHarran(event.character)) return [];
+  if (!(event.poisonChargeTargets instanceof Set)) event.poisonChargeTargets = new Set();
+  return getHarranPoisonTargetPositions(hitProfile)
+    .filter((targetPositionIndex) => !event.poisonChargeTargets.has(targetPositionIndex))
+    .map((targetPositionIndex) => {
+      event.poisonChargeTargets.add(targetPositionIndex);
+      const targetLabel = `P${targetPositionIndex + 1}`;
+      return {
+        character: event.character,
+        positionIndex: event.positionIndex,
+        targetPositionIndex,
+        frame: currentFrame + 2,
+        chargeValue: getHarranPoisonChargeValue(event.character),
+        positionHits: [[targetPositionIndex, 2]],
+        targetHits: [[targetPositionIndex, 2]],
+        source: "harran-poison",
+        label: `中毒充能：${targetLabel}`,
+        repeatFrames: 60,
+      };
+    });
 }
 
 function getChargeBreakdown(character) {
@@ -2623,8 +2637,8 @@ function getChargeBreakdown(character) {
   if (isHarran(character)) {
     lines.push(
       localize(
-        `中毒充能：第一发命中后每60F +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
-        `Poison charge: every 60F after first hit +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
+        `中毒充能：命中新目标后2F首次触发，之后每60F +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
+        `Poison charge: first tick 2F after hitting a new target, then every 60F +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
       ),
     );
   } else if (character.delayedExtraHits?.length) {
@@ -3283,7 +3297,7 @@ function simulateBurst(
       flightEvents: [],
       missedShotEvents: [],
       turnDodgeEvents: [],
-      poisonChargeStarted: false,
+      poisonChargeTargets: new Set(),
     };
   });
 
@@ -3507,8 +3521,7 @@ function simulateBurst(
       event.attackChargeTotal += hitCountExtraCharge;
       addContribution(event, hitCountExtraCharge, "额外触发");
       pendingExtraEvents.push(...getDelayedHitCountExtraEvents(event, currentFrame));
-      const harranPoisonEvent = getHarranPoisonEvent(event, currentFrame);
-      if (harranPoisonEvent) pendingExtraEvents.push(harranPoisonEvent);
+      pendingExtraEvents.push(...getHarranPoisonEvents(event, currentFrame, hitProfile));
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame, hitProfile));
       pendingExtraEvents.push(...getVestiTacticalFollowUpEvents(event, currentFrame, hitProfile));
       const reloadEvent = advanceAttackEvent(event, currentFrame, shotCount, stunWindows);

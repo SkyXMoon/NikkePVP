@@ -481,21 +481,35 @@ function isHarran(character) {
 }
 
 function getHarranPoisonChargeValue(character) {
-  return getBaseChargeUnit(character) * (hasExtraChargeMultiplier(character) ? 2 : 1);
+  return getBaseChargeUnit(character) * 2 * (hasExtraChargeMultiplier(character) ? 2 : 1);
 }
 
-function getHarranPoisonEvent(event, currentFrame) {
-  if (!isHarran(event.character) || event.poisonChargeStarted) return null;
-  event.poisonChargeStarted = true;
-  return {
-    character: event.character,
-    positionIndex: event.positionIndex,
-    frame: currentFrame + 60,
-    chargeValue: getHarranPoisonChargeValue(event.character),
-    source: "harran-poison",
-    label: "中毒充能",
-    repeatFrames: 60,
-  };
+function getHarranPoisonTargetPositions(hitProfile = null) {
+  const targetHits = Array.isArray(hitProfile?.targetHits) ? hitProfile.targetHits : [];
+  return [...new Set(targetHits.map(([positionIndex]) => positionIndex).filter((positionIndex) => Number.isInteger(positionIndex)))];
+}
+
+function getHarranPoisonEvents(event, currentFrame, hitProfile = null) {
+  if (!isHarran(event.character)) return [];
+  if (!(event.poisonChargeTargets instanceof Set)) event.poisonChargeTargets = new Set();
+  return getHarranPoisonTargetPositions(hitProfile)
+    .filter((targetPositionIndex) => !event.poisonChargeTargets.has(targetPositionIndex))
+    .map((targetPositionIndex) => {
+      event.poisonChargeTargets.add(targetPositionIndex);
+      const targetLabel = `P${targetPositionIndex + 1}`;
+      return {
+        character: event.character,
+        positionIndex: event.positionIndex,
+        targetPositionIndex,
+        frame: currentFrame + 2,
+        chargeValue: getHarranPoisonChargeValue(event.character),
+        positionHits: [[targetPositionIndex, 2]],
+        targetHits: [[targetPositionIndex, 2]],
+        source: "harran-poison",
+        label: `中毒充能：${targetLabel}`,
+        repeatFrames: 60,
+      };
+    });
 }
 
 function getDelayedExtraPositionHits(extra, hitProfile = null) {
@@ -913,7 +927,7 @@ function simulateBurst(
       flightEvents: [],
       missedShotEvents: [],
       turnDodgeEvents: [],
-      poisonChargeStarted: false,
+      poisonChargeTargets: new Set(),
     };
   });
 
@@ -1079,8 +1093,7 @@ function simulateBurst(
       event.totalCharge += hitCountExtraCharge;
       event.attackChargeTotal += hitCountExtraCharge;
       addContribution(event, hitCountExtraCharge, "额外触发");
-      const harranPoisonEvent = getHarranPoisonEvent(event, currentFrame);
-      if (harranPoisonEvent) pendingExtraEvents.push(harranPoisonEvent);
+      pendingExtraEvents.push(...getHarranPoisonEvents(event, currentFrame, hitProfile));
       pendingExtraEvents.push(...getDelayedExtraEvents(event, currentFrame, hitProfile));
       pendingExtraEvents.push(...getVestiTacticalFollowUpEvents(event, currentFrame, hitProfile));
       advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
