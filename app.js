@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.29.250";
+const APP_VERSION = "V1.29.251";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -253,6 +253,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化OCR清洗避免角色名粘连",
   "优化OCR对英文和数字角色名的识别",
   "修复OCR快捷选区按钮点击无效",
   "OCR预览窗口增加左右/上下快速选区",
@@ -958,7 +959,11 @@ function getRosannaSacrificeFrameState(teamKey = state.activeTeamKey) {
 function normalizeOcrCharacterName(rawName) {
   return String(rawName || "")
     .replace(/[：\uFE13\uFE55\uFF1A]/g, ":")
-    .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:]/g, "");
+    .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:]+/g, "\n")
+    .split("\n")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join("\n");
 }
 
 function normalizeOcrRawTextForSpecialName(rawName) {
@@ -1005,6 +1010,59 @@ function findRawOcrSpecialNameMatches(rawText) {
     }
   });
   return matches.sort((a, b) => a.position - b.position || b.length - a.length).map((match) => match.character);
+}
+
+function getOcrSpecialNameEntries() {
+  if (!Array.isArray(CHARACTERS)) return [];
+  return CHARACTERS.flatMap((character) => {
+    const names = [character?.name, character?.nameCodeName];
+    const seen = new Set();
+    return names
+      .map((name) => String(name || "").trim())
+      .filter((name) => /[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]/.test(name))
+      .map((name) => normalizeOcrRawTextForSpecialName(name))
+      .filter((name) => {
+        if (!name || seen.has(name)) return false;
+        seen.add(name);
+        return true;
+      })
+      .flatMap((name) => [...new Set([name, name.replace(/:/g, "")].filter(Boolean))].map((variant) => ({ character, name: variant })));
+  }).sort((a, b) => b.name.length - a.name.length);
+}
+
+function tokenizeOcrTextPreservingSpecialNames(rawText) {
+  const specialEntries = getOcrSpecialNameEntries();
+  const normalizedText = String(rawText || "")
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0xFEE0))
+    .replace(/[：\uFE13\uFE55\uFF1A]/g, ":")
+    .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:A-Za-z0-9]+/g, "\n")
+    .toUpperCase();
+  const tokens = [];
+  normalizedText.split("\n").forEach((segment) => {
+    let buffer = "";
+    let index = 0;
+    const flushBuffer = () => {
+      normalizeOcrCharacterName(buffer)
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .forEach((line) => tokens.push({ type: "text", line }));
+      buffer = "";
+    };
+    while (index < segment.length) {
+      const specialMatch = specialEntries.find((entry) => segment.startsWith(entry.name, index));
+      if (specialMatch) {
+        flushBuffer();
+        tokens.push({ type: "character", character: specialMatch.character });
+        index += specialMatch.name.length;
+        continue;
+      }
+      buffer += segment[index];
+      index += 1;
+    }
+    flushBuffer();
+  });
+  return tokens;
 }
 
 const OCR_COLON_PREFERRED_VARIANTS = {
@@ -1064,13 +1122,9 @@ function getOcrColonMatchPriority(line, entry) {
 }
 
 function parseFileNamesFromOcrText(rawText) {
-  const rawSpecialMatches = findRawOcrSpecialNameMatches(rawText);
-  const lines = String(rawText || "")
-    .replace(/\r/g, "")
-    .split("\n")
-    .map((line) => normalizeOcrCharacterName(line).trim())
-    .filter(Boolean);
-  console.log("[OCR] 过滤后结果", lines);
+  const ocrTokens = tokenizeOcrTextPreservingSpecialNames(rawText);
+  const lines = ocrTokens.filter((token) => token.type === "text").map((token) => token.line);
+  console.log("[OCR] 过滤后结果", ocrTokens.map((token) => (token.type === "character" ? token.character?.name : token.line)).filter(Boolean));
 
   const characterNames = Array.isArray(CHARACTERS)
     ? CHARACTERS.flatMap((character) => {
@@ -1091,11 +1145,13 @@ function parseFileNamesFromOcrText(rawText) {
 
   const matched = [];
   const warnings = [];
-  rawSpecialMatches.forEach((character) => {
-    if (character?.id) matched.push(character);
-  });
 
-  lines.forEach((line) => {
+  ocrTokens.forEach((token) => {
+    if (token.type === "character") {
+      if (token.character?.id) matched.push(token.character);
+      return;
+    }
+    const line = token.line;
     const containsColon = line.includes(":");
     const bareColonPreferredName = OCR_COLON_PREFERRED_VARIANTS[line];
     const scopedCharacterNames = characterNames.filter((entry) => (containsColon ? entry.hasColon : true));
@@ -1201,7 +1257,7 @@ function cleanOcrTextForRoles(rawText) {
     .replace(/\r/g, "")
     .replace(/[：\uFE13\uFE55\uFF1A]/g, ":")
     .replace(/[\s\u00A0\u3000]+/g, "\n")
-    .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:\n]/g, "");
+    .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:\n]+/g, "\n");
 }
 
 async function parseImageWithOcrSpace(file) {
