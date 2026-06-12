@@ -17,6 +17,9 @@ const PAID_DEV_ACCESS_KEY = "nikke-paid-dev-access";
 const THEME_STORAGE_KEY = "nikke-arena-theme";
 const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
+const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
+const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
+const APP_VERSION = "V1.28.233";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -249,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "新增对局结果上报入口，为后续队伍推荐功能积累数据",
   "恢复哈兰中毒后续60F跳",
   "临时关闭哈兰中毒后续跳",
   "修正筛选排序说明显示完整名称",
@@ -258,7 +262,6 @@ const CHANGELOG_ITEMS = [
   "修正灰姑娘被RL命中或波及时的诱饵hit",
   "整合帮助页缩写与图标说明",
   "修复充能图表关键点英文角色名",
-  "修复英文筛选与空枪按钮显示",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -457,6 +460,7 @@ const els = {
   paidCModeButton: document.querySelector("#paidCModeButton"),
   paidPModeButton: document.querySelector("#paidPModeButton"),
   teamShareButton: document.querySelector("#teamShareButton"),
+  reportMatchButton: document.querySelector("#reportMatchButton"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
   allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
@@ -609,6 +613,7 @@ function applyLanguage(language) {
     missShotLabel.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "E" : "空"));
   }
   els.teamShareButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Img" : "图"));
+  els.reportMatchButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Report" : "报"));
   els.swapTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Swap" : "换"));
   els.clearTeamButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Clear" : "清"));
   els.commonToggle?.closest("label")?.querySelector("span")?.replaceChildren(document.createTextNode(ui.filterCommon));
@@ -627,6 +632,11 @@ function applyLanguage(language) {
   if (els.teamShareButton) {
     els.teamShareButton.setAttribute("aria-label", ui.shareImageButton);
     els.teamShareButton.setAttribute("title", ui.shareImageButton);
+  }
+  if (els.reportMatchButton) {
+    const reportLabel = localize("上报对局结果", "Report match result");
+    els.reportMatchButton.setAttribute("aria-label", reportLabel);
+    els.reportMatchButton.setAttribute("title", reportLabel);
   }
   if (els.swapTeamButton) els.swapTeamButton.setAttribute("title", ui.swapTeam);
   if (els.clearTeamButton) els.clearTeamButton.setAttribute("title", ui.clearTeam);
@@ -10958,6 +10968,196 @@ function scheduleResponsiveRender() {
   });
 }
 
+function getReportClientFingerprint() {
+  try {
+    const existing = localStorage.getItem(REPORT_CLIENT_STORAGE_KEY);
+    if (existing) return existing;
+    const generated = crypto?.randomUUID?.() || `client-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem(REPORT_CLIENT_STORAGE_KEY, generated);
+    return generated;
+  } catch {
+    return "";
+  }
+}
+
+function getReportArenaMode() {
+  if (state.paidArenaMode === "c") return "champion";
+  if (state.paidArenaMode === "p") return "special";
+  return "normal";
+}
+
+function serializeReportCharacter(character, positionIndex, options = {}) {
+  if (!character) return null;
+  return {
+    position: positionIndex + 1,
+    id: character.id,
+    name: character.name,
+    enName: character.enName || "",
+    weapon: character.weapon || "",
+    burst: character.burst || "",
+    rarity: character.rarity || "",
+    chargeSpeed: sanitizeChargeSpeed(options.chargeSpeed),
+    universalCharge: sanitizeUniversalCharge(options.universalCharge),
+    redHoodPierceCount: sanitizeRedHoodPierceCount(options.redHoodPierceCount),
+    scarletCounterEnabled: sanitizeScarletCounterEnabled(options.scarletCounterEnabled),
+    rosannaSacrificeFrame: sanitizeSacrificeFrame(options.rosannaSacrificeFrame),
+    cubeType: getSavedCharacterCubeType(character, options.teamKey),
+    magazine: getSavedCharacterMagazine(character, options.teamKey),
+  };
+}
+
+function serializeReportTeam(team, teamKey, options = {}) {
+  const chargeSpeeds = options.chargeSpeeds || getChargeSpeedState(teamKey);
+  const universalCharges = options.universalCharges || getUniversalChargeState(teamKey);
+  const redHoodPierceCounts = options.redHoodPierceCounts || getRedHoodPierceCountState(teamKey);
+  const scarletCounterEnabled = options.scarletCounterEnabled || getScarletCounterEnabledState(teamKey);
+  const sacrificeFrames = options.sacrificeFrames || getRosannaSacrificeFrameState(teamKey);
+  const linkState = options.jackalLink || normalizeJackalLink(teamKey);
+  return {
+    teamKey: normalizeTeamKey(teamKey),
+    members: Array.from({ length: TEAM_SIZE }, (_, index) =>
+      serializeReportCharacter(team[index], index, {
+        teamKey,
+        chargeSpeed: chargeSpeeds[index],
+        universalCharge: universalCharges[index],
+        redHoodPierceCount: redHoodPierceCounts[index],
+        scarletCounterEnabled: scarletCounterEnabled[index],
+        rosannaSacrificeFrame: sacrificeFrames[index],
+      }),
+    ),
+    jackalLink: {
+      enabled: Boolean(linkState?.enabled),
+      ownerId: linkState?.ownerId || null,
+      targetIds: Array.isArray(linkState?.targetIds) ? [...linkState.targetIds] : [],
+    },
+  };
+}
+
+function serializeReportResult(result) {
+  if (!result) return null;
+  if (result.error) return { error: result.error };
+  return {
+    fullFrame: Number.isFinite(result.fullFrame) ? result.fullFrame : null,
+    standardBand: Number.isFinite(result.fullFrame) ? getStandardChargeBand(result.fullFrame) : "",
+    finishingPositions: Array.isArray(result.finishingPositionIndices)
+      ? result.finishingPositionIndices.map((index) => index + 1)
+      : [],
+    burstFrames: {
+      b1: result.burst1Frame ?? null,
+      b2: result.burst2Frame ?? null,
+      b3: result.burst3Frame ?? null,
+    },
+  };
+}
+
+function hasReportableMembers(teamPayload) {
+  if (Array.isArray(teamPayload)) {
+    return teamPayload.some(hasReportableMembers);
+  }
+  return Array.isArray(teamPayload?.members) && teamPayload.members.some(Boolean);
+}
+
+function buildNormalReportPayload() {
+  const battleResults = getBattleResultsSnapshot();
+  return {
+    appVersion: APP_VERSION,
+    arenaMode: "normal",
+    region: state.filters.region === "global" ? "global" : "cn",
+    defenseTeam: serializeReportTeam(state.defenseTeam, "defense"),
+    attackTeam: serializeReportTeam(state.team, "attack"),
+    defenseResult: serializeReportResult(battleResults?.defenseResult) || {},
+    attackResult: serializeReportResult(battleResults?.attackResult) || {},
+    winner: "unknown",
+    reportNote: null,
+    clientFingerprint: getReportClientFingerprint(),
+    source: "web",
+  };
+}
+
+function serializePaidReportTeamRow(mode, teamKey, rowIndex) {
+  const team = getPaidArenaTeams(mode, teamKey)[rowIndex] || Array(TEAM_SIZE).fill(null);
+  const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, teamKey);
+  return {
+    row: rowIndex + 1,
+    ...serializeReportTeam(team, teamKey, {
+      chargeSpeeds,
+      universalCharges: getPaidArenaUniversalCharges(mode, teamKey)[rowIndex],
+      redHoodPierceCounts: getPaidArenaRedHoodPierceCounts(mode, teamKey)[rowIndex],
+      scarletCounterEnabled: getPaidArenaScarletCounterEnabled(mode, teamKey)[rowIndex],
+      sacrificeFrames: getPaidArenaRosannaSacrificeFrames(mode, teamKey)[rowIndex],
+      jackalLink: normalizePaidArenaLinkForTeam(team, getPaidArenaJackalLinks(mode, teamKey)[rowIndex]),
+    }),
+  };
+}
+
+function buildPaidArenaReportPayload() {
+  const mode = state.paidArenaMode;
+  const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
+  const defenseTeam = Array.from({ length: teamCount }, (_, rowIndex) => serializePaidReportTeamRow(mode, "defense", rowIndex));
+  const attackTeam = Array.from({ length: teamCount }, (_, rowIndex) => serializePaidReportTeamRow(mode, "attack", rowIndex));
+  const rowResults = Array.from({ length: teamCount }, (_, rowIndex) => {
+    const { attackResult, defenseResult } = computePaidArenaBattleResultsForRow(rowIndex);
+    return {
+      row: rowIndex + 1,
+      defense: serializeReportResult(defenseResult),
+      attack: serializeReportResult(attackResult),
+    };
+  });
+  return {
+    appVersion: APP_VERSION,
+    arenaMode: getReportArenaMode(),
+    region: state.filters.region === "global" ? "global" : "cn",
+    defenseTeam,
+    attackTeam,
+    defenseResult: { rows: rowResults.map((entry) => ({ row: entry.row, result: entry.defense })) },
+    attackResult: { rows: rowResults.map((entry) => ({ row: entry.row, result: entry.attack })) },
+    winner: "unknown",
+    reportNote: null,
+    clientFingerprint: getReportClientFingerprint(),
+    source: "web",
+  };
+}
+
+function buildMatchReportPayload() {
+  saveTeam();
+  return isPaidArenaModeActive() ? buildPaidArenaReportPayload() : buildNormalReportPayload();
+}
+
+async function submitMatchReport() {
+  const payload = buildMatchReportPayload();
+  if (!hasReportableMembers(payload.defenseTeam) && !hasReportableMembers(payload.attackTeam)) {
+    showToast(localize("队伍为空，无法上报", "Team is empty. Nothing to report."));
+    return;
+  }
+
+  startProgressToast(localize("正在上报对局结果", "Reporting match result"));
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(SUPABASE_REPORT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.ok) {
+      throw new Error(data?.message || `HTTP ${response.status}`);
+    }
+    stopProgressToast({ keepVisible: true });
+    const idText = data?.data?.id ? ` ${String(data.data.id).slice(0, 8)}` : "";
+    showToast(localize(`上报成功${idText}`, `Report submitted${idText}`));
+  } catch (error) {
+    stopProgressToast({ keepVisible: true });
+    const message = error?.name === "AbortError"
+      ? localize("上报超时，请稍后重试", "Report timed out. Please try again later.")
+      : localize(`上报失败：${error?.message || "网络错误"}`, `Report failed: ${error?.message || "Network error"}`);
+    showToast(message);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function copyCharacterDetails(character) {
   try {
     await copyTextToClipboard(getCharacterDetailText(character));
@@ -11132,6 +11332,7 @@ function bindEvents() {
   els.paidPModeButton?.addEventListener("click", () => openPaidArenaFeature("p"));
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.teamShareButton?.addEventListener("click", handleCopyButtonClick);
+  els.reportMatchButton?.addEventListener("click", submitMatchReport);
   els.mobileShareFab?.addEventListener("click", handleCopyButtonClick);
   els.ocrUploadButton?.addEventListener("click", openOcrUploadDialog);
   els.ocrUploadInput?.addEventListener("change", (event) => {
