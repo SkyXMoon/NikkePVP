@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.244";
+const APP_VERSION = "V1.28.245";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "隐藏未开放的上报入口",
   "优化上报弹窗队伍名颜色",
   "优化上报弹窗队伍预览信息",
   "优化上报弹窗尺寸与队伍标签",
@@ -652,6 +653,7 @@ function applyLanguage(language) {
     els.reportMatchButton.setAttribute("aria-label", reportLabel);
     els.reportMatchButton.setAttribute("title", reportLabel);
   }
+  syncReportFeatureVisibility();
   if (els.swapTeamButton) els.swapTeamButton.setAttribute("title", ui.swapTeam);
   if (els.clearTeamButton) els.clearTeamButton.setAttribute("title", ui.clearTeam);
   if (els.searchInput) els.searchInput.placeholder = ui.searchPlaceholder;
@@ -5186,11 +5188,25 @@ function setLocalPaidDevAccess(enabled) {
   }
 }
 
+function canUseReportFeature() {
+  return hasLocalPaidDevAccess();
+}
+
+function syncReportFeatureVisibility() {
+  const enabled = canUseReportFeature();
+  [els.reportMatchButton, els.floatingReportButton].forEach((button) => {
+    if (!button) return;
+    button.hidden = !enabled;
+    button.setAttribute("aria-hidden", enabled ? "false" : "true");
+  });
+}
+
 function syncLocalPaidDevAccessControl() {
   if (!els.appVersion) return;
   const isLocalDev = isLocalDevRuntime();
   els.appVersion.classList.toggle("is-local-dev", isLocalDev);
   els.appVersion.classList.toggle("has-paid-dev-access", hasLocalPaidDevAccess());
+  syncReportFeatureVisibility();
   if (isLocalDev) {
     els.appVersion.setAttribute("role", "button");
     els.appVersion.setAttribute("tabindex", "0");
@@ -5213,6 +5229,7 @@ function toggleLocalPaidDevAccess() {
   setLocalPaidDevAccess(nextEnabled);
   if (!nextEnabled && state.testMode) setPaidTestMode(false);
   syncLocalPaidDevAccessControl();
+  syncReportFeatureVisibility();
   showToast(nextEnabled ? localize("已启用本地付费测试", "Local paid-feature testing enabled") : localize("已关闭本地付费测试", "Local paid-feature testing disabled"));
 }
 
@@ -11261,6 +11278,10 @@ function closeReportMatchModal() {
 }
 
 function openReportMatchModal() {
+  if (!canUseReportFeature()) {
+    showToast(localize("上报功能暂未开放", "Report feature is not available yet."));
+    return;
+  }
   closeReportMatchModal();
   const rows = getReportPreviewRows();
   const hasAnyTeam = hasAnyReportTeamMember(rows);
