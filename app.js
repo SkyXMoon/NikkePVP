@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.29.247";
+const APP_VERSION = "V1.29.248";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -253,6 +253,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR预览窗口增加左右/上下快速选区",
   "OCR图片识别支持最多2个不重叠选区",
   "整理更新日志展示内容",
   "恢复哈兰中毒后续60F跳",
@@ -1311,6 +1312,10 @@ async function selectOcrImageCrops(file) {
             <img class="ocr-crop-image" alt="${escapeHtml(localize("待识别图片预览", "OCR image preview"))}" />
             <div class="ocr-crop-draft-selection" aria-hidden="true"></div>
           </div>
+          <div class="ocr-crop-quick-actions" role="group" aria-label="${escapeHtml(localize("快速选区", "Quick selections"))}">
+            <button class="ocr-crop-split-left-right" type="button">${escapeHtml(localize("左右框选", "Left / Right"))}</button>
+            <button class="ocr-crop-split-top-bottom" type="button">${escapeHtml(localize("上下框选", "Top / Bottom"))}</button>
+          </div>
           <div class="ocr-crop-selection-list" aria-live="polite"></div>
           <p class="ocr-crop-tip">${escapeHtml(localize("拖拽框选需要识别的队伍区域，最多2个不重叠选区，会按选区顺序识别。", "Drag to select up to 2 non-overlapping areas. They will be recognized in selection order."))}</p>
         </div>
@@ -1368,6 +1373,22 @@ async function selectOcrImageCrops(file) {
       draftSelection.classList.toggle("is-visible", draftRect.width > 2 && draftRect.height > 2);
     };
 
+    const clearDraftRect = () => {
+      draftRect = null;
+      draftSelection.classList.remove("is-visible");
+    };
+
+    const setPresetCropRects = (rects) => {
+      cropRects.length = 0;
+      rects
+        .map((rect) => normalizeCropRect(rect, displaySize))
+        .filter((rect) => rect.width > 2 && rect.height > 2)
+        .slice(0, OCR_MAX_CROP_SELECTIONS)
+        .forEach((rect) => cropRects.push(rect));
+      clearDraftRect();
+      renderCropSelections();
+    };
+
     const resetDefaultSelection = () => {
       const rect = preview.getBoundingClientRect();
       displaySize = { width: Math.max(1, rect.width), height: Math.max(1, rect.height) };
@@ -1412,25 +1433,21 @@ async function selectOcrImageCrops(file) {
       cropBody.releasePointerCapture?.(event.pointerId);
       dragStart = null;
       if (!draftRect || draftRect.width <= 2 || draftRect.height <= 2) {
-        draftRect = null;
-        draftSelection.classList.remove("is-visible");
+        clearDraftRect();
         return;
       }
       if (cropRects.length >= OCR_MAX_CROP_SELECTIONS) {
         showToast(localize("最多只能选择2个区域", "You can select at most 2 areas"));
-        draftRect = null;
-        draftSelection.classList.remove("is-visible");
+        clearDraftRect();
         return;
       }
       if (cropRects.some((rect) => doCropRectsOverlap(rect, draftRect))) {
         showToast(localize("选区不能重叠", "Selected areas cannot overlap"));
-        draftRect = null;
-        draftSelection.classList.remove("is-visible");
+        clearDraftRect();
         return;
       }
       cropRects.push({ ...draftRect });
-      draftRect = null;
-      draftSelection.classList.remove("is-visible");
+      clearDraftRect();
       renderCropSelections();
     };
     cropBody.addEventListener("pointerup", finishDrag);
@@ -1456,9 +1473,22 @@ async function selectOcrImageCrops(file) {
     backdrop.querySelector(".ocr-crop-clear").addEventListener("click", (event) => {
       event.preventDefault();
       cropRects.length = 0;
-      draftRect = null;
-      draftSelection.classList.remove("is-visible");
+      clearDraftRect();
       renderCropSelections();
+    });
+    backdrop.querySelector(".ocr-crop-split-left-right").addEventListener("click", (event) => {
+      event.preventDefault();
+      setPresetCropRects([
+        { x: 0, y: 0, width: displaySize.width / 2, height: displaySize.height },
+        { x: displaySize.width / 2, y: 0, width: displaySize.width / 2, height: displaySize.height },
+      ]);
+    });
+    backdrop.querySelector(".ocr-crop-split-top-bottom").addEventListener("click", (event) => {
+      event.preventDefault();
+      setPresetCropRects([
+        { x: 0, y: 0, width: displaySize.width, height: displaySize.height / 2 },
+        { x: 0, y: displaySize.height / 2, width: displaySize.width, height: displaySize.height / 2 },
+      ]);
     });
     backdrop.querySelector(".ocr-crop-close").addEventListener("click", rejectCancel);
     backdrop.querySelector(".ocr-crop-cancel").addEventListener("click", rejectCancel);
