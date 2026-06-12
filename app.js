@@ -22,7 +22,7 @@ const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.29.259";
+const APP_VERSION = "V1.29.260";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -258,6 +258,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修正上报反馈本地化",
   "支持本地后端上报测试",
   "优化对局上报身份兼容性",
   "收窄OCR英数角色名匹配范围",
@@ -11289,6 +11290,25 @@ function getReportIdentityPayload() {
   };
 }
 
+function getReportErrorMessage(data, status) {
+  const code = String(data?.code || "").toUpperCase();
+  const statusText = Number.isFinite(status) ? `HTTP ${status}` : "";
+  const messages = {
+    FORBIDDEN: localize("当前访问来源不允许上报", "This origin is not allowed to report."),
+    METHOD_NOT_ALLOWED: localize("上报请求方式异常", "Report request method is invalid."),
+    UNSUPPORTED_MEDIA_TYPE: localize("上报格式异常", "Report format is invalid."),
+    PAYLOAD_TOO_LARGE: localize("上报内容过大，请精简队伍信息后重试", "Report payload is too large. Please reduce the data and retry."),
+    BAD_BODY: localize("上报内容读取失败", "Failed to read report payload."),
+    BAD_JSON: localize("上报内容格式错误", "Report payload format is invalid."),
+    BAD_REQUEST: localize("上报内容校验失败，请检查队伍后重试", "Report validation failed. Please check the teams and retry."),
+    SERVER_NOT_CONFIGURED: localize("上报服务暂未配置完成", "Report service is not configured."),
+    RATE_LIMITED: localize("上报过于频繁，请稍后再试", "Too many reports. Please try again later."),
+    DUPLICATE_REPORT: localize("该对局已上报，请勿重复提交", "This match has already been reported."),
+    DATABASE_ERROR: localize("上报服务暂时异常，请稍后重试", "Report service is temporarily unavailable. Please try again later."),
+  };
+  return messages[code] || localize(`上报失败${statusText ? `（${statusText}）` : ""}`, `Report failed${statusText ? ` (${statusText})` : ""}`);
+}
+
 function getReportArenaMode() {
   if (state.paidArenaMode === "c") return "champion";
   if (state.paidArenaMode === "p") return "special";
@@ -11689,7 +11709,7 @@ async function submitMatchReport(options = {}) {
     });
     const data = await response.json().catch(() => null);
     if (!response.ok || !data?.ok) {
-      throw new Error(data?.message || `HTTP ${response.status}`);
+      throw new Error(getReportErrorMessage(data, response.status));
     }
     stopProgressToast({ keepVisible: true });
     const idText = data?.data?.id ? ` ${String(data.data.id).slice(0, 8)}` : "";
