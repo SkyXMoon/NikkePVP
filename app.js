@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.234";
+const APP_VERSION = "V1.28.235";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "上报前增加胜方选择确认窗口",
   "新增右侧悬浮上报入口",
   "新增对局结果上报入口，为后续队伍推荐功能积累数据",
   "恢复哈兰中毒后续60F跳",
@@ -261,7 +262,6 @@ const CHANGELOG_ITEMS = [
   "调整哈兰中毒按目标触发",
   "修复冠军/特殊竞技场空枪成对计算",
   "修正灰姑娘被RL命中或波及时的诱饵hit",
-  "整合帮助页缩写与图标说明",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -11064,7 +11064,11 @@ function hasReportableMembers(teamPayload) {
   return Array.isArray(teamPayload?.members) && teamPayload.members.some(Boolean);
 }
 
-function buildNormalReportPayload() {
+function normalizeReportWinner(winner) {
+  return ["attack", "defense", "unknown"].includes(winner) ? winner : "unknown";
+}
+
+function buildNormalReportPayload(winner = "unknown") {
   const battleResults = getBattleResultsSnapshot();
   return {
     appVersion: APP_VERSION,
@@ -11074,7 +11078,7 @@ function buildNormalReportPayload() {
     attackTeam: serializeReportTeam(state.team, "attack"),
     defenseResult: serializeReportResult(battleResults?.defenseResult) || {},
     attackResult: serializeReportResult(battleResults?.attackResult) || {},
-    winner: "unknown",
+    winner: normalizeReportWinner(winner),
     reportNote: null,
     clientFingerprint: getReportClientFingerprint(),
     source: "web",
@@ -11097,7 +11101,7 @@ function serializePaidReportTeamRow(mode, teamKey, rowIndex) {
   };
 }
 
-function buildPaidArenaReportPayload() {
+function buildPaidArenaReportPayload(winner = "unknown") {
   const mode = state.paidArenaMode;
   const teamCount = PAID_ARENA_TEAM_COUNTS[mode] || 0;
   const defenseTeam = Array.from({ length: teamCount }, (_, rowIndex) => serializePaidReportTeamRow(mode, "defense", rowIndex));
@@ -11118,20 +11122,157 @@ function buildPaidArenaReportPayload() {
     attackTeam,
     defenseResult: { rows: rowResults.map((entry) => ({ row: entry.row, result: entry.defense })) },
     attackResult: { rows: rowResults.map((entry) => ({ row: entry.row, result: entry.attack })) },
-    winner: "unknown",
+    winner: normalizeReportWinner(winner),
     reportNote: null,
     clientFingerprint: getReportClientFingerprint(),
     source: "web",
   };
 }
 
-function buildMatchReportPayload() {
+function buildMatchReportPayload(winner = "unknown") {
   saveTeam();
-  return isPaidArenaModeActive() ? buildPaidArenaReportPayload() : buildNormalReportPayload();
+  return isPaidArenaModeActive() ? buildPaidArenaReportPayload(winner) : buildNormalReportPayload(winner);
 }
 
-async function submitMatchReport() {
-  const payload = buildMatchReportPayload();
+function getReportPreviewRows() {
+  if (!isPaidArenaModeActive()) {
+    return [
+      {
+        label: "",
+        defense: state.defenseTeam,
+        attack: state.team,
+      },
+    ];
+  }
+  const mode = state.paidArenaMode;
+  const count = PAID_ARENA_TEAM_COUNTS[mode] || 0;
+  const defenseRows = getPaidArenaTeams(mode, "defense");
+  const attackRows = getPaidArenaTeams(mode, "attack");
+  return Array.from({ length: count }, (_, index) => ({
+    label: `ROUND ${index + 1}`,
+    defense: defenseRows[index] || Array(TEAM_SIZE).fill(null),
+    attack: attackRows[index] || Array(TEAM_SIZE).fill(null),
+  }));
+}
+
+function hasAnyReportTeamMember(rows = getReportPreviewRows()) {
+  return rows.some((row) =>
+    [...(row.defense || []), ...(row.attack || [])].some(Boolean),
+  );
+}
+
+function getReportTeamColumnHasMember(rows, teamKey) {
+  return rows.some((row) => (row[teamKey] || []).some(Boolean));
+}
+
+function getReportPreviewSlotMarkup(character, index) {
+  const rarityClass = getTeamSlotRarityClass(character);
+  if (!character) {
+    return `
+      <span class="report-preview-slot">
+        <span class="position">P${index + 1}</span>
+        <span class="team-avatar empty-avatar">+</span>
+      </span>
+    `;
+  }
+  return `
+    <span class="report-preview-slot filled${rarityClass}">
+      <span class="position">P${index + 1}</span>
+      <span class="team-avatar">${getAvatarMarkup(character)}</span>
+      <span class="report-preview-name">${escapeHtml(getCharacterLocalizedName(character))}</span>
+    </span>
+  `;
+}
+
+function getReportPreviewRowMarkup(row, teamKey) {
+  const team = row[teamKey] || Array(TEAM_SIZE).fill(null);
+  return `
+    <div class="report-preview-row">
+      ${row.label ? `<span class="report-preview-round">${escapeHtml(row.label)}</span>` : ""}
+      <div class="report-preview-slots">
+        ${team.map((character, index) => getReportPreviewSlotMarkup(character, index)).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function closeReportMatchModal() {
+  document.querySelector(".report-modal-backdrop")?.remove();
+}
+
+function openReportMatchModal() {
+  closeReportMatchModal();
+  const rows = getReportPreviewRows();
+  const hasAnyTeam = hasAnyReportTeamMember(rows);
+  const defenseHasMember = getReportTeamColumnHasMember(rows, "defense");
+  const attackHasMember = getReportTeamColumnHasMember(rows, "attack");
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "help-modal-backdrop report-modal-backdrop";
+  backdrop.innerHTML = `
+    <section class="help-modal report-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("上报对局结果", "Report match result"))}">
+      <div class="help-modal-head">
+        <div>
+          <span class="help-modal-kicker">Report</span>
+          <strong>${escapeHtml(localize("请选择获胜的队伍。", "Select the winning team."))}</strong>
+        </div>
+        <button class="help-modal-close" type="button" aria-label="${escapeHtml(localize("关闭", "Close"))}">X</button>
+      </div>
+      <div class="help-modal-content report-modal-content">
+        <div class="report-choice-grid">
+          <button class="report-choice-card team-defense" type="button" data-winner="defense" ${defenseHasMember ? "" : "disabled"}>
+            <strong>${escapeHtml(getTeamLabel("defense"))}</strong>
+            ${rows.map((row) => getReportPreviewRowMarkup(row, "defense")).join("")}
+          </button>
+          <button class="report-choice-card team-attack" type="button" data-winner="attack" ${attackHasMember ? "" : "disabled"}>
+            <strong>${escapeHtml(getTeamLabel("attack"))}</strong>
+            ${rows.map((row) => getReportPreviewRowMarkup(row, "attack")).join("")}
+          </button>
+        </div>
+        ${hasAnyTeam ? "" : `<p class="report-modal-empty">${escapeHtml(localize("没有可上报的队伍。", "No team to report."))}</p>`}
+      </div>
+      <div class="report-modal-actions">
+        <button class="report-modal-cancel" type="button">${escapeHtml(localize("取消", "Cancel"))}</button>
+        <button class="report-modal-submit" type="button" disabled>${escapeHtml(localize("提交", "Submit"))}</button>
+      </div>
+    </section>
+  `;
+
+  let selectedWinner = null;
+  const submitButton = backdrop.querySelector(".report-modal-submit");
+  const updateSubmitState = () => {
+    submitButton.disabled = !hasAnyTeam || !selectedWinner;
+  };
+
+  backdrop.querySelectorAll(".report-choice-card").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      selectedWinner = button.dataset.winner;
+      backdrop.querySelectorAll(".report-choice-card").forEach((card) => {
+        card.classList.toggle("is-selected", card === button);
+      });
+      updateSubmitState();
+    });
+  });
+
+  backdrop.querySelector(".help-modal-close").addEventListener("click", closeReportMatchModal);
+  backdrop.querySelector(".report-modal-cancel").addEventListener("click", closeReportMatchModal);
+  submitButton.addEventListener("click", async () => {
+    if (!selectedWinner || submitButton.disabled) return;
+    submitButton.disabled = true;
+    closeReportMatchModal();
+    await submitMatchReport({ winner: selectedWinner });
+  });
+  backdrop.addEventListener("click", (event) => {
+    if (event.target === backdrop) closeReportMatchModal();
+  });
+
+  document.body.append(backdrop);
+  updateSubmitState();
+}
+
+async function submitMatchReport(options = {}) {
+  const payload = buildMatchReportPayload(options.winner);
   if (!hasReportableMembers(payload.defenseTeam) && !hasReportableMembers(payload.attackTeam)) {
     showToast(localize("队伍为空，无法上报", "Team is empty. Nothing to report."));
     return;
@@ -11339,10 +11480,10 @@ function bindEvents() {
   els.paidPModeButton?.addEventListener("click", () => openPaidArenaFeature("p"));
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.teamShareButton?.addEventListener("click", handleCopyButtonClick);
-  els.reportMatchButton?.addEventListener("click", submitMatchReport);
+  els.reportMatchButton?.addEventListener("click", openReportMatchModal);
   els.mobileShareFab?.addEventListener("click", handleCopyButtonClick);
   els.ocrUploadButton?.addEventListener("click", openOcrUploadDialog);
-  els.floatingReportButton?.addEventListener("click", submitMatchReport);
+  els.floatingReportButton?.addEventListener("click", openReportMatchModal);
   els.ocrUploadInput?.addEventListener("change", (event) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -11425,6 +11566,7 @@ function bindEvents() {
   window.addEventListener("resize", hideFloatingTooltips);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && isHelpModalOpen) closeHelpModal();
+    if (event.key === "Escape") closeReportMatchModal();
     if (event.key === "Escape") closeChangelogModal();
     if (event.key === "Escape") setSidebarOpen(false);
     if (event.key === "Escape") closePaidFeatureModal();

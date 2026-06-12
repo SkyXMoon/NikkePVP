@@ -3710,6 +3710,37 @@ input:focus {
   background: rgba(12, 153, 170, 0.12);
 }
 
+:root[data-theme="light"] .report-choice-card {
+  border-color: rgba(84, 103, 126, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme="light"] .report-choice-card.team-defense.is-selected {
+  border-color: rgba(34, 111, 198, 0.82);
+  background: rgba(34, 111, 198, 0.12);
+}
+
+:root[data-theme="light"] .report-choice-card.team-attack.is-selected {
+  border-color: rgba(197, 45, 66, 0.82);
+  background: rgba(197, 45, 66, 0.12);
+}
+
+:root[data-theme="light"] .report-modal-actions {
+  border-top-color: rgba(84, 103, 126, 0.14);
+  background: rgba(232, 239, 248, 0.62);
+}
+
+:root[data-theme="light"] .report-modal-actions button {
+  border-color: rgba(84, 103, 126, 0.28);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme="light"] .report-modal-submit:not(:disabled) {
+  border-color: rgba(12, 153, 170, 0.82);
+  color: #ffffff;
+  background: #0c99aa;
+}
+
 :root[data-theme="light"] .help-section {
   border-color: rgba(84, 103, 126, 0.14);
   background: rgba(232, 239, 248, 0.56);
@@ -3937,6 +3968,166 @@ input:focus {
   margin-top: 0;
 }
 
+.report-modal {
+  width: min(920px, calc(100vw - 32px));
+  max-height: min(86vh, 760px);
+}
+
+.report-modal-content {
+  padding: 16px;
+}
+
+.report-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.report-choice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid rgba(235, 241, 248, 0.16);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.045);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+
+.report-choice-card:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.report-choice-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.report-choice-card.team-defense.is-selected {
+  border-color: rgba(77, 163, 255, 0.95);
+  background: rgba(77, 163, 255, 0.14);
+  box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.34) inset;
+}
+
+.report-choice-card.team-attack.is-selected {
+  border-color: rgba(228, 63, 79, 0.95);
+  background: rgba(228, 63, 79, 0.14);
+  box-shadow: 0 0 0 1px rgba(228, 63, 79, 0.34) inset;
+}
+
+.report-choice-card > strong {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.report-preview-row {
+  display: grid;
+  gap: 6px;
+}
+
+.report-preview-round {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.report-preview-slots {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.report-preview-slot {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  min-width: 0;
+}
+
+.report-preview-slot .position {
+  position: static;
+  color: var(--quiet);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.report-preview-slot .team-avatar {
+  width: 58px;
+  height: 58px;
+}
+
+.report-preview-slot.filled.rarity-ssr .team-avatar {
+  border-color: #f0c45c;
+}
+
+.report-preview-slot.filled.rarity-sr .team-avatar {
+  border-color: #a65cff;
+}
+
+.report-preview-name {
+  width: 100%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-modal-empty {
+  margin: 12px 0 0;
+  color: var(--quiet);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.report-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid rgba(242, 245, 250, 0.1);
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.report-modal-actions button {
+  min-width: 82px;
+  border: 1px solid rgba(235, 241, 248, 0.26);
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.report-modal-actions button:hover:not(:disabled) {
+  border-color: rgba(71, 200, 212, 0.9);
+  background: rgba(71, 200, 212, 0.14);
+}
+
+.report-modal-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.report-modal-submit:not(:disabled) {
+  border-color: rgba(71, 200, 212, 0.82);
+  color: #041014;
+  background: var(--cyan);
+}
+
 .sub-metrics {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4056,6 +4247,15 @@ summary {
 @media (max-width: 760px) {
   .app-shell {
     padding: 10px;
+  }
+
+  .report-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-preview-slot .team-avatar {
+    width: 52px;
+    height: 52px;
   }
 
   .filters {
