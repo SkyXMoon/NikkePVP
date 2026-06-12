@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.241";
+const APP_VERSION = "V1.28.242";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化上报弹窗尺寸与队伍标签",
   "调整上报弹窗队伍显示顺序",
   "优化上报弹窗ROUND展示与分栏布局",
   "调整对局上报为数组结构",
@@ -11239,13 +11240,11 @@ function getReportRoundMatchMarkup(row, rowIndex) {
     <div class="report-round-match">
       <span class="report-preview-round">${escapeHtml(row.label)}</span>
       <div class="report-round-teams">
-        <button class="report-choice-card report-round-team team-attack" type="button" data-winner="attack" data-round-index="${rowIndex}">
-          <strong>${escapeHtml(getTeamLabel("attack"))}</strong>
+        <button class="report-choice-card report-round-team team-attack" type="button" data-winner="attack" data-round-index="${rowIndex}" aria-label="${escapeHtml(getTeamLabel("attack"))}">
           ${getReportPreviewRowMarkup({ ...row, label: "" }, "attack")}
         </button>
         <span class="report-round-vs">VS</span>
-        <button class="report-choice-card report-round-team team-defense" type="button" data-winner="defense" data-round-index="${rowIndex}">
-          <strong>${escapeHtml(getTeamLabel("defense"))}</strong>
+        <button class="report-choice-card report-round-team team-defense" type="button" data-winner="defense" data-round-index="${rowIndex}" aria-label="${escapeHtml(getTeamLabel("defense"))}">
           ${getReportPreviewRowMarkup({ ...row, label: "" }, "defense")}
         </button>
       </div>
