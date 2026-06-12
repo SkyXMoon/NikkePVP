@@ -245,6 +245,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复冠军/特殊竞技场空枪成对计算",
   "修正灰姑娘被RL命中或波及时的诱饵hit",
   "整合帮助页缩写与图标说明",
   "修复充能图表关键点英文角色名",
@@ -254,7 +255,6 @@ const CHANGELOG_ITEMS = [
   "补全英文界面核心内容",
   "优化角色数量统计口径",
   "调整帮助页图片识别排序",
-  "优化帮助页使用顺序说明",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -5928,6 +5928,179 @@ function simulatePaidArenaBurst(
   }
 }
 
+function getPaidArenaSimulationContext(mode, teamKey, rowIndex = state.paidArenaActiveRowIndex) {
+  const normalizedMode = normalizePaidArenaMode(mode);
+  const normalizedTeamKey = normalizeTeamKey(teamKey);
+  const teams = getPaidArenaTeams(normalizedMode, normalizedTeamKey);
+  const normalizedRowIndex = Math.max(0, Math.min(teams.length - 1, Number(rowIndex) || 0));
+  const team = teams[normalizedRowIndex] || Array(TEAM_SIZE).fill(null);
+  const universalCharges = getPaidArenaUniversalCharges(normalizedMode, normalizedTeamKey)[normalizedRowIndex] || Array(TEAM_SIZE).fill(0);
+  const sacrificeFrames = getPaidArenaRosannaSacrificeFrames(normalizedMode, normalizedTeamKey)[normalizedRowIndex] || Array(TEAM_SIZE).fill(null);
+  const redHoodPierceCounts = getPaidArenaRedHoodPierceCounts(normalizedMode, normalizedTeamKey)[normalizedRowIndex] || Array(TEAM_SIZE).fill(0);
+  const scarletCounterEnabled = getPaidArenaScarletCounterEnabled(normalizedMode, normalizedTeamKey)[normalizedRowIndex] || Array(TEAM_SIZE).fill(true);
+  const jackalLink = normalizePaidArenaLinkForTeam(team, getPaidArenaJackalLinks(normalizedMode, normalizedTeamKey)[normalizedRowIndex]);
+  const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, normalizedTeamKey);
+  return {
+    mode: normalizedMode,
+    teamKey: normalizedTeamKey,
+    rowIndex: normalizedRowIndex,
+    team,
+    universalCharges,
+    sacrificeFrames,
+    redHoodPierceCounts,
+    scarletCounterEnabled,
+    jackalLink,
+    chargeSpeeds,
+    result: null,
+  };
+}
+
+function withPaidArenaSimulationState(attackContext, defenseContext, callback) {
+  const previousTeam = state.team;
+  const previousDefenseTeam = state.defenseTeam;
+  const previousChargeSpeeds = state.chargeSpeeds;
+  const previousDefenseChargeSpeeds = state.defenseChargeSpeeds;
+  const previousRedHoodCounts = state.redHoodPierceCounts;
+  const previousDefenseRedHoodCounts = state.defenseRedHoodPierceCounts;
+  const previousScarletCounterEnabled = state.scarletCounterEnabled;
+  const previousDefenseScarletCounterEnabled = state.defenseScarletCounterEnabled;
+  const previousJackalLinks = state.jackalLinks;
+  const previousQuantumCubes = state.characterQuantumCubes.attack;
+  const previousDefenseQuantumCubes = state.characterQuantumCubes.defense;
+  const previousMagazines = state.characterMagazines.attack;
+  const previousDefenseMagazines = state.characterMagazines.defense;
+  const previousRedHoodPierceCounts = state.characterRedHoodPierceCounts.attack;
+  const previousDefenseRedHoodPierceCounts = state.characterRedHoodPierceCounts.defense;
+
+  state.team = [...(attackContext?.team || [])];
+  state.defenseTeam = [...(defenseContext?.team || [])];
+  state.chargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeChargeSpeed(attackContext?.chargeSpeeds?.[index]));
+  state.defenseChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeChargeSpeed(defenseContext?.chargeSpeeds?.[index]));
+  state.redHoodPierceCounts = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeRedHoodPierceCount(attackContext?.redHoodPierceCounts?.[index]));
+  state.defenseRedHoodPierceCounts = Array.from({ length: TEAM_SIZE }, (_, index) =>
+    sanitizeRedHoodPierceCount(defenseContext?.redHoodPierceCounts?.[index]),
+  );
+  state.scarletCounterEnabled = Array.from({ length: TEAM_SIZE }, (_, index) =>
+    sanitizeScarletCounterEnabled(attackContext?.scarletCounterEnabled?.[index]),
+  );
+  state.defenseScarletCounterEnabled = Array.from({ length: TEAM_SIZE }, (_, index) =>
+    sanitizeScarletCounterEnabled(defenseContext?.scarletCounterEnabled?.[index]),
+  );
+  state.jackalLinks = {
+    ...state.jackalLinks,
+    attack: {
+      ...(attackContext?.jackalLink || createEmptyJackalLinkState()),
+      targetIds: [...(attackContext?.jackalLink?.targetIds || [])],
+    },
+    defense: {
+      ...(defenseContext?.jackalLink || createEmptyJackalLinkState()),
+      targetIds: [...(defenseContext?.jackalLink?.targetIds || [])],
+    },
+  };
+  normalizeJackalLink("attack");
+  normalizeJackalLink("defense");
+  state.characterQuantumCubes.attack = getCharacterQuantumCubeMemory("attack");
+  state.characterQuantumCubes.defense = getCharacterQuantumCubeMemory("defense");
+  state.characterMagazines.attack = getCharacterMagazineMemory("attack");
+  state.characterMagazines.defense = getCharacterMagazineMemory("defense");
+  state.characterRedHoodPierceCounts.attack = getCharacterRedHoodPierceCountMemory("attack");
+  state.characterRedHoodPierceCounts.defense = getCharacterRedHoodPierceCountMemory("defense");
+
+  try {
+    return callback();
+  } finally {
+    state.team = previousTeam;
+    state.defenseTeam = previousDefenseTeam;
+    state.chargeSpeeds = previousChargeSpeeds;
+    state.defenseChargeSpeeds = previousDefenseChargeSpeeds;
+    state.redHoodPierceCounts = previousRedHoodCounts;
+    state.defenseRedHoodPierceCounts = previousDefenseRedHoodCounts;
+    state.scarletCounterEnabled = previousScarletCounterEnabled;
+    state.defenseScarletCounterEnabled = previousDefenseScarletCounterEnabled;
+    state.jackalLinks = previousJackalLinks;
+    state.characterQuantumCubes.attack = previousQuantumCubes;
+    state.characterQuantumCubes.defense = previousDefenseQuantumCubes;
+    state.characterMagazines.attack = previousMagazines;
+    state.characterMagazines.defense = previousDefenseMagazines;
+    state.characterRedHoodPierceCounts.attack = previousRedHoodPierceCounts;
+    state.characterRedHoodPierceCounts.defense = previousDefenseRedHoodPierceCounts;
+  }
+}
+
+function computePaidArenaBattleResultsForRow(rowIndex = state.paidArenaActiveRowIndex) {
+  if (!isPaidArenaModeActive()) return { attackResult: null, defenseResult: null };
+  const mode = state.paidArenaMode;
+  const attackContext = getPaidArenaSimulationContext(mode, "attack", rowIndex);
+  const defenseContext = getPaidArenaSimulationContext(mode, "defense", rowIndex);
+  return withPaidArenaSimulationState(attackContext, defenseContext, () => {
+    const attackStunWindows = getStunWindowsForTeam("attack");
+    const defenseStunWindows = getStunWindowsForTeam("defense");
+    const defenseTauntTarget = getTauntTargetState(state.defenseTeam, "defense", state.defenseChargeSpeeds);
+    const attackTauntTarget = getTauntTargetState(state.team, "attack", state.chargeSpeeds);
+    let attackResult = simulateBurst(
+      state.team,
+      "attack",
+      [],
+      [],
+      [],
+      attackStunWindows,
+      defenseTauntTarget,
+      attackContext.universalCharges,
+      state.defenseTeam,
+      attackContext.sacrificeFrames,
+    );
+    let defenseResult = simulateBurst(
+      state.defenseTeam,
+      "defense",
+      [],
+      [],
+      [],
+      defenseStunWindows,
+      attackTauntTarget,
+      defenseContext.universalCharges,
+      state.team,
+      defenseContext.sacrificeFrames,
+    );
+
+    for (let index = 0; index < 8; index += 1) {
+      const attackSpecials = getSpecialChargeEventsForTeam(attackResult, defenseResult);
+      const defenseSpecials = getSpecialChargeEventsForTeam(defenseResult, attackResult);
+      const nextAttackResult = simulateBurst(
+        state.team,
+        "attack",
+        attackSpecials,
+        defenseResult?.reloadTimeline || [],
+        defenseResult?.turnDodgeTimeline || [],
+        attackStunWindows,
+        defenseTauntTarget,
+        attackContext.universalCharges,
+        state.defenseTeam,
+        attackContext.sacrificeFrames,
+      );
+      const nextDefenseResult = simulateBurst(
+        state.defenseTeam,
+        "defense",
+        defenseSpecials,
+        attackResult?.reloadTimeline || [],
+        attackResult?.turnDodgeTimeline || [],
+        defenseStunWindows,
+        attackTauntTarget,
+        defenseContext.universalCharges,
+        state.team,
+        defenseContext.sacrificeFrames,
+      );
+      const stable =
+        getResultSignature(nextAttackResult) === getResultSignature(attackResult) &&
+        getResultSignature(nextDefenseResult) === getResultSignature(defenseResult);
+      attackResult = nextAttackResult;
+      defenseResult = nextDefenseResult;
+      if (stable) break;
+    }
+
+    return { attackResult, defenseResult, attackContext, defenseContext };
+  });
+}
+
 function getPaidArenaPickedIds(mode = state.paidArenaMode) {
   return new Set(getPaidArenaTeams(mode).flat().filter(Boolean).map((character) => character.id));
 }
@@ -7895,10 +8068,8 @@ function getActivePaidArenaChartResults() {
   const mode = state.paidArenaMode;
   const teams = getPaidArenaTeams(mode);
   const rowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
-  return {
-    attackResult: getPaidArenaChartResultForTeam("attack", rowIndex),
-    defenseResult: getPaidArenaChartResultForTeam("defense", rowIndex),
-  };
+  const { attackResult, defenseResult } = computePaidArenaBattleResultsForRow(rowIndex);
+  return { attackResult, defenseResult };
 }
 
 function estimateChartLabelWidth(label) {
@@ -10246,37 +10417,14 @@ async function paidArenaToPngBlob() {
   };
   const linkIcon = await loadExportAsset("assets/icons/ui/link.svg");
   const pierceIcon = await loadExportAsset("assets/icons/ui/pierce.svg");
+  const pairedResultsByRow = Array.from({ length: teamCount }, (_, rowIndex) => computePaidArenaBattleResultsForRow(rowIndex));
 
   const getExportRow = (teamKey, rowIndex) => {
     const normalizedTeamKey = normalizeTeamKey(teamKey);
-    const team = getPaidArenaTeams(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(null);
-    const universalCharges = getPaidArenaUniversalCharges(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(0);
-    const sacrificeFrames = getPaidArenaRosannaSacrificeFrames(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(null);
-    const redHoodPierceCounts = getPaidArenaRedHoodPierceCounts(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(0);
-    const scarletCounterEnabled = getPaidArenaScarletCounterEnabled(mode, normalizedTeamKey)[rowIndex] || Array(TEAM_SIZE).fill(true);
-    const jackalLink = normalizePaidArenaLinkForTeam(team, getPaidArenaJackalLinks(mode, normalizedTeamKey)[rowIndex]);
-    const chargeSpeeds = getPaidArenaTeamChargeSpeeds(team, normalizedTeamKey);
-    const result = simulatePaidArenaBurst(
-      team,
-      chargeSpeeds,
-      universalCharges,
-      sacrificeFrames,
-      redHoodPierceCounts,
-      scarletCounterEnabled,
-      jackalLink,
-      normalizedTeamKey,
-    );
-    return {
-      teamKey: normalizedTeamKey,
-      team,
-      universalCharges,
-      sacrificeFrames,
-      redHoodPierceCounts,
-      scarletCounterEnabled,
-      jackalLink,
-      chargeSpeeds,
-      result,
-    };
+    const pairedResult = pairedResultsByRow[rowIndex] || {};
+    const context = normalizedTeamKey === "defense" ? pairedResult.defenseContext : pairedResult.attackContext;
+    const result = normalizedTeamKey === "defense" ? pairedResult.defenseResult : pairedResult.attackResult;
+    return { ...context, teamKey: normalizedTeamKey, result };
   };
 
   const drawInfoPill = (x, y, rowData) => {
