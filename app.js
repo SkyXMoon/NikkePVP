@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.245";
+const APP_VERSION = "V1.28.246";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,19 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
-  "隐藏未开放的上报入口",
-  "优化上报弹窗队伍名颜色",
-  "优化上报弹窗队伍预览信息",
-  "优化上报弹窗尺寸与队伍标签",
-  "调整上报弹窗队伍显示顺序",
-  "优化上报弹窗ROUND展示与分栏布局",
-  "调整对局上报为数组结构",
-  "优化冠军和特殊竞技场上报胜方选择",
-  "冠军和特殊竞技场上报按ROUND展示并要求5v5",
-  "优化上报胜方选择窗口布局",
-  "上报前增加胜方选择确认窗口",
-  "新增右侧悬浮上报入口",
-  "新增对局结果上报入口，为后续队伍推荐功能积累数据",
+  "整理更新日志展示内容",
   "恢复哈兰中毒后续60F跳",
   "临时关闭哈兰中毒后续跳",
   "修正筛选排序说明显示完整名称",
