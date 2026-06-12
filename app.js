@@ -249,6 +249,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "临时关闭哈兰中毒后续跳",
   "修正筛选排序说明显示完整名称",
   "修正哈兰中毒仅本体1hit",
   "调整哈兰中毒按目标触发",
@@ -258,7 +259,6 @@ const CHANGELOG_ITEMS = [
   "修复充能图表关键点英文角色名",
   "修复英文筛选与空枪按钮显示",
   "补全充能轴英文提示",
-  "调整筛选按钮和分享图角标",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -2549,7 +2549,6 @@ function getHarranPoisonEvents(event, currentFrame, hitProfile = null) {
         targetHits: [[targetPositionIndex, 1]],
         source: "harran-poison",
         label: `中毒充能：${targetLabel}`,
-        repeatFrames: 60,
       };
     });
 }
@@ -2641,8 +2640,8 @@ function getChargeBreakdown(character) {
   if (isHarran(character)) {
     lines.push(
       localize(
-        `中毒充能：命中新目标后2F首次触发，之后每60F +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
-        `Poison charge: first tick 2F after hitting a new target, then every 60F +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
+        `中毒充能：命中新目标后2F首次触发 +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
+        `Poison charge: first tick 2F after hitting a new target +${formatChargeNumber(getHarranPoisonChargeValue(character))}%`,
       ),
     );
   } else if (character.delayedExtraHits?.length) {
