@@ -18,8 +18,9 @@ const THEME_STORAGE_KEY = "nikke-arena-theme";
 const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
+const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.29.257";
+const APP_VERSION = "V1.29.258";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -255,6 +256,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化对局上报身份兼容性",
   "收窄OCR英数角色名匹配范围",
   "精简OCR预览窗口提示文案",
   "优化OCR预览窗口减少滚动条",
@@ -11207,12 +11209,73 @@ function getReportClientFingerprint() {
   try {
     const existing = localStorage.getItem(REPORT_CLIENT_STORAGE_KEY);
     if (existing) return existing;
-    const generated = crypto?.randomUUID?.() || `client-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const generated = createReportUuid();
     localStorage.setItem(REPORT_CLIENT_STORAGE_KEY, generated);
     return generated;
   } catch {
     return "";
   }
+}
+
+function createReportUuid() {
+  try {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+    const bytes = new Uint8Array(16);
+    if (!globalThis.crypto?.getRandomValues) throw new Error("crypto unavailable");
+    globalThis.crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    return Array.from(bytes, (byte, index) => {
+      const value = byte.toString(16).padStart(2, "0");
+      return [4, 6, 8, 10].includes(index) ? `-${value}` : value;
+    }).join("");
+  } catch {
+    return `00000000-0000-4000-8000-${Math.random().toString(16).slice(2, 14).padEnd(12, "0")}`;
+  }
+}
+
+function readReportAnonymousUserState() {
+  try {
+    const raw = localStorage.getItem(REPORT_ANONYMOUS_USER_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || typeof parsed.anonymousUserId !== "string") return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function getReportAnonymousUserState() {
+  try {
+    const nowIso = new Date().toISOString();
+    const existing = readReportAnonymousUserState();
+    const nextState = {
+      schemaVersion: 1,
+      anonymousUserId: existing?.anonymousUserId || createReportUuid(),
+      createdAt: existing?.createdAt || nowIso,
+      lastSeenAt: nowIso,
+      source: "web",
+    };
+    localStorage.setItem(REPORT_ANONYMOUS_USER_STORAGE_KEY, JSON.stringify(nextState));
+    return nextState;
+  } catch {
+    return {
+      schemaVersion: 1,
+      anonymousUserId: createReportUuid(),
+      createdAt: "",
+      lastSeenAt: "",
+      source: "web",
+    };
+  }
+}
+
+function getReportIdentityPayload() {
+  const anonymousState = getReportAnonymousUserState();
+  return {
+    anonymousUserId: anonymousState.anonymousUserId,
+    clientFingerprint: getReportClientFingerprint(),
+  };
 }
 
 function getReportArenaMode() {
@@ -11315,7 +11378,7 @@ function buildNormalReportPayload(winner = "unknown") {
     attackResult: serializeReportResult(battleResults?.attackResult) || {},
     winner: normalizeReportWinner(winner),
     reportNote: null,
-    clientFingerprint: getReportClientFingerprint(),
+    ...getReportIdentityPayload(),
     source: "web",
   };
 }
@@ -11363,7 +11426,7 @@ function buildPaidArenaReportPayload(winners = []) {
       },
       winner: normalizeReportWinner(winners[rowIndex]),
       reportNote: null,
-      clientFingerprint: getReportClientFingerprint(),
+      ...getReportIdentityPayload(),
       source: "web",
     };
   });
