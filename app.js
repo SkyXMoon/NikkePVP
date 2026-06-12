@@ -47,7 +47,9 @@ const UI_TEXTS = {
     sortSummaryLabel: "排序：",
     sortSummaryBy: "充能从高到低",
     filterCommon: "常",
+    filterCommonSummary: "常用",
     filterRegionCN: "国",
+    filterRegionCNSummary: "国服",
     filterRegionGlobal: "国际服",
     filterBurst: "爆裂",
     summaryTeamLabels: {
@@ -92,7 +94,9 @@ const UI_TEXTS = {
     sortSummaryLabel: "Sort:",
     sortSummaryBy: "Charge desc",
     filterCommon: "PVP",
+    filterCommonSummary: "PVP",
     filterRegionCN: "CN",
+    filterRegionCNSummary: "CN",
     filterRegionGlobal: "Global",
     filterBurst: "Burst ",
     summaryTeamLabels: {
@@ -245,6 +249,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修正筛选排序说明显示完整名称",
   "修正哈兰中毒仅本体1hit",
   "调整哈兰中毒按目标触发",
   "修复冠军/特殊竞技场空枪成对计算",
@@ -254,7 +259,6 @@ const CHANGELOG_ITEMS = [
   "修复英文筛选与空枪按钮显示",
   "补全充能轴英文提示",
   "调整筛选按钮和分享图角标",
-  "补全英文界面核心内容",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -11252,8 +11256,8 @@ function updateSortSummary() {
   const filters = [];
   const stage = normalizeStageFilter(state.filters.stage);
   if (stage !== "all") filters.push(`${ui.filterBurst || "爆裂"}${stage.replace("B", "")}`);
-  if (state.filters.common === "common") filters.push(ui.filterCommon);
-  if (state.filters.region === "cn") filters.push(ui.filterRegionCN);
+  if (state.filters.common === "common") filters.push(ui.filterCommonSummary || ui.filterCommon);
+  if (state.filters.region === "cn") filters.push(ui.filterRegionCNSummary || ui.filterRegionCN);
   if (state.filters.region === "global") filters.push(ui.filterRegionGlobal);
   els.sortSummary.textContent = ui.sortSummaryLabel;
   const sortText = document.createElement("strong");
