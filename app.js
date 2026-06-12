@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.29.256";
+const APP_VERSION = "V1.29.257";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -131,6 +131,7 @@ const OCR_MAX_RETRY_COUNT = 5;
 const OCR_JPEG_QUALITIES = [1, 0.95, 0.9, 0.85, 0.8];
 const OCR_MAX_CROP_SELECTIONS = 2;
 const OCR_MIN_TEXT_LUMINANCE_THRESHOLD = 118;
+const OCR_RAW_SPECIAL_NAME_MATCHES = new Set(["A2", "2B"]);
 const WEAPON_LABELS = {
   SMG: "冲锋枪",
   AR: "步枪",
@@ -254,6 +255,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "收窄OCR英数角色名匹配范围",
   "精简OCR预览窗口提示文案",
   "优化OCR预览窗口减少滚动条",
   "优化OCR图片预处理减少暗背景文字干扰",
@@ -981,43 +983,6 @@ function normalizeOcrRawTextForSpecialName(rawName) {
     .toUpperCase();
 }
 
-function findRawOcrSpecialNameMatches(rawText) {
-  const normalizedRawText = normalizeOcrRawTextForSpecialName(rawText);
-  if (!normalizedRawText || !Array.isArray(CHARACTERS)) return [];
-  const entries = CHARACTERS.flatMap((character) => {
-    const names = [character?.name, character?.nameCodeName];
-    const seen = new Set();
-    return names
-      .map((name) => String(name || "").trim())
-      .filter((name) => /[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]/.test(name))
-      .map((name) => normalizeOcrRawTextForSpecialName(name))
-      .filter((name) => {
-        if (!name || seen.has(name)) return false;
-        seen.add(name);
-        return true;
-      })
-      .flatMap((name) => {
-        const variants = [name, name.replace(/:/g, "")].filter(Boolean);
-        return [...new Set(variants)].map((variant) => ({ character, name: variant }));
-      });
-  }).sort((a, b) => b.name.length - a.name.length);
-  const occupiedRanges = [];
-  const matches = [];
-  entries.forEach((entry) => {
-    let position = normalizedRawText.indexOf(entry.name);
-    while (position >= 0) {
-      const end = position + entry.name.length;
-      const overlaps = occupiedRanges.some((range) => position < range.end && end > range.start);
-      if (!overlaps) {
-        occupiedRanges.push({ start: position, end });
-        matches.push({ character: entry.character, position, length: entry.name.length });
-      }
-      position = normalizedRawText.indexOf(entry.name, position + Math.max(1, entry.name.length));
-    }
-  });
-  return matches.sort((a, b) => a.position - b.position || b.length - a.length).map((match) => match.character);
-}
-
 function getOcrSpecialNameEntries() {
   if (!Array.isArray(CHARACTERS)) return [];
   return CHARACTERS.flatMap((character) => {
@@ -1025,7 +990,7 @@ function getOcrSpecialNameEntries() {
     const seen = new Set();
     return names
       .map((name) => String(name || "").trim())
-      .filter((name) => /[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]/.test(name))
+      .filter((name) => OCR_RAW_SPECIAL_NAME_MATCHES.has(normalizeOcrRawTextForSpecialName(name)))
       .map((name) => normalizeOcrRawTextForSpecialName(name))
       .filter((name) => {
         if (!name || seen.has(name)) return false;
