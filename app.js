@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.29.249";
+const APP_VERSION = "V1.29.250";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -253,6 +253,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化OCR对英文和数字角色名的识别",
   "修复OCR快捷选区按钮点击无效",
   "OCR预览窗口增加左右/上下快速选区",
   "OCR图片识别支持最多2个不重叠选区",
@@ -960,6 +961,52 @@ function normalizeOcrCharacterName(rawName) {
     .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:]/g, "");
 }
 
+function normalizeOcrRawTextForSpecialName(rawName) {
+  return String(rawName || "")
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0xFEE0))
+    .replace(/[：\uFE13\uFE55\uFF1A]/g, ":")
+    .replace(/[\s\u00A0\u3000]+/g, "")
+    .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:A-Za-z0-9]/g, "")
+    .toUpperCase();
+}
+
+function findRawOcrSpecialNameMatches(rawText) {
+  const normalizedRawText = normalizeOcrRawTextForSpecialName(rawText);
+  if (!normalizedRawText || !Array.isArray(CHARACTERS)) return [];
+  const entries = CHARACTERS.flatMap((character) => {
+    const names = [character?.name, character?.nameCodeName];
+    const seen = new Set();
+    return names
+      .map((name) => String(name || "").trim())
+      .filter((name) => /[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]/.test(name))
+      .map((name) => normalizeOcrRawTextForSpecialName(name))
+      .filter((name) => {
+        if (!name || seen.has(name)) return false;
+        seen.add(name);
+        return true;
+      })
+      .flatMap((name) => {
+        const variants = [name, name.replace(/:/g, "")].filter(Boolean);
+        return [...new Set(variants)].map((variant) => ({ character, name: variant }));
+      });
+  }).sort((a, b) => b.name.length - a.name.length);
+  const occupiedRanges = [];
+  const matches = [];
+  entries.forEach((entry) => {
+    let position = normalizedRawText.indexOf(entry.name);
+    while (position >= 0) {
+      const end = position + entry.name.length;
+      const overlaps = occupiedRanges.some((range) => position < range.end && end > range.start);
+      if (!overlaps) {
+        occupiedRanges.push({ start: position, end });
+        matches.push({ character: entry.character, position, length: entry.name.length });
+      }
+      position = normalizedRawText.indexOf(entry.name, position + Math.max(1, entry.name.length));
+    }
+  });
+  return matches.sort((a, b) => a.position - b.position || b.length - a.length).map((match) => match.character);
+}
+
 const OCR_COLON_PREFERRED_VARIANTS = {
   "阿妮斯:": "阿妮斯:闪耀夏日",
 };
@@ -1017,6 +1064,7 @@ function getOcrColonMatchPriority(line, entry) {
 }
 
 function parseFileNamesFromOcrText(rawText) {
+  const rawSpecialMatches = findRawOcrSpecialNameMatches(rawText);
   const lines = String(rawText || "")
     .replace(/\r/g, "")
     .split("\n")
@@ -1043,6 +1091,9 @@ function parseFileNamesFromOcrText(rawText) {
 
   const matched = [];
   const warnings = [];
+  rawSpecialMatches.forEach((character) => {
+    if (character?.id) matched.push(character);
+  });
 
   lines.forEach((line) => {
     const containsColon = line.includes(":");
