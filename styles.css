@@ -3715,6 +3715,11 @@ input:focus {
   background: rgba(255, 255, 255, 0.72);
 }
 
+:root[data-theme="light"] .report-round-match {
+  border-color: rgba(84, 103, 126, 0.14);
+  background: rgba(232, 239, 248, 0.46);
+}
+
 :root[data-theme="light"] .report-choice-card.team-defense.is-selected {
   border-color: rgba(34, 111, 198, 0.82);
   background: rgba(34, 111, 198, 0.12);
@@ -3739,6 +3744,10 @@ input:focus {
   border-color: rgba(12, 153, 170, 0.82);
   color: #ffffff;
   background: #0c99aa;
+}
+
+:root[data-theme="light"] .report-modal-warning {
+  color: #a66a00;
 }
 
 :root[data-theme="light"] .help-section {
@@ -4033,6 +4042,38 @@ input:focus {
   width: 100%;
 }
 
+.report-round-list {
+  display: grid;
+  gap: 14px;
+}
+
+.report-round-match {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(235, 241, 248, 0.12);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.report-round-teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.report-round-team {
+  width: 100%;
+}
+
+.report-round-vs {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
 .report-preview-round {
   color: var(--muted);
   font-size: 11px;
@@ -4098,6 +4139,10 @@ input:focus {
   font-size: 13px;
   font-weight: 800;
   text-align: center;
+}
+
+.report-modal-warning {
+  color: #ffb45c;
 }
 
 .report-modal-actions {
@@ -4260,6 +4305,14 @@ summary {
 
   .report-choice-grid {
     grid-template-columns: 1fr;
+  }
+
+  .report-round-teams {
+    grid-template-columns: 1fr;
+  }
+
+  .report-round-vs {
+    line-height: 1;
   }
 
   .report-preview-slot .team-avatar {

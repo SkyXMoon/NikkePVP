@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.236";
+const APP_VERSION = "V1.28.237";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "冠军和特殊竞技场上报按ROUND展示并要求5v5",
   "优化上报胜方选择窗口布局",
   "上报前增加胜方选择确认窗口",
   "新增右侧悬浮上报入口",
@@ -261,7 +262,6 @@ const CHANGELOG_ITEMS = [
   "修正筛选排序说明显示完整名称",
   "修正哈兰中毒仅本体1hit",
   "调整哈兰中毒按目标触发",
-  "修复冠军/特殊竞技场空枪成对计算",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
@@ -11165,6 +11165,25 @@ function getReportTeamColumnHasMember(rows, teamKey) {
   return rows.some((row) => (row[teamKey] || []).some(Boolean));
 }
 
+function isReportTeamFull(team = []) {
+  return Array.isArray(team) && team.length >= TEAM_SIZE && team.slice(0, TEAM_SIZE).every(Boolean);
+}
+
+function getReportRowsFullState(rows = getReportPreviewRows()) {
+  if (!isPaidArenaModeActive()) return { isFull: true, incompleteRounds: [] };
+  const incompleteRounds = rows
+    .map((row, index) => ({
+      round: index + 1,
+      isFull: isReportTeamFull(row.defense) && isReportTeamFull(row.attack),
+    }))
+    .filter((entry) => !entry.isFull)
+    .map((entry) => entry.round);
+  return {
+    isFull: incompleteRounds.length === 0,
+    incompleteRounds,
+  };
+}
+
 function getReportPreviewSlotMarkup(character, index) {
   const rarityClass = getTeamSlotRarityClass(character);
   if (!character) {
@@ -11196,6 +11215,25 @@ function getReportPreviewRowMarkup(row, teamKey) {
   `;
 }
 
+function getReportRoundMatchMarkup(row) {
+  return `
+    <div class="report-round-match">
+      <span class="report-preview-round">${escapeHtml(row.label)}</span>
+      <div class="report-round-teams">
+        <button class="report-choice-card report-round-team team-defense" type="button" data-winner="defense">
+          <strong>${escapeHtml(getTeamLabel("defense"))}</strong>
+          ${getReportPreviewRowMarkup({ ...row, label: "" }, "defense")}
+        </button>
+        <span class="report-round-vs">VS</span>
+        <button class="report-choice-card report-round-team team-attack" type="button" data-winner="attack">
+          <strong>${escapeHtml(getTeamLabel("attack"))}</strong>
+          ${getReportPreviewRowMarkup({ ...row, label: "" }, "attack")}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function closeReportMatchModal() {
   document.querySelector(".report-modal-backdrop")?.remove();
 }
@@ -11204,8 +11242,17 @@ function openReportMatchModal() {
   closeReportMatchModal();
   const rows = getReportPreviewRows();
   const hasAnyTeam = hasAnyReportTeamMember(rows);
+  const paidFullState = getReportRowsFullState(rows);
+  const canSubmitReport = hasAnyTeam && paidFullState.isFull;
   const defenseHasMember = getReportTeamColumnHasMember(rows, "defense");
   const attackHasMember = getReportTeamColumnHasMember(rows, "attack");
+  const isPaidReport = isPaidArenaModeActive();
+  const incompleteText = paidFullState.incompleteRounds.length
+    ? localize(
+        `请补满 ROUND ${paidFullState.incompleteRounds.join(", ")} 的 5v5 队伍后再提交。`,
+        `Fill ROUND ${paidFullState.incompleteRounds.join(", ")} as 5v5 before submitting.`,
+      )
+    : "";
 
   const backdrop = document.createElement("div");
   backdrop.className = "help-modal-backdrop report-modal-backdrop";
@@ -11219,17 +11266,20 @@ function openReportMatchModal() {
         <button class="help-modal-close" type="button" aria-label="${escapeHtml(localize("关闭", "Close"))}">X</button>
       </div>
       <div class="help-modal-content report-modal-content">
-        <div class="report-choice-grid">
-          <button class="report-choice-card team-defense" type="button" data-winner="defense" ${defenseHasMember ? "" : "disabled"}>
-            <strong>${escapeHtml(getTeamLabel("defense"))}</strong>
-            ${rows.map((row) => getReportPreviewRowMarkup(row, "defense")).join("")}
-          </button>
-          <button class="report-choice-card team-attack" type="button" data-winner="attack" ${attackHasMember ? "" : "disabled"}>
-            <strong>${escapeHtml(getTeamLabel("attack"))}</strong>
-            ${rows.map((row) => getReportPreviewRowMarkup(row, "attack")).join("")}
-          </button>
-        </div>
+        ${isPaidReport
+          ? `<div class="report-round-list">${rows.map((row) => getReportRoundMatchMarkup(row)).join("")}</div>`
+          : `<div class="report-choice-grid">
+              <button class="report-choice-card team-defense" type="button" data-winner="defense" ${defenseHasMember ? "" : "disabled"}>
+                <strong>${escapeHtml(getTeamLabel("defense"))}</strong>
+                ${rows.map((row) => getReportPreviewRowMarkup(row, "defense")).join("")}
+              </button>
+              <button class="report-choice-card team-attack" type="button" data-winner="attack" ${attackHasMember ? "" : "disabled"}>
+                <strong>${escapeHtml(getTeamLabel("attack"))}</strong>
+                ${rows.map((row) => getReportPreviewRowMarkup(row, "attack")).join("")}
+              </button>
+            </div>`}
         ${hasAnyTeam ? "" : `<p class="report-modal-empty">${escapeHtml(localize("没有可上报的队伍。", "No team to report."))}</p>`}
+        ${incompleteText ? `<p class="report-modal-empty report-modal-warning">${escapeHtml(incompleteText)}</p>` : ""}
       </div>
       <div class="report-modal-actions">
         <button class="report-modal-cancel" type="button">${escapeHtml(localize("取消", "Cancel"))}</button>
@@ -11241,7 +11291,7 @@ function openReportMatchModal() {
   let selectedWinner = null;
   const submitButton = backdrop.querySelector(".report-modal-submit");
   const updateSubmitState = () => {
-    submitButton.disabled = !hasAnyTeam || !selectedWinner;
+    submitButton.disabled = !canSubmitReport || !selectedWinner;
   };
 
   backdrop.querySelectorAll(".report-choice-card").forEach((button) => {
@@ -11272,6 +11322,14 @@ function openReportMatchModal() {
 }
 
 async function submitMatchReport(options = {}) {
+  const fullState = getReportRowsFullState();
+  if (!fullState.isFull) {
+    showToast(localize(
+      `请补满 ROUND ${fullState.incompleteRounds.join(", ")} 的 5v5 队伍后再提交。`,
+      `Fill ROUND ${fullState.incompleteRounds.join(", ")} as 5v5 before submitting.`,
+    ));
+    return;
+  }
   const payload = buildMatchReportPayload(options.winner);
   if (!hasReportableMembers(payload.defenseTeam) && !hasReportableMembers(payload.attackTeam)) {
     showToast(localize("队伍为空，无法上报", "Team is empty. Nothing to report."));
