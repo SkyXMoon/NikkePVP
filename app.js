@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.29.248";
+const APP_VERSION = "V1.29.249";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -253,6 +253,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复OCR快捷选区按钮点击无效",
   "OCR预览窗口增加左右/上下快速选区",
   "OCR图片识别支持最多2个不重叠选区",
   "整理更新日志展示内容",
@@ -1378,7 +1379,14 @@ async function selectOcrImageCrops(file) {
       draftSelection.classList.remove("is-visible");
     };
 
+    const refreshDisplaySize = () => {
+      const rect = preview.getBoundingClientRect();
+      displaySize = { width: Math.max(1, rect.width), height: Math.max(1, rect.height) };
+      return displaySize;
+    };
+
     const setPresetCropRects = (rects) => {
+      refreshDisplaySize();
       cropRects.length = 0;
       rects
         .map((rect) => normalizeCropRect(rect, displaySize))
@@ -1390,8 +1398,7 @@ async function selectOcrImageCrops(file) {
     };
 
     const resetDefaultSelection = () => {
-      const rect = preview.getBoundingClientRect();
-      displaySize = { width: Math.max(1, rect.width), height: Math.max(1, rect.height) };
+      refreshDisplaySize();
       renderCropSelections();
     };
 
@@ -1410,6 +1417,7 @@ async function selectOcrImageCrops(file) {
     };
 
     cropBody.addEventListener("pointerdown", (event) => {
+      if (event.target.closest("button, .ocr-crop-quick-actions, .ocr-crop-selection-list, .ocr-crop-actions")) return;
       event.preventDefault();
       dragStart = getClampedStagePoint(event);
       cropBody.setPointerCapture?.(event.pointerId);
