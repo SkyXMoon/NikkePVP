@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.235";
+const APP_VERSION = "V1.28.236";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化上报胜方选择窗口布局",
   "上报前增加胜方选择确认窗口",
   "新增右侧悬浮上报入口",
   "新增对局结果上报入口，为后续队伍推荐功能积累数据",
@@ -261,7 +262,6 @@ const CHANGELOG_ITEMS = [
   "修正哈兰中毒仅本体1hit",
   "调整哈兰中毒按目标触发",
   "修复冠军/特殊竞技场空枪成对计算",
-  "修正灰姑娘被RL命中或波及时的诱饵hit",
 ];
 const QUANTUM_RELIC_CUBE_MULTIPLIER = 1.0466;
 const ANIS_SUPERSTAR_CHARGE_SUPPLEMENT_RATE = 0.06;
