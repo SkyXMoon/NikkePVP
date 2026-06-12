@@ -507,6 +507,7 @@ function getHarranPoisonEvents(event, currentFrame, hitProfile = null) {
         targetHits: [[targetPositionIndex, 1]],
         source: "harran-poison",
         label: `中毒充能：${targetLabel}`,
+        repeatFrames: 60,
       };
     });
 }
