@@ -19,7 +19,7 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
-const APP_VERSION = "V1.28.243";
+const APP_VERSION = "V1.28.244";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -252,6 +252,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化上报弹窗队伍名颜色",
   "优化上报弹窗队伍预览信息",
   "优化上报弹窗尺寸与队伍标签",
   "调整上报弹窗队伍显示顺序",
