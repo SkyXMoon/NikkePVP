@@ -22,7 +22,7 @@ const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.30.260";
+const APP_VERSION = "V1.30.261";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -258,6 +258,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "优化分享图片清晰度",
   "开放对局结果上报功能",
   "修正上报反馈本地化",
   "支持本地后端上报测试",
@@ -10321,7 +10322,7 @@ async function getChargeChartPngBlob() {
   const url = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml;charset=utf-8" }));
   try {
     const image = await loadImageFromUrl(url);
-    const { canvas, context } = createHiDpiCanvas(width, height, 2);
+    const { canvas, context } = createHiDpiCanvas(width, height, 2, 2);
     context.fillStyle = theme.page;
     context.fillRect(0, 0, width, height);
     context.drawImage(image, 0, 0, width, height);
@@ -10415,8 +10416,9 @@ function drawExportSiteUrl(context, width, padding, y) {
   });
 }
 
-function createHiDpiCanvas(width, height, maxScale = 2) {
-  const scale = Math.min(maxScale, window.devicePixelRatio || 1);
+function createHiDpiCanvas(width, height, maxScale = 2, minScale = 1) {
+  const deviceScale = window.devicePixelRatio || 1;
+  const scale = Math.max(minScale, Math.min(maxScale, deviceScale));
   const canvas = document.createElement("canvas");
   canvas.width = Math.ceil(width * scale);
   canvas.height = Math.ceil(height * scale);
@@ -10674,7 +10676,7 @@ async function paidArenaToPngBlob() {
   const summaryHeight = teamCount * summaryRowHeight + Math.max(0, teamCount - 1) * summaryRowGap;
   const chartsHeight = teamCount * chartBlockHeight + Math.max(0, teamCount - 1) * chartBlockGap;
   const height = padding * 2 + headerHeight + summaryHeight + chartsSectionGap + chartsHeight;
-  const { canvas, context } = createHiDpiCanvas(width, height, 2);
+  const { canvas, context } = createHiDpiCanvas(width, height, 2, 2);
   context.fillStyle = theme.page;
   context.fillRect(0, 0, width, height);
   drawCanvasText(context, title, padding, padding + 18, { size: 26, weight: 900, color: theme.title });
@@ -10863,7 +10865,7 @@ async function normalArenaToPngBlob() {
   const teamsY = infoY + infoHeight + 24;
   const height = teamsY + slotSize + padding;
   const width = contentWidth + padding * 2;
-  const { canvas, context } = createHiDpiCanvas(width, height, 2);
+  const { canvas, context } = createHiDpiCanvas(width, height, 2, 2);
   context.fillStyle = theme.page;
   context.fillRect(0, 0, width, height);
   drawExportSiteUrl(context, width, padding, Math.max(18, padding - 12));
@@ -11076,7 +11078,7 @@ async function elementToPngBlob(element) {
   const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
   try {
     const image = await loadImageFromUrl(url);
-    const scale = Math.min(2, window.devicePixelRatio || 1);
+    const scale = 2;
     const canvas = document.createElement("canvas");
     canvas.width = Math.ceil(width * scale);
     canvas.height = Math.ceil(height * scale);
