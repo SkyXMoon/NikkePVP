@@ -22,7 +22,7 @@ const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.30.261";
+const APP_VERSION = "V1.30.262";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -192,6 +192,7 @@ const CHART_MAX_FRAME = 600;
 const CHART_WIDTH = 1800;
 const CHART_HEIGHT = 660;
 const CHART_MIN_WIDTH = 320;
+const SHARE_EXPORT_CHART_SIZE = { width: 378, height: 460 };
 const SCARLET_COUNTER_PROBABILITY = 0.3;
 const JACKAL_LINK_HIT_THRESHOLD = 10;
 const ROSANNA_SACRIFICE_CHARGE = 36.54;
@@ -258,6 +259,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "统一分享图片为移动端比例",
   "优化分享图片清晰度",
   "开放对局结果上报功能",
   "修正上报反馈本地化",
@@ -8437,6 +8439,10 @@ function getChargeChartSize() {
   };
 }
 
+function getShareExportChartHeight(width) {
+  return Math.round(width * (SHARE_EXPORT_CHART_SIZE.height / SHARE_EXPORT_CHART_SIZE.width));
+}
+
 function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult = null, chartSize = getChargeChartSize()) {
   const attackResult = result && !result.error ? result : null;
   const defenseChartResult = defenseResult && !defenseResult.error ? defenseResult : null;
@@ -10297,13 +10303,23 @@ function blobToDataUrl(blob) {
   });
 }
 
-async function getChargeChartPngBlob() {
+async function getChargeChartPngBlob(chartSize = null) {
   const svg = els.chargeChart?.querySelector("svg");
   if (!svg) throw new Error("charge chart is not rendered");
   const theme = getExportThemePalette();
 
-  const { width, height } = getSvgViewBoxSize(svg);
-  const clone = svg.cloneNode(true);
+  const { width, height } = chartSize || getSvgViewBoxSize(svg);
+  const clone = chartSize
+    ? new DOMParser().parseFromString(
+        getChargeChartMarkup(
+          isPaidArenaModeActive() ? getActivePaidArenaChartResults().attackResult : getBattleResultsSnapshot().attackResult,
+          null,
+          isPaidArenaModeActive() ? getActivePaidArenaChartResults().defenseResult : getBattleResultsSnapshot().defenseResult,
+          { width, height },
+        ),
+        "image/svg+xml",
+      ).documentElement
+    : svg.cloneNode(true);
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   clone.setAttribute("width", width);
   clone.setAttribute("height", height);
@@ -10662,7 +10678,7 @@ async function paidArenaToPngBlob() {
   const vsWidth = 82;
   const contentWidth = teamWidth * 2 + vsWidth;
   const infoHeight = 52;
-  const chartHeight = 360;
+  const chartHeight = getShareExportChartHeight(contentWidth);
   const blockPadding = 18;
   const summaryRowGap = 18;
   const summaryInnerGap = 10;
@@ -10856,7 +10872,7 @@ async function normalArenaToPngBlob() {
   const teamWidth = TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap;
   const vsWidth = 96;
   const contentWidth = teamWidth * 2 + vsWidth;
-  const chartBlob = await getChargeChartPngBlob();
+  const chartBlob = await getChargeChartPngBlob(SHARE_EXPORT_CHART_SIZE);
   const chartImage = await loadImageFromUrl(await blobToDataUrl(chartBlob));
   const chartHeight = Math.round(contentWidth * (chartImage.height / chartImage.width));
   const chartY = padding;
