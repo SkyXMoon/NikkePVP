@@ -22,7 +22,7 @@ const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.29.260";
+const APP_VERSION = "V1.30.260";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -258,6 +258,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "开放对局结果上报功能",
   "修正上报反馈本地化",
   "支持本地后端上报测试",
   "优化对局上报身份兼容性",
@@ -5407,7 +5408,7 @@ function setLocalPaidDevAccess(enabled) {
 }
 
 function canUseReportFeature() {
-  return hasLocalPaidDevAccess();
+  return true;
 }
 
 function syncReportFeatureVisibility() {
