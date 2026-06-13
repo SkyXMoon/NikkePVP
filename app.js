@@ -22,7 +22,7 @@ const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.30.262";
+const APP_VERSION = "V1.30.263";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -259,6 +259,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复分享图片复制失败兜底",
   "统一分享图片为移动端比例",
   "优化分享图片清晰度",
   "开放对局结果上报功能",
@@ -10303,18 +10304,23 @@ function blobToDataUrl(blob) {
   });
 }
 
-async function getChargeChartPngBlob(chartSize = null) {
+async function getChargeChartPngBlob(chartSize = null, chartResults = null) {
   const svg = els.chargeChart?.querySelector("svg");
   if (!svg) throw new Error("charge chart is not rendered");
   const theme = getExportThemePalette();
 
   const { width, height } = chartSize || getSvgViewBoxSize(svg);
+  const results =
+    chartResults ||
+    (isPaidArenaModeActive()
+      ? getActivePaidArenaChartResults()
+      : getBattleResultsSnapshot());
   const clone = chartSize
     ? new DOMParser().parseFromString(
         getChargeChartMarkup(
-          isPaidArenaModeActive() ? getActivePaidArenaChartResults().attackResult : getBattleResultsSnapshot().attackResult,
+          results.attackResult,
           null,
-          isPaidArenaModeActive() ? getActivePaidArenaChartResults().defenseResult : getBattleResultsSnapshot().defenseResult,
+          results.defenseResult,
           { width, height },
         ),
         "image/svg+xml",
@@ -10328,7 +10334,7 @@ async function getChargeChartPngBlob(chartSize = null) {
   clone.style.setProperty("--cyan", "#47c8d4");
   clone.style.setProperty("--gold", theme.title);
   clone.style.setProperty("--text", theme.text);
-  inlineComputedSvgStyles(svg, clone);
+  if (!chartSize) inlineComputedSvgStyles(svg, clone);
 
   const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
   style.textContent = `${getInlineSvgStyles()}\n${getExportSvgThemeStyles()}`;
@@ -10872,7 +10878,13 @@ async function normalArenaToPngBlob() {
   const teamWidth = TEAM_SIZE * slotSize + (TEAM_SIZE - 1) * slotGap;
   const vsWidth = 96;
   const contentWidth = teamWidth * 2 + vsWidth;
-  const chartBlob = await getChargeChartPngBlob(SHARE_EXPORT_CHART_SIZE);
+  let chartBlob;
+  try {
+    chartBlob = await getChargeChartPngBlob(SHARE_EXPORT_CHART_SIZE, battleResults);
+  } catch (error) {
+    console.warn("mobile ratio chart export failed, fallback to visible chart", error);
+    chartBlob = await getChargeChartPngBlob(null, battleResults);
+  }
   const chartImage = await loadImageFromUrl(await blobToDataUrl(chartBlob));
   const chartHeight = Math.round(contentWidth * (chartImage.height / chartImage.width));
   const chartY = padding;
@@ -11155,9 +11167,13 @@ async function copyRichImageToClipboard(imageBlobOrPromise) {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
     throw new Error("rich clipboard is not supported");
   }
+  const imageBlob = await imageBlobOrPromise;
+  if (!(imageBlob instanceof Blob) || imageBlob.size <= 0) {
+    throw new Error("share image blob is empty");
+  }
   await navigator.clipboard.write([
     new ClipboardItem({
-      "image/png": Promise.resolve(imageBlobOrPromise),
+      "image/png": imageBlob,
     }),
   ]);
 }
