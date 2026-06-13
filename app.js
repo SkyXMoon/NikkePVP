@@ -22,7 +22,7 @@ const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.30.264";
+const APP_VERSION = "V1.30.265";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -259,6 +259,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复分享图角标本地化",
   "修复分享图仍显示横向比例",
   "修复分享图片复制失败兜底",
   "统一分享图片为移动端比例",
@@ -10583,7 +10584,7 @@ function drawPaidArenaSlot(context, slot, x, y, size, theme = getExportThemePale
       context.arc(centerX, centerY, markSize / 2, 0, Math.PI * 2);
       context.fill();
       context.stroke();
-      drawCanvasText(context, "T", centerX, centerY + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, localize("嘲", "T"), centerX, centerY + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
     }
     if (isSacrificedTarget) {
       const frameText = `${sanitizeSacrificeFrame(sacrificeFrame)}F`;
@@ -10609,7 +10610,7 @@ function drawPaidArenaSlot(context, slot, x, y, size, theme = getExportThemePale
       context.arc(x + size / 2, y + size / 2, markSize / 2, 0, Math.PI * 2);
       context.fill();
       context.stroke();
-      drawCanvasText(context, "F", x + size / 2, y + size / 2 + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
+      drawCanvasText(context, localize("定", "F"), x + size / 2, y + size / 2 + 1, { align: "center", size: markSize * 0.52, weight: 900, color: "#ffffff" });
     }
     if (isActiveLinkOwner || isLinkTarget) {
       const badgeSize = Math.max(22, size * 0.24);
