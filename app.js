@@ -26,7 +26,7 @@ const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
 const REPORT_RETRY_BASE_DELAY_MS = 8000;
 const REPORT_RETRY_MAX_BACKOFF_STEP = 5;
 const REPORT_QUEUE_MAX_ITEMS = 20;
-const APP_VERSION = "V1.31.270";
+const APP_VERSION = "V1.31.271";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -263,6 +263,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "降低OCR预处理误识别",
   "上报对局支持本地缓存重试",
   "修复资源缓存刷新失败提示",
   "优化OCR选区弹窗移动端布局",
@@ -1414,7 +1415,7 @@ function doCropRectsOverlap(first, second) {
     && first.y + first.height > second.y;
 }
 
-async function cropImageFile(file, cropRect, displaySize, image) {
+async function cropImageFile(file, cropRect, displaySize, image, options = {}) {
   const scaleX = image.naturalWidth / displaySize.width;
   const scaleY = image.naturalHeight / displaySize.height;
   const sourceX = Math.max(0, Math.min(image.naturalWidth - 1, Math.floor(cropRect.x * scaleX)));
@@ -1426,6 +1427,17 @@ async function cropImageFile(file, cropRect, displaySize, image) {
   canvas.height = sourceHeight;
   const context = canvas.getContext("2d");
   context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
+  if (options.preprocess) preprocessOcrCanvasForText(canvas);
+  return canvasToSizedOcrJpegFile(canvas, file);
+}
+
+async function preprocessOcrImageFile(file) {
+  const image = await loadImageFromFile(file);
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth || image.width;
+  canvas.height = image.naturalHeight || image.height;
+  const context = canvas.getContext("2d");
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
   preprocessOcrCanvasForText(canvas);
   return canvasToSizedOcrJpegFile(canvas, file);
 }
@@ -1653,16 +1665,31 @@ async function prepareOcrImageFiles(file) {
 
 async function recognizeCharactersFromOcrImage(file) {
   const croppedFiles = await prepareOcrImageFiles(file);
-  const matchedCharacters = [];
-  for (let index = 0; index < croppedFiles.length; index += 1) {
-    if (croppedFiles.length > 1) {
-      startProgressToast(localize(`OCR识别中 ${index + 1}/${croppedFiles.length}`, `Recognizing OCR ${index + 1}/${croppedFiles.length}`));
+  const recognizeCroppedFiles = async (files, fallback = false) => {
+    const matchedCharacters = [];
+    for (let index = 0; index < files.length; index += 1) {
+      if (files.length > 1) {
+        startProgressToast(localize(`OCR识别中 ${index + 1}/${files.length}`, `Recognizing OCR ${index + 1}/${files.length}`));
+      }
+      const rawText = await parseImageWithOcrSpaceRetry(files[index]);
+      const result = parseFileNamesFromOcrText(rawText);
+      if (fallback && rawText && !(result.matchedCharacters || []).length) {
+        console.warn("[OCR] 预处理结果未匹配角色，已忽略", rawText);
+      }
+      matchedCharacters.push(...(result.matchedCharacters || []));
     }
-    const rawText = await parseImageWithOcrSpaceRetry(croppedFiles[index]);
-    const result = parseFileNamesFromOcrText(rawText);
-    matchedCharacters.push(...(result.matchedCharacters || []));
+    return matchedCharacters;
+  };
+
+  const rawMatchedCharacters = await recognizeCroppedFiles(croppedFiles, false);
+  if (rawMatchedCharacters.length > 0) return rawMatchedCharacters;
+
+  startProgressToast(localize("OCR识别重试", "Retrying OCR"));
+  const preprocessedFiles = [];
+  for (const croppedFile of croppedFiles) {
+    preprocessedFiles.push(await preprocessOcrImageFile(croppedFile));
   }
-  return matchedCharacters;
+  return recognizeCroppedFiles(preprocessedFiles, true);
 }
 
 function formatOcrToastMessage(result, teamLabel) {
