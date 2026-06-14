@@ -22,7 +22,7 @@ const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.30.266";
+const APP_VERSION = "V1.30.267";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -259,6 +259,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "冠军/特殊竞技场选人自动跳到下一队",
   "上报前检查队伍完整性",
   "修复分享图角标本地化",
   "修复分享图仍显示横向比例",
@@ -6399,6 +6400,24 @@ function findPaidArenaCharacter(character, mode = state.paidArenaMode) {
   return null;
 }
 
+function findPaidArenaFillRowIndex(teams, startRowIndex = state.paidArenaActiveRowIndex) {
+  if (!Array.isArray(teams) || !teams.length) return -1;
+  const normalizedStart = Math.max(0, Math.min(teams.length - 1, Number(startRowIndex) || 0));
+  for (let rowIndex = normalizedStart; rowIndex < teams.length; rowIndex += 1) {
+    if ((teams[rowIndex] || []).some((member) => !member)) return rowIndex;
+  }
+  return -1;
+}
+
+function findNextPaidArenaFillRowIndex(teams, currentRowIndex) {
+  if (!Array.isArray(teams) || !teams.length) return -1;
+  const start = Math.max(0, Math.min(teams.length - 1, Number(currentRowIndex) || 0)) + 1;
+  for (let rowIndex = start; rowIndex < teams.length; rowIndex += 1) {
+    if ((teams[rowIndex] || []).some((member) => !member)) return rowIndex;
+  }
+  return currentRowIndex;
+}
+
 function getLocalPaidInferenceSignature() {
   return JSON.stringify(getLocalPaidInferencePayload());
 }
@@ -9413,7 +9432,11 @@ function addPaidArenaCharacter(character) {
   }
   const teams = getPaidArenaTeams();
   if (!teams.length) return;
-  const rowIndex = Math.max(0, Math.min(teams.length - 1, Number(state.paidArenaActiveRowIndex) || 0));
+  const rowIndex = findPaidArenaFillRowIndex(teams);
+  if (rowIndex === -1) {
+    showToast(localize(`${getPaidArenaModeLabel()}${getTeamLabel(getPaidArenaDataTeamKey())}已满，请先移除一个槽位。`, `${getPaidArenaModeLabel()} ${getTeamLabel(getPaidArenaDataTeamKey())} is full. Remove a slot first.`));
+    return;
+  }
   const team = teams[rowIndex];
   const universalCharges = getPaidArenaUniversalCharges()[rowIndex] || Array(TEAM_SIZE).fill(0);
   const chargeSpeeds = getPaidArenaChargeSpeeds()[rowIndex] || Array(TEAM_SIZE).fill(0);
@@ -9421,16 +9444,13 @@ function addPaidArenaCharacter(character) {
   const redHoodPierceCounts = getPaidArenaRedHoodPierceCounts()[rowIndex] || Array(TEAM_SIZE).fill(0);
   const scarletCounterEnabled = getPaidArenaScarletCounterEnabled()[rowIndex] || Array(TEAM_SIZE).fill(true);
   const emptyIndex = team.findIndex((member) => !member);
-  if (emptyIndex === -1) {
-    showToast(localize(`${getPaidArenaModeLabel()}第${rowIndex + 1}队已满，请先移除一个槽位。`, `${getPaidArenaModeLabel()} team ${rowIndex + 1} is full. Remove a slot first.`));
-    return;
-  }
   team[emptyIndex] = character;
   universalCharges[emptyIndex] = 0;
   chargeSpeeds[emptyIndex] = getSavedCharacterChargeSpeed(character, getPaidArenaDataTeamKey());
   sacrificeFrames[emptyIndex] = null;
   redHoodPierceCounts[emptyIndex] = isRedHood(character) ? getSavedCharacterRedHoodPierceCount(character, getPaidArenaDataTeamKey()) : 0;
   scarletCounterEnabled[emptyIndex] = true;
+  state.paidArenaActiveRowIndex = team.every(Boolean) ? findNextPaidArenaFillRowIndex(teams, rowIndex) : rowIndex;
   openSlotSettings = null;
   openRosannaSacrificeSettings = null;
   saveTeam();
