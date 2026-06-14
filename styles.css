@@ -3376,14 +3376,99 @@ input:focus {
   white-space: nowrap;
 }
 
+.ocr-review-modal {
+  width: min(920px, calc(100vw - 28px));
+  max-height: calc(100vh - 20px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(242, 251, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  color: var(--text);
+  background:
+    linear-gradient(180deg, rgba(19, 37, 49, 0.98), rgba(8, 12, 18, 0.98)),
+    var(--panel);
+  box-shadow:
+    0 0 0 1px rgba(221, 251, 255, 0.1) inset,
+    0 18px 46px rgba(0, 0, 0, 0.52);
+}
+
+.ocr-review-body {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  overflow: auto;
+}
+
+.ocr-review-summary {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.ocr-review-card {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+.ocr-review-stage {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(242, 245, 250, 0.16);
+  border-radius: 6px;
+  background: #0b0e14;
+}
+
+.ocr-review-image {
+  display: block;
+  max-width: min(100%, 860px);
+  max-height: min(58vh, 620px);
+  width: auto;
+  height: auto;
+  user-select: none;
+}
+
+.ocr-review-word {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(160, 170, 184, 0.82);
+  border-radius: 3px;
+  padding: 0 2px;
+  color: rgba(242, 245, 250, 0.9);
+  background: rgba(63, 71, 84, 0.38);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.ocr-review-word.is-matched {
+  border-color: rgba(55, 220, 128, 0.95);
+  color: #04150c;
+  background: rgba(55, 220, 128, 0.78);
+}
+
 @media (max-width: 520px) {
   .ocr-crop-modal {
     height: auto;
     max-height: calc(100dvh - 20px);
   }
 
+  .ocr-review-modal {
+    max-height: calc(100dvh - 20px);
+  }
+
   .ocr-crop-stage,
-  .ocr-crop-image {
+  .ocr-crop-image,
+  .ocr-review-image {
     max-height: 54dvh;
   }
 
@@ -3782,7 +3867,8 @@ input:focus {
     0 18px 46px rgba(28, 43, 62, 0.2);
 }
 
-:root[data-theme="light"] .ocr-crop-modal {
+:root[data-theme="light"] .ocr-crop-modal,
+:root[data-theme="light"] .ocr-review-modal {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 252, 0.98)),
     var(--panel);

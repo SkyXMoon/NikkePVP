@@ -26,7 +26,7 @@ const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
 const REPORT_RETRY_BASE_DELAY_MS = 8000;
 const REPORT_RETRY_MAX_BACKOFF_STEP = 5;
 const REPORT_QUEUE_MAX_ITEMS = 20;
-const APP_VERSION = "V1.31.271";
+const APP_VERSION = "V1.31.272";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -263,6 +263,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "OCR增加识别结果确认",
   "降低OCR预处理误识别",
   "上报对局支持本地缓存重试",
   "修复资源缓存刷新失败提示",
@@ -1263,12 +1264,48 @@ function cleanOcrTextForRoles(rawText) {
     .replace(/[^\u3400-\u9FFF\uF900-\uFAFF:\n]+/g, "\n");
 }
 
-async function parseImageWithOcrSpace(file) {
+function getOcrParsedTextFromPayload(payload) {
+  return (payload?.ParsedResults || []).map((result) => String(result?.ParsedText || "").trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+function getOcrOverlayLinesFromPayload(payload) {
+  return (payload?.ParsedResults || []).flatMap((result) => {
+    const lines = Array.isArray(result?.TextOverlay?.Lines) ? result.TextOverlay.Lines : [];
+    return lines.map((line) => {
+      const words = Array.isArray(line?.Words) ? line.Words : [];
+      const boxes = words
+        .map((word) => ({
+          text: String(word?.WordText || "").trim(),
+          left: Number(word?.Left),
+          top: Number(word?.Top),
+          width: Number(word?.Width),
+          height: Number(word?.Height),
+        }))
+        .filter((word) => word.text && Number.isFinite(word.left) && Number.isFinite(word.top) && Number.isFinite(word.width) && Number.isFinite(word.height));
+      if (!boxes.length) return null;
+      const left = Math.min(...boxes.map((word) => word.left));
+      const top = Math.min(...boxes.map((word) => word.top));
+      const right = Math.max(...boxes.map((word) => word.left + word.width));
+      const bottom = Math.max(...boxes.map((word) => word.top + word.height));
+      return {
+        text: boxes.map((word) => word.text).join(""),
+        left,
+        top,
+        width: Math.max(1, right - left),
+        height: Math.max(1, bottom - top),
+      };
+    }).filter(Boolean);
+  });
+}
+
+async function parseImageWithOcrSpace(file, options = {}) {
   const formData = new FormData();
   formData.append("apikey", OCR_SPACE_API_KEY);
   formData.append("language", OCR_SPACE_LANGUAGE);
   formData.append("OCREngine", String(OCR_SPACE_ENGINE));
-  formData.append("isOverlayRequired", "false");
+  formData.append("isOverlayRequired", options.overlay ? "true" : "false");
   formData.append("scale", "true");
   formData.append("file", file);
 
@@ -1286,11 +1323,7 @@ async function parseImageWithOcrSpace(file) {
     throw new Error("OCR返回格式异常，请稍后重试");
   }
 
-  const parsedText = payload.ParsedResults.map((result) => String(result?.ParsedText || "").trim())
-    .filter(Boolean)
-    .join("\n");
-
-  return parsedText;
+  return options.returnPayload ? payload : getOcrParsedTextFromPayload(payload);
 }
 
 function wait(ms) {
@@ -1311,11 +1344,11 @@ function formatOcrErrorMessage(error) {
   return message;
 }
 
-async function parseImageWithOcrSpaceRetry(file, maxRetries = OCR_MAX_RETRY_COUNT) {
+async function parseImageWithOcrSpaceRetry(file, maxRetries = OCR_MAX_RETRY_COUNT, options = {}) {
   let lastError = null;
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     try {
-      return await parseImageWithOcrSpace(file);
+      return await parseImageWithOcrSpace(file, options);
     } catch (error) {
       lastError = error;
       if (attempt >= maxRetries || !isRetryableOcrError(error)) break;
@@ -1663,33 +1696,133 @@ async function prepareOcrImageFiles(file) {
   return croppedFiles;
 }
 
+async function recognizeOcrFilesWithOverlay(files, fallback = false) {
+  const fileResults = [];
+  for (let index = 0; index < files.length; index += 1) {
+    if (files.length > 1) {
+      startProgressToast(localize(`OCR识别中 ${index + 1}/${files.length}`, `Recognizing OCR ${index + 1}/${files.length}`));
+    }
+    const payload = await parseImageWithOcrSpaceRetry(files[index], OCR_MAX_RETRY_COUNT, {
+      overlay: true,
+      returnPayload: true,
+    });
+    const rawText = getOcrParsedTextFromPayload(payload);
+    const parsedResult = parseFileNamesFromOcrText(rawText);
+    const overlayLines = getOcrOverlayLinesFromPayload(payload).map((line) => {
+      const lineResult = parseFileNamesFromOcrText(line.text);
+      return {
+        ...line,
+        matchedCharacters: lineResult.matchedCharacters || [],
+      };
+    });
+    if (fallback && rawText && !(parsedResult.matchedCharacters || []).length) {
+      console.warn("[OCR] 预处理结果未匹配角色，已忽略", rawText);
+    }
+    fileResults.push({
+      file: files[index],
+      rawText,
+      overlayLines,
+      matchedCharacters: parsedResult.matchedCharacters || [],
+    });
+  }
+  return fileResults;
+}
+
+function confirmOcrOverlayResults(fileResults) {
+  return new Promise((resolve, reject) => {
+    const matchedCharacters = fileResults.flatMap((result) => result.matchedCharacters || []);
+    const urls = fileResults.map((result) => URL.createObjectURL(result.file));
+    const close = () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+      document.querySelector(".ocr-review-backdrop")?.remove();
+    };
+    const backdrop = document.createElement("div");
+    backdrop.className = "ocr-crop-backdrop ocr-review-backdrop";
+    const matchedText = matchedCharacters.length
+      ? matchedCharacters.map((character) => getCharacterLocalizedName(character)).join(" / ")
+      : localize("未匹配到角色", "No character matched");
+    backdrop.innerHTML = `
+      <section class="ocr-review-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("确认OCR识别结果", "Confirm OCR result"))}">
+        <div class="ocr-crop-head">
+          <strong>${escapeHtml(localize("确认OCR识别结果", "Confirm OCR result"))}</strong>
+          <button class="ocr-crop-close" type="button" aria-label="${escapeHtml(localize("取消识别", "Cancel OCR"))}">X</button>
+        </div>
+        <div class="ocr-review-body">
+          <p class="ocr-review-summary">${escapeHtml(matchedText)}</p>
+          ${fileResults.map((result, index) => `
+            <div class="ocr-review-card">
+              <div class="ocr-review-stage" data-review-index="${index}">
+                <img class="ocr-review-image" src="${urls[index]}" alt="${escapeHtml(localize("OCR识别结果预览", "OCR result preview"))}" />
+              </div>
+            </div>
+          `).join("")}
+        </div>
+        <div class="ocr-crop-actions">
+          <button class="ocr-crop-cancel" type="button">${escapeHtml(localize("取消", "Cancel"))}</button>
+          <button class="ocr-crop-confirm" type="button" ${matchedCharacters.length ? "" : "disabled"}>${escapeHtml(localize("确认填入", "Confirm fill"))}</button>
+        </div>
+      </section>
+    `;
+
+    const renderOverlayForImage = (image, result) => {
+      const stage = image.closest(".ocr-review-stage");
+      if (!stage) return;
+      stage.querySelectorAll(".ocr-review-word").forEach((node) => node.remove());
+      const naturalWidth = Math.max(1, image.naturalWidth);
+      const naturalHeight = Math.max(1, image.naturalHeight);
+      (result.overlayLines || []).forEach((line) => {
+        const node = document.createElement("div");
+        const isMatched = (line.matchedCharacters || []).length > 0;
+        node.className = `ocr-review-word${isMatched ? " is-matched" : ""}`;
+        node.textContent = line.text;
+        node.style.left = `${(line.left / naturalWidth) * 100}%`;
+        node.style.top = `${(line.top / naturalHeight) * 100}%`;
+        node.style.width = `${(line.width / naturalWidth) * 100}%`;
+        node.style.height = `${(line.height / naturalHeight) * 100}%`;
+        stage.append(node);
+      });
+    };
+
+    backdrop.querySelectorAll(".ocr-review-image").forEach((image, index) => {
+      image.addEventListener("load", () => renderOverlayForImage(image, fileResults[index]), { once: true });
+      if (image.complete) renderOverlayForImage(image, fileResults[index]);
+    });
+    backdrop.querySelector(".ocr-crop-close").addEventListener("click", () => {
+      close();
+      reject(new Error("已取消识别"));
+    });
+    backdrop.querySelector(".ocr-crop-cancel").addEventListener("click", () => {
+      close();
+      reject(new Error("已取消识别"));
+    });
+    backdrop.querySelector(".ocr-crop-confirm").addEventListener("click", () => {
+      close();
+      resolve(matchedCharacters);
+    });
+    backdrop.addEventListener("click", (event) => {
+      if (event.target === backdrop) {
+        close();
+        reject(new Error("已取消识别"));
+      }
+    });
+    backdrop.querySelector(".ocr-review-modal").addEventListener("click", (event) => event.stopPropagation());
+    document.body.append(backdrop);
+  });
+}
+
 async function recognizeCharactersFromOcrImage(file) {
   const croppedFiles = await prepareOcrImageFiles(file);
-  const recognizeCroppedFiles = async (files, fallback = false) => {
-    const matchedCharacters = [];
-    for (let index = 0; index < files.length; index += 1) {
-      if (files.length > 1) {
-        startProgressToast(localize(`OCR识别中 ${index + 1}/${files.length}`, `Recognizing OCR ${index + 1}/${files.length}`));
-      }
-      const rawText = await parseImageWithOcrSpaceRetry(files[index]);
-      const result = parseFileNamesFromOcrText(rawText);
-      if (fallback && rawText && !(result.matchedCharacters || []).length) {
-        console.warn("[OCR] 预处理结果未匹配角色，已忽略", rawText);
-      }
-      matchedCharacters.push(...(result.matchedCharacters || []));
-    }
-    return matchedCharacters;
-  };
-
-  const rawMatchedCharacters = await recognizeCroppedFiles(croppedFiles, false);
-  if (rawMatchedCharacters.length > 0) return rawMatchedCharacters;
+  const rawResults = await recognizeOcrFilesWithOverlay(croppedFiles, false);
+  const rawMatchedCharacters = rawResults.flatMap((result) => result.matchedCharacters || []);
+  if (rawMatchedCharacters.length > 0) return confirmOcrOverlayResults(rawResults);
 
   startProgressToast(localize("OCR识别重试", "Retrying OCR"));
   const preprocessedFiles = [];
   for (const croppedFile of croppedFiles) {
     preprocessedFiles.push(await preprocessOcrImageFile(croppedFile));
   }
-  return recognizeCroppedFiles(preprocessedFiles, true);
+  const fallbackResults = await recognizeOcrFilesWithOverlay(preprocessedFiles, true);
+  return confirmOcrOverlayResults(fallbackResults);
 }
 
 function formatOcrToastMessage(result, teamLabel) {
