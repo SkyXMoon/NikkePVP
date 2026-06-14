@@ -22,7 +22,7 @@ const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.30.265";
+const APP_VERSION = "V1.30.266";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -259,6 +259,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "上报前检查队伍完整性",
   "修复分享图角标本地化",
   "修复分享图仍显示横向比例",
   "修复分享图片复制失败兜底",
@@ -11530,7 +11531,6 @@ function isReportTeamFull(team = []) {
 }
 
 function getReportRowsFullState(rows = getReportPreviewRows()) {
-  if (!isPaidArenaModeActive()) return { isFull: true, incompleteRounds: [] };
   const incompleteRounds = rows
     .map((row, index) => ({
       round: index + 1,
@@ -11542,6 +11542,10 @@ function getReportRowsFullState(rows = getReportPreviewRows()) {
     isFull: incompleteRounds.length === 0,
     incompleteRounds,
   };
+}
+
+function getReportIncompleteTeamMessage() {
+  return localize("队伍不完整，请补充完整后上报", "Team is incomplete. Please complete it before reporting.");
 }
 
 function getReportPreviewSlotMarkup(character, index) {
@@ -11607,6 +11611,10 @@ function openReportMatchModal() {
   const rows = getReportPreviewRows();
   const hasAnyTeam = hasAnyReportTeamMember(rows);
   const paidFullState = getReportRowsFullState(rows);
+  if (!paidFullState.isFull) {
+    showToast(getReportIncompleteTeamMessage());
+    return;
+  }
   const canSubmitReport = hasAnyTeam && paidFullState.isFull;
   const defenseHasMember = getReportTeamColumnHasMember(rows, "defense");
   const attackHasMember = getReportTeamColumnHasMember(rows, "attack");
@@ -11708,10 +11716,7 @@ function openReportMatchModal() {
 async function submitMatchReport(options = {}) {
   const fullState = getReportRowsFullState();
   if (!fullState.isFull) {
-    showToast(localize(
-      `请补满对局 ${fullState.incompleteRounds.join(", ")} 的 5v5 队伍后再提交。`,
-      `Fill match ${fullState.incompleteRounds.join(", ")} as 5v5 before submitting.`,
-    ));
+    showToast(getReportIncompleteTeamMessage());
     return;
   }
   const payload = buildMatchReportPayload(options);
