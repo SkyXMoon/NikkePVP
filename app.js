@@ -22,7 +22,7 @@ const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.30.268";
+const APP_VERSION = "V1.30.269";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -259,6 +259,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "修复资源缓存刷新失败提示",
   "优化OCR选区弹窗移动端布局",
   "冠军/特殊竞技场选人自动跳到下一队",
   "上报前检查队伍完整性",

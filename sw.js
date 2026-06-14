@@ -1,4 +1,4 @@
-const ASSET_CACHE_NAME = "nikke-asset-cache-v1-30-268";
+const ASSET_CACHE_NAME = "nikke-asset-cache-v1-30-269";
 const OLD_CACHE_PREFIXES = ["nikke-app-cache-", "nikke-asset-cache-", "nikke-avatar-cache-"];
 const AVATAR_PATH_SNIPPET = "/assets/avatars/";
 const ICON_PATH_SNIPPET = "/assets/icons/";
@@ -47,9 +47,17 @@ async function getCacheFirstAndRefresh(request, cacheName) {
   const refreshPromise = fetch(refreshRequest).then(async (response) => {
     await cacheResponse(cache, request, response.clone());
     return response;
+  }).catch(() => null);
+  if (cachedResponse) {
+    refreshPromise.catch(() => undefined);
+    return cachedResponse;
+  }
+  const refreshedResponse = await refreshPromise;
+  if (refreshedResponse) return refreshedResponse;
+  return new Response("", {
+    status: 504,
+    statusText: "Asset fetch failed",
   });
-  if (cachedResponse) return cachedResponse;
-  return refreshPromise;
 }
 
 async function cacheAssetUrls(rawUrls) {
