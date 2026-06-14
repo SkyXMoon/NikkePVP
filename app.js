@@ -19,10 +19,14 @@ const LANGUAGE_STORAGE_KEY = "nikke-arena-language";
 const HELP_INTRO_STORAGE_KEY = "nikke-help-intro-seen-v1";
 const REPORT_CLIENT_STORAGE_KEY = "nikke-arena-report-client-v1";
 const REPORT_ANONYMOUS_USER_STORAGE_KEY = "nikke-anonymous-user-v1";
+const REPORT_QUEUE_STORAGE_KEY = "nikke-arena-report-queue-v1";
 const ONLINE_SUPABASE_REPORT_ENDPOINT = "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1/report-match";
 const LOCAL_SUPABASE_REPORT_ENDPOINT = "http://127.0.0.1:54321/functions/v1/report-match";
 const SUPABASE_REPORT_ENDPOINT = getSupabaseReportEndpoint();
-const APP_VERSION = "V1.30.269";
+const REPORT_RETRY_BASE_DELAY_MS = 8000;
+const REPORT_RETRY_MAX_BACKOFF_STEP = 5;
+const REPORT_QUEUE_MAX_ITEMS = 20;
+const APP_VERSION = "V1.31.270";
 const UI_TEXTS = {
   zh: {
     appTitle: "NIKKE 竞技场充能计算器",
@@ -259,6 +263,7 @@ const MG_SUSTAIN_START_FRAME = 182;
 const MG_SUSTAIN_INTERVAL_FRAMES = 2;
 const AVATAR_CACHE_CONTROL_KEY = "nikke-avatar-cache-v1";
 const CHANGELOG_ITEMS = [
+  "上报对局支持本地缓存重试",
   "修复资源缓存刷新失败提示",
   "优化OCR选区弹窗移动端布局",
   "冠军/特殊竞技场选人自动跳到下一队",
@@ -11570,6 +11575,158 @@ function getReportIncompleteTeamMessage() {
   return localize("队伍不完整，请补充完整后上报", "Team is incomplete. Please complete it before reporting.");
 }
 
+let reportQueueRetryTimer = null;
+let reportQueueSending = false;
+
+function readReportQueue() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(REPORT_QUEUE_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((item) => item?.id && item?.payload) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeReportQueue(queue) {
+  try {
+    localStorage.setItem(REPORT_QUEUE_STORAGE_KEY, JSON.stringify(queue.slice(-REPORT_QUEUE_MAX_ITEMS)));
+  } catch {
+    // If localStorage is unavailable, reporting still tries the network path.
+  }
+}
+
+function enqueueReportPayload(payload) {
+  const queue = readReportQueue();
+  const item = {
+    id: createReportUuid(),
+    payload,
+    createdAt: Date.now(),
+    attemptCount: 0,
+    nextRetryAt: 0,
+  };
+  queue.push(item);
+  writeReportQueue(queue);
+  return item;
+}
+
+function removeQueuedReport(reportId) {
+  writeReportQueue(readReportQueue().filter((item) => item.id !== reportId));
+}
+
+function updateQueuedReport(reportId, updater) {
+  const queue = readReportQueue();
+  const index = queue.findIndex((item) => item.id === reportId);
+  if (index === -1) return null;
+  queue[index] = updater(queue[index]) || queue[index];
+  writeReportQueue(queue);
+  return queue[index];
+}
+
+function getReportRetryDelay(attemptCount) {
+  return REPORT_RETRY_BASE_DELAY_MS * Math.max(1, Math.min(6, attemptCount));
+}
+
+function isReportErrorRetryable(error) {
+  const status = Number(error?.status) || 0;
+  const code = String(error?.code || "").toUpperCase();
+  if (error?.name === "AbortError") return true;
+  if (error?.networkError) return true;
+  if (status === 408 || status === 429 || status >= 500) return true;
+  return ["RATE_LIMITED", "DATABASE_ERROR", "SERVER_NOT_CONFIGURED"].includes(code);
+}
+
+async function sendReportPayload(payload) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(SUPABASE_REPORT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.ok) {
+      const error = new Error(getReportErrorMessage(data, response.status));
+      error.status = response.status;
+      error.code = String(data?.code || "");
+      error.data = data;
+      error.retryable = isReportErrorRetryable(error);
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    if (error?.retryable !== undefined) throw error;
+    error.networkError = error?.name !== "AbortError";
+    error.retryable = isReportErrorRetryable(error);
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function scheduleReportQueueRetry() {
+  if (reportQueueRetryTimer) clearTimeout(reportQueueRetryTimer);
+  const queue = readReportQueue();
+  if (!queue.length) return;
+  const now = Date.now();
+  const nextRetryAt = Math.min(...queue.map((item) => Number(item.nextRetryAt) || 0));
+  const delay = Math.max(1000, nextRetryAt - now);
+  reportQueueRetryTimer = setTimeout(() => {
+    reportQueueRetryTimer = null;
+    flushReportQueue().catch(() => undefined);
+  }, delay);
+}
+
+async function flushReportQueue(options = {}) {
+  if (reportQueueSending) return;
+  reportQueueSending = true;
+  const feedbackId = options.feedbackId || "";
+  const showFeedback = Boolean(options.showFeedback);
+  try {
+    let queue = readReportQueue();
+    const now = Date.now();
+    for (const item of queue) {
+      const nextRetryAt = Number(item.nextRetryAt) || 0;
+      if (!options.force && nextRetryAt > now) continue;
+      const isFeedbackItem = showFeedback && item.id === feedbackId;
+      try {
+        const updatedItem = updateQueuedReport(item.id, (current) => ({
+          ...current,
+          attemptCount: Number(current.attemptCount) || 0,
+        })) || item;
+        const data = await sendReportPayload(updatedItem.payload);
+        removeQueuedReport(item.id);
+        if (isFeedbackItem) {
+          const idText = data?.data?.id ? ` ${String(data.data.id).slice(0, 8)}` : "";
+          showToast(localize(`上报成功${idText}`, `Report submitted${idText}`));
+        }
+      } catch (error) {
+        const retryable = Boolean(error?.retryable);
+        const nextAttemptCount = (Number(item.attemptCount) || 0) + 1;
+        if (!retryable) {
+          removeQueuedReport(item.id);
+          if (isFeedbackItem) showToast(localize(`上报失败：${error?.message || "数据校验失败"}`, `Report failed: ${error?.message || "Validation failed"}`));
+          continue;
+        }
+        updateQueuedReport(item.id, (current) => ({
+          ...current,
+          attemptCount: nextAttemptCount,
+          lastError: error?.message || "",
+          nextRetryAt: Date.now() + getReportRetryDelay(Math.min(nextAttemptCount, REPORT_RETRY_MAX_BACKOFF_STEP)),
+        }));
+        if (isFeedbackItem) {
+          showToast(localize("上报已保存，网络恢复后会自动重试", "Report saved. It will retry automatically when the network recovers."));
+        }
+      }
+      queue = readReportQueue();
+    }
+  } finally {
+    reportQueueSending = false;
+    scheduleReportQueueRetry();
+  }
+}
+
 function getReportPreviewSlotMarkup(character, index) {
   const rarityClass = getTeamSlotRarityClass(character);
   if (!character) {
@@ -11748,30 +11905,23 @@ async function submitMatchReport(options = {}) {
   }
 
   startProgressToast(localize("正在上报对局结果", "Reporting match result"));
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
-    const response = await fetch(SUPABASE_REPORT_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-    const data = await response.json().catch(() => null);
-    if (!response.ok || !data?.ok) {
-      throw new Error(getReportErrorMessage(data, response.status));
+    const queuedReport = enqueueReportPayload(payload);
+    if (reportQueueSending) {
+      scheduleReportQueueRetry();
+      stopProgressToast({ keepVisible: true });
+      showToast(localize("上报已保存，稍后会自动重试", "Report saved. It will retry automatically soon."));
+      return;
     }
+    await flushReportQueue({ force: true, showFeedback: true, feedbackId: queuedReport.id });
     stopProgressToast({ keepVisible: true });
-    const idText = data?.data?.id ? ` ${String(data.data.id).slice(0, 8)}` : "";
-    showToast(localize(`上报成功${idText}`, `Report submitted${idText}`));
   } catch (error) {
     stopProgressToast({ keepVisible: true });
-    const message = error?.name === "AbortError"
-      ? localize("上报超时，请稍后重试", "Report timed out. Please try again later.")
-      : localize(`上报失败：${error?.message || "网络错误"}`, `Report failed: ${error?.message || "Network error"}`);
+    const message = localize(
+      `上报暂存失败：${error?.message || "本地存储异常"}`,
+      `Failed to save report locally: ${error?.message || "Local storage error"}`,
+    );
     showToast(message);
-  } finally {
-    clearTimeout(timeoutId);
   }
 }
 
@@ -12119,6 +12269,8 @@ async function bootstrap() {
   syncFilterControls();
   syncLocalPaidDevAccessControl();
   render();
+  window.addEventListener("online", () => flushReportQueue({ force: true }).catch(() => undefined));
+  flushReportQueue().catch(() => undefined);
   showInitialHelpIntro();
 }
 
