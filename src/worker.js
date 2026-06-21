@@ -1,11 +1,3 @@
-import { CHARACTERS, DATA_SOURCES } from "../worker-data.mjs";
-
-const JSON_HEADERS = {
-  "content-type": "application/json; charset=utf-8",
-  "cache-control": "no-store",
-  "x-content-type-options": "nosniff",
-};
-
 const TEXT_CONTENT_TYPES = new Map([
   [".html", "text/html; charset=utf-8"],
   [".js", "text/javascript; charset=utf-8"],
@@ -67,75 +59,24 @@ function isBlockedPublicAssetPath(pathname) {
   );
 }
 
-function json(data, init = {}) {
-  return new Response(JSON.stringify(data), {
-    ...init,
+function notFoundResponse() {
+  return new Response("Not found", {
+    status: 404,
     headers: {
-      ...JSON_HEADERS,
-      ...(init.headers || {}),
+      "content-type": "text/plain; charset=utf-8",
+      "x-content-type-options": "nosniff",
     },
   });
-}
-
-function getPublicCharacter(character) {
-  return {
-    id: character.id,
-    slug: character.slug,
-    name: character.name,
-    enName: character.enName,
-    rarity: character.rarity,
-    avatarUrl: character.avatarUrl,
-    isCommon: character.isCommon,
-    weapon: character.weapon,
-    weaponCn: character.weaponCn,
-    company: character.company,
-    burstStage: character.burstStage,
-    classType: character.classType,
-    element: character.element,
-    regions: character.regions,
-  };
-}
-
-async function handleApi(request) {
-  const url = new URL(request.url);
-
-  if (url.pathname === "/api/health") {
-    return json({ ok: true, service: "nikke-pvp-charge" });
-  }
-
-  if (url.pathname === "/api/characters") {
-    const includePrivateData = url.searchParams.get("full") === "1";
-    return json({
-      sources: DATA_SOURCES,
-      characters: includePrivateData ? CHARACTERS : CHARACTERS.map(getPublicCharacter),
-    });
-  }
-
-  if (url.pathname === "/api/calculate") {
-    if (request.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, { status: 405 });
-    return json({
-      error: "CALCULATE_API_DISABLED",
-      message: "Calculation API is disabled. The current app uses frontend calculation only.",
-    }, { status: 501 });
-  }
-
-  return json({ error: "NOT_FOUND" }, { status: 404 });
 }
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/")) {
-      return handleApi(request, env);
+      return notFoundResponse();
     }
     if (isBlockedPublicAssetPath(url.pathname)) {
-      return new Response("Not found", {
-        status: 404,
-        headers: {
-          "content-type": "text/plain; charset=utf-8",
-          "x-content-type-options": "nosniff",
-        },
-      });
+      return notFoundResponse();
     }
     const response = await env.ASSETS.fetch(request);
     return normalizeAssetResponseCharset(request.url, response);
