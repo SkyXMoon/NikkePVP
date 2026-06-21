@@ -1,0 +1,171 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NIKKE 竞技场充能计算器</title>
+    <link rel="icon" type="image/png" href="assets/icons/site/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/icons/site/favicon.png" />
+    <link rel="stylesheet" href="styles.min.css" />
+  </head>
+  <body>
+    <div class="announcement-bar" id="announcementBar" hidden>
+      <div class="announcement-viewport">
+        <div class="announcement-track" id="announcementTrack">
+          <span class="announcement-level" id="announcementLevel">公告</span>
+          <span class="announcement-text" id="announcementText"></span>
+          <button class="announcement-action" id="announcementAction" type="button" hidden></button>
+        </div>
+      </div>
+      <button class="announcement-close" id="announcementCloseButton" type="button" aria-label="关闭公告">X</button>
+    </div>
+    <button class="sidebar-menu-button" id="sidebarMenuButton" type="button" aria-label="打开侧边栏" title="菜单">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </button>
+    <div class="app-sidebar-backdrop" id="appSidebarBackdrop" hidden></div>
+    <aside class="app-sidebar" id="appSidebar" aria-label="页面菜单">
+      <div class="app-sidebar-head">
+        <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.51.512</span></strong>
+        <button class="app-sidebar-close" id="sidebarCloseButton" type="button" aria-label="关闭侧边栏">X</button>
+      </div>
+      <nav class="app-sidebar-nav" aria-label="页面操作">
+        <button class="app-sidebar-item" id="changelogButton" type="button">更新日志</button>
+        <button class="app-sidebar-item" id="sidebarHelpButton" type="button">使用说明</button>
+        <button class="app-sidebar-item" id="championDataButton" type="button">冠军竞技场赛季数据</button>
+        <button class="app-sidebar-item" id="sidebarSuggestionButton" type="button">关于&建议</button>
+      </nav>
+      <div class="app-sidebar-bottom">
+        <a class="app-sidebar-item" id="adminPageButton" href="admin.html" hidden aria-hidden="true">后台管理</a>
+        <button class="app-sidebar-item app-sidebar-account" id="accountButton" type="button">账号</button>
+      </div>
+      <div class="theme-controls">
+        <button class="theme-toggle-button" id="themeToggleButton" type="button" aria-label="切换主题" title="切换主题">
+          <span class="theme-icon theme-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-moon" aria-hidden="true">☾</span>
+        </button>
+        <button class="theme-toggle-button language-toggle-button" id="languageToggleButton" type="button" aria-label="切换中英文" title="切换中英文">
+          中/En
+        </button>
+      </div>
+    </aside>
+    <main class="app-shell">
+      <section class="main-stage" aria-label="竞技场充能工具">
+        <section class="charge-chart-panel" aria-label="充能关键点图表">
+          <div class="charge-chart" id="chargeChart"></div>
+        </section>
+
+        <section class="content-grid">
+          <aside class="team-workbench" aria-label="队伍与结果">
+            <section class="team-panel">
+              <div class="panel-heading">
+                <p class="eyebrow" id="teamPanelTitle">队伍</p>
+                <div class="team-actions">
+                  <div class="team-action-row">
+                    <button class="icon-button paid-feature-button" id="paidCModeButton" type="button" aria-label="冠军竞技场" title="冠军竞技场">
+                      <span class="team-action-text" aria-hidden="true">冠军</span>
+                    </button>
+                    <button class="icon-button paid-feature-button" id="paidPModeButton" type="button" aria-label="特殊竞技场" title="特殊竞技场">
+                      <span class="team-action-text" aria-hidden="true">特殊</span>
+                    </button>
+                    <button class="icon-button team-preset-button" id="saveTeamPresetButton" type="button" aria-label="保存队伍" title="保存">
+                      <span class="team-action-text" aria-hidden="true">保存</span>
+                    </button>
+                    <button class="icon-button team-preset-button" id="loadTeamPresetButton" type="button" aria-label="读取队伍" title="读取队伍">
+                      <span class="team-action-text" aria-hidden="true">读取</span>
+                    </button>
+                    <button class="icon-button team-share-button" id="teamShareButton" type="button" aria-label="分享队伍图片" title="分享队伍图片">
+                      <span class="team-action-text" aria-hidden="true">分享</span>
+                    </button>
+                    <button class="icon-button team-report-button" id="reportMatchButton" type="button" aria-label="上报对局结果" title="上报对局结果">
+                      <span class="team-action-text" aria-hidden="true">上报</span>
+                    </button>
+                  </div>
+                  <div class="team-action-row">
+                    <button class="icon-button paid-feature-button" id="paidInferenceButton" type="button" aria-label="空枪反推付费功能" title="空枪反推付费功能">
+                      <span class="team-action-text" aria-hidden="true">测试</span>
+                    </button>
+                    <label class="icon-toggle miss-toggle" aria-label="计算空枪" title="计算空枪">
+                      <input id="allowMissedShotsToggle" type="checkbox" checked />
+                      <span class="team-action-text" aria-hidden="true">空枪</span>
+                    </label>
+                    <button class="icon-button swap-team-button" id="swapTeamButton" type="button" aria-label="切换进攻防守队伍" title="切换进攻防守队伍">
+                      <span class="team-action-text" aria-hidden="true">交换</span>
+                    </button>
+                    <button class="icon-button clear-team-button" id="clearTeamButton" type="button" aria-label="清空双方队伍" title="清空双方队伍">
+                      <span class="team-action-text" aria-hidden="true">清除</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="battle-power-strip" aria-label="战压换算">
+                <span class="battle-power-value battle-power-defense" id="battlePowerDefense">可防 0</span>
+                <label class="battle-power-input-wrap">
+                  <input id="battlePowerBaseInput" type="text" inputmode="numeric" autocomplete="off" value="0" aria-label="战压基准值" />
+                </label>
+                <span class="battle-power-value battle-power-attack" id="battlePowerAttack">可攻 0</span>
+              </div>
+              <div class="summary-strip" id="summaryStrip">选择角色后实时计算首轮爆裂</div>
+              <div class="team-slots" id="teamSlots"></div>
+              <div class="lineup-slots" id="lineupSlots" aria-label="攻防队伍方案"></div>
+            </section>
+
+            <section class="result-panel" id="resultPanel" aria-live="polite"></section>
+          </aside>
+
+          <section class="workspace" aria-label="角色数据">
+            <section class="filters" aria-label="筛选角色">
+              <label class="search-field">
+                <input id="searchInput" type="search" placeholder="角色名 / 英文名" />
+              </label>
+              <button class="filter-switch filter-stage-button" type="button" data-stage-filter="B1" aria-pressed="false">1</button>
+              <button class="filter-switch filter-stage-button" type="button" data-stage-filter="B2" aria-pressed="false">2</button>
+              <button class="filter-switch filter-stage-button" type="button" data-stage-filter="B3" aria-pressed="false">3</button>
+              <label class="filter-switch">
+                <input id="commonToggle" type="checkbox" checked />
+                <span>常</span>
+              </label>
+              <label class="filter-switch">
+                <input id="regionToggle" type="checkbox" checked />
+                <span>国</span>
+              </label>
+              <label class="filter-switch" hidden>
+                <input id="compactAvatarToggle" type="checkbox" checked />
+                <span>简</span>
+              </label>
+            </section>
+
+            <section class="list-header">
+              <span id="sortSummary" class="sort-summary"><strong>充能从高到低</strong></span>
+              <span class="list-divider" aria-hidden="true"></span>
+              <span id="listCount">0 / 0 名角色</span>
+            </section>
+
+            <section class="character-list" id="characterGrid" aria-live="polite"></section>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <div class="floating-controls" aria-label="辅助操作">
+      <button class="app-help-button" id="helpButton" type="button" aria-label="打开页面说明" title="页面说明">?</button>
+      <button class="app-share-fab" id="mobileShareFab" type="button" aria-label="分享" title="分享">
+        <span class="share-fab-text">分享</span>
+      </button>
+      <button class="app-share-fab app-ocr-fab" id="ocrUploadButton" type="button" aria-label="识别图片填充队伍" title="识别图片填充队伍">
+        <span class="share-fab-text">识别</span>
+      </button>
+      <button class="app-share-fab app-report-fab" id="floatingReportButton" type="button" aria-label="上报对局结果" title="上报对局结果">
+        <span class="share-fab-text">上报</span>
+      </button>
+      <input id="ocrUploadInput" class="visually-hidden-file-input" type="file" accept="image/*" />
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="data.min.js"></script>
+    <script src="app.min.js"></script>
+  </body>
+</html>
+
+

@@ -1,0 +1,15 @@
+{
+  "version": "2026-06-20-1",
+  "enabled": true,
+  "items": [
+    {
+      "id": "champion-season-data-open",
+      "level": "info",
+      "text": "冠军竞技场赛季数据已经开放，登录后可查看。如需提供赛季数据请查看关于&建议进行联系，提供赛季数据可获得赛季数据访问时长。",
+      "enText": "Champion Arena season data is now available after sign-in. To provide season data, open About & Feedback to contact us. Providing season data can grant Champion Arena season data access time.",
+      "action": "suggestion",
+      "linkText": "关于&建议",
+      "enLinkText": "About & Feedback"
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NIKKE PVP 后台管理</title>
+    <link rel="icon" type="image/png" href="assets/icons/site/favicon.png" />
+    <link rel="stylesheet" href="admin.min.css" />
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header class="admin-header">
+        <div>
+          <a class="admin-back" href="index.html">返回计算器</a>
+          <h1>NIKKE PVP 后台管理</h1>
+          <p>用户权限管理 · V1.50.504</p>
+        </div>
+        <div class="admin-session" id="adminSession">未登录</div>
+      </header>
+
+      <section class="admin-card" id="loginPanel">
+        <h2>管理员登录</h2>
+        <form class="admin-form" id="adminLoginForm">
+          <label>
+            邮箱
+            <input id="adminEmail" name="email" type="email" autocomplete="username" placeholder="请输入邮箱" required />
+          </label>
+          <label>
+            密码
+            <input id="adminPassword" name="password" type="password" autocomplete="current-password" placeholder="请输入密码" required />
+          </label>
+          <button class="admin-primary" type="submit">登录</button>
+        </form>
+      </section>
+
+      <section class="admin-card" id="userPanel" hidden>
+        <div class="admin-section-head">
+          <div>
+            <h2>用户权限</h2>
+            <p>当前仅管理冠军竞技场赛季数据权限。</p>
+          </div>
+          <button class="admin-secondary" id="adminLogoutButton" type="button">退出登录</button>
+        </div>
+
+        <form class="admin-search" id="adminSearchForm">
+          <input id="adminSearchInput" name="q" type="search" placeholder="搜索邮箱或用户名" />
+          <button class="admin-primary" type="submit">搜索</button>
+          <button class="admin-secondary" id="adminRefreshButton" type="button">刷新</button>
+        </form>
+
+        <div class="admin-selected-actions" id="adminSelectedActions" hidden>
+          <div class="admin-selected-user" id="adminSelectedUserLabel">未选择用户</div>
+          <input id="adminSelectedExpiresAtInput" name="selectedExpiresAt" type="datetime-local" aria-label="所选用户权限到期时间" title="所选用户权限到期时间，留空表示永久" />
+          <button class="admin-secondary" id="adminSelectedOneMonthButton" type="button">一个月</button>
+          <button class="admin-primary" id="adminSelectedSetExpiryButton" type="button">设置到期</button>
+          <button class="admin-secondary" id="adminSelectedRevokeButton" type="button">关闭权限</button>
+        </div>
+
+        <div class="admin-status" id="adminStatus"></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>用户</th>
+                <th>注册时间</th>
+                <th>最后登录</th>
+                <th>冠军竞技场赛季数据</th>
+              </tr>
+            </thead>
+            <tbody id="adminUserRows">
+              <tr>
+                <td colspan="4">暂无数据</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <section class="admin-audit-section">
+          <h3>最近操作记录</h3>
+          <div class="admin-audit-list" id="adminAuditRows">暂无记录</div>
+        </section>
+      </section>
+    </main>
+
+    <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
+    <script src="admin.min.js"></script>
+  </body>
+</html>
