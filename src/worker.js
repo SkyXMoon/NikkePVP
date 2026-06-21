@@ -57,6 +57,16 @@ function normalizeAssetResponseCharset(requestUrl, response) {
   });
 }
 
+function isBlockedPublicAssetPath(pathname) {
+  const normalized = pathname.toLowerCase();
+  return (
+    normalized.startsWith("/.wrangler/") ||
+    normalized.startsWith("/.git/") ||
+    normalized === "/.gitignore" ||
+    normalized === "/wrangler.toml"
+  );
+}
+
 function json(data, init = {}) {
   return new Response(JSON.stringify(data), {
     ...init,
@@ -117,6 +127,15 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/")) {
       return handleApi(request, env);
+    }
+    if (isBlockedPublicAssetPath(url.pathname)) {
+      return new Response("Not found", {
+        status: 404,
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "x-content-type-options": "nosniff",
+        },
+      });
     }
     const response = await env.ASSETS.fetch(request);
     return normalizeAssetResponseCharset(request.url, response);
