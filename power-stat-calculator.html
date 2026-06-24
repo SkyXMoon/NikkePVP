@@ -1,0 +1,431 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>战力+基础属性计算器</title>
+    <meta name="theme-color" content="#111827" />
+    <meta name="background-color" content="#0b1020" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="NIKKE PVP" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/png" href="assets/icons/site/favicon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <style>
+      :root {
+        --bg: #060c17;
+        --panel: #0f1b34;
+        --panel-soft: rgba(17, 24, 39, 0.84);
+        --line: rgba(140, 180, 208, 0.2);
+        --text: #e5ecff;
+        --muted: #9aacbf;
+        --green: #2ccf8f;
+        --green-soft: rgba(44, 207, 143, 0.18);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        min-height: 100vh;
+        background:
+          radial-gradient(80% 80% at 50% 0%, #13213a 0%, var(--bg) 70%),
+          linear-gradient(180deg, #0b1226, var(--bg));
+        color: var(--text);
+        font-family: "Microsoft YaHei", "Hiragino Sans GB", "PingFang SC", "Segoe UI", Arial, sans-serif;
+        line-height: 1.35;
+      }
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 18px;
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 21px;
+      }
+      .back {
+        color: #dce4ff;
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--panel-soft);
+        font-size: 13px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      .panel-title {
+        margin: 0 0 10px;
+        font-size: 15px;
+        color: #9fc4ff;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      input,
+      select {
+        border: 1px solid rgba(154, 176, 202, 0.24);
+        border-radius: 8px;
+        background: #0b1427;
+        color: var(--text);
+        padding: 8px 10px;
+        font-size: 14px;
+        outline: none;
+      }
+      input:focus,
+      select:focus {
+        border-color: #56b6e6;
+        box-shadow: 0 0 0 2px rgba(78, 210, 255, 0.2);
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+      .result-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .result-card {
+        border-radius: 10px;
+        border: 1px solid rgba(126, 240, 212, 0.35);
+        background: rgba(126, 240, 212, 0.08);
+        padding: 12px 10px;
+        text-align: center;
+      }
+      .result-card .label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .result-card .value {
+        margin-top: 4px;
+        font-size: 28px;
+        color: #7ef0d4;
+        font-weight: 700;
+      }
+      .result-card .value.big {
+        font-size: 36px;
+      }
+      .detail-card {
+        border: 1px solid rgba(126, 240, 212, 0.24);
+        background: rgba(126, 240, 212, 0.06);
+        border-radius: 10px;
+        padding: 10px;
+      }
+      .detail-card h3 {
+        margin: 0 0 8px;
+        color: #c7e7ff;
+        font-size: 13px;
+      }
+      .detail-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+      .detail-item .value {
+        color: #7ef0d4;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .detail-item .value-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        line-height: 1.2;
+      }
+      .detail-item .ratio {
+        display: none;
+      }
+      .detail-item .label {
+        color: var(--muted);
+      }
+      .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        border: 1px solid var(--line);
+        background: #0b1427;
+        color: var(--text);
+        border-radius: 10px;
+        padding: 9px 12px;
+        cursor: pointer;
+      }
+      button.primary {
+        border-color: var(--green);
+        background: var(--green-soft);
+      }
+      @media (max-width: 620px) {
+        .page {
+          padding: 12px;
+        }
+        .top {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .result-grid {
+          grid-template-columns: 1fr;
+        }
+        .detail-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="top">
+        <h1>战力+基础属性计算器</h1>
+        <a class="back" href="index.html">返回主工具</a>
+      </div>
+
+      <section class="panel">
+        <h2 class="panel-title">角色输入</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="levelInput">等级</label>
+            <input id="levelInput" type="number" min="1" step="1" value="1" />
+            <span class="hint">范围 1~600</span>
+          </div>
+          <div class="field">
+            <label for="breakthroughCountInput">极限突破次数</label>
+            <input id="breakthroughCountInput" type="number" min="0" max="3" step="1" value="0" />
+            <span class="hint">范围 0~3</span>
+          </div>
+          <div class="field">
+            <label for="coreEnhanceLevelInput">核心强化等级</label>
+            <input id="coreEnhanceLevelInput" type="number" min="0" max="7" step="1" value="0" />
+            <span class="hint">范围 0~7</span>
+          </div>
+          <div class="field">
+            <label for="roleTypeInput">角色类型</label>
+            <select id="roleTypeInput">
+              <option value="火力">火力</option>
+              <option value="防御">防御</option>
+              <option value="辅助">辅助</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="affinityLevelInput">好感等级</label>
+            <select id="affinityLevelInput"></select>
+          </div>
+          <div class="field">
+            <label for="weaponTypeInput">武器类型</label>
+            <select id="weaponTypeInput">
+              <option value="AR">AR</option>
+              <option value="SR">SR</option>
+              <option value="SMG">SMG</option>
+              <option value="SG">SG</option>
+              <option value="RL">RL</option>
+              <option value="MG">MG</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cubeLevelInput">魔方等级</label>
+            <select id="cubeLevelInput">
+              <option value="0">0=不启用</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="relicTypeInput">收藏品类型</label>
+            <select id="relicTypeInput">
+              <option value="NONE">无收藏品</option>
+              <option value="R">R</option>
+              <option value="SR">SR</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="relicLevelInput">收藏品等级</label>
+            <select id="relicLevelInput"></select>
+          </div>
+          <div class="field">
+            <label for="generalLoopLevelInput">通用循环器</label>
+            <input id="generalLoopLevelInput" type="number" min="0" step="1" value="0" />
+          </div>
+          <div class="field">
+            <label for="careerLoopLevelInput">职业循环器</label>
+            <input id="careerLoopLevelInput" type="number" min="0" step="1" value="0" />
+          </div>
+          <div class="field">
+            <label for="enterpriseLoopLevelInput">企业循环器</label>
+            <input id="enterpriseLoopLevelInput" type="number" min="0" step="1" value="0" />
+          </div>
+          <div class="field">
+            <label for="headEquipmentLevelInput">装备-头（无/0~5）</label>
+            <select id="headEquipmentLevelInput"></select>
+          </div>
+          <div class="field">
+            <label for="handEquipmentLevelInput">装备-手（无/0~5）</label>
+            <select id="handEquipmentLevelInput"></select>
+          </div>
+          <div class="field">
+            <label for="armorEquipmentLevelInput">装备-衣（无/0~5）</label>
+            <select id="armorEquipmentLevelInput"></select>
+          </div>
+          <div class="field">
+            <label for="bootEquipmentLevelInput">装备-鞋（无/0~5）</label>
+            <select id="bootEquipmentLevelInput"></select>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">计算结果</h2>
+        <div class="result-grid">
+          <div class="result-card">
+            <div class="label">HP</div>
+            <div class="value" id="resultHp">0</div>
+          </div>
+          <div class="result-card">
+            <div class="label">ATK</div>
+            <div class="value" id="resultAtk">0</div>
+          </div>
+          <div class="result-card">
+            <div class="label">DEF</div>
+            <div class="value" id="resultDef">0</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="copyBtn" type="button" class="primary">复制结果</button>
+          <button id="resetBtn" type="button">重置</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">战力计算</h2>
+        <p class="hint" id="powerSyncStatus">基础属性已自动同步：先完成基础属性计算</p>
+        <div class="grid">
+          <div class="field">
+            <label for="powerSkill1Input">1技能等级</label>
+            <input id="powerSkill1Input" type="number" step="1" min="1" max="10" value="1" />
+          </div>
+          <div class="field">
+            <label for="powerSkill2Input">2技能等级</label>
+            <input id="powerSkill2Input" type="number" step="1" min="1" max="10" value="1" />
+          </div>
+          <div class="field">
+            <label for="powerBurstInput">爆裂技能等级</label>
+            <input id="powerBurstInput" type="number" step="1" min="1" max="10" value="1" />
+          </div>
+          <div class="field">
+            <label for="powerEntryInput">词条档位总和</label>
+            <input id="powerEntryInput" type="number" step="1" min="0" value="0" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="powerCalcBtn" type="button" class="primary">计算战力</button>
+          <button id="powerCopyBtn" type="button">复制战力</button>
+          <button id="powerResetBtn" type="button">重置战力</button>
+        </div>
+        <div class="result-grid" style="grid-template-columns: repeat(1, minmax(0, 1fr)); margin-top: 10px;">
+          <div class="result-card">
+            <div class="label">战力</div>
+            <div class="value big" id="powerRoundOutput">0</div>
+            <div class="hint" id="powerModeText">待计算（需先有基础属性）</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">明细说明</h2>
+        <div class="detail-grid">
+          <div class="detail-card">
+            <h3>HP</h3>
+            <div class="detail-item"><span class="label" id="detailBaseHpLabel" data-base-label="基础HP">基础HP</span><span class="value-wrap"><span class="value" id="detailBaseHp">0</span><span class="ratio" id="detailBaseHpRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailBreakMultHpLabel" data-base-label="极限突破倍率">极限突破倍率</span><span class="value-wrap"><span class="value" id="detailBreakMultHp">0</span><span class="ratio" id="detailBreakMultHpRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailBreakFixedHpLabel" data-base-label="极限突破固定值">极限突破固定值</span><span class="value-wrap"><span class="value" id="detailBreakFixedHp">0</span><span class="ratio" id="detailBreakFixedHpRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailLoopHpLabel" data-base-label="循环器加成">循环器加成</span><span class="value-wrap"><span class="value" id="detailLoopHp">0</span><span class="ratio" id="detailLoopHpRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailCubeHpLabel" data-base-label="魔方加成">魔方加成</span><span class="value-wrap"><span class="value" id="detailCubeHp">0</span><span class="ratio" id="detailCubeHpRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailAffinityHpLabel" data-base-label="好感加成">好感加成</span><span class="value-wrap"><span class="value" id="detailAffinityHp">0</span><span class="ratio" id="detailAffinityHpRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailRelicHpLabel" data-base-label="收藏品加成">收藏品加成</span><span class="value-wrap"><span class="value" id="detailRelicHp">0</span><span class="ratio" id="detailRelicHpRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailEquipmentHpLabel" data-base-label="装备加成">装备加成</span><span class="value-wrap"><span class="value" id="detailEquipmentHp">0</span><span class="ratio" id="detailEquipmentHpRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailCoreHpLabel" data-base-label="核心强化加成">核心强化加成</span><span class="value-wrap"><span class="value" id="detailCoreHp">0</span><span class="ratio" id="detailCoreHpRate">100.0%</span></span></div>
+            <div class="detail-item"><span class="label" id="detailFinalHpLabel" data-base-label="最终HP">最终HP</span><span class="value-wrap"><span class="value" id="detailFinalHp">0</span><span class="ratio" id="detailFinalHpRate">100.0%</span></span></div>
+          </div>
+          <div class="detail-card">
+            <h3>ATK</h3>
+            <div class="detail-item"><span class="label" id="detailBaseAtkLabel" data-base-label="基础ATK">基础ATK</span><span class="value-wrap"><span class="value" id="detailBaseAtk">0</span><span class="ratio" id="detailBaseAtkRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailBreakMultAtkLabel" data-base-label="极限突破倍率">极限突破倍率</span><span class="value-wrap"><span class="value" id="detailBreakMultAtk">0</span><span class="ratio" id="detailBreakMultAtkRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailBreakFixedAtkLabel" data-base-label="极限突破固定值">极限突破固定值</span><span class="value-wrap"><span class="value" id="detailBreakFixedAtk">0</span><span class="ratio" id="detailBreakFixedAtkRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailLoopAtkLabel" data-base-label="循环器加成">循环器加成</span><span class="value-wrap"><span class="value" id="detailLoopAtk">0</span><span class="ratio" id="detailLoopAtkRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailCubeAtkLabel" data-base-label="魔方加成">魔方加成</span><span class="value-wrap"><span class="value" id="detailCubeAtk">0</span><span class="ratio" id="detailCubeAtkRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailAffinityAtkLabel" data-base-label="好感加成">好感加成</span><span class="value-wrap"><span class="value" id="detailAffinityAtk">0</span><span class="ratio" id="detailAffinityAtkRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailRelicAtkLabel" data-base-label="收藏品加成">收藏品加成</span><span class="value-wrap"><span class="value" id="detailRelicAtk">0</span><span class="ratio" id="detailRelicAtkRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailEquipmentAtkLabel" data-base-label="装备加成">装备加成</span><span class="value-wrap"><span class="value" id="detailEquipmentAtk">0</span><span class="ratio" id="detailEquipmentAtkRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailCoreAtkLabel" data-base-label="核心强化加成">核心强化加成</span><span class="value-wrap"><span class="value" id="detailCoreAtk">0</span><span class="ratio" id="detailCoreAtkRate">100.0%</span></span></div>
+            <div class="detail-item"><span class="label" id="detailFinalAtkLabel" data-base-label="最终ATK">最终ATK</span><span class="value-wrap"><span class="value" id="detailFinalAtk">0</span><span class="ratio" id="detailFinalAtkRate">100.0%</span></span></div>
+          </div>
+          <div class="detail-card">
+            <h3>DEF</h3>
+            <div class="detail-item"><span class="label" id="detailBaseDefLabel" data-base-label="基础DEF">基础DEF</span><span class="value-wrap"><span class="value" id="detailBaseDef">0</span><span class="ratio" id="detailBaseDefRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailBreakMultDefLabel" data-base-label="极限突破倍率">极限突破倍率</span><span class="value-wrap"><span class="value" id="detailBreakMultDef">0</span><span class="ratio" id="detailBreakMultDefRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailBreakFixedDefLabel" data-base-label="极限突破固定值">极限突破固定值</span><span class="value-wrap"><span class="value" id="detailBreakFixedDef">0</span><span class="ratio" id="detailBreakFixedDefRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailLoopDefLabel" data-base-label="循环器加成">循环器加成</span><span class="value-wrap"><span class="value" id="detailLoopDef">0</span><span class="ratio" id="detailLoopDefRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailCubeDefLabel" data-base-label="魔方加成">魔方加成</span><span class="value-wrap"><span class="value" id="detailCubeDef">0</span><span class="ratio" id="detailCubeDefRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailAffinityDefLabel" data-base-label="好感加成">好感加成</span><span class="value-wrap"><span class="value" id="detailAffinityDef">0</span><span class="ratio" id="detailAffinityDefRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailRelicDefLabel" data-base-label="收藏品加成">收藏品加成</span><span class="value-wrap"><span class="value" id="detailRelicDef">0</span><span class="ratio" id="detailRelicDefRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailEquipmentDefLabel" data-base-label="装备加成">装备加成</span><span class="value-wrap"><span class="value" id="detailEquipmentDef">0</span><span class="ratio" id="detailEquipmentDefRate">-</span></span></div>
+            <div class="detail-item"><span class="label" id="detailCoreDefLabel" data-base-label="核心强化加成">核心强化加成</span><span class="value-wrap"><span class="value" id="detailCoreDef">0</span><span class="ratio" id="detailCoreDefRate">100.0%</span></span></div>
+            <div class="detail-item"><span class="label" id="detailFinalDefLabel" data-base-label="最终DEF">最终DEF</span><span class="value-wrap"><span class="value" id="detailFinalDef">0</span><span class="ratio" id="detailFinalDefRate">100.0%</span></span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script src="base-stat-calculator.js"></script>
+    <script src="power-stat-calculator.js"></script>
+  </body>
+</html>
