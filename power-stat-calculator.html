@@ -289,8 +289,24 @@
             </select>
           </div>
           <div class="field">
-            <label for="relicLevelInput">收藏品等级</label>
+            <label for="relicLevelInput">收藏品技能1档位</label>
             <select id="relicLevelInput"></select>
+          </div>
+          <div class="field">
+            <label for="powerSkill1Input">1技能等级</label>
+            <input id="powerSkill1Input" type="number" step="1" min="1" max="10" value="1" />
+          </div>
+          <div class="field">
+            <label for="powerSkill2Input">2技能等级</label>
+            <input id="powerSkill2Input" type="number" step="1" min="1" max="10" value="1" />
+          </div>
+          <div class="field">
+            <label for="powerBurstInput">爆裂技能等级</label>
+            <input id="powerBurstInput" type="number" step="1" min="1" max="10" value="1" />
+          </div>
+          <div class="field">
+            <label for="powerEntryInput">词条档位总和</label>
+            <input id="powerEntryInput" type="number" step="1" min="0" value="0" />
           </div>
           <div class="field">
             <label for="generalLoopLevelInput">通用循环器</label>
@@ -338,45 +354,16 @@
             <div class="label">DEF</div>
             <div class="value" id="resultDef">0</div>
           </div>
-        </div>
-        <div class="actions">
-          <button id="copyBtn" type="button" class="primary">复制结果</button>
-          <button id="resetBtn" type="button">重置</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2 class="panel-title">战力计算</h2>
-        <p class="hint" id="powerSyncStatus">基础属性已自动同步：先完成基础属性计算</p>
-        <div class="grid">
-          <div class="field">
-            <label for="powerSkill1Input">1技能等级</label>
-            <input id="powerSkill1Input" type="number" step="1" min="1" max="10" value="1" />
-          </div>
-          <div class="field">
-            <label for="powerSkill2Input">2技能等级</label>
-            <input id="powerSkill2Input" type="number" step="1" min="1" max="10" value="1" />
-          </div>
-          <div class="field">
-            <label for="powerBurstInput">爆裂技能等级</label>
-            <input id="powerBurstInput" type="number" step="1" min="1" max="10" value="1" />
-          </div>
-          <div class="field">
-            <label for="powerEntryInput">词条档位总和</label>
-            <input id="powerEntryInput" type="number" step="1" min="0" value="0" />
-          </div>
-        </div>
-        <div class="actions">
-          <button id="powerCalcBtn" type="button" class="primary">计算战力</button>
-          <button id="powerCopyBtn" type="button">复制战力</button>
-          <button id="powerResetBtn" type="button">重置战力</button>
-        </div>
-        <div class="result-grid" style="grid-template-columns: repeat(1, minmax(0, 1fr)); margin-top: 10px;">
           <div class="result-card">
             <div class="label">战力</div>
             <div class="value big" id="powerRoundOutput">0</div>
             <div class="hint" id="powerModeText">待计算（需先有基础属性）</div>
+            <div class="hint" id="powerSyncStatus">基础属性已自动同步：先完成基础属性计算</div>
           </div>
+        </div>
+        <div class="actions">
+          <button id="copyBtn" type="button" class="primary">复制结果</button>
+          <button id="resetBtn" type="button">重置</button>
         </div>
       </section>
 
@@ -425,7 +412,7 @@
         </div>
       </section>
     </div>
-    <script src="base-stat-calculator.js"></script>
     <script src="power-stat-calculator.js"></script>
   </body>
 </html>
+
