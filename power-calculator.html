@@ -1,0 +1,261 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>战力计算器</title>
+    <meta name="theme-color" content="#111827" />
+    <meta name="background-color" content="#0b1020" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="NIKKE PVP" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/png" href="assets/icons/site/favicon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <style>
+      :root {
+        --bg: #060c17;
+        --panel: #0f1b34;
+        --panel-soft: rgba(17, 24, 39, 0.84);
+        --line: rgba(140, 180, 208, 0.2);
+        --text: #e5ecff;
+        --muted: #9aacbf;
+        --green: #2ccf8f;
+        --green-soft: rgba(44, 207, 143, 0.18);
+        --blue: #4ed2ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        min-height: 100vh;
+        background:
+          radial-gradient(80% 80% at 50% 0%, #13213a 0%, var(--bg) 70%),
+          linear-gradient(180deg, #0b1226, var(--bg));
+        color: var(--text);
+        font-family: "Microsoft YaHei", "Hiragino Sans GB", "PingFang SC", "Segoe UI", Arial, sans-serif;
+        line-height: 1.35;
+      }
+      .page {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 18px;
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 21px;
+      }
+      .back {
+        color: #dce4ff;
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--panel-soft);
+        font-size: 13px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 10px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      input {
+        border: 1px solid rgba(154, 176, 202, 0.24);
+        border-radius: 8px;
+        background: #0b1427;
+        color: var(--text);
+        padding: 8px 10px;
+        font-size: 14px;
+        outline: none;
+      }
+      input:focus {
+        border-color: #56b6e6;
+        box-shadow: 0 0 0 2px rgba(78, 210, 255, 0.2);
+      }
+      .actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .power-inline-result {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(126, 240, 212, 0.35);
+        background: rgba(126, 240, 212, 0.08);
+        color: #7ef0d4;
+      }
+      .power-inline-result b {
+        font-size: 20px;
+        color: #d7fff0;
+      }
+      button {
+        border: 1px solid var(--line);
+        background: #0b1427;
+        color: var(--text);
+        border-radius: 10px;
+        padding: 9px 12px;
+        cursor: pointer;
+      }
+      button.primary {
+        border-color: var(--green);
+        background: var(--green-soft);
+      }
+      .result {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .result-card {
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        background: #0b1427;
+      }
+      .result-card b {
+        color: #7ef0d4;
+      }
+      .big {
+        font-size: 32px;
+        color: #7ef0d4;
+        text-align: center;
+        margin: 0;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .note {
+        margin-top: 6px;
+        color: #ffc36a;
+        font-size: 12px;
+      }
+      @media (max-width: 620px) {
+        .page {
+          padding: 12px;
+        }
+        .top {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="top">
+        <h1>战力计算器</h1>
+        <a class="back" href="index.html">返回主工具</a>
+      </div>
+
+      <section class="panel">
+        <div class="grid">
+          <div class="field">
+            <label for="hpInput">体力（HP）</label>
+            <input id="hpInput" type="number" step="0.01" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="atkInput">ATK（攻击）</label>
+            <input id="atkInput" type="number" step="0.01" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="defInput">DEF（防御）</label>
+            <input id="defInput" type="number" step="0.01" min="0" value="0" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="grid">
+          <div class="field">
+            <label for="skill1Input">1技能等级</label>
+            <input id="skill1Input" type="number" step="1" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="skill2Input">2技能等级</label>
+            <input id="skill2Input" type="number" step="1" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="skillBurstInput">爆裂技能等级</label>
+            <input id="skillBurstInput" type="number" step="1" min="0" value="0" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="grid">
+          <div class="field">
+            <label for="cubeLevelInput">魔方等级</label>
+            <input id="cubeLevelInput" type="number" step="1" min="0" max="15" value="0" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="grid">
+          <div class="field">
+            <label for="entryTotalInput">词条档位总和（非优越 + 优越×1.2）</label>
+            <input id="entryTotalInput" type="number" step="0.1" min="0" value="0" />
+          </div>
+        </div>
+        <div class="grid" style="margin-top: 10px;">
+          <div class="field">
+            <label for="relicModeSelect">收藏品类型</label>
+            <select id="relicModeSelect">
+              <option value="R">R</option>
+              <option value="SR">SR</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="relicRInput">收藏品等级</label>
+            <input id="relicRInput" type="number" step="1" min="0" max="15" value="0" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="actions">
+          <div class="power-inline-result">
+            <span class="hint">最终战力</span>
+            <b id="powerInlineValue">0</b>
+          </div>
+          <button id="copyBtn" type="button">复制结果</button>
+          <button id="resetBtn" type="button">重置</button>
+        </div>
+      </section>
+    </div>
+    <script src="power-calculator.js"></script>
+  </body>
+</html>

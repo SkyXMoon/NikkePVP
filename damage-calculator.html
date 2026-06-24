@@ -1,0 +1,289 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>最终伤害计算器</title>
+    <meta name="theme-color" content="#111827" />
+    <meta name="background-color" content="#0b1020" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="NIKKE PVP" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/png" href="assets/icons/site/favicon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <style>
+      :root {
+        --bg: #060c17;
+        --panel: #0f1b34;
+        --panel-soft: rgba(17, 24, 39, 0.84);
+        --line: rgba(140, 180, 208, 0.2);
+        --text: #e5ecff;
+        --muted: #9aacbf;
+        --green: #2ccf8f;
+        --green-soft: rgba(44, 207, 143, 0.18);
+        --accent: #4ed2ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        min-height: 100vh;
+        background:
+          radial-gradient(80% 80% at 50% 0%, #13213a 0%, var(--bg) 70%),
+          linear-gradient(180deg, #0b1226, var(--bg));
+        color: var(--text);
+        font-family: "Microsoft YaHei", "Hiragino Sans GB", "PingFang SC", "Segoe UI", Arial, sans-serif;
+        line-height: 1.35;
+      }
+      .page {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 18px;
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 21px;
+      }
+      .back {
+        color: #dce4ff;
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--panel-soft);
+        font-size: 13px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      input,
+      select {
+        border: 1px solid rgba(154, 176, 202, 0.24);
+        border-radius: 8px;
+        background: #0b1427;
+        color: var(--text);
+        padding: 8px 10px;
+        font-size: 14px;
+        outline: none;
+      }
+      input:focus,
+      select:focus {
+        border-color: #56b6e6;
+        box-shadow: 0 0 0 2px rgba(78, 210, 255, 0.2);
+      }
+      .actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        border: 1px solid var(--line);
+        background: #0b1427;
+        color: var(--text);
+        border-radius: 10px;
+        padding: 9px 12px;
+        cursor: pointer;
+      }
+      button.primary {
+        border-color: var(--green);
+        background: var(--green-soft);
+      }
+      .result {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .result-card {
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+        background: #0b1427;
+      }
+      .result-card b {
+        color: #7ef0d4;
+      }
+      .big {
+        font-size: 32px;
+        color: #7ef0d4;
+        text-align: center;
+        margin: 0;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .note {
+        margin-top: 6px;
+        color: #ffc36a;
+        font-size: 12px;
+      }
+      @media (max-width: 620px) {
+        .page {
+          padding: 12px;
+        }
+        .top {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="top">
+        <h1>最终伤害计算器（独立模块）</h1>
+        <a class="back" href="index.html">返回主工具</a>
+      </div>
+
+      <section class="panel">
+        <div class="grid">
+          <div class="field">
+            <label for="baseAttack">角色基础攻击</label>
+            <input id="baseAttack" type="number" step="0.01" value="8000" />
+          </div>
+          <div class="field">
+            <label for="attackBuffPercent">攻击力 Buff 之和（%）</label>
+            <input id="attackBuffPercent" type="number" step="0.01" value="0" />
+          </div>
+          <div class="field">
+            <label for="monsterDefense">怪物防御力</label>
+            <input id="monsterDefense" type="number" step="0.01" value="400" />
+          </div>
+          <div class="field">
+            <label for="weaponMultiplier">武器/技能倍率</label>
+            <input id="weaponMultiplier" type="number" step="0.01" value="2.0" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>补正区（相加后统一按 1 + %）</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="critDamagePercent">暴击伤害（%）</label>
+            <input id="critDamagePercent" type="number" step="0.01" value="50" />
+          </div>
+          <div class="field">
+            <label for="weaknessPercent">弱点补正（%）</label>
+            <input id="weaknessPercent" type="number" step="0.01" value="100" />
+          </div>
+          <div class="field">
+            <label for="distancePercent">距离补正（%）</label>
+            <input id="distancePercent" type="number" step="0.01" value="30" />
+          </div>
+          <div class="field">
+            <label for="burstPercent">全爆裂补正（%）</label>
+            <input id="burstPercent" type="number" step="0.01" value="50" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>乘区参数（独立参数）</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="attributeMultiplierPercent">属性克制（%）</label>
+            <input id="attributeMultiplierPercent" type="number" step="0.01" value="110" />
+          </div>
+          <div class="field">
+            <label for="chargeMultiplier">蓄速区</label>
+            <select id="chargeMultiplier">
+              <option value="2.5">2.5</option>
+              <option value="3.5">3.5</option>
+              <option value="custom">自定义</option>
+            </select>
+            <input id="chargeMultiplierCustom" type="number" step="0.01" value="2.5" hidden />
+          </div>
+          <div class="field">
+            <label for="partDamagePercent">部位破坏（%）</label>
+            <input id="partDamagePercent" type="number" step="0.01" value="0" />
+          </div>
+          <div class="field">
+            <label for="otherBonusPercent">其他增伤（%）</label>
+            <input id="otherBonusPercent" type="number" step="0.01" value="0" />
+          </div>
+          <div class="field">
+            <label for="vulnerabilityPercent">易伤（%）</label>
+            <input id="vulnerabilityPercent" type="number" step="0.01" value="0" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="actions">
+          <button id="calcBtn" class="primary" type="button">计算</button>
+          <button id="resetBtn" type="button">恢复默认</button>
+          <button id="copyBtn" type="button">复制结果</button>
+        </div>
+        <p class="note">最终伤害 = 基础伤害 × 补正区 × 属性克制区 × 蓄速区 × 额外增伤区 × 易伤区。底数最低为1，最终结果四舍五入到整数。</p>
+      </section>
+
+      <section class="panel">
+        <div class="result-card">
+          <div class="hint">最终伤害</div>
+          <p id="finalDamage" class="big">0</p>
+        </div>
+        <div class="result">
+          <div class="result-card">
+            <div class="hint">基础伤害</div>
+            <b id="baseDamageDisplay">0</b>
+          </div>
+          <div class="result-card">
+            <div class="hint">补正区</div>
+            <b id="correctionDisplay">0</b>
+          </div>
+          <div class="result-card">
+            <div class="hint">属性克制区</div>
+            <b id="attributeDisplay">0</b>
+          </div>
+          <div class="result-card">
+            <div class="hint">蓄速区</div>
+            <b id="chargeDisplay">0</b>
+          </div>
+          <div class="result-card">
+            <div class="hint">额外增伤区</div>
+            <b id="extraDisplay">0</b>
+          </div>
+          <div class="result-card">
+            <div class="hint">易伤区</div>
+            <b id="vulnDisplay">0</b>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script src="damage-calculator.js"></script>
+  </body>
+</html>

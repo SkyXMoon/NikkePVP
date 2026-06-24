@@ -4,8 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NIKKE 竞技场充能计算器</title>
+    <meta name="theme-color" content="#111827" />
+    <meta name="background-color" content="#0b1020" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="NIKKE PVP" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="icon" type="image/png" href="assets/icons/site/favicon.png" />
-    <link rel="apple-touch-icon" href="assets/icons/site/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/icons/site/pwa-192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.min.css" />
   </head>
   <body>
@@ -27,13 +34,15 @@
     <div class="app-sidebar-backdrop" id="appSidebarBackdrop" hidden></div>
     <aside class="app-sidebar" id="appSidebar" aria-label="页面菜单">
       <div class="app-sidebar-head">
-        <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.51.512</span></strong>
+        <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.56.536</span></strong>
         <button class="app-sidebar-close" id="sidebarCloseButton" type="button" aria-label="关闭侧边栏">X</button>
       </div>
       <nav class="app-sidebar-nav" aria-label="页面操作">
         <button class="app-sidebar-item" id="changelogButton" type="button">更新日志</button>
         <button class="app-sidebar-item" id="sidebarHelpButton" type="button">使用说明</button>
         <button class="app-sidebar-item" id="championDataButton" type="button">冠军竞技场赛季数据</button>
+        <a class="app-sidebar-item" href="damage-calculator.html">最终伤害计算器</a>
+        <a class="app-sidebar-item" href="power-calculator.html">战力计算器</a>
         <button class="app-sidebar-item" id="sidebarSuggestionButton" type="button">关于&建议</button>
       </nav>
       <div class="app-sidebar-bottom">
