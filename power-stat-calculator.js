@@ -61,13 +61,6 @@ function formatInt(value) {
   return String(Math.max(0, Math.round(toNumber(value, 0)))).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-function parseDisplayNumber(value) {
-  if (typeof value !== "string") return toNumber(value, 0);
-  const normalized = value.replace(/[^\d.-]/g, "");
-  if (normalized === "" || normalized === "-" || normalized === ".") return 0;
-  return toNumber(normalized, 0);
-}
-
 function formatTime(value) {
   if (!Number.isFinite(value) || value <= 0) return "-";
   const d = new Date(value);
@@ -140,20 +133,14 @@ function getBaseStatus() {
 }
 
 function getBaseStats() {
-  const domAtk = toInteger(parseDisplayNumber((powerElements.baseAtk?.textContent || "0"), 0), 0);
-  const domDef = toInteger(parseDisplayNumber((powerElements.baseDef?.textContent || "0"), 0), 0);
-  const domHp = toInteger(parseDisplayNumber((powerElements.baseHp?.textContent || "0"), 0), 0);
   const baseStatus = getBaseStatus();
 
-  const atk = domAtk > 0 ? domAtk : baseStatus.atk;
-  const def = domDef > 0 ? domDef : baseStatus.def;
-  const hp = domHp > 0 ? domHp : baseStatus.hp;
-  const hasBase = (domAtk > 0 || domDef > 0 || domHp > 0) || baseStatus.valid;
+  const hasBase = baseStatus.valid;
 
   return {
-    atk,
-    def,
-    hp,
+    atk: baseStatus.atk,
+    def: baseStatus.def,
+    hp: baseStatus.hp,
     hasBase,
     statusText: hasBase
       ? `鍩虹灞炴€у凡鍚屾 (${formatTime(baseStatus.updatedAt)})`
