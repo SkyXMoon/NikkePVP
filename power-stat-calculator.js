@@ -63,7 +63,9 @@ function formatInt(value) {
 
 function parseDisplayNumber(value) {
   if (typeof value !== "string") return toNumber(value, 0);
-  return toNumber(value.replace(/[, \t\r\n]/g, ""), 0);
+  const normalized = value.replace(/[^\d.-]/g, "");
+  if (normalized === "" || normalized === "-" || normalized === ".") return 0;
+  return toNumber(normalized, 0);
 }
 
 function formatTime(value) {
@@ -146,7 +148,7 @@ function getBaseStats() {
   const atk = domAtk > 0 ? domAtk : baseStatus.atk;
   const def = domDef > 0 ? domDef : baseStatus.def;
   const hp = domHp > 0 ? domHp : baseStatus.hp;
-  const hasBase = atk > 0 || def > 0 || hp > 0;
+  const hasBase = (domAtk > 0 || domDef > 0 || domHp > 0) || baseStatus.valid;
 
   return {
     atk,
