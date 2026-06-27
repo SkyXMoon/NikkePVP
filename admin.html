@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -13,7 +13,7 @@
         <div>
           <a class="admin-back" href="index.html">返回计算器</a>
           <h1>NIKKE PVP 后台管理</h1>
-          <p>用户权限管理 · V1.50.504</p>
+          <p>用户权限管理 · V1.57.664</p>
         </div>
         <div class="admin-session" id="adminSession">未登录</div>
       </header>
@@ -47,6 +47,14 @@
           <button class="admin-primary" type="submit">搜索</button>
           <button class="admin-secondary" id="adminRefreshButton" type="button">刷新</button>
         </form>
+
+        <div class="admin-maintenance-actions">
+          <div>
+            <strong>赛季统计维护</strong>
+            <span>从库内冠军竞技场对局重新计算队伍胜率统计和全赛季统计。</span>
+          </div>
+          <button class="admin-secondary" id="adminRecomputeChampionStatsButton" type="button">重算队伍胜率统计</button>
+        </div>
 
         <div class="admin-selected-actions" id="adminSelectedActions" hidden>
           <div class="admin-selected-user" id="adminSelectedUserLabel">未选择用户</div>
