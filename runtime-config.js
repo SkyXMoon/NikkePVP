@@ -4,5 +4,5 @@ window.__NIKKE_CONFIG__ = {
   "supabaseUrl": "https://xjdyqxkryqtkiroylygp.supabase.co",
   "functionsBaseUrl": "https://xjdyqxkryqtkiroylygp.supabase.co/functions/v1",
   "publishableKey": "sb_publishable_b5uqRu8YvXZSYoOJu-qScw_VKXtGlYD",
-  "generatedAt": "2026-06-28T03:13:33.366Z"
+  "generatedAt": "2026-06-28T12:38:47.469Z"
 };
