@@ -13,7 +13,7 @@
         <div>
           <a class="admin-back" href="index.html">返回计算器</a>
           <h1>NIKKE PVP 后台管理</h1>
-          <p>用户权限管理 · V1.57.664</p>
+          <p>用户权限与邀请奖励管理</p>
         </div>
         <div class="admin-session" id="adminSession">未登录</div>
       </header>
@@ -37,7 +37,7 @@
         <div class="admin-section-head">
           <div>
             <h2>用户权限</h2>
-            <p>当前仅管理冠军竞技场赛季数据权限。</p>
+            <p>当前管理冠军竞技场赛季数据权限。</p>
           </div>
           <button class="admin-secondary" id="adminLogoutButton" type="button">退出登录</button>
         </div>
@@ -74,6 +74,35 @@
             </tbody>
           </table>
         </div>
+
+        <section class="admin-audit-section admin-invite-section">
+          <div class="admin-section-head">
+            <div>
+              <h3>邀请记录</h3>
+              <p>查看邀请奖励、拦截原因，并可人工补发奖励。</p>
+            </div>
+            <button class="admin-secondary" id="adminInviteRefreshButton" type="button">刷新邀请</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table admin-invite-table">
+              <thead>
+                <tr>
+                  <th>邀请人</th>
+                  <th>被邀请人</th>
+                  <th>状态</th>
+                  <th>原因</th>
+                  <th>时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="adminInviteRows">
+                <tr>
+                  <td colspan="6">暂无邀请记录</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <section class="admin-audit-section">
           <h3>最近操作记录</h3>
