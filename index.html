@@ -41,8 +41,9 @@
         <button class="app-sidebar-item" id="changelogButton" type="button">更新日志</button>
         <button class="app-sidebar-item" id="sidebarHelpButton" type="button">使用说明</button>
         <button class="app-sidebar-item" id="championDataButton" type="button">冠军竞技场赛季数据</button>
-        <a class="app-sidebar-item" href="damage-calculator.html">最终伤害计算器</a>
-        <a class="app-sidebar-item" href="power-stat-calculator.html">战力+基础属性计算器</a>
+        <button class="app-sidebar-item" id="helpCenterButton" type="button">竞技场求助</button>
+        <a class="app-sidebar-item" href="damage-calculator.html" hidden>最终伤害计算器</a>
+        <a class="app-sidebar-item" href="power-stat-calculator.html" hidden>战力+基础属性计算器</a>
         <button class="app-sidebar-item" id="sidebarSuggestionButton" type="button">关于&建议</button>
       </nav>
       <div class="app-sidebar-bottom">
@@ -105,6 +106,9 @@
                     <button class="icon-button clear-team-button" id="clearTeamButton" type="button" aria-label="清空双方队伍" title="清空双方队伍">
                       <span class="team-action-text" aria-hidden="true">清除</span>
                     </button>
+                    <button class="icon-button team-help-center-button" id="teamHelpButton" type="button" aria-label="竞技场互助" title="竞技场互助">
+                      <span class="team-action-text" aria-hidden="true">互助</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -116,8 +120,13 @@
                 <span class="battle-power-value battle-power-attack" id="battlePowerAttack">可攻 0</span>
               </div>
               <div class="summary-strip" id="summaryStrip">选择角色后实时计算首轮爆裂</div>
+              <div class="help-solve-mode-bar" id="helpSolveModeBar" hidden>
+                <span id="helpSolveModeText">互助解题模式：防守已锁定，只能调整进攻队伍</span>
+                <button id="helpSolveCancelButton" type="button">退出</button>
+              </div>
               <div class="team-slots" id="teamSlots"></div>
               <div class="lineup-slots" id="lineupSlots" aria-label="攻防队伍方案"></div>
+              <button class="help-solve-submit-button" id="helpSolveSubmitButton" type="button" hidden>返回求助提交解法</button>
             </section>
 
             <section class="result-panel" id="resultPanel" aria-live="polite"></section>
