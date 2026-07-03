@@ -1,5 +1,4 @@
 ﻿{
-    "source":  "E:/CodexWorkSpace/local/data/装备.xlsx",
     "sheet":  "Sheet1",
     "description":  "不同角色类型与装备部位默认属性（基础值）",
     "slots":  [

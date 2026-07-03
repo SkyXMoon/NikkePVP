@@ -1,5 +1,4 @@
 {
-    "source":  "local/data/cube-data.json",
     "totalLevels":  15,
     "levels":  [
                    1,
