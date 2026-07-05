@@ -2,9 +2,22 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://xjdyqxkryqtkiroylygp.supabase.co https://pinkuro.top:9984 https://api.ocr.space; worker-src 'self' blob:; manifest-src 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'nonce-nikke-seo-v1'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://xjdyqxkryqtkiroylygp.supabase.co https://pinkuro.top:9984 https://api.ocr.space; worker-src 'self' blob:; manifest-src 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NIKKE 竞技场充能计算器</title>
+    <title>NIKKE PVP Pro - 妮姬竞技场充能轴与队伍工具</title>
+    <meta name="description" content="NIKKE PVP Pro 提供妮姬竞技场充能轴计算、队伍分享、冠军竞技场赛季数据、角色详情、装备词条和竞技场求助工具。" />
+    <meta name="keywords" content="NIKKE,妮姬,胜利女神,竞技场,PVP,充能轴,队伍分享,冠军竞技场" />
+    <link rel="canonical" href="https://nikke.skyxmoon.cn/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NIKKE PVP Pro" />
+    <meta property="og:title" content="NIKKE PVP Pro - 妮姬竞技场充能轴与队伍工具" />
+    <meta property="og:description" content="妮姬竞技场充能轴计算、队伍分享、冠军竞技场赛季数据、角色详情、装备词条和竞技场求助工具。" />
+    <meta property="og:url" content="https://nikke.skyxmoon.cn/" />
+    <meta property="og:image" content="https://nikke.skyxmoon.cn/assets/icons/site/pwa-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="NIKKE PVP Pro - 妮姬竞技场充能轴与队伍工具" />
+    <meta name="twitter:description" content="妮姬竞技场充能轴计算、队伍分享、冠军竞技场赛季数据、角色详情、装备词条和竞技场求助工具。" />
+    <meta name="twitter:image" content="https://nikke.skyxmoon.cn/assets/icons/site/pwa-512.png" />
     <meta name="theme-color" content="#111827" />
     <meta name="background-color" content="#0b1020" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -15,8 +28,26 @@
     <link rel="apple-touch-icon" href="assets/icons/site/pwa-192.png" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.min.css" />
+    <script type="application/ld+json" nonce="nikke-seo-v1">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "NIKKE PVP Pro",
+        "url": "https://nikke.skyxmoon.cn/",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Any",
+        "description": "NIKKE PVP Pro 提供妮姬竞技场充能轴计算、队伍分享、冠军竞技场赛季数据、角色详情、装备词条和竞技场求助工具。",
+        "inLanguage": "zh-CN"
+      }
+    </script>
   </head>
   <body>
+    <noscript>
+      <section>
+        <h1>NIKKE PVP Pro - 妮姬竞技场充能轴与队伍工具</h1>
+        <p>NIKKE PVP Pro 提供妮姬竞技场充能轴计算、队伍分享、冠军竞技场赛季数据、角色详情、装备词条和竞技场求助工具。</p>
+      </section>
+    </noscript>
     <div class="announcement-bar" id="announcementBar" hidden>
       <div class="announcement-viewport">
         <div class="announcement-track" id="announcementTrack">
@@ -35,7 +66,7 @@
     <div class="app-sidebar-backdrop" id="appSidebarBackdrop" hidden></div>
     <aside class="app-sidebar" id="appSidebar" aria-label="页面菜单">
       <div class="app-sidebar-head">
-        <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.62.752</span></strong>
+        <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.62.754</span></strong>
         <button class="app-sidebar-close" id="sidebarCloseButton" type="button" aria-label="关闭侧边栏">X</button>
       </div>
       <nav class="app-sidebar-nav" aria-label="页面操作">
