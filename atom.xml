@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>NIKKE PVP Pro</title>
+  <link href="https://nikke.skyxmoon.cn/" />
+  <link rel="self" href="https://nikke.skyxmoon.cn/atom.xml" />
+  <updated>2026-07-09T00:00:00Z</updated>
+  <id>https://nikke.skyxmoon.cn/</id>
+  <entry>
+    <title>NIKKE PVP Pro</title>
+    <link href="https://nikke.skyxmoon.cn/" />
+    <id>https://nikke.skyxmoon.cn/</id>
+    <updated>2026-07-09T00:00:00Z</updated>
+    <summary>胜利女神 NIKKE 配队与充能模拟工具首页。</summary>
+  </entry>
+  <entry>
+    <title>NIKKE PVP Pro - 竞技场配队说明</title>
+    <link href="https://nikke.skyxmoon.cn/seo/nikke-pvp.html" />
+    <id>https://nikke.skyxmoon.cn/seo/nikke-pvp.html</id>
+    <updated>2026-07-09T00:00:00Z</updated>
+    <summary>NIKKE PVP Pro 的配队与基础说明。</summary>
+  </entry>
+  <entry>
+    <title>竞技场配队模拟</title>
+    <link href="https://nikke.skyxmoon.cn/seo/arena-team-builder.html" />
+    <id>https://nikke.skyxmoon.cn/seo/arena-team-builder.html</id>
+    <updated>2026-07-09T00:00:00Z</updated>
+    <summary>竞技场配队、伤害轴与规则模拟说明。</summary>
+  </entry>
+  <entry>
+    <title>冠军竞技场数据</title>
+    <link href="https://nikke.skyxmoon.cn/seo/champion-arena.html" />
+    <id>https://nikke.skyxmoon.cn/seo/champion-arena.html</id>
+    <updated>2026-07-09T00:00:00Z</updated>
+    <summary>冠军竞技场赛季数据与规则说明。</summary>
+  </entry>
+  <entry>
+    <title>充能轴与爆裂模拟</title>
+    <link href="https://nikke.skyxmoon.cn/seo/burst-calculator.html" />
+    <id>https://nikke.skyxmoon.cn/seo/burst-calculator.html</id>
+    <updated>2026-07-09T00:00:00Z</updated>
+    <summary>充能轴与爆裂顺序模拟说明。</summary>
+  </entry>
+</feed>
