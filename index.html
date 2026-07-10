@@ -31,6 +31,106 @@
     <link rel="apple-touch-icon" href="assets/icons/site/apple-touch-icon-v164793.png" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="alternate" type="application/atom+xml" title="NIKKE PVP Pro Sitemap Feed" href="https://nikke.skyxmoon.cn/atom.xml" />
+    <style>
+      .boot-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        color: #eef7ff;
+        background:
+          radial-gradient(circle at 20% 18%, rgba(80, 215, 255, 0.18), transparent 34%),
+          radial-gradient(circle at 80% 12%, rgba(255, 191, 64, 0.12), transparent 30%),
+          linear-gradient(135deg, #07111d 0%, #101827 46%, #07101a 100%);
+        transition: opacity 220ms ease, visibility 220ms ease;
+      }
+
+      .boot-loading.is-ready {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .boot-loading-card {
+        width: min(420px, 100%);
+        border: 1px solid rgba(87, 222, 255, 0.38);
+        border-radius: 22px;
+        padding: 24px;
+        background: rgba(12, 28, 42, 0.84);
+        box-shadow: 0 22px 70px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(16px);
+      }
+
+      .boot-loading-kicker {
+        color: #57defd;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .boot-loading-title {
+        margin-top: 10px;
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .boot-loading-text {
+        min-height: 22px;
+        margin-top: 10px;
+        color: rgba(238, 247, 255, 0.72);
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.55;
+      }
+
+      .boot-loading-spinner {
+        position: relative;
+        height: 8px;
+        margin-top: 20px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .boot-loading-spinner::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 42%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #57defd, #4aa3ff, #ffd05c);
+        animation: boot-loading-run 1.15s ease-in-out infinite;
+      }
+
+      .boot-loading-refresh {
+        display: none;
+        width: 100%;
+        margin-top: 18px;
+        border: 1px solid rgba(87, 222, 255, 0.48);
+        border-radius: 999px;
+        padding: 10px 16px;
+        color: #ffffff;
+        background: linear-gradient(135deg, #29c6df, #3b82f6);
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .boot-loading.is-slow .boot-loading-refresh {
+        display: block;
+      }
+
+      @keyframes boot-loading-run {
+        0% { transform: translateX(-105%); }
+        55% { transform: translateX(82%); }
+        100% { transform: translateX(245%); }
+      }
+    </style>
     <link rel="stylesheet" href="styles.min.css" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4JNRGS5EQ0" nonce="nikke-seo-v1"></script>
     <script nonce="nikke-seo-v1">
@@ -53,6 +153,31 @@
     </script>
   </head>
   <body>
+    <div class="boot-loading" id="appBootLoading" role="status" aria-live="polite">
+      <div class="boot-loading-card">
+        <div class="boot-loading-kicker">NIKKE PVP PRO</div>
+        <div class="boot-loading-title">正在加载竞技场数据</div>
+        <div class="boot-loading-text" data-boot-loading-text>正在准备角色、头像和充能图表...</div>
+        <div class="boot-loading-spinner" aria-hidden="true"></div>
+        <button class="boot-loading-refresh" type="button" data-boot-refresh>刷新页面</button>
+      </div>
+    </div>
+    <script nonce="nikke-seo-v1">
+      (() => {
+        const timeoutId = window.setTimeout(() => {
+          const root = document.getElementById("appBootLoading");
+          if (!root) return;
+          root.classList.add("is-slow");
+          const text = root.querySelector("[data-boot-loading-text]");
+          if (text) text.textContent = "加载时间较长，可能是网络或缓存更新较慢。";
+        }, 10000);
+        window.__NIKKE_BOOT_LOADING_TIMER__ = timeoutId;
+        document.addEventListener("click", (event) => {
+          if (!event.target.closest("[data-boot-refresh]")) return;
+          window.location.reload();
+        });
+      })();
+    </script>
     <noscript>
       <section>
         <h1>NIKKE PVP Pro - 妮姬竞技场配队、充能模拟与胜率统计工具</h1>
