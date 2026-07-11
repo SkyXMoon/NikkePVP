@@ -1,0 +1,198 @@
+const ke=9e4,E=new Map;let v={},r={},I={},$="",D="help",R=5;function ee(t={}){v=t||{},r=v.state||{},I=v.els||{},$=v.endpoint||"",D=v.shareUrlParam||"help",R=Number(v.teamSize||5)}function c(t,e=null){const a=v[t];return typeof a=="function"?a:e||(()=>{})}function n(t,e){return c("localize",(a,l)=>a||l||"")(t,e)}function u(t){return c("escapeHtml",e=>String(e??""))(t)}function i(t){return c("showToast")(t)}function T(...t){return c("handleRejectedAuthSessionResponse")(...t)}function H(t=!1){return c("getHelpCenterHeaders")(t)}function w(){return c("buildHelpCenterPayload",()=>({}))()}function M(t){return c("isHelpCenterSolvableArenaMode",e=>e==="normal"||e==="special")(t)}function N(t,e){return c("hasHelpCenterSideMembers",()=>!1)(t,e)}function te(t){return c("findSolvedHelpCenterRequestForDefense",async()=>null)(t)}function x(t){return c("toHelpCenterProtocolPayload",e=>e)(t)}function O(t,e){return c("getHelpCenterPayloadForRequestMode",a=>a)(t,e)}function ne(t){return c("clearHelpCenterAttackDraft")(t)}function ue(t){return c("clearHelpCenterSolveDraft")(t)}function U(){return c("render")()}function P(t){return c("getHelpCenterModeLabel",e=>String(e||""))(t)}function ae(t,e){return c("getHelpCenterRows",()=>[])(t,e)}function F(t){return c("getCharacterById",()=>null)(t)}function B(t){return c("getCharacterLocalizedName",e=>e?.name||e?.id||"")(t)}function j(t){return c("getAvatarMarkup",()=>'<span class="avatar-fallback"><span class="avatar-fallback-name">?</span></span>')(t)}function V(t){return c("getTeamSlotRarityClass",()=>"")(t)}function re(...t){return c("renderFeatureTouchCard",()=>"")(...t)}function le(...t){return c("bindFeatureTouchCards")(...t)}function z(){return c("requireHelpCenterLogin",()=>!1)()}function se(t){return c("applyHelpCenterRequestToSolveWorkspace",()=>!1)(t)}function oe(t){return c("copyTextToClipboard",async()=>{})(t)}function K(t){return c("normalizeHelpCenterRequestId",e=>String(e||"").trim())(t)}function g(){document.removeEventListener("keydown",W),document.querySelector(".help-center-modal-backdrop")?.remove()}function W(t){t.key==="Escape"&&g()}async function ie(){return import("./help-center-service.js")}function ce(t){(t?.response||t?.payload)&&T(t.response,t.payload)}function de(t={}){const e=!!t.append,a=new URLSearchParams({limit:"30"}),l=r.helpCenter.filters||{};return(l.status==="open"||l.status==="closed")&&a.set("status",l.status),l.arenaMode&&l.arenaMode!=="all"&&a.set("mode",l.arenaMode),l.region&&l.region!=="all"&&a.set("region",l.region),l.sort&&a.set("sort",l.sort),l.scope&&l.scope!=="all"&&a.set("scope",l.scope),e&&r.helpCenter.nextCursor&&a.set("cursor",r.helpCenter.nextCursor),a}function Y(t){const e=new URLSearchParams(t);return e.delete("cursor"),e.toString()}function pe(t){const e=E.get(Y(t));return!e||Date.now()-e.savedAt>9e4?null:e}function fe(t,e){E.set(Y(t),{savedAt:Date.now(),requests:Array.isArray(e.data)?e.data:[],nextCursor:e.meta?.nextCursor||""})}function he(){E.clear()}async function S(t,e={}){const a=!!e.append,l=!!e.force,o=de({append:a});let d=!1;if(!a&&!l){const s=pe(o);s&&(d=!0,r.helpCenter.loading=!1,r.helpCenter.error="",r.helpCenter.requests=s.requests,r.helpCenter.nextCursor=s.nextCursor,k(t))}d||(r.helpCenter.loading=!0,r.helpCenter.error="",k(t));try{const s=await fetch(`${$}?${o.toString()}`,{headers:await H(!1)}),p=await s.json().catch(()=>null);if(!s.ok||!p?.ok||!Array.isArray(p.data))throw T(s,p),new Error(p?.code||"LOAD_FAILED");r.helpCenter.requests=a?[...r.helpCenter.requests||[],...p.data]:p.data,r.helpCenter.nextCursor=p.meta?.nextCursor||"",a||fe(o,p)}catch(s){d||(r.helpCenter.error=h(s)),console.warn("[HelpCenter] list failed",s)}finally{r.helpCenter.loading=!1,k(t)}}async function y(t,e){r.helpCenter.loading=!0,r.helpCenter.error="",r.helpCenter.selectedId=e,r.helpCenter.mode="detail",r.helpCenter.detail=null,m(t);try{const a=new URLSearchParams({id:e,solutionLimit:"50"}),l=await fetch(`${$}?${a.toString()}`,{headers:await H(!1)}),o=await l.json().catch(()=>null);if(!l.ok||!o?.ok||!o.data?.request)throw T(l,o),new Error(o?.code||"LOAD_FAILED");r.helpCenter.detail=o.data}catch(a){r.helpCenter.error=n("\u6C42\u52A9\u8BE6\u60C5\u8BFB\u53D6\u5931\u8D25","Failed to load help detail"),console.warn("[HelpCenter] detail failed",a)}finally{r.helpCenter.loading=!1,m(t)}}async function C(t){const e=await ie();try{const a=await e.postHelpCenterActionPayload($,t,await H(!0));return he(),a.data||{}}catch(a){throw ce(a),a}}async function Ce(t,e={}){if(r.helpCenter.actionPending)return;const a=A(t.querySelector("[data-help-title]")?.value,20),l=A(t.querySelector("[data-help-description]")?.value,100),o=w();if(!a){i(n("\u8BF7\u586B\u5199\u6C42\u52A9\u6807\u9898","Please enter a title."));return}if(!M(o.mode)){i(n("\u4E92\u52A9\u6C42\u52A9\u6682\u65F6\u53EA\u652F\u6301\u666E\u901A\u548C\u7279\u6B8A\u7ADE\u6280\u573A","Help requests currently support Normal and Special Arena only."));return}if(!N(o,"defense")){i(n("\u5F53\u524D\u9632\u5B88\u961F\u4F0D\u4E3A\u7A7A","Current defense team is empty."));return}if(!e.skipSolvedCheck)try{const s=await te(o);if(s?.id&&window.confirm(n(`\u53D1\u73B0\u76F8\u540C\u9632\u5B88\u5DF2\u6709\u5DF2\u89E3\u51B3\u6C42\u52A9\uFF1A\u300A${s.title||"\u672A\u547D\u540D\u6C42\u52A9"}\u300B\u3002\u786E\u5B9A\u67E5\u770B\u5DF2\u6709\u89E3\u6CD5\uFF1F\u53D6\u6D88\u5219\u7EE7\u7EED\u53D1\u5E03\u3002`,`A solved request with the same defense already exists: "${s.title||"Untitled"}". OK to view it, Cancel to continue publishing.`))){await y(t,s.id);return}}catch(s){console.warn("[HelpCenter] solved duplicate check failed",s)}r.helpCenter.actionPending="create-request";const d=t.querySelector("[data-help-create]");d&&(d.disabled=!0,d.textContent=n("\u53D1\u5E03\u4E2D...","Publishing..."));try{const s=await C({action:"create_request",title:a,description:l,arenaMode:o.mode,region:o.region,defensePayload:x(o)});i(n("\u6C42\u52A9\u5DF2\u53D1\u5E03","Help request created.")),await y(t,s.id)}catch(s){console.warn("[HelpCenter] create request failed",s),i(h(s)),d&&(d.disabled=!1,d.textContent=n("\u786E\u8BA4\u53D1\u5E03","Create"))}finally{r.helpCenter.actionPending=""}}async function be(t){if(r.helpCenter.actionPending)return;const e=r.helpCenter.detail?.request;if(!e?.id)return;const a=O(w(),e.arenaMode);if(a.mode!==e.arenaMode){i(n("\u5F53\u524D\u7ADE\u6280\u573A\u6A21\u5F0F\u4E0E\u6C42\u52A9\u4E0D\u4E00\u81F4","Current arena mode does not match this request."));return}if(!N(a,"attack")){i(n("\u5F53\u524D\u8FDB\u653B\u961F\u4F0D\u4E3A\u7A7A","Current attack team is empty."));return}const l=A(t.querySelector("[data-help-solution-description]")?.value,100);r.helpCenter.actionPending="create-solution";const o=t.querySelector("[data-help-create-solution]");o&&(o.disabled=!0,o.textContent=n("\u63D0\u4EA4\u4E2D...","Submitting..."));try{await C({action:"create_solution",requestId:e.id,attackPayload:x(a),description:l}),i(n("\u89E3\u6CD5\u5DF2\u63D0\u4EA4","Solution submitted.")),ne(e.arenaMode),ue(e.id),U(),await y(t,e.id)}catch(d){console.warn("[HelpCenter] create solution failed",d),i(h(d)),o&&(o.disabled=!1,o.textContent=n("\u63D0\u4EA4\u89E3\u6CD5","Submit solution"))}finally{r.helpCenter.actionPending=""}}async function ye(t,e){try{await C({action:"toggle_solution_vote",solutionId:e}),await y(t,r.helpCenter.detail?.request?.id||r.helpCenter.selectedId)}catch(a){console.warn("[HelpCenter] vote failed",a),i(h(a))}}async function me(t){const e=r.helpCenter.detail?.request;if(e?.id)try{await C({action:"close_request",requestId:e.id}),await y(t,e.id)}catch(a){console.warn("[HelpCenter] close request failed",a),i(h(a))}}async function ve(t,e){const a=r.helpCenter.detail?.request;if(!(!a?.id||!e))try{await C({action:"accept_solution",requestId:a.id,solutionId:e}),i(n("\u5DF2\u91C7\u7EB3\u89E3\u6CD5\u5E76\u5173\u95ED\u6C42\u52A9","Solution accepted and request closed.")),await y(t,a.id)}catch(l){console.warn("[HelpCenter] accept solution failed",l),i(h(l))}}async function $e(t){const e=r.helpCenter.detail?.request;if(e?.id)try{await C({action:"hide_request",requestId:e.id}),i(n("\u5DF2\u9690\u85CF\u6C42\u52A9","Request hidden.")),r.helpCenter.mode="list",r.helpCenter.detail=null,await S(t)}catch(a){console.warn("[HelpCenter] hide request failed",a),i(h(a))}}async function ge(t,e){const a=r.helpCenter.detail?.request;if(!(!a?.id||!e))try{await C({action:"hide_solution",solutionId:e}),i(n("\u5DF2\u9690\u85CF\u89E3\u6CD5","Solution hidden.")),await y(t,a.id)}catch(l){console.warn("[HelpCenter] hide solution failed",l),i(h(l))}}async function G(t,e){if(!t||!e)return;const a=window.prompt(n("\u8BF7\u586B\u5199\u4E3E\u62A5\u539F\u56E0\uFF08\u53EF\u7559\u7A7A\uFF09","Report reason (optional)"),"");if(a!==null)try{await C({action:"report_content",targetType:t,targetId:e,reason:A(a,240)}),i(n("\u4E3E\u62A5\u5DF2\u63D0\u4EA4","Report submitted."))}catch(l){console.warn("[HelpCenter] report failed",l),i(h(l))}}function Se(t){const e=K(t),a=new URL(window.location.href);return a.search="",a.hash="",a.searchParams.set(D,e),a.toString()}async function qe(){const t=r.helpCenter.detail?.request,e=K(t?.id);if(!e){i(n("\u6C42\u52A9\u94FE\u63A5\u751F\u6210\u5931\u8D25","Failed to create request link"));return}try{const a=`${n("\u6C42\u52A9\uFF0C\u8FD9\u4E2A\u961F\u4F0D\u600E\u4E48\u89E3\uFF1A","Help: how should this team be solved?")}
+${Se(e)}`;await oe(a),i(n("\u5DF2\u590D\u5236\u6C42\u52A9\u94FE\u63A5","Request link copied"))}catch(a){console.warn("[HelpCenter] copy request link failed",a),i(n("\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5\u526A\u8D34\u677F\u6743\u9650","Copy failed. Please check clipboard permission."))}}function He(t){const e=r.helpCenter.detail?.request;if(e?.id&&z()){if(!M(e.arenaMode)){i(n("\u4E92\u52A9\u89E3\u9898\u6682\u65F6\u53EA\u652F\u6301\u666E\u901A\u548C\u7279\u6B8A\u7ADE\u6280\u573A","Solving currently supports Normal and Special Arena only."));return}if(!se(e)){i(n("\u6C42\u52A9\u961F\u4F0D\u6570\u636E\u5F02\u5E38\uFF0C\u65E0\u6CD5\u8F7D\u5165","Request team data is invalid."));return}r.helpCenter.solveRequestId=e.id,r.helpCenter.solveRequestTitle=e.title||"",g(),U(),I.teamSlots?.scrollIntoView({behavior:"smooth",block:"start"}),i(n("\u5DF2\u8F7D\u5165\u6C42\u52A9\u9632\u5B88\uFF0C\u586B\u5199\u8FDB\u653B\u961F\u540E\u70B9\u5E95\u90E8\u6309\u94AE\u63D0\u4EA4","Defense loaded. Fill attack teams, then use the bottom submit button."))}}async function L(t){r.helpCenter.loading=!0,r.helpCenter.error="",r.helpCenter.mode="reports",m(t);try{const e=new URLSearchParams({reports:"1",limit:"30",reportStatus:r.helpCenter.reportStatus||"open"}),a=await fetch(`${$}?${e.toString()}`,{headers:await H(!0)}),l=await a.json().catch(()=>null);if(!a.ok||!l?.ok||!Array.isArray(l.data))throw new Error(l?.code||"LOAD_FAILED");r.helpCenter.reports=l.data}catch(e){r.helpCenter.error=h(e),console.warn("[HelpCenter] reports failed",e)}finally{r.helpCenter.loading=!1,m(t)}}async function Q(t,e,a="reviewed"){try{await C({action:"review_report",reportId:e,status:a}),i(n("\u4E3E\u62A5\u72B6\u6001\u5DF2\u66F4\u65B0","Report status updated.")),await L(t)}catch(l){console.warn("[HelpCenter] review report failed",l),i(h(l))}}async function we(t,e){const a=(r.helpCenter.reports||[]).find(l=>l.id===e);if(a?.targetId)try{await C({action:a.targetType==="solution"?"hide_solution":"hide_request",id:a.targetId}),await C({action:"review_report",reportId:e,status:"reviewed"}),i(n("\u5DF2\u9690\u85CF\u88AB\u4E3E\u62A5\u5185\u5BB9","Reported content hidden.")),await L(t)}catch(l){console.warn("[HelpCenter] hide report target failed",l),i(h(l))}}function A(t,e){return String(t||"").trim().slice(0,e)}function _(t){return t?.displayName||n("\u533F\u540D\u7528\u6237","Anonymous")}function Le(t){const e=_(t),a=Number(t?.acceptedSolutionCount||0);return a<=0?e:`${e} \xB7 ${n("\u91C7\u7EB3","Accepted")} ${a}`}function h(t){const e=String(t?.message||"");return e==="UNAUTHENTICATED"?n("\u8BF7\u5148\u767B\u5F55","Please sign in first."):e==="RATE_LIMITED"?n("\u64CD\u4F5C\u8FC7\u4E8E\u9891\u7E41\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5","Too many actions. Try again later."):e==="INVALID_PAYLOAD"?n("\u961F\u4F0D\u6570\u636E\u4E0D\u5B8C\u6574\u6216\u683C\u5F0F\u5F02\u5E38","Team payload is incomplete or invalid."):e==="DUPLICATE_SOLUTION"?n("\u8FD9\u4E2A\u8FDB\u653B\u961F\u4F0D\u5DF2\u7ECF\u63D0\u4EA4\u8FC7\u89E3\u6CD5","This attack team has already been submitted."):e==="REQUEST_CLOSED"?n("\u8BE5\u6C42\u52A9\u5DF2\u5173\u95ED","This request is closed."):e==="SELF_SOLUTION_NOT_ALLOWED"?n("\u4E0D\u80FD\u7ED9\u81EA\u5DF1\u7684\u6C42\u52A9\u63D0\u4EA4\u89E3\u6CD5","You cannot submit a solution to your own request."):e==="SELF_VOTE_NOT_ALLOWED"?n("\u4E0D\u80FD\u7ED9\u81EA\u5DF1\u7684\u89E3\u6CD5\u70B9\u8D5E","You cannot vote for your own solution."):e==="TARGET_TYPE_INVALID"||e==="TARGET_REQUIRED"||e==="NOT_FOUND"?n("\u4E3E\u62A5\u5BF9\u8C61\u4E0D\u5B58\u5728","Report target not found."):n("\u6C42\u52A9\u64CD\u4F5C\u5931\u8D25","Help center action failed.")}function q(t,e,a={}){const l=ae(t,e);return l.length?l.length>1&&a.compactStack?`
+      <div class="help-center-stack-teams" aria-label="${u(e==="attack"?n("\u8FDB\u653B\u961F\u4F0D","Attack teams"):n("\u9632\u5B88\u961F\u4F0D","Defense teams"))}">
+        <div class="help-center-stack-labels">
+          ${l.map((o,d)=>`<span>R${d+1}</span>`).join("")}
+        </div>
+        <div class="help-center-stack-cards">
+          ${l.map((o,d)=>`
+            <div class="help-center-stack-card" title="R${d+1}">
+              ${Array.from({length:R},(s,p)=>{const f=F(o?.[p]);return`
+                  <span class="help-center-stack-member${V(f)}" title="${u(f?B(f):"-")}">
+                    ${f?j(f):'<span class="avatar-fallback"><span class="avatar-fallback-name">?</span></span>'}
+                  </span>
+                `}).join("")}
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `:l.map((o,d)=>{const s=l.length>1?`R${d+1}`:e==="attack"?n("\u8FDB\u653B","ATK"):"";return`
+    <div class="help-center-team-row${s?"":" is-label-hidden"}">
+      ${s?`<span class="help-center-round">${u(s)}</span>`:""}
+      <div class="help-center-members">
+        ${Array.from({length:R},(p,f)=>{const b=F(o?.[f]);return`
+            <span class="help-center-member${V(b)}" title="${u(b?B(b):"-")}">
+              ${b?j(b):'<span class="avatar-fallback"><span class="avatar-fallback-name">?</span></span>'}
+            </span>
+          `}).join("")}
+      </div>
+    </div>
+  `}).join(""):`<p class="help-center-empty">${u(n("\u6682\u65E0\u961F\u4F0D","No team"))}</p>`}function Ae(t={}){const{className:e="",title:a="",meta:l="",actions:o="",noteLabel:d="",note:s="",teamLabel:p="",teamPayload:f=null,teamSide:b="defense"}=t;return`
+    <article class="help-center-display-card${e?` ${e}`:""}">
+      <div class="help-center-display-head">
+        <div class="help-center-display-title-wrap">
+          <strong class="help-center-display-title">${u(a)}</strong>
+          ${l?`<span class="help-center-display-meta">${l}</span>`:""}
+        </div>
+        ${o?`<div class="help-center-display-actions">${o}</div>`:""}
+      </div>
+      ${s?`
+        <div class="help-center-display-section help-center-display-note">
+          <span>${u(d)}</span>
+          <p class="help-center-description">${u(s)}</p>
+        </div>
+      `:""}
+      <div class="help-center-display-section help-center-display-teams">
+        ${p?`<strong class="help-center-display-team-title">${u(p)}</strong>`:""}
+        ${q(f,b)}
+      </div>
+    </article>
+  `}function X(){if(r.helpCenter.loading)return`<p class="help-center-empty champion-data-loading">${u(n("\u6B63\u5728\u8BFB\u53D6\u6C42\u52A9\u5217\u8868","Loading help requests"))}</p>`;if(r.helpCenter.error)return`<p class="help-center-error">${u(r.helpCenter.error)}</p>`;const t=r.helpCenter.requests||[];return`
+    <div class="help-center-list">
+      ${t.length?t.map(e=>`
+        <button class="help-center-request-card is-${e.status==="closed"?"closed":"open"}" type="button" data-help-request-id="${u(e.id)}">
+          <span class="help-center-request-title">${u(e.title)}</span>
+          <span class="help-center-request-meta">${u(P(e.arenaMode))} <span class="help-center-status-badge is-${e.status==="closed"?"closed":"open"}">${e.status==="closed"?u(n("\u5DF2\u5173\u95ED","Closed")):u(n("\u6C42\u89E3\u4E2D","Open"))}</span> ${u(_(e.author))} \xB7 ${Number(e.solutionCount||0)} ${u(n("\u4E2A\u89E3\u6CD5","solutions"))} \xB7 ${Number(e.voteCount||0)} ${u(n("\u8D5E","votes"))}</span>
+          <div class="help-center-team-mini">${q(e.defensePayload,"defense",{compactStack:!0})}</div>
+        </button>
+      `).join(""):`<p class="help-center-empty">${u(n("\u6682\u65E0\u6C42\u52A9\u3002\u5982\u679C\u4F60\u6709\u96BE\u62C6\u7684\u9632\u5B88\uFF0C\u5148\u5728\u961F\u4F0D\u533A\u6446\u597D\u9632\u5B88\uFF0C\u518D\u70B9\u51FB\u201C\u53D1\u5E03\u5F53\u524D\u9632\u5B88\u6C42\u52A9\u201D\u3002",'No requests yet. Set up a difficult defense first, then click "Create request from current defense".'))}</p>`}
+    </div>
+    ${r.helpCenter.nextCursor?`<button class="help-center-action-button help-center-load-more" type="button" data-help-load-more>${u(n("\u52A0\u8F7D\u66F4\u591A","Load more"))}</button>`:""}
+  `}function Ee(){const t=r.helpCenter.filters||{};return`
+    <div class="help-center-detail-scroll">
+    <div class="help-center-toolbar">
+      <button class="help-center-action-button is-primary" type="button" data-help-view="create">${u(n("\u53D1\u5E03\u5F53\u524D\u9632\u5B88\u6C42\u52A9","Create request from current defense"))}</button>
+      <button class="help-center-action-button" type="button" data-help-refresh>${u(n("\u5237\u65B0","Refresh"))}</button>
+      ${r.isAdmin?`<button class="help-center-action-button" type="button" data-help-view="reports">${u(n("\u4E3E\u62A5\u5217\u8868","Reports"))}</button>`:""}
+    </div>
+    ${re("help-center-touch-card-v1",n("\u7ADE\u6280\u573A\u4E92\u52A9\u600E\u4E48\u7528\uFF1F","How arena help works"),n("\u53D1\u5E03\u9632\u5B88\u6C42\u52A9\u540E\uFF0C\u5176\u4ED6\u4EBA\u53EF\u4EE5\u70B9\u201C\u53BB\u89E3\u9898\u201D\u8F7D\u5165\u9632\u5B88\uFF0C\u586B\u5199\u8FDB\u653B\u961F\u4F0D\u5E76\u63D0\u4EA4\u89E3\u6CD5\u3002","Post a defense request; others can solve it by loading the locked defense, filling attack teams, and submitting a solution."))}
+    <div class="help-center-filters">
+      <label><span>${u(n("\u8303\u56F4","Scope"))}</span><select data-help-filter="scope">
+        <option value="all" ${t.scope==="all"?"selected":""}>${u(n("\u5168\u90E8","All"))}</option>
+        <option value="mine" ${t.scope==="mine"?"selected":""}>${u(n("\u6211\u7684\u6C42\u52A9","My requests"))}</option>
+        <option value="solutions" ${t.scope==="solutions"?"selected":""}>${u(n("\u6211\u7684\u89E3\u6CD5","My solutions"))}</option>
+      </select></label>
+      <label><span>${u(n("\u72B6\u6001","Status"))}</span><select data-help-filter="status">
+        <option value="all" ${t.status==="all"?"selected":""}>${u(n("\u5168\u90E8","All"))}</option>
+        <option value="open" ${t.status==="open"?"selected":""}>${u(n("\u6C42\u89E3\u4E2D","Open"))}</option>
+        <option value="closed" ${t.status==="closed"?"selected":""}>${u(n("\u5DF2\u5173\u95ED","Closed"))}</option>
+      </select></label>
+      <label><span>${u(n("\u6392\u5E8F","Sort"))}</span><select data-help-filter="sort">
+        <option value="latest" ${t.sort==="latest"?"selected":""}>${u(n("\u6700\u65B0","Latest"))}</option>
+        <option value="hot" ${t.sort==="hot"?"selected":""}>${u(n("\u70ED\u95E8","Hot"))}</option>
+        <option value="solved" ${t.sort==="solved"?"selected":""}>${u(n("\u5DF2\u89E3\u51B3","Solved"))}</option>
+      </select></label>
+    </div>
+    <div data-help-list-results>
+      ${X()}
+    </div>
+    </div>
+  `}function k(t){if(r.helpCenter.mode!=="list"){m(t);return}const e=t.querySelector("[data-help-list-results]");if(!e){m(t);return}const a=e.getBoundingClientRect().height;r.helpCenter.loading&&a>0&&(e.style.minHeight=`${Math.ceil(a)}px`),e.innerHTML=X(),r.helpCenter.loading||(e.style.minHeight=""),Z(t)}function Re(){if(r.helpCenter.loading)return`<p class="help-center-empty champion-data-loading">${u(n("\u6B63\u5728\u8BFB\u53D6\u4E3E\u62A5\u5217\u8868","Loading reports"))}</p>`;if(r.helpCenter.error)return`<p class="help-center-error">${u(r.helpCenter.error)}</p>`;const t=r.helpCenter.reports||[];return`
+    <div class="help-center-toolbar">
+      <button class="help-center-action-button" type="button" data-help-back>${u(n("\u8FD4\u56DE","Back"))}</button>
+      <label class="help-center-report-status">
+        <span>${u(n("\u4E3E\u62A5\u72B6\u6001","Report status"))}</span>
+        <select data-help-report-status>
+          <option value="open" ${r.helpCenter.reportStatus==="open"?"selected":""}>${u(n("\u5F85\u5904\u7406","Open"))}</option>
+          <option value="reviewed" ${r.helpCenter.reportStatus==="reviewed"?"selected":""}>${u(n("\u5DF2\u5904\u7406","Reviewed"))}</option>
+          <option value="dismissed" ${r.helpCenter.reportStatus==="dismissed"?"selected":""}>${u(n("\u5DF2\u5FFD\u7565","Dismissed"))}</option>
+        </select>
+      </label>
+    </div>
+    <div class="help-center-report-list">
+      ${t.length?t.map(e=>{const a=e.targetType==="request"?e.target?.title||e.targetId:e.target?.description||`${n("\u89E3\u6CD5","Solution")} ${e.targetId}`;return`
+          <article class="help-center-report-card">
+            <div>
+              <strong>${u(e.targetType==="request"?n("\u6C42\u52A9","Request"):n("\u89E3\u6CD5","Solution"))} \xB7 ${u(a)}</strong>
+              <p class="help-center-description">${u(e.reason||n("\u672A\u586B\u5199\u539F\u56E0","No reason"))}</p>
+              <span class="help-center-request-meta">${u(e.reporter?.displayName||n("\u533F\u540D\u7528\u6237","Anonymous"))} \xB7 ${u(e.createdAt||"")}</span>
+            </div>
+            <div class="help-center-display-actions">
+              <button class="help-center-action-button" type="button" data-help-hide-report-target="${u(e.id)}">${u(n("\u9690\u85CF\u76EE\u6807","Hide target"))}</button>
+              <button class="help-center-action-button is-primary" type="button" data-help-review-report="${u(e.id)}">${u(n("\u6807\u8BB0\u5904\u7406","Mark reviewed"))}</button>
+              <button class="help-center-action-button" type="button" data-help-dismiss-report="${u(e.id)}">${u(n("\u5FFD\u7565","Dismiss"))}</button>
+            </div>
+          </article>
+        `}).join(""):`<p class="help-center-empty">${u(n("\u6682\u65E0\u4E3E\u62A5","No reports"))}</p>`}
+    </div>
+  `}function Te(){const t=w();return`
+    <div class="help-center-toolbar">
+      <button class="help-center-action-button" type="button" data-help-back>${u(n("\u8FD4\u56DE","Back"))}</button>
+    </div>
+    <label class="help-center-field">
+      <span>${u(n("\u6807\u9898","Title"))}</span>
+      <input data-help-title maxlength="20" placeholder="${u(n("\u4F8B\u5982\uFF1A\u8FD9\u4E2A\u9632\u5B88\u600E\u4E48\u62C6\uFF1F","Example: how to attack this defense?"))}" />
+    </label>
+    <label class="help-center-field">
+      <span>${u(n("\u8865\u5145\u8BF4\u660E","Description"))}</span>
+      <textarea data-help-description maxlength="100" rows="3" placeholder="${u(n("\u53EF\u586B\u5199\u6218\u529B\u9650\u5236\u3001\u7981\u6B62\u89D2\u8272\u3001\u76EE\u6807\u80DC\u7387\u7B49","Power limits, banned characters, target win rate, etc."))}"></textarea>
+    </label>
+    <section class="help-center-section">
+      <strong>${u(n("\u5C06\u53D1\u5E03\u7684\u9632\u5B88\u961F\u4F0D","Defense to publish"))} \xB7 ${u(P(t.mode))}</strong>
+      ${q(t,"defense")}
+    </section>
+    <button class="help-center-action-button is-primary" type="button" data-help-create ${r.helpCenter.actionPending==="create-request"?"disabled":""}>${u(r.helpCenter.actionPending==="create-request"?n("\u53D1\u5E03\u4E2D...","Publishing..."):n("\u786E\u8BA4\u53D1\u5E03","Create"))}</button>
+  `}function Me(){const t=r.helpCenter.detail;if(r.helpCenter.loading&&!t)return`<p class="help-center-empty champion-data-loading">${u(n("\u6B63\u5728\u8BFB\u53D6\u6C42\u52A9\u8BE6\u60C5","Loading help detail"))}</p>`;if(r.helpCenter.error)return`<p class="help-center-error">${u(r.helpCenter.error)}</p>`;const e=t?.request;if(!e)return`<p class="help-center-empty">${u(n("\u672A\u627E\u5230\u6C42\u52A9","Request not found"))}</p>`;const a=[...t?.solutions||[]].sort((s,p)=>e.acceptedSolutionId===s.id?-1:e.acceptedSolutionId===p.id?1:0),l=O(w(),e.arenaMode),o=!!((e.isMine||e.canModerate)&&e.status==="open"),d=`${u(P(e.arenaMode))} <span class="help-center-status-badge is-${e.status==="closed"?"closed":"open"}">${e.status==="closed"?u(n("\u5DF2\u5173\u95ED","Closed")):u(n("\u6C42\u89E3\u4E2D","Open"))}</span> ${u(_(e.author))}`;return`
+    <div class="help-center-toolbar">
+      <button class="help-center-action-button" type="button" data-help-back>${u(n("\u8FD4\u56DE","Back"))}</button>
+      <button class="help-center-action-button" type="button" data-help-share-request>${u(n("\u5206\u4EAB\u6C42\u52A9","Share request"))}</button>
+      ${e.status==="open"&&!e.isMine&&M(e.arenaMode)?`<button class="help-center-action-button is-primary" type="button" data-help-start-solve>${u(n("\u53BB\u89E3\u9898","Solve"))}</button>`:""}
+      ${e.isMine&&e.status==="open"?`<button class="help-center-action-button" type="button" data-help-close-request>${u(n("\u5173\u95ED\u6C42\u52A9","Close request"))}</button>`:""}
+      ${e.isMine?"":`<button class="help-center-action-button" type="button" data-help-report-request>${u(n("\u4E3E\u62A5","Report"))}</button>`}
+      ${e.canModerate?`<button class="help-center-action-button" type="button" data-help-hide-request>${u(n("\u9690\u85CF\u6C42\u52A9","Hide request"))}</button>`:""}
+    </div>
+    <article class="help-center-display-card is-request">
+      <div class="help-center-display-head">
+        <div class="help-center-display-title-wrap">
+          <strong class="help-center-display-title">${u(e.title)}</strong>
+          <span class="help-center-display-meta">${d}</span>
+        </div>
+      </div>
+      ${e.description?`
+        <div class="help-center-display-section help-center-display-note">
+          <span>${u(n("\u8865\u5145\u8BF4\u660E","Description"))}</span>
+          <p class="help-center-description">${u(e.description)}</p>
+        </div>
+      `:""}
+      <div class="help-center-display-section help-center-display-teams">
+        <strong class="help-center-display-team-title">${u(n("\u9632\u5B88\u961F\u4F0D","Defense teams"))}</strong>
+        ${q(e.defensePayload,"defense")}
+      </div>
+    </article>
+    ${e.status==="open"&&!e.isMine?`
+      <section class="help-center-section">
+        <strong>${u(n("\u63D0\u4EA4\u5F53\u524D\u8FDB\u653B\u961F\u4F0D\u4F5C\u4E3A\u89E3\u6CD5","Submit current attack as a solution"))}</strong>
+        <div class="help-center-display-section help-center-display-teams">
+          ${q(l,"attack")}
+        </div>
+        <label class="help-center-field">
+          <span>${u(n("\u89E3\u6CD5\u8BF4\u660E","Solution note"))}</span>
+          <textarea data-help-solution-description maxlength="100" rows="3" placeholder="${u(n("\u53EF\u586B\u5199\u64CD\u4F5C\u987A\u5E8F\u3001\u6CE8\u610F\u4E8B\u9879\u7B49","Operation order or notes"))}"></textarea>
+        </label>
+        <button class="help-center-action-button is-primary" type="button" data-help-create-solution ${r.helpCenter.actionPending==="create-solution"?"disabled":""}>${u(r.helpCenter.actionPending==="create-solution"?n("\u63D0\u4EA4\u4E2D...","Submitting..."):n("\u63D0\u4EA4\u89E3\u6CD5","Submit solution"))}</button>
+      </section>
+    `:""}
+    <section class="help-center-section help-center-solutions-section">
+      <strong>${u(n("\u5DF2\u6709\u89E3\u6CD5","Solutions"))}</strong>
+      <div class="help-center-solution-list">
+        ${a.length?a.map((s,p)=>{const f=e.acceptedSolutionId===s.id,b=`#${p+1}${f?` \xB7 ${n("\u5DF2\u91C7\u7EB3","Accepted")}`:""} \xB7 ${Le(s.author)}`,J=`
+            ${o?`<button class="help-center-action-button is-primary" type="button" data-help-accept="${u(s.id)}">${u(n("\u91C7\u7EB3\u5E76\u5173\u95ED","Accept and close"))}</button>`:""}
+            ${s.isMine?"":`<button class="help-center-action-button" type="button" data-help-report-solution="${u(s.id)}">${u(n("\u4E3E\u62A5","Report"))}</button>`}
+            ${e.canModerate?`<button class="help-center-action-button" type="button" data-help-hide-solution="${u(s.id)}">${u(n("\u9690\u85CF","Hide"))}</button>`:""}
+            ${s.isMine?`<span class="help-center-self-vote">${u(n("\u81EA\u5DF1\u7684\u89E3\u6CD5","Own solution"))} \xB7 ${Number(s.voteCount||0)}</span>`:`<button class="help-center-action-button" type="button" data-help-vote="${u(s.id)}">${s.votedByMe?u(n("\u5DF2\u8D5E","Voted")):u(n("\u70B9\u8D5E","Vote"))} \xB7 ${Number(s.voteCount||0)}</button>`}
+          `;return Ae({className:`is-solution${f?" is-accepted":""}`,title:b,actions:J,noteLabel:n("\u89E3\u6CD5\u8BF4\u660E","Solution note"),note:s.description,teamLabel:n("\u8FDB\u653B\u961F\u4F0D","Attack teams"),teamPayload:s.attackPayload,teamSide:"attack"})}).join(""):`<p class="help-center-empty">${u(n("\u6682\u65E0\u89E3\u6CD5\u3002\u70B9\u51FB\u201C\u53BB\u89E3\u9898\u201D\u4F1A\u8FDB\u5165\u4E92\u52A9\u89E3\u9898\u6A21\u5F0F\uFF0C\u9632\u5B88\u961F\u4F0D\u4F1A\u81EA\u52A8\u9501\u5B9A\uFF0C\u53EA\u9700\u8981\u586B\u5199\u8FDB\u653B\u961F\u4F0D\u3002",'No solutions yet. Click "Solve" to enter help-solving mode: the defense is locked, and you only need to fill attack teams.'))}</p>`}
+      </div>
+    </section>
+    </div>
+  `}function m(t){const e=t.querySelector(".help-center-content");if(!e)return;const a=r.helpCenter.mode!=="list";r.helpCenter.mode==="create"?e.innerHTML=Te():r.helpCenter.mode==="detail"?e.innerHTML=Me():r.helpCenter.mode==="reports"?e.innerHTML=Re():e.innerHTML=Ee(),a&&(e.scrollTop=0),Pe(t)}function Z(t){t.querySelectorAll("[data-help-request-id]").forEach(e=>{e.addEventListener("click",()=>{y(t,e.dataset.helpRequestId||"")})}),t.querySelector("[data-help-load-more]")?.addEventListener("click",()=>{S(t,{append:!0})})}function Pe(t){Z(t),le(t),t.querySelector("[data-help-view='create']")?.addEventListener("click",()=>{z()&&(r.helpCenter.mode="create",m(t))}),t.querySelector("[data-help-view='reports']")?.addEventListener("click",()=>{r.helpCenter.reportStatus="open",L(t)}),t.querySelector("[data-help-refresh]")?.addEventListener("click",()=>{S(t,{force:!0})}),t.querySelectorAll("[data-help-filter]").forEach(e=>{e.addEventListener("change",()=>{const a=e.dataset.helpFilter;a&&(r.helpCenter.filters[a]=e.value,r.helpCenter.nextCursor="",S(t))})}),t.querySelector("[data-help-report-status]")?.addEventListener("change",e=>{r.helpCenter.reportStatus=e.target.value||"open",L(t)}),t.querySelectorAll("[data-help-back]").forEach(e=>{e.addEventListener("click",()=>{r.helpCenter.mode="list",r.helpCenter.detail=null,m(t)})}),t.querySelector("[data-help-create]")?.addEventListener("click",()=>{Ce(t)}),t.querySelector("[data-help-share-request]")?.addEventListener("click",()=>{qe()}),t.querySelector("[data-help-start-solve]")?.addEventListener("click",()=>He(t)),t.querySelector("[data-help-create-solution]")?.addEventListener("click",()=>{be(t)}),t.querySelector("[data-help-close-request]")?.addEventListener("click",()=>{me(t)}),t.querySelector("[data-help-hide-request]")?.addEventListener("click",()=>{$e(t)}),t.querySelector("[data-help-report-request]")?.addEventListener("click",()=>{G("request",r.helpCenter.detail?.request?.id||"")}),t.querySelectorAll("[data-help-accept]").forEach(e=>{e.addEventListener("click",()=>{ve(t,e.dataset.helpAccept||"")})}),t.querySelectorAll("[data-help-hide-solution]").forEach(e=>{e.addEventListener("click",()=>{ge(t,e.dataset.helpHideSolution||"")})}),t.querySelectorAll("[data-help-report-solution]").forEach(e=>{e.addEventListener("click",()=>{G("solution",e.dataset.helpReportSolution||"")})}),t.querySelectorAll("[data-help-vote]").forEach(e=>{e.addEventListener("click",()=>{ye(t,e.dataset.helpVote||"")})}),t.querySelectorAll("[data-help-review-report]").forEach(e=>{e.addEventListener("click",()=>{Q(t,e.dataset.helpReviewReport||"","reviewed")})}),t.querySelectorAll("[data-help-dismiss-report]").forEach(e=>{e.addEventListener("click",()=>{Q(t,e.dataset.helpDismissReport||"","dismissed")})}),t.querySelectorAll("[data-help-hide-report-target]").forEach(e=>{e.addEventListener("click",()=>{we(t,e.dataset.helpHideReportTarget||"")})})}function _e(t={}){g(),r.helpCenter.mode=t.requestId?"detail":"list",r.helpCenter.error="",r.helpCenter.detail=null,r.helpCenter.nextCursor="";const e=document.createElement("div");e.className="help-modal-backdrop help-center-modal-backdrop",e.innerHTML=`
+    <section class="help-modal help-center-modal" role="dialog" aria-modal="true" aria-label="${u(n("\u7ADE\u6280\u573A\u6C42\u52A9","Arena Help"))}">
+      <div class="help-modal-head">
+        <div>
+          <span class="help-modal-kicker">Arena Help</span>
+          <strong>${u(n("\u7ADE\u6280\u573A\u6C42\u52A9","Arena Help"))}</strong>
+        </div>
+        <button class="help-modal-close" type="button" aria-label="${u(n("\u5173\u95ED","Close"))}">X</button>
+      </div>
+      <div class="help-modal-content help-center-content"></div>
+    </section>
+  `,document.body.append(e),document.addEventListener("keydown",W),e.querySelector(".help-modal-close")?.addEventListener("click",g),m(e),t.requestId?y(e,t.requestId):S(e)}export{g as closeHelpCenterModal,_e as openHelpCenterModal,ee as setHelpCenterUiApi};
