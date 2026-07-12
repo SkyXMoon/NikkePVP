@@ -285,5 +285,15 @@
       </section>
     </div>
     <script src="damage-calculator.js"></script>
+    <script>
+      (() => {
+        if (location.hostname !== "nikke.skyxmoon.cn") return;
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = "https://static.cloudflareinsights.com/beacon.min.js";
+        script.dataset.cfBeacon = '{"token":"c5fdd9ea5d264c0ca6a2934c242f4f3a"}';
+        document.head.append(script);
+      })();
+    </script>
   </body>
 </html>
