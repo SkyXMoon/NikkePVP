@@ -55,10 +55,7 @@ import{calculateCharacterDetailCombatPower as E,getCharacterBaseStatItems as w,g
           <span>${a(h.name)}</span>
           <strong class="${h.rarity==="SR"?"is-sr":"is-r"}">${a(`Lv.${h.level}`)}</strong>
         </button>
-        <button class="character-detail-bond" type="button" data-bond-level-trigger>
-          <span>${a(i("\u597D\u611F","Bond"))}</span>
-          <strong>${a(`Lv.${N}`)}</strong>
-        </button>
+        
       </section>
       <section class="character-detail-skill-row" aria-label="${a(i("\u6280\u80FD\u7B49\u7EA7","Skill levels"))}">
         <label>
@@ -73,6 +70,10 @@ import{calculateCharacterDetailCombatPower as E,getCharacterBaseStatItems as w,g
           <span>${a(i("\u7206\u88C2\u6280\u80FD","Burst skill"))}</span>
           <input type="number" min="1" max="10" step="1" value="${a(m.burst)}" data-skill-level-input="burst" />
         </label>
+        <button class="character-detail-bond" type="button" data-bond-level-trigger>
+          <span>${a(i("\u597D\u611F","Bond"))}</span>
+          <strong>${a(`Lv.${N}`)}</strong>
+        </button>
       </section>
       <section class="character-detail-equipment-grid">
         ${o.length?o.map(t=>`
