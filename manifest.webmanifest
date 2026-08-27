@@ -3,6 +3,7 @@
   "short_name": "NIKKE PVP",
   "description": "NIKKE PVP 竞技场充能计算、队伍配置与赛季数据工具。",
   "lang": "zh-CN",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
