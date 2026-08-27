@@ -36,7 +36,7 @@ let B={};const g="nikke:character-detail-refresh";let y=!1,C=!1,L=!1,f=!1;functi
           </label>
           ${le().map(a=>`
             <label class="detail-cube-type-option${t&&r.type===a.type?" is-selected":""}" title="${n(c(a.name,a.enName))}">
-              <input type="radio" name="detail-cube-type" value="${n(a.type)}" data-detail-cube-type ${t&&r.type===a.type?"checked":""} />
+              <input type="radio" name="detail-cube-type" value="${n(a.id)}" data-detail-cube-type ${t&&r.type===a.type?"checked":""} />
               <img src="${n(K(a.type))}" alt="" aria-hidden="true" loading="lazy" />
               <span>${n(c(a.name,a.enName))}</span>
             </label>
