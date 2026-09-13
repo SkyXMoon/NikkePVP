@@ -5,10 +5,10 @@ let b={},S={},E=5,f=null,g=null;function j(e={}){b=e||{},S=b.state||{},E=Number(
         ${U?pe(h):""}
         ${p?`<span class="slot-cube-badge"><img src="${p}" alt="" /></span>`:""}
         ${w?`<span class="slot-speed-badge">${w}</span>`:""}
-        ${$>0?`<span class="slot-pierce-count is-active"><img class="slot-pierce-icon" src="assets/icons/ui/pierce.svg" alt="" /><span class="slot-pierce-value">${$}</span></span>`:""}
-        ${L(e)?`<span class="slot-counter-toggle${q?" is-active":""}"><img src="assets/icons/ui/pierce.svg" alt="" /></span>`:""}
-        ${k(e)?`<span class="slot-sacrifice-toggle${K?" is-active":""}"><img src="assets/icons/ui/pierce.svg" alt="" /></span>`:""}
-        ${B?'<span class="slot-link-toggle is-active"><img src="assets/icons/ui/link.svg" alt="" /></span>':O?'<span class="slot-link-target is-selected"><img src="assets/icons/ui/link.svg" alt="" /></span>':""}
+        ${$>0?`<span class="slot-pierce-count is-active"><img class="slot-pierce-icon" src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" /><span class="slot-pierce-value">${$}</span></span>`:""}
+        ${L(e)?`<span class="slot-counter-toggle${q?" is-active":""}"><img src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" /></span>`:""}
+        ${k(e)?`<span class="slot-sacrifice-toggle${K?" is-active":""}"><img src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" /></span>`:""}
+        ${B?'<span class="slot-link-toggle is-active"><img src="assets/immutable/icons/ui/link.4c6f6b125df1.svg" alt="" /></span>':O?'<span class="slot-link-target is-selected"><img src="assets/immutable/icons/ui/link.4c6f6b125df1.svg" alt="" /></span>':""}
       </span>
     </span>
   `:`
