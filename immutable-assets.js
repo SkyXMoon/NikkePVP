@@ -22,3 +22,4 @@ function resolveImmutableAssetUrl(value) {
 
 globalThis.__NIKKE_IMMUTABLE_ASSET_RELEASE__ = IMMUTABLE_ASSET_RELEASE;
 globalThis.__NIKKE_IMMUTABLE_ASSET_URL__ = resolveImmutableAssetUrl;
+globalThis.__NIKKE_IMMUTABLE_ASSET_MAP__ = IMMUTABLE_ASSET_MAP;

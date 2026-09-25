@@ -131,6 +131,7 @@
         100% { transform: translateX(245%); }
       }
     </style>
+    <link rel="preload" as="script" href="immutable-assets.js" />
     <link rel="stylesheet" href="styles.min.css" />
     <script type="application/ld+json" nonce="nikke-seo-v1">
       {
@@ -195,7 +196,7 @@
     <div class="app-sidebar-backdrop" id="appSidebarBackdrop" hidden></div>
     <aside class="app-sidebar" id="appSidebar" aria-label="页面菜单">
       <div class="app-sidebar-head">
-      <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.74.1032</span></strong>
+      <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.75.1042</span></strong>
         <button class="app-sidebar-close" id="sidebarCloseButton" type="button" aria-label="关闭侧边栏">X</button>
       </div>
       <nav class="app-sidebar-nav" aria-label="页面操作">
@@ -205,6 +206,7 @@
         <button class="app-sidebar-item" id="helpCenterButton" type="button">竞技场求助</button>
         <a class="app-sidebar-item" href="damage-calculator.html" hidden>最终伤害计算器</a>
         <a class="app-sidebar-item" href="power-stat-calculator.html" hidden>战力+基础属性计算器</a>
+        <a class="app-sidebar-item" id="pveButton" href="pve.html">NIKKE PVE</a>
         <button class="app-sidebar-item" id="sidebarSuggestionButton" type="button">关于&建议</button>
       </nav>
       <div class="app-sidebar-bottom">
@@ -358,7 +360,7 @@
 
     <script src="runtime-config.js"></script>
     <script src="data.min.js"></script>
-    <script src="immutable-assets.js"></script>
+    <script defer src="immutable-assets.js"></script>
     <script src="app.min.js"></script>
     <script nonce="nikke-seo-v1">
       (() => {

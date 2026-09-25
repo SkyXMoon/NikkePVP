@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>NIKKE PVE</title>
+    <link rel="icon" type="image/png" href="assets/immutable/icons/site/favicon-v164793.151e955ecc3d.png" />
+    <link rel="stylesheet" href="styles.min.css" />
+  </head>
+  <body class="pve-page">
+    <button class="sidebar-menu-button" id="pveSidebarMenuButton" type="button" aria-label="打开侧边栏" title="菜单">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </button>
+    <div class="app-sidebar-backdrop" id="pveSidebarBackdrop" hidden></div>
+    <aside class="app-sidebar" id="pveSidebar" aria-label="页面菜单" inert>
+      <div class="app-sidebar-head">
+        <strong>NIKKE PVE <span class="app-version" id="pveAppVersion" aria-label="当前版本">V1.75.1042</span></strong>
+        <button class="app-sidebar-close" id="pveSidebarCloseButton" type="button" aria-label="关闭侧边栏">X</button>
+      </div>
+      <nav class="app-sidebar-nav" aria-label="页面操作">
+        <button class="app-sidebar-item" id="pveChangelogButton" type="button">更新日志</button>
+        <button class="app-sidebar-item" id="pveHelpButton" type="button">使用说明</button>
+        <a class="app-sidebar-item" id="pvePvpButton" href="index.html">NIKKE PVP</a>
+        <button class="app-sidebar-item" id="pveSuggestionButton" type="button">关于&建议</button>
+      </nav>
+      <div class="theme-controls">
+        <button class="theme-toggle-button" id="pveThemeToggleButton" type="button" aria-label="切换主题" title="切换主题">
+          <span class="theme-icon theme-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-moon" aria-hidden="true">☾</span>
+        </button>
+        <button class="theme-toggle-button language-toggle-button" id="pveLanguageToggleButton" type="button" aria-label="切换中英文" title="切换中英文">
+          中/En
+        </button>
+      </div>
+    </aside>
+    <main class="pve-app-shell">
+      <div class="pve-workspace">
+        <section class="pve-panel pve-team-panel" aria-labelledby="pveTeamTitle">
+          <header class="pve-panel-head">
+            <div>
+              <span class="pve-panel-kicker">PVE</span>
+              <h1 id="pveTeamTitle">组合队伍</h1>
+            </div>
+            <div class="pve-team-power-summary">
+              <span id="pveTotalPowerLabel">队伍战力</span>
+              <strong id="pveTotalPower">—</strong>
+            </div>
+          </header>
+          <div class="pve-team-slots" id="pveTeamSlots" aria-live="polite"></div>
+          <p class="pve-team-hint" id="pveTeamHint">从下方选择角色加入队伍。角色详细数值将在后续接入。</p>
+        </section>
+
+        <section class="pve-panel pve-detail-panel" aria-labelledby="pveDetailTitle">
+          <header class="pve-panel-head pve-detail-panel-head">
+            <div>
+              <span class="pve-panel-kicker" id="pveDetailKicker">NIKKE PROFILE</span>
+              <h2 id="pveDetailTitle">角色详情</h2>
+            </div>
+            <span class="pve-detail-current-slot" id="pveCurrentSlot"></span>
+          </header>
+          <div class="pve-detail-empty" id="pveDetailEmpty">
+            <span class="pve-detail-empty-icon" aria-hidden="true">✦</span>
+            <p id="pveDetailEmptyText">选择角色查看详情</p>
+          </div>
+          <div class="pve-detail-content" id="pveDetailContent" hidden></div>
+        </section>
+      </div>
+
+      <section class="pve-panel pve-roster-panel" aria-labelledby="pveRosterTitle">
+        <header class="pve-panel-head pve-roster-head">
+          <div>
+            <span class="pve-panel-kicker">NIKKE</span>
+            <h2 id="pveRosterTitle">选择角色</h2>
+          </div>
+          <div class="pve-roster-tools">
+            <span class="pve-roster-count" id="pveRosterCount">加载中</span>
+            <label class="pve-search-wrap">
+              <span class="visually-hidden" id="pveSearchLabel">搜索角色</span>
+              <input id="pveSearchInput" type="search" autocomplete="off" placeholder="搜索角色名称" aria-label="搜索角色名称" />
+            </label>
+          </div>
+        </header>
+        <div class="pve-roster-grid" id="pveCharacterGrid" aria-live="polite"></div>
+      </section>
+    </main>
+    <script src="data.min.js"></script>
+    <script type="module" src="pve.min.js"></script>
+  </body>
+</html>
