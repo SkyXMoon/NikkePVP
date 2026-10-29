@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+  <defs>
+    <linearGradient id="settingsBadge" x1="6" y1="3" x2="22" y2="25" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#59F1FF" />
+      <stop offset="0.52" stop-color="#168DAA" />
+      <stop offset="1" stop-color="#07536D" />
+    </linearGradient>
+    <linearGradient id="settingsInner" x1="9" y1="7" x2="19" y2="21" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173C50" />
+      <stop offset="1" stop-color="#081A25" />
+    </linearGradient>
+  </defs>
+  <path d="M14 1.8 24.55 7.9v12.2L14 26.2 3.45 20.1V7.9z" fill="url(#settingsBadge)" stroke="#DDFBFF" stroke-width="1.4" />
+  <path d="M14 5.1 21.7 9.55v8.9L14 22.9l-7.7-4.45v-8.9z" fill="url(#settingsInner)" stroke="#6EEBFF" stroke-width="0.95" />
+  <path d="M14 8.5v2.1M14 17.4v2.1M10.12 10.75l1.82 1.05M16.06 16.2l1.82 1.05M17.88 10.75l-1.82 1.05M11.94 16.2l-1.82 1.05" stroke="#F7FDFF" stroke-width="1.55" stroke-linecap="round" />
+  <circle cx="14" cy="14" r="3.15" fill="none" stroke="#F7FDFF" stroke-width="1.55" />
+  <circle cx="14" cy="14" r="1.15" fill="#F7FDFF" />
+</svg>
