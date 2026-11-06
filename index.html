@@ -3,6 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://static.cloudflareinsights.com 'nonce-nikke-seo-v1'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://xjdyqxkryqtkiroylygp.supabase.co https://pinkuro.top:9984 https://api.ocr.space https://cloudflareinsights.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests" />
+    <meta name="referrer" content="no-referrer" />
+    <script nonce="nikke-seo-v1">
+      (() => {
+        const url = new URL(window.location.href);
+        const values = url.searchParams.getAll("k");
+        if (!values.length) return;
+        const originalUrl = url.href;
+        // A previous worker may already have cached this navigation URL.
+        if (window.caches) void caches.keys().then((names) => Promise.all(names.map(async (name) => (await caches.open(name)).delete(originalUrl)))).catch(() => {});
+        url.searchParams.delete("k");
+        window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+        const key = values.length === 1 ? values[0].trim() : "";
+        if (!/^[^\s\u0000-\u001f\u007f]{4,512}$/.test(key)) {
+          delete window.__NIKKE_PENDING_ARCA_KEY__;
+          try { localStorage.removeItem("nikke-pending-arca-key-v1"); } catch { /* No previous pending key to clear. */ }
+          return;
+        }
+        window.__NIKKE_PENDING_ARCA_KEY__ = key;
+        try { localStorage.setItem("nikke-pending-arca-key-v1", key); } catch { /* This tab can still complete binding. */ }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NIKKE PVP Pro - 妮姬竞技场配队、充能轴模拟、赛季胜率统计与互助解法工具</title>
     <meta name="description" content="面向胜利女神：NIKKE 竞技场玩家的配队与充能模拟工具，覆盖普通竞技场、特殊竞技场和冠军竞技场，支持角色充能轴、爆裂顺序、装备词条、战力属性、赛季胜率统计、队伍分享与竞技场互助解法，帮助玩家快速规划进攻、防守和拆队方案。" />
@@ -196,12 +217,12 @@
     <div class="app-sidebar-backdrop" id="appSidebarBackdrop" hidden></div>
     <aside class="app-sidebar" id="appSidebar" aria-label="页面菜单">
       <div class="app-sidebar-head">
-      <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.79.1064</span></strong>
+      <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.79.1065</span></strong>
         <button class="app-sidebar-close" id="sidebarCloseButton" type="button" aria-label="关闭侧边栏">X</button>
       </div>
       <nav class="app-sidebar-nav" aria-label="页面操作">
         <button class="app-sidebar-item" id="changelogButton" type="button">更新日志</button>
-        <button class="app-sidebar-item" id="sidebarHelpButton" type="button">使用说明</button>
+        <button class="app-sidebar-item" id="sidebarHelpButton" type="button" hidden style="display:none">使用说明</button>
         <button class="app-sidebar-item" id="championDataButton" type="button">冠军竞技场赛季数据</button>
         <button class="app-sidebar-item" id="helpCenterButton" type="button">竞技场求助</button>
         <a class="app-sidebar-item" href="damage-calculator.html" hidden>最终伤害计算器</a>
@@ -344,7 +365,7 @@
     </main>
 
     <div class="floating-controls" aria-label="辅助操作">
-      <button class="app-help-button" id="helpButton" type="button" aria-label="打开页面说明" title="页面说明">?</button>
+      <button class="app-help-button" id="helpButton" type="button" aria-label="打开页面说明" title="页面说明" hidden style="display:none">?</button>
       <button class="app-share-fab" id="mobileShareFab" type="button" aria-label="分享" title="分享">
         <span class="share-fab-text">分享</span>
       </button>
