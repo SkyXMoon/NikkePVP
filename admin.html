@@ -44,6 +44,18 @@
           <button class="admin-secondary" id="adminLogoutButton" type="button">退出登录</button>
         </div>
 
+        <section class="admin-pricing-section" aria-labelledby="adminPricingTitle">
+          <div class="admin-section-head"><div><h3 id="adminPricingTitle">会员优惠</h3><p>原价 10 元／30 天。首购仅优惠首份，同单其余份数按续费价；后续仅会员未到期时享续费优惠。</p></div><button class="admin-secondary" id="adminPricingRefresh" type="button">读取配置</button></div>
+          <form class="admin-form" id="adminPricingForm">
+            <label class="admin-pricing-toggle"><input id="adminFirstEnabled" type="checkbox" />启用首购优惠</label>
+            <label>首份价格（元）<input id="adminFirstPrice" type="number" min="0.01" max="10" step="0.01" required /></label>
+            <label class="admin-pricing-toggle"><input id="adminRenewalEnabled" type="checkbox" />启用未到期续费优惠</label>
+            <label>续费价格（元／份）<input id="adminRenewalPrice" type="number" min="0.01" max="10" step="0.01" required /></label>
+            <button class="admin-primary" id="adminPricingSave" type="submit" disabled>保存优惠</button>
+          </form>
+          <p class="admin-status" id="adminPricingStatus" role="status">正在读取优惠配置…</p>
+        </section>
+
         <form class="admin-search" id="adminSearchForm">
           <input id="adminSearchInput" name="q" type="search" placeholder="搜索邮箱或用户名" />
           <button class="admin-primary" type="submit">搜索</button>
