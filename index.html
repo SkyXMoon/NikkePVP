@@ -217,7 +217,7 @@
     <div class="app-sidebar-backdrop" id="appSidebarBackdrop" hidden></div>
     <aside class="app-sidebar" id="appSidebar" aria-label="页面菜单">
       <div class="app-sidebar-head">
-      <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.79.1066</span></strong>
+      <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.79.1076</span></strong>
         <button class="app-sidebar-close" id="sidebarCloseButton" type="button" aria-label="关闭侧边栏">X</button>
       </div>
       <nav class="app-sidebar-nav" aria-label="页面操作">
@@ -327,6 +327,7 @@
           </aside>
 
           <section class="workspace" aria-label="角色数据">
+            <div class="character-picker-controls">
             <section class="filters" aria-label="筛选角色">
               <label class="search-field">
                 <input id="searchInput" type="search" placeholder="角色名（首字母）/ 英文名" />
@@ -342,18 +343,15 @@
                 <input id="regionToggle" type="checkbox" checked />
                 <span>国</span>
               </label>
-              <label class="filter-switch favorite-filter-switch" title="只看收藏">
-                <input id="favoriteToggle" type="checkbox" />
-                <span>★</span>
-              </label>
+              <button class="filter-switch" id="arcaToggle" type="button" aria-pressed="false" title="阿卡角色，长按或右键查看与编辑">卡</button>
               <label class="filter-switch" hidden>
                 <input id="compactAvatarToggle" type="checkbox" checked />
                 <span>简</span>
               </label>
             </section>
 
-            <section class="list-header">
-              <span id="sortSummary" class="sort-summary"><strong>充能从高到低</strong></span>
+            </div>
+            <section class="list-header">              <span id="sortSummary" class="sort-summary" aria-live="polite"></span>
               <span class="list-divider" aria-hidden="true"></span>
               <span id="listCount">0 / 0 名角色</span>
             </section>
