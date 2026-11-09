@@ -1,7 +1,13 @@
 {
-  "version": "2026-06-20-1",
+  "version": "2026-11-09-1",
   "enabled": true,
   "items": [
+    {
+      "id": "wechat-mini-program-launched",
+      "level": "info",
+      "text": "微信小程序已上线！打开微信，在「发现 → 小程序」中搜索「妮姬的战场小工具」即可使用。",
+      "enText": "Our WeChat Mini Program is now available! Open WeChat → Discover → Mini Programs and search for “妮姬的战场小工具”."
+    },
     {
       "id": "champion-season-data-open",
       "level": "info",
