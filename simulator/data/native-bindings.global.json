@@ -1,0 +1,582 @@
+{
+  "schema": 1,
+  "region": "global",
+  "source": "international-catalog-cdb",
+  "characters": {
+    "c012": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9028,
+      "bundle": "sdcharacters_assets_c012_00_var_33e6f43b6c9b2d9d176f658c185cd1f3.bundle",
+      "sha256": "5e52e2c6d507af5354774c3b4f7bfbf5bd9350d65664704550bb88813f6e77cd",
+      "muzzles": [
+        "c012_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c017": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9036,
+      "bundle": "sdcharacters_assets_c017_00_var_58705b624a1f4fea521daf48739a94bf.bundle",
+      "sha256": "c2dd24d0aaafcccb2963aa7783644709141077567d456304ac0d27f018a06f1f",
+      "muzzles": [
+        "c017_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c018": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9039,
+      "bundle": "sdcharacters_assets_c018_00_var_747dc2310b8a3f25c11ff8a5c7b71fc9.bundle",
+      "sha256": "182e37c748dbbd5fff5efc46aafc1bd43e78890324160e7840ea17a418605423",
+      "muzzles": [
+        "c018_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c033": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9052,
+      "bundle": "sdcharacters_assets_c033_00_var_c0f041d53d44f3abebbd764d9652e6ba.bundle",
+      "sha256": "dd844eeeef09f3852b22d5ebf168807617f1216892e5ced2af6c9c3d56f765a8",
+      "muzzles": [
+        "c033_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c060": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9059,
+      "bundle": "sdcharacters_assets_c060_00_var_c2f7499e37f1fb64249204cf5a190797.bundle",
+      "sha256": "5037e19d8caee47a4e2a35344845f85c797dfc3a24d07769af17caebed2d29c1",
+      "muzzles": [
+        "c060_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c061": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9060,
+      "bundle": "sdcharacters_assets_c061_00_var_5da6fa4cb023c3314d5cd76d48cc877d.bundle",
+      "sha256": "4651e3253edfb70add4bf1b6613c393147a12be9de8cbb3ce33d5b27deeb57c2",
+      "muzzles": [
+        "c061_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c063": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9062,
+      "bundle": "sdcharacters_assets_c063_00_var_3bf1591c9a9ef83a01cee500c5a6ebbd.bundle",
+      "sha256": "002855eb6ecc294c9438938e4262397bfc8f4b4d7100724826b1791b9b9baf0d",
+      "muzzles": [
+        "c063_00_var/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c075": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9073,
+      "bundle": "sdcharacters_assets_c075_00_var_23c460328aadb8c23405c204d053e9d8.bundle",
+      "sha256": "5cc43e067b3c9d167abc9006796b812f2eb6c2dfb17d3455d055a06fb08667e2",
+      "muzzles": [
+        "c075_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c080": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9074,
+      "bundle": "sdcharacters_assets_c080_00_var_04fb3eac5c6d6477a2bb74c53fd69b32.bundle",
+      "sha256": "f1eecb6f9d099396f3ab2ea183e0d452982dc3da38030a5734fbee476c56ce28",
+      "muzzles": [
+        "c080_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c091": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9083,
+      "bundle": "sdcharacters_assets_c091_00_var_710bb3abdcb37ea0c1ead7e2ad3f6d09.bundle",
+      "sha256": "82dc632a1d17acd7ed5c8b2cd955bcd1d38c57548ba22c425b328b5160b83023",
+      "muzzles": [
+        "c091_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c094": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9088,
+      "bundle": "sdcharacters_assets_c094_00_var_2fc4f87428388305d258e45da5a5884f.bundle",
+      "sha256": "e428b97e3f76dbd132195ebcda51758e7551b646342f7eae1863a3eca3e4609a",
+      "muzzles": [
+        "c094_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Point001/Bone024/Bone025/Bone026/Bone028/Bone029/Point002/Bone001/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c100": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9092,
+      "bundle": "sdcharacters_assets_c100_00_var_22fcacf97d730725bca4d7a12d7c9b7b.bundle",
+      "sha256": "494e87fa08023c7340f9d3da409631e3764213997498d9d59764179ff0f61035",
+      "muzzles": [
+        "c100_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c103": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9098,
+      "bundle": "sdcharacters_assets_c103_00_var_c7e32ac1709830d2ace51d49211fc470.bundle",
+      "sha256": "f2577c5e8586e890c074b7e87fea41ed0e863630688d5b98489588fda488b900",
+      "muzzles": [
+        "c103_00_var/Bip001/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c111": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9104,
+      "bundle": "sdcharacters_assets_c111_00_var_fa7d953feed3ae8046a33874a9f6a5b7.bundle",
+      "sha256": "750342b22e474698567d1dde520261694d4c9553b3c599ddeaeee0f55c39f343",
+      "muzzles": [
+        "c111_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c120": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9112,
+      "bundle": "sdcharacters_assets_c120_00_var_43da6d2fc1f327c875a7ee73abd72ad3.bundle",
+      "sha256": "d30550fe513a6934138f85bee2fcb6a96a812448bd2c7e688d7188fc355c4b28",
+      "muzzles": [
+        "c120_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c121": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9113,
+      "bundle": "sdcharacters_assets_c121_00_var_63238253f044647dd954535819a62866.bundle",
+      "sha256": "2aa3b42b81b8d63540928a022c233f5be61bdb7a52146aef5fa5c6d7d150c87b",
+      "muzzles": [
+        "c121_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c160": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9131,
+      "bundle": "sdcharacters_assets_c160_00_var_18bfd592cd8b2a750e873bd99182f024.bundle",
+      "sha256": "b8941b0e91a7be9a325fa8ef67bff6926a263ffa4695b8b11d3149958a1db33f",
+      "muzzles": [
+        "c160_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c183": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9149,
+      "bundle": "sdcharacters_assets_c183_00_var_3467715fa2f0d8b87a7e794b3895b574.bundle",
+      "sha256": "e35e4db8ddb5ab50bc53a17bf23d004b6f8bf0b7984a7d40615fa5331816d5ff",
+      "muzzles": [
+        "c183_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c201": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9162,
+      "bundle": "sdcharacters_assets_c201_00_var_cdb179b35bab238eb040a0580782de78.bundle",
+      "sha256": "0fe425e7ddbd17a82441fcbbd1ef67b5eca362200b5a6c23b137e1d55114bf5f",
+      "muzzles": [
+        "c201_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c221": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9176,
+      "bundle": "sdcharacters_assets_c221_00_var_3c5926686ba725b49b86a589e5a6a600.bundle",
+      "sha256": "d7ef24584297235077ab98a3c55f5f4bc5686fe2630ed4580ecd7d6f92c2adde",
+      "muzzles": [
+        "c221_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c225": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9183,
+      "bundle": "sdcharacters_assets_c225_00_var_1aacabb99c69c130da736530dd32cad0.bundle",
+      "sha256": "15a76db0dc33e0f922c5e7fca6dccb1686141c76dc222ad25f5e6149c66eabea",
+      "muzzles": [
+        "c225_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop2/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c232": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9190,
+      "bundle": "sdcharacters_assets_c232_00_var_5a513d1f90972105aec2b97982da9244.bundle",
+      "sha256": "af6223ddf18d325eb47b4172583a67b08249931a0cb95dff49ec68297de235b3",
+      "fallback": "native-empty-weapon-list/socket_rifle",
+      "nativeGetMuzzlePositionRva": "0x61106B0",
+      "nativeInitSocketRva": "0x611141C",
+      "muzzles": [
+        "c232_00_var/Bip001/Bip001 Pelvis/Boneshield01L/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c240": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9195,
+      "bundle": "sdcharacters_assets_c240_00_var_d008a801d435147d6897ae1462db99eb.bundle",
+      "sha256": "2a7d3cbf4d1ef89a159f3a5af8d9d581ce62c8aee5dfba2dc99da2e056777957",
+      "muzzles": [
+        "c240_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c304": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9230,
+      "bundle": "sdcharacters_assets_c304_00_var_03b34faa0e84fecc7b391376f70b1295.bundle",
+      "sha256": "af34ddf2daf8e53b35c4fbb691e0c054c4e58b5accae9e2f911c37f968977844",
+      "muzzles": [
+        "c304_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c351": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9254,
+      "bundle": "sdcharacters_assets_c351_00_var_e3e68b0cddfd6380241703405c87be7f.bundle",
+      "sha256": "c2148f56f2a88aefc3d954fa6d5be24da38e62c124be7cc82f26fb66b4d4a2bf",
+      "muzzles": [
+        "c351_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c355": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9262,
+      "bundle": "sdcharacters_assets_c355_00_var_2e415c43eea3744a8e0d544e63cefc58.bundle",
+      "sha256": "cc37d2bc9edc9353d6551d878c3445876d936fcbc0a8ca0884d580cbf6e47e73",
+      "muzzles": [
+        "c355_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c381": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9265,
+      "bundle": "sdcharacters_assets_c381_00_var_9d2f64005e43ae066ecc9dbaa320bc56.bundle",
+      "sha256": "2db09f44443a4575747d479dd42c3f6cf3e492c08a4ba875421bd1a54cb3746d",
+      "muzzles": [
+        "c381_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c412": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9286,
+      "bundle": "sdcharacters_assets_c412_00_var_dea0e6fc8daf6e7d3dc9a61a00022520.bundle",
+      "sha256": "b15fc17a5ce78dd74543d7b0a74ce787341d9fed0cf3d93f53f5423db6e861a5",
+      "muzzles": [
+        "c412_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c430": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9288,
+      "bundle": "sdcharacters_assets_c430_00_var_e7a3ee0508070d2d8e2fa29d066a9e34.bundle",
+      "sha256": "26e5ea824c71306f7f6d920a035a04f12c1fee95d588b359c403797407096348",
+      "muzzles": [
+        "c430_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c451": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9299,
+      "bundle": "sdcharacters_assets_c451_00_var_6c0341668a96f24dc1ea09b4d82bc5f6.bundle",
+      "sha256": "9ca44aba89cebd693c986737c83b20fa0dcbf56a7f3cf8e5a76aea27cb22aba8",
+      "muzzles": [
+        "c451_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c473": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9309,
+      "bundle": "sdcharacters_assets_c473_00_var_d55bfdffa3dcc7e9b4d1bd9c74020eae.bundle",
+      "sha256": "a4938197996d4435d251a63577560391d0b90d9c11423efa88b9920d2739886d",
+      "muzzles": [
+        "c473_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/Bone018/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c511": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9316,
+      "bundle": "sdcharacters_assets_c511_00_var_cd4ca01ea49da353e71e889d0e0347f1.bundle",
+      "sha256": "0742213035eac1545ebe10d776e7a93744a29fc9157c5c01ea369a748a7e561f",
+      "muzzles": [
+        "c511_00_var/Dummy_Wp_root_Main/Dummy_wp_root001/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c521": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9329,
+      "bundle": "sdcharacters_assets_c521_00_var_f793e2ad1a37ee7855afe7a4dab982dc.bundle",
+      "sha256": "5d699a6b0a88c29427cb7ab53c018834b9bd5abaeab552b8dfde708278c6be97",
+      "muzzles": [
+        "c521_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c532": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9331,
+      "bundle": "sdcharacters_assets_c532_00_var_d99b48773ba230529f74dfac97be605e.bundle",
+      "sha256": "7aed7a71e5c06b244527e6b868abf7ad35dddd3a7bdee1e6d1f17c79d61d15a4",
+      "muzzles": [
+        "c532_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c550": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9333,
+      "bundle": "sdcharacters_assets_c550_00_var_204a28e0b70226314a826e14875911df.bundle",
+      "sha256": "aacde82235ebe4008c2290311b3167ad997a1abb3df4542183862e8cc1eec52c",
+      "muzzles": [
+        "c550_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c581": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9340,
+      "bundle": "sdcharacters_assets_c581_00_var_2860fc40061b27a36dddd84df7db5d60.bundle",
+      "sha256": "d934989f98e6852094b91b47083f9fd564aaad0bf57f9debe42d70ca0e56e901",
+      "muzzles": [
+        "c581_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c600": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9345,
+      "bundle": "sdcharacters_assets_c600_00_var_f4f28a388976a1c464754efa4a617549.bundle",
+      "sha256": "8f5b8eef86907379cd3ddd54bb0a677df47fe3ada514bb15bd905d3d1c8d68bb",
+      "muzzles": [
+        "c600_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c801": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9353,
+      "bundle": "sdcharacters_assets_c801_00_var_fb298eb519bfbddcd8f7d9815c65875d.bundle",
+      "sha256": "429ccad12b3f14642ae293ba02b2eeca785ef279b4ba309bf14e9867a8c73f7e",
+      "muzzles": [
+        "c801_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c811": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9359,
+      "bundle": "sdcharacters_assets_c811_00_var_153fdfd29db38fc3291073b8646a80b0.bundle",
+      "sha256": "7f705d5c1cf43209dee77733d743d26dd4af3806239617c20d257351c4e43077",
+      "muzzles": [
+        "c811_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop2/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c812": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9363,
+      "bundle": "sdcharacters_assets_c812_00_var_dc500080d6d5069eb93b5481b477849f.bundle",
+      "sha256": "815bdab0e530d406329dee59f55fd35cad98d8cc9b086c7147f9747ddaf0ee8a",
+      "muzzles": [
+        "c812_00_var/Bip001/Bip001 Pelvis/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c821": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9367,
+      "bundle": "sdcharacters_assets_c821_00_var_4e5822e4dd6607f81822118bb9d96a30.bundle",
+      "sha256": "3d81ecc5092afb9135021dc5ec7b36648af105edd8c4cafb6e9938afba65127d",
+      "muzzles": [
+        "c821_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Spine1/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c840": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9394,
+      "bundle": "sdcharacters_assets_c840_00_var_6df12d2aab58cac847b9a9a358e0f725.bundle",
+      "sha256": "6f78bf3c1e40ab65ab17df75f61befb622eb5cfbea89f30ccef5f4f6560900a3",
+      "muzzles": [
+        "c840_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c842": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9400,
+      "bundle": "sdcharacters_assets_c842_00_var_023d3abcf9d812846d8e81931ce4bedd.bundle",
+      "sha256": "f9b35bdf6aed39701c2babed9cb1815174f6ef7de890ab78ffd77ed9fc2fb97c",
+      "muzzles": [
+        "c842_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    },
+    "c851": {
+      "catalog": "F:\\MarvsWorkSpace\\NikkeData\\Data\\global\\decrypted\\catalog\\unverified_20261030\\catalog_dp.db",
+      "fileId": 9405,
+      "bundle": "sdcharacters_assets_c851_00_var_ff762459d276439b40a6512acf9ce443.bundle",
+      "sha256": "d529cc4efe30ff35afc5e950c0f457adfe8a2c98bd1431a5d7272ded798ca36c",
+      "muzzles": [
+        "c851_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+      ],
+      "stateSpeeds": {
+        "aim_end": 2.0,
+        "aim_start": 2.0
+      }
+    }
+  }
+}

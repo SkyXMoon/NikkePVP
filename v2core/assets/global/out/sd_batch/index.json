@@ -1,0 +1,182 @@
+{
+  "region": "global",
+  "count": 44,
+  "characters": [
+    {
+      "code": "c012",
+      "file": "c012_00.glb"
+    },
+    {
+      "code": "c017",
+      "file": "c017_00.glb"
+    },
+    {
+      "code": "c018",
+      "file": "c018_00.glb"
+    },
+    {
+      "code": "c033",
+      "file": "c033_00.glb"
+    },
+    {
+      "code": "c060",
+      "file": "c060_00.glb"
+    },
+    {
+      "code": "c061",
+      "file": "c061_00.glb"
+    },
+    {
+      "code": "c063",
+      "file": "c063_00.glb"
+    },
+    {
+      "code": "c075",
+      "file": "c075_00.glb"
+    },
+    {
+      "code": "c080",
+      "file": "c080_00.glb"
+    },
+    {
+      "code": "c091",
+      "file": "c091_00.glb"
+    },
+    {
+      "code": "c094",
+      "file": "c094_00.glb"
+    },
+    {
+      "code": "c100",
+      "file": "c100_00.glb"
+    },
+    {
+      "code": "c103",
+      "file": "c103_00.glb"
+    },
+    {
+      "code": "c111",
+      "file": "c111_00.glb"
+    },
+    {
+      "code": "c120",
+      "file": "c120_00.glb"
+    },
+    {
+      "code": "c121",
+      "file": "c121_00.glb"
+    },
+    {
+      "code": "c160",
+      "file": "c160_00.glb"
+    },
+    {
+      "code": "c183",
+      "file": "c183_00.glb"
+    },
+    {
+      "code": "c201",
+      "file": "c201_00.glb"
+    },
+    {
+      "code": "c221",
+      "file": "c221_00.glb"
+    },
+    {
+      "code": "c225",
+      "file": "c225_00.glb"
+    },
+    {
+      "code": "c232",
+      "file": "c232_00.glb"
+    },
+    {
+      "code": "c240",
+      "file": "c240_00.glb"
+    },
+    {
+      "code": "c304",
+      "file": "c304_00.glb"
+    },
+    {
+      "code": "c351",
+      "file": "c351_00.glb"
+    },
+    {
+      "code": "c355",
+      "file": "c355_00.glb"
+    },
+    {
+      "code": "c381",
+      "file": "c381_00.glb"
+    },
+    {
+      "code": "c412",
+      "file": "c412_00.glb"
+    },
+    {
+      "code": "c430",
+      "file": "c430_00.glb"
+    },
+    {
+      "code": "c451",
+      "file": "c451_00.glb"
+    },
+    {
+      "code": "c473",
+      "file": "c473_00.glb"
+    },
+    {
+      "code": "c511",
+      "file": "c511_00.glb"
+    },
+    {
+      "code": "c521",
+      "file": "c521_00.glb"
+    },
+    {
+      "code": "c532",
+      "file": "c532_00.glb"
+    },
+    {
+      "code": "c550",
+      "file": "c550_00.glb"
+    },
+    {
+      "code": "c581",
+      "file": "c581_00.glb"
+    },
+    {
+      "code": "c600",
+      "file": "c600_00.glb"
+    },
+    {
+      "code": "c801",
+      "file": "c801_00.glb"
+    },
+    {
+      "code": "c811",
+      "file": "c811_00.glb"
+    },
+    {
+      "code": "c812",
+      "file": "c812_00.glb"
+    },
+    {
+      "code": "c821",
+      "file": "c821_00.glb"
+    },
+    {
+      "code": "c840",
+      "file": "c840_00.glb"
+    },
+    {
+      "code": "c842",
+      "file": "c842_00.glb"
+    },
+    {
+      "code": "c851",
+      "file": "c851_00.glb"
+    }
+  ]
+}

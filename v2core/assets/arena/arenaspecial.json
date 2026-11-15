@@ -1,0 +1,2359 @@
+{
+  "arena": "arenaspecial",
+  "source_bundle": "bb09ee644f32c0c373d227ab2ccb69dc",
+  "note": "Unity 坐标（左手系, Y-up, 米）",
+  "covers": [
+    {
+      "name": "fabg_special_cover (8)",
+      "side": "A",
+      "slot": 1,
+      "team": "Red",
+      "character_position": [
+        -10.423,
+        5.109,
+        6.3077
+      ],
+      "aim_position": [
+        -5.2006,
+        5.379,
+        4.3821
+      ],
+      "hide_position": [
+        -5.0393,
+        5.615,
+        3.7102
+      ],
+      "cover_forward": [
+        -0.8647,
+        -0.0,
+        0.5023
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone035(mirrored)001/fabg_special_cover (8)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.564399,
+            -0.0,
+            0.825502,
+            -10.422962
+          ],
+          [
+            -0.0,
+            1.0,
+            0.0,
+            5.108971
+          ],
+          [
+            -0.825502,
+            -0.0,
+            -0.564399,
+            6.307737
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -10.423,
+          5.109,
+          6.3077
+        ],
+        "world_rotation": [
+          -0.0,
+          0.88442,
+          -0.0,
+          0.466691
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone035(mirrored)001/fabg_special_cover (8)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.502282,
+            -0.0,
+            -0.864704,
+            -5.200605
+          ],
+          [
+            0.0,
+            1.0,
+            -0.0,
+            5.378973
+          ],
+          [
+            0.864704,
+            -0.0,
+            0.502282,
+            4.38211
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -5.2006,
+          5.379,
+          4.3821
+        ],
+        "world_rotation": [
+          0.0,
+          -0.498858,
+          0.0,
+          0.866684
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone035(mirrored)001/fabg_special_cover (8)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.502282,
+            -0.0,
+            -0.864704,
+            -5.039282
+          ],
+          [
+            0.0,
+            1.0,
+            -0.0,
+            5.614973
+          ],
+          [
+            0.864704,
+            -0.0,
+            0.502282,
+            3.710169
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -5.0393,
+          5.615,
+          3.7102
+        ],
+        "world_rotation": [
+          0.0,
+          -0.498858,
+          0.0,
+          0.866684
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        0.9372,
+        0.0485,
+        -0.3455
+      ],
+      "cover_aabb": {
+        "center": [
+          -9.649,
+          6.2436,
+          6.5476
+        ],
+        "size": [
+          2.0898,
+          2.2792,
+          2.6892
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone035(mirrored)001/fabg_special_cover (8)/cover_object/fabg_arena_special_cover_01"
+    },
+    {
+      "name": "fabg_special_cover (10)",
+      "side": "A",
+      "slot": 2,
+      "team": "Red",
+      "character_position": [
+        -11.7719,
+        5.109,
+        3.1582
+      ],
+      "aim_position": [
+        -6.2131,
+        5.379,
+        2.8734
+      ],
+      "hide_position": [
+        -5.8592,
+        5.615,
+        2.2798
+      ],
+      "cover_forward": [
+        -0.975,
+        -0.0,
+        0.2223
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone034(mirrored)001/fabg_special_cover (10)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.293263,
+            -1e-06,
+            0.956032,
+            -11.771862
+          ],
+          [
+            -0.0,
+            1.0,
+            0.0,
+            5.108968
+          ],
+          [
+            -0.956032,
+            -0.0,
+            -0.293263,
+            3.158172
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -11.7719,
+          5.109,
+          3.1582
+        ],
+        "world_rotation": [
+          -0.0,
+          0.804134,
+          0.0,
+          0.594448
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone034(mirrored)001/fabg_special_cover (10)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.222296,
+            -0.0,
+            -0.974979,
+            -6.213091
+          ],
+          [
+            0.0,
+            1.0,
+            -0.0,
+            5.378971
+          ],
+          [
+            0.974979,
+            -0.0,
+            0.222296,
+            2.873352
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -6.2131,
+          5.379,
+          2.8734
+        ],
+        "world_rotation": [
+          0.0,
+          -0.62358,
+          0.0,
+          0.78176
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone034(mirrored)001/fabg_special_cover (10)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.222296,
+            -0.0,
+            -0.974979,
+            -5.859174
+          ],
+          [
+            0.0,
+            1.0,
+            -0.0,
+            5.614971
+          ],
+          [
+            0.974979,
+            -0.0,
+            0.222296,
+            2.279827
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -5.8592,
+          5.615,
+          2.2798
+        ],
+        "world_rotation": [
+          0.0,
+          -0.62358,
+          0.0,
+          0.78176
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        0.9975,
+        0.0485,
+        -0.0511
+      ],
+      "cover_aabb": {
+        "center": [
+          -11.1043,
+          6.2436,
+          3.6175
+        ],
+        "size": [
+          1.4703,
+          2.2792,
+          2.7153
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone034(mirrored)001/fabg_special_cover (10)/cover_object/fabg_arena_special_cover_01"
+    },
+    {
+      "name": "fabg_special_cover (9)",
+      "side": "A",
+      "slot": 3,
+      "team": "Red",
+      "character_position": [
+        -12.1743,
+        5.1092,
+        -0.523
+      ],
+      "aim_position": [
+        -6.7732,
+        5.3792,
+        0.8221
+      ],
+      "hide_position": [
+        -6.2619,
+        5.6152,
+        0.3572
+      ],
+      "cover_forward": [
+        -0.9975,
+        -0.0,
+        -0.071
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone033(mirrored)001/fabg_special_cover (9)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.002369,
+            -1e-06,
+            0.999997,
+            -12.174315
+          ],
+          [
+            1e-06,
+            1.0,
+            1e-06,
+            5.109158
+          ],
+          [
+            -0.999997,
+            1e-06,
+            -0.002369,
+            -0.523013
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -12.1743,
+          5.1092,
+          -0.523
+        ],
+        "world_rotation": [
+          -0.0,
+          0.707944,
+          1e-06,
+          0.706269
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone033(mirrored)001/fabg_special_cover (9)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.07104,
+            -1e-06,
+            -0.997473,
+            -6.773224
+          ],
+          [
+            -1e-06,
+            1.0,
+            -1e-06,
+            5.379163
+          ],
+          [
+            0.997473,
+            1e-06,
+            -0.07104,
+            0.822079
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -6.7732,
+          5.3792,
+          0.8221
+        ],
+        "world_rotation": [
+          1e-06,
+          -0.731792,
+          0.0,
+          0.681528
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone033(mirrored)001/fabg_special_cover (9)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.07104,
+            -1e-06,
+            -0.997473,
+            -6.26191
+          ],
+          [
+            -1e-06,
+            1.0,
+            -1e-06,
+            5.615163
+          ],
+          [
+            0.997473,
+            1e-06,
+            -0.07104,
+            0.357228
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -6.2619,
+          5.6152,
+          0.3572
+        ],
+        "world_rotation": [
+          1e-06,
+          -0.731792,
+          0.0,
+          0.681528
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        0.9692,
+        0.0485,
+        0.2414
+      ],
+      "cover_aabb": {
+        "center": [
+          -11.6693,
+          6.2438,
+          0.1107
+        ],
+        "size": [
+          1.1016,
+          2.2792,
+          2.6339
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone033(mirrored)001/fabg_special_cover (9)/cover_object/fabg_arena_special_cover_01"
+    },
+    {
+      "name": "fabg_special_cover (6)",
+      "side": "A",
+      "slot": 4,
+      "team": "Red",
+      "character_position": [
+        -11.4687,
+        5.109,
+        -4.1322
+      ],
+      "aim_position": [
+        -6.6652,
+        5.379,
+        -1.3202
+      ],
+      "hide_position": [
+        -6.0436,
+        5.615,
+        -1.6222
+      ],
+      "cover_forward": [
+        -0.9371,
+        -0.0,
+        -0.3491
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone032(mirrored)001/fabg_special_cover (6)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.2794,
+            -1e-06,
+            0.960175,
+            -11.468678
+          ],
+          [
+            -0.0,
+            1.0,
+            1e-06,
+            5.108985
+          ],
+          [
+            -0.960175,
+            -0.0,
+            0.2794,
+            -4.132164
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -11.4687,
+          5.109,
+          -4.1322
+        ],
+        "world_rotation": [
+          -0.0,
+          0.60025,
+          0.0,
+          0.799812
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone032(mirrored)001/fabg_special_cover (6)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.349126,
+            -1e-06,
+            -0.937076,
+            -6.665153
+          ],
+          [
+            0.0,
+            1.0,
+            -1e-06,
+            5.378988
+          ],
+          [
+            0.937076,
+            -0.0,
+            -0.349126,
+            -1.320189
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -6.6652,
+          5.379,
+          -1.3202
+        ],
+        "world_rotation": [
+          0.0,
+          -0.821318,
+          0.0,
+          0.570471
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone032(mirrored)001/fabg_special_cover (6)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.349126,
+            -1e-06,
+            -0.937076,
+            -6.043605
+          ],
+          [
+            0.0,
+            1.0,
+            -1e-06,
+            5.614988
+          ],
+          [
+            0.937076,
+            -0.0,
+            -0.349126,
+            -1.622194
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -6.0436,
+          5.615,
+          -1.6222
+        ],
+        "world_rotation": [
+          0.0,
+          -0.821318,
+          0.0,
+          0.570471
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        0.862,
+        0.0485,
+        0.5046
+      ],
+      "cover_aabb": {
+        "center": [
+          -11.1626,
+          6.2436,
+          -3.3819
+        ],
+        "size": [
+          1.762,
+          2.2792,
+          2.7345
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone032(mirrored)001/fabg_special_cover (6)/cover_object/fabg_arena_special_cover_01"
+    },
+    {
+      "name": "fabg_special_cover (7)",
+      "side": "A",
+      "slot": 5,
+      "team": "Red",
+      "character_position": [
+        -9.828,
+        5.105,
+        -7.2531
+      ],
+      "aim_position": [
+        -5.9994,
+        5.375,
+        -3.2129
+      ],
+      "hide_position": [
+        -5.3183,
+        5.611,
+        -3.3295
+      ],
+      "cover_forward": [
+        -0.8025,
+        0.0,
+        -0.5966
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone031(mirrored)001/fabg_special_cover (7)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.536132,
+            -0.0,
+            0.844134,
+            -9.82798
+          ],
+          [
+            1e-06,
+            1.0,
+            -0.0,
+            5.104976
+          ],
+          [
+            -0.844134,
+            1e-06,
+            0.536132,
+            -7.253082
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -9.828,
+          5.105,
+          -7.2531
+        ],
+        "world_rotation": [
+          0.0,
+          0.481596,
+          1e-06,
+          0.876394
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone031(mirrored)001/fabg_special_cover (7)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.596647,
+            -0.0,
+            -0.802504,
+            -5.999439
+          ],
+          [
+            -1e-06,
+            1.0,
+            0.0,
+            5.374972
+          ],
+          [
+            0.802504,
+            1e-06,
+            -0.596647,
+            -3.212867
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -5.9994,
+          5.375,
+          -3.2129
+        ],
+        "world_rotation": [
+          -1e-06,
+          0.89349,
+          1e-06,
+          -0.449084
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone031(mirrored)001/fabg_special_cover (7)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.596647,
+            -0.0,
+            -0.802504,
+            -5.318322
+          ],
+          [
+            -1e-06,
+            1.0,
+            0.0,
+            5.610972
+          ],
+          [
+            0.802504,
+            1e-06,
+            -0.596647,
+            -3.329518
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          -5.3183,
+          5.611,
+          -3.3295
+        ],
+        "world_rotation": [
+          -1e-06,
+          0.89349,
+          1e-06,
+          -0.449084
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        0.687,
+        0.0485,
+        0.725
+      ],
+      "cover_aabb": {
+        "center": [
+          -9.7433,
+          6.2396,
+          -6.4472
+        ],
+        "size": [
+          2.2755,
+          2.2792,
+          2.616
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone031(mirrored)001/fabg_special_cover (7)/cover_object/fabg_arena_special_cover_01"
+    },
+    {
+      "name": "fabg_special_cover (5)",
+      "side": "B",
+      "slot": 1,
+      "team": "Blue",
+      "character_position": [
+        10.4704,
+        5.105,
+        -6.2716
+      ],
+      "aim_position": [
+        5.1747,
+        5.375,
+        -4.558
+      ],
+      "hide_position": [
+        4.9864,
+        5.611,
+        -3.8931
+      ],
+      "cover_forward": [
+        0.8842,
+        0.0,
+        -0.467
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone036/fabg_special_cover (5)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.530678,
+            -0.0,
+            -0.847573,
+            10.470384
+          ],
+          [
+            -0.0,
+            1.0,
+            -1e-06,
+            5.104981
+          ],
+          [
+            0.847573,
+            0.0,
+            0.530678,
+            -6.2716
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          10.4704,
+          5.105,
+          -6.2716
+        ],
+        "world_rotation": [
+          0.0,
+          -0.484418,
+          0.0,
+          0.874837
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone036/fabg_special_cover (5)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.467032,
+            -1e-06,
+            0.88424,
+            5.174678
+          ],
+          [
+            0.0,
+            1.0,
+            1e-06,
+            5.374977
+          ],
+          [
+            -0.88424,
+            0.0,
+            -0.467032,
+            -4.557963
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          5.1747,
+          5.375,
+          -4.558
+        ],
+        "world_rotation": [
+          -0.0,
+          0.856456,
+          0.0,
+          0.516221
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone036/fabg_special_cover (5)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.467032,
+            -1e-06,
+            0.88424,
+            4.986411
+          ],
+          [
+            0.0,
+            1.0,
+            1e-06,
+            5.610977
+          ],
+          [
+            -0.88424,
+            0.0,
+            -0.467032,
+            -3.893069
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          4.9864,
+          5.611,
+          -3.8931
+        ],
+        "world_rotation": [
+          -0.0,
+          0.856456,
+          0.0,
+          0.516221
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        -0.9503,
+        0.0485,
+        0.3075
+      ],
+      "cover_aabb": {
+        "center": [
+          9.7067,
+          6.2396,
+          -6.5425
+        ],
+        "size": [
+          2.017,
+          2.2792,
+          2.7071
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone036/fabg_special_cover (5)/cover_object/fabg_arena_special_cover_01"
+    },
+    {
+      "name": "fabg_special_cover (4)",
+      "side": "B",
+      "slot": 2,
+      "team": "Blue",
+      "character_position": [
+        11.8303,
+        5.109,
+        -3.0599
+      ],
+      "aim_position": [
+        6.2698,
+        5.379,
+        -2.8116
+      ],
+      "hide_position": [
+        5.912,
+        5.615,
+        -2.2204
+      ],
+      "cover_forward": [
+        0.9764,
+        0.0,
+        -0.2159
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone037/fabg_special_cover (4)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.286985,
+            -0.0,
+            -0.957935,
+            11.830283
+          ],
+          [
+            -0.0,
+            1.0,
+            -0.0,
+            5.108989
+          ],
+          [
+            0.957935,
+            0.0,
+            0.286985,
+            -3.059931
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          11.8303,
+          5.109,
+          -3.0599
+        ],
+        "world_rotation": [
+          0.0,
+          -0.597082,
+          0.0,
+          0.80218
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone037/fabg_special_cover (4)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.215896,
+            -0.0,
+            0.976416,
+            6.269763
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            5.378987
+          ],
+          [
+            -0.976416,
+            0.0,
+            -0.215896,
+            -2.811579
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          6.2698,
+          5.379,
+          -2.8116
+        ],
+        "world_rotation": [
+          -0.0,
+          0.77971,
+          0.0,
+          0.626141
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone037/fabg_special_cover (4)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.215896,
+            -0.0,
+            0.976416,
+            5.911961
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            5.614987
+          ],
+          [
+            -0.976416,
+            0.0,
+            -0.215896,
+            -2.220389
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          5.912,
+          5.615,
+          -2.2204
+        ],
+        "world_rotation": [
+          -0.0,
+          0.77971,
+          0.0,
+          0.626141
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        -0.9978,
+        0.0485,
+        0.0446
+      ],
+      "cover_aabb": {
+        "center": [
+          11.1657,
+          6.2436,
+          -3.5236
+        ],
+        "size": [
+          1.4552,
+          2.2792,
+          2.7131
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone037/fabg_special_cover (4)/cover_object/fabg_arena_special_cover_01"
+    },
+    {
+      "name": "fabg_special_cover (3)",
+      "side": "B",
+      "slot": 3,
+      "team": "Blue",
+      "character_position": [
+        12.1604,
+        5.1092,
+        0.4716
+      ],
+      "aim_position": [
+        6.7455,
+        5.3792,
+        -0.8169
+      ],
+      "hide_position": [
+        6.2391,
+        5.6152,
+        -0.3467
+      ],
+      "cover_forward": [
+        0.9982,
+        0.0,
+        0.0606
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone038/fabg_special_cover (3)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.012835,
+            -0.0,
+            -0.999918,
+            12.160421
+          ],
+          [
+            -0.0,
+            1.0,
+            -0.0,
+            5.109166
+          ],
+          [
+            0.999918,
+            0.0,
+            0.012835,
+            0.47157
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          12.1604,
+          5.1092,
+          0.4716
+        ],
+        "world_rotation": [
+          0.0,
+          -0.702554,
+          0.0,
+          0.71163
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone038/fabg_special_cover (3)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.060596,
+            -0.0,
+            0.998162,
+            6.745548
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            5.379164
+          ],
+          [
+            -0.998162,
+            0.0,
+            0.060596,
+            -0.816917
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          6.7455,
+          5.3792,
+          -0.8169
+        ],
+        "world_rotation": [
+          -0.0,
+          0.685348,
+          0.0,
+          0.728216
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone038/fabg_special_cover (3)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.060596,
+            -0.0,
+            0.998162,
+            6.239126
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            5.615163
+          ],
+          [
+            -0.998162,
+            0.0,
+            0.060596,
+            -0.34674
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          6.2391,
+          5.6152,
+          -0.3467
+        ],
+        "world_rotation": [
+          -0.0,
+          0.685348,
+          0.0,
+          0.728216
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        -0.9717,
+        0.0485,
+        -0.2312
+      ],
+      "cover_aabb": {
+        "center": [
+          11.6488,
+          6.2438,
+          -0.1568
+        ],
+        "size": [
+          1.0753,
+          2.2792,
+          2.6261
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone038/fabg_special_cover (3)/cover_object/fabg_arena_special_cover_01"
+    },
+    {
+      "name": "fabg_special_cover (2)",
+      "side": "B",
+      "slot": 4,
+      "team": "Blue",
+      "character_position": [
+        11.4658,
+        5.109,
+        4.1241
+      ],
+      "aim_position": [
+        6.6714,
+        5.379,
+        1.2967
+      ],
+      "hide_position": [
+        6.0489,
+        5.615,
+        1.5967
+      ],
+      "cover_forward": [
+        0.9359,
+        0.0,
+        0.3522
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone039/fabg_special_cover (2)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.2825,
+            -0.0,
+            -0.959267,
+            11.465847
+          ],
+          [
+            -0.0,
+            1.0,
+            -0.0,
+            5.108976
+          ],
+          [
+            0.959267,
+            0.0,
+            -0.2825,
+            4.124135
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          11.4658,
+          5.109,
+          4.1241
+        ],
+        "world_rotation": [
+          0.0,
+          -0.800781,
+          -0.0,
+          0.598958
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone039/fabg_special_cover (2)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.35215,
+            -0.0,
+            0.935943,
+            6.67143
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            5.378975
+          ],
+          [
+            -0.935943,
+            0.0,
+            0.35215,
+            1.29666
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          6.6714,
+          5.379,
+          1.2967
+        ],
+        "world_rotation": [
+          0.0,
+          0.569144,
+          0.0,
+          0.822238
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone039/fabg_special_cover (2)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.35215,
+            -0.0,
+            0.935943,
+            6.048909
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            5.614975
+          ],
+          [
+            -0.935943,
+            0.0,
+            0.35215,
+            1.596656
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          6.0489,
+          5.615,
+          1.5967
+        ],
+        "world_rotation": [
+          0.0,
+          0.569144,
+          0.0,
+          0.822238
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        -0.8604,
+        0.0485,
+        -0.5074
+      ],
+      "cover_aabb": {
+        "center": [
+          11.1622,
+          6.2436,
+          3.3729
+        ],
+        "size": [
+          1.7688,
+          2.2792,
+          2.7344
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone039/fabg_special_cover (2)/cover_object/fabg_arena_special_cover_01"
+    },
+    {
+      "name": "fabg_special_cover (1)",
+      "side": "B",
+      "slot": 5,
+      "team": "Blue",
+      "character_position": [
+        9.8388,
+        5.109,
+        7.1937
+      ],
+      "aim_position": [
+        6.0113,
+        5.379,
+        3.1525
+      ],
+      "hide_position": [
+        5.3301,
+        5.615,
+        3.269
+      ],
+      "cover_forward": [
+        0.8023,
+        0.0,
+        0.5969
+      ],
+      "character_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone040/fabg_special_cover (1)/character_position",
+        "local": {
+          "position": [
+            -0.458,
+            -0.27,
+            0.483
+          ],
+          "rotation": [
+            0.0,
+            -0.999325,
+            -0.0,
+            0.036726
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            -0.536349,
+            -1e-06,
+            -0.843996,
+            9.838762
+          ],
+          [
+            -1e-06,
+            1.0,
+            -0.0,
+            5.108979
+          ],
+          [
+            0.843996,
+            0.0,
+            -0.536349,
+            7.193712
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          9.8388,
+          5.109,
+          7.1937
+        ],
+        "world_rotation": [
+          -0.0,
+          0.876456,
+          0.0,
+          -0.481482
+        ],
+        "determinant": 1.0
+      },
+      "aim_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone040/fabg_special_cover (1)/camera_position/aim_position",
+        "local": {
+          "position": [
+            -0.1,
+            0.0,
+            -0.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.596854,
+            -1e-06,
+            0.80235,
+            6.011263
+          ],
+          [
+            1e-06,
+            1.0,
+            0.0,
+            5.378978
+          ],
+          [
+            -0.80235,
+            0.0,
+            0.596854,
+            3.152511
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          6.0113,
+          5.379,
+          3.1525
+        ],
+        "world_rotation": [
+          0.0,
+          0.448969,
+          0.0,
+          0.893547
+        ],
+        "determinant": 1.0
+      },
+      "hide_transform": {
+        "path": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone040/fabg_special_cover (1)/camera_position/hide_position",
+        "local": {
+          "position": [
+            -0.6,
+            0.236,
+            -0.577
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "world_matrix": [
+          [
+            0.596854,
+            -1e-06,
+            0.80235,
+            5.330115
+          ],
+          [
+            1e-06,
+            1.0,
+            0.0,
+            5.614978
+          ],
+          [
+            -0.80235,
+            0.0,
+            0.596854,
+            3.268987
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "world_position": [
+          5.3301,
+          5.615,
+          3.269
+        ],
+        "world_rotation": [
+          0.0,
+          0.448969,
+          0.0,
+          0.893547
+        ],
+        "determinant": 1.0
+      },
+      "character_forward_axis": {
+        "axis": "+z",
+        "dot": 0.9686
+      },
+      "character_to_aim_dir": [
+        -0.6868,
+        0.0485,
+        -0.7252
+      ],
+      "cover_aabb": {
+        "center": [
+          9.7543,
+          6.2436,
+          6.3878
+        ],
+        "size": [
+          2.2759,
+          2.2792,
+          2.6157
+        ]
+      },
+      "cover_node": "fabg_ArenaSpecial/fabg_special_01/root/Dummy011/Bone040/fabg_special_cover (1)/cover_object/fabg_arena_special_cover_01"
+    }
+  ],
+  "teams": {
+    "RedSquad": {
+      "position": [
+        -10.5,
+        5.0,
+        0.0
+      ]
+    },
+    "BlueSquad": {
+      "position": [
+        10.5,
+        5.0,
+        0.0
+      ]
+    }
+  },
+  "coordinate_contract": {
+    "json_space": "Unity 左手系（原始值，Y 向上，米），本文件所有坐标/矩阵/四元数均未做镜像",
+    "glb_space": "glTF 右手系；导出 GLB 时已做 x 取反（矩阵共轭 S=S=diag(-1,1,1) 两侧夹逼）",
+    "conversion_layer": "Unity→glTF 只发生在「网页消费」层：JSON 坐标放入 GLB 场景时取 [-x, y, z]；本 JSON 刻意保留 Unity 原始值，供逻辑模拟直接使用",
+    "mirror_chain": "无显式镜像节点；左右两侧差异来自场景摆放（position.x 符号）与各自的旋转，不在数据层做镜像变换",
+    "determinant_note": "各挂点 world_matrix 3x3 行列式见 anchor_transform.determinant；接近 0 表示退化矩阵，为负表示链上有负缩放（镜像），均需网页侧注意",
+    "forward_axis": "character_forward_axis 给出「站位→瞄准」方向与挂点本地轴的对齐证据；角色模型的枪口出射轴由角色自身挂点（Dummy_Wp_root_Main / socket_rifle）决定，随 SD 小人 GLB 交付，场地 JSON 不代答"
+  },
+  "camera": {
+    "name": "Camera",
+    "position": [
+      30.823,
+      25.292,
+      -0.666
+    ],
+    "forward": [
+      -0.8276,
+      -0.5608,
+      0.025
+    ],
+    "up": [
+      -0.5606,
+      0.8279,
+      0.0169
+    ],
+    "fov": 60.0
+  },
+  "camera_transform": {
+    "path": "fabg_ArenaSpecial/Camera",
+    "local": {
+      "position": [
+        -30.823,
+        25.292,
+        -0.666
+      ],
+      "rotation": [
+        0.210506,
+        0.665741,
+        -0.204254,
+        0.686117
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "world_matrix": [
+      [
+        0.030137,
+        0.56057,
+        0.827559,
+        -30.823
+      ],
+      [
+        -0.0,
+        0.827935,
+        -0.560824,
+        25.292
+      ],
+      [
+        -0.999546,
+        0.016902,
+        0.024952,
+        -0.666
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "world_position": [
+      -30.823,
+      25.292,
+      -0.666
+    ],
+    "world_rotation": [
+      0.210506,
+      0.665741,
+      -0.204254,
+      0.686117
+    ],
+    "determinant": 1.0
+  }
+}
