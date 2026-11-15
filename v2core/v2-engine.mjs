@@ -6,12 +6,13 @@ import { mergeNativeData } from '../simulator/src/stage/native-data.js';
 import { addCnShootingProfiles } from '../simulator/src/stage/cn-roster.js';
 import { createArenaCalculator } from '../simulator/src/calculator/arena-calculator.js';
 import { projectSiteTeam } from './v2-result.mjs';
+import { cloneCalculationModel } from './v2-model.mjs';
 
 await globalThis.__NIKKE_CHARACTER_DATA_READY__;
 
 const ASSETS = '/v2core/assets';
 const dataCache = new Map();
-const bufferCache = new Map();
+const modelCache = new Map();
 const results = new Map();
 const pending = new Map();
 let lastCalculation = null;
@@ -49,6 +50,14 @@ async function loadJson(url) {
     return response.json();
   }).catch(error => { dataCache.delete(url); throw error; }));
   return dataCache.get(url);
+}
+
+async function loadCharacterData(region, resourceIds) {
+  const data = await loadJson(`/simulator/data/characters${region === 'cn' ? '.cn' : ''}.json`);
+  if (!data.characterFiles) return data;
+  const rows = await Promise.all([...new Set(resourceIds)].map(async id =>
+    [id, data.characterFiles[id] ? await loadJson(data.characterFiles[id]) : undefined]));
+  return Object.fromEntries(rows);
 }
 
 function slotInput(character, positionIndex, teamKey, team) {
@@ -92,6 +101,7 @@ function configuredActor(input, side, db, resourceIds) {
     ...toRunnerConfig(source, { treasure, treasurePhase: input.treasurePhase, hasPresentation: true, presentationKind: 'sd' }),
     id: `${side.key}-${input.positionIndex}`, assetCode: code, resourceId,
     slotIndex: input.positionIndex, team: side.key === 'attack' ? 0 : 1,
+    skillMissingRankingPolicy: 'current-target',
   };
   const percentages = input.entries.filter(value => Number(value) > 0).map(Number);
   if (percentages.length || !(input.character.chargeSpeedPercent > 0)) {
@@ -119,23 +129,32 @@ function configuredActor(input, side, db, resourceIds) {
 async function loadModel(code, index, region) {
   const entry = index.characters.find(character => character.code === code) ?? {file:`${code}_00.glb`};
   const url = `${ASSETS}/${region === 'global' ? 'global/' : ''}out/sd_batch/${entry.file}`;
-  if (!bufferCache.has(url)) bufferCache.set(url, fetch(url).then(response => {
+  if (!modelCache.has(url)) modelCache.set(url, fetch(url).then(response => {
     if (!response.ok) throw new Error(`V2模型加载失败 ${response.status} ${code}`);
     return response.arrayBuffer();
-  }).catch(error => { bufferCache.delete(url); throw error; }));
-  const loader = new GLTFLoader();
-  loader.register(() => ({ name: 'calculation_no_texture_decode', loadTexture: () => Promise.resolve(new Texture()) }));
-  return loader.parseAsync((await bufferCache.get(url)).slice(0), '');
+  }).then(bytes => {
+    const loader = new GLTFLoader();
+    loader.register(() => ({ name: 'calculation_no_texture_decode', loadTexture: () => Promise.resolve(new Texture()) }));
+    return loader.parseAsync(bytes, '');
+  }).catch(error => { modelCache.delete(url); throw error; }));
+  const template = await modelCache.get(url);
+  return cloneCalculationModel(template);
 }
 
 async function calculate(input) {
   const regionAssets = `${ASSETS}/${input.region === 'global' ? 'global/' : ''}`;
+  const masterPromise = loadJson('/src/data/character-assets.master.json');
+  const dbPromise = masterPromise.then(master => {
+    const ids = new Set([...input.attack, ...input.defense].filter(Boolean).map(slot => String(slot.character.id)));
+    return loadCharacterData(input.region, master.linked.filter(row => ids.has(String(row.legacyId)))
+      .map(row => String(Number(row.gameCharacterId))));
+  });
   const [db, shooting, bindings, colliders, index, master, arena] = await Promise.all([
-    loadJson(`/simulator/data/characters${input.region === 'cn' ? '.cn' : ''}.json`),
+    dbPromise,
     loadJson(`/simulator/data/native-shooting${input.region === 'global' ? '.global' : ''}.json`),
     loadJson(`/simulator/data/native-bindings${input.region === 'global' ? '.global' : ''}.json`),
     loadJson(`/simulator/data/native-colliders.${input.region}.json`),
-    loadJson(`${regionAssets}out/sd_batch/index.json`), loadJson('/src/data/character-assets.master.json'),
+    loadJson(`${regionAssets}out/sd_batch/index.json`), masterPromise,
     loadJson(`${regionAssets}arena/${input.arena}.json`),
   ]);
   const resourceIds = new Map(master.linked.map(row => [String(row.legacyId), String(Number(row.gameCharacterId))]));
@@ -234,7 +253,8 @@ globalThis.getChargeChartMarkup = function (attack, gutter, defense, chartSize) 
   const messages = [attack, defense].filter(Boolean).flatMap(result => [
     ...(result.error ? [result.error] : []),
     ...(result.warning ? [result.warning] : []),
-    ...(result.v2Gaps ?? []).map(gap => `V2计算缺口 ${gap.id ?? ''} ${gap.reason}`),
+    ...(result.v2TargetingAssumptions?.length ? ['未配置属性排序的技能按当前攻击目标计算。'] : []),
+    ...(result.v2Gaps ?? []).map(gap => gap.message ?? `V2计算缺口 ${gap.id ?? ''} ${gap.reason}`),
   ]);
   const notices = [...new Set(messages)].map(message => `<p role="status">${escapeHtml(message)}</p>`).join('');
   if ([attack, defense].some(Boolean) && ![attack, defense].some(result => result && !result.error)) return notices;
@@ -288,10 +308,11 @@ globalThis.createSlotSettingsModal=function(){
   if(!backdrop||!context||!/珍藏$/.test(context.character.name))return backdrop;
   const {character,teamKey}=context,region=state.filters.region==='cn'?'cn':'global';
   const key=treasureKey(character,teamKey);
-  Promise.all([loadJson(`/simulator/data/characters${region==='cn'?'.cn':''}.json`),
-    loadJson('/src/data/character-assets.master.json')]).then(([db,master])=>{
+  loadJson('/src/data/character-assets.master.json').then(async master=>{
     if(!backdrop.isConnected)return;
     const resource=master.linked.find(row=>String(row.legacyId)===String(character.id));
+    const db=await loadCharacterData(region,[String(Number(resource?.gameCharacterId))]);
+    if(!backdrop.isConnected)return;
     const phases=db[String(Number(resource?.gameCharacterId))]?.treasurePhases??[];
     if(!phases.length)return;
     const label=document.createElement('label');label.className='settings-field';

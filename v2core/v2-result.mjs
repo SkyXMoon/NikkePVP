@@ -1,4 +1,14 @@
 /** Convert V2 events to the existing site's presentation contract. */
+export function formatCalculationGap(gap, actors) {
+  const actor = actors.find(entry => entry.config.id === gap.id);
+  const owner = actor ? `${actor.config.team === 0 ? '进攻' : '防守'}P${actor.config.slotIndex + 1} ${actor.character?.name ?? ''}` : gap.id;
+  if (gap.reason === 'skill-target-ranking-input-required') {
+    const attribute = { attack: '攻击力', defence: '防御力', hp: '当前生命值', maxHp: '最大生命值' }[gap.rankingField] ?? '属性';
+    return `${owner}：技能${gap.functionId ?? gap.skill ?? ''}需要按${attribute}选择目标，当前缺少候选目标的${attribute}数据，相关技能充能可能不完整。`;
+  }
+  return `V2计算缺口 ${owner ?? ''} ${gap.reason}`;
+}
+
 function missedPassTick(shot) {
   const fixedTarget = shot.fireType === 3 || shot.fireType === 4 && shot.trackingTargetBound === false;
   if (!fixedTarget || !shot.path?.length || !shot.aimPoint || !shot.from) return shot.endTick;
@@ -164,7 +174,8 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf) {
     turnDodgeTimeline: members.flatMap(member => member.turnDodgeEvents),
     missedTimeline: members.flatMap(member => member.missedShotEvents),
     stunTimeline, stunDodgeTimeline: [], tauntTimeline,
-    v2Gaps: native.gaps,
+    v2Gaps: native.gaps.map(gap => ({ ...gap, message: formatCalculationGap(gap, actors) })),
+    v2TargetingAssumptions: events.filter(event => event.type === 'SKILL_TARGET_FALLBACK'),
     ...(fullFrame == null ? { warning: `V2在${frameOf(calculation.result.totalTicks)}显示帧内未充满，请检查阵容与计算缺口。` } : {}),
   };
 }

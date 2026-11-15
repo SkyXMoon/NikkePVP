@@ -212,7 +212,7 @@ export function createArenaShooting({arena, characters, native, muzzleAt, height
         distance:own.pos.distanceTo(states.get(c.id).pos),x:states.get(c.id).pos.x,
         aimPosition:states.get(c.id).characterOrigin.toArray()}));
       const aims=skillAimChoices(pool,binding.entity.preferTarget,{probabilityMode,random:cfg.rand,
-        aimRay:states.get(cfg.id)?.aimRay});
+        aimRay:states.get(cfg.id)?.aimRay,missingRankingPolicy:cfg.skillMissingRankingPolicy,currentTargetId:cfg.skillCurrentTargetId});
       if(!aims.supported)return aims;
       if(!aims.choices.length)return {supported:true,contacts:[],effectContacts:[]};
       if(binding.skillType===21&&aims.choices.length>1)return {supported:false,reason:'skill-spatial-correlated-aim-expectation-not-connected'};
@@ -226,12 +226,13 @@ export function createArenaShooting({arena, characters, native, muzzleAt, height
           weights.set(box.key,{id:box.id,kind:box.kind,probability:(weights.get(box.key)?.probability??0)+aim.probability});
       }
       const contacts=[...weights.values()];
+      const selection=aims.usedRankingFallback?{usedRankingFallback:true,rankingField:aims.rankingField,aimTargetId:aims.choices[0].target.id}:{};
       if(binding.skillType===21){
         const primary=contacts.find(c=>c.id===aims.choices[0]?.target.id&&c.kind==='character');
         if(!primary)return {supported:false,reason:'skill-spatial-primary-contact-not-connected'};
-        return {supported:true,contacts:[primary],effectContacts:contacts};
+        return {supported:true,contacts:[primary],effectContacts:contacts,...selection};
       }
-      return {supported:true,contacts};
+      return {supported:true,contacts,...selection};
     },
     beforeTick(tick,rs) {
       const alive = new Map(rs.map(r=>[r.cfg.id,r.alive!==false]));

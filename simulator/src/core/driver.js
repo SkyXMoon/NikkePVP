@@ -324,6 +324,7 @@ export class CharacterRunner {
       });
       chosen = sel.target;
       hasTarget = !!chosen;
+      this.currentTargetId = chosen?.id;
     } else {
       hasTarget = !this.isBlocked(tick);
     }
@@ -929,7 +930,7 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
         continue;
       }
       const eligible=getSkillChargeCandidates(runners.filter(r=>(r.cfg.team??0)!==team)
-        .map(r=>({id:r.cfg.id,alive:r.alive,elements:r.cfg.elements,...r.cfg.targetingStats})),binding.entity.preferCondition);
+        .map(r=>({...r.cfg.rankingStats,...r.cfg.targetingStats,id:r.cfg.id,alive:r.alive,elements:r.cfg.elements})),binding.entity.preferCondition);
       if(eligible.unsupported){
         if(!runner.unsupportedChargeRows.some(g=>g.id===binding.id&&g.reason===eligible.reason))
           runner.unsupportedChargeRows.push({id:binding.id,ft:72,reason:eligible.reason});
@@ -940,12 +941,15 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
           skill:binding.id,reason:'missing-target-element-data'});
         continue;
       }
-      const spatial=binding.spatial?shooting?.resolveSkillTargets?.({tick:t,cfg:runner.cfg,binding,
+      const spatial=binding.spatial?shooting?.resolveSkillTargets?.({tick:t,cfg:{...runner.cfg,skillCurrentTargetId:runner.currentTargetId},binding,
         candidates:eligible.candidates,probabilityMode}):null;
+      if(spatial?.usedRankingFallback)events.push({type:'SKILL_TARGET_FALLBACK',tick:t,id:runner.cfg.id,team,
+        skillId:binding.id,target:spatial.aimTargetId,rankingField:spatial.rankingField});
       if(binding.spatial&&spatial?.supported!==true){
         const reason=spatial?.reason??'skill-spatial-target-producer-required';
         if(!runner.unsupportedChargeRows.some(g=>g.id===binding.id&&g.reason===reason))
-          runner.unsupportedChargeRows.push({id:binding.id,ft:72,reason});
+          runner.unsupportedChargeRows.push({id:binding.id,ft:72,reason,
+            ...(spatial?.rankingField ? {rankingField:spatial.rankingField,preferTarget:spatial.preferTarget} : {})});
         continue;
       }
       const count=binding.spatial?spatial.contacts.length:binding.sequential?(eligible.candidates.length?binding.targetCount:0):Math.min(binding.targetCount,eligible.candidates.length);
@@ -968,14 +972,18 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
           if(probabilityMode==='expected')selected=selected.map(c=>({...c,probability:count/selected.length}));
           else {const pool=[...selected];selected=[];for(let i=0;i<count;i++)selected.push(pool.splice(Math.floor(runner.rand()*pool.length),1)[0]);}
         }else {
-          const order=skillAimChoices(selected,binding.entity.preferTarget,{probabilityMode,random:()=>runner.rand(),aimRay:aimContext?.aimRay});
+          const order=skillAimChoices(selected,binding.entity.preferTarget,{probabilityMode,random:()=>runner.rand(),aimRay:aimContext?.aimRay,
+            missingRankingPolicy:runner.cfg.skillMissingRankingPolicy,currentTargetId:runner.currentTargetId});
+          if(order.usedRankingFallback)events.push({type:'SKILL_TARGET_FALLBACK',tick:t,id:runner.cfg.id,team,
+            skillId:binding.id,target:order.choices[0]?.target.id,rankingField:order.rankingField});
           if(order.supported)selected=order.ordered.slice(0,count);
           else {
             const targetSensitive=hasTargetCommands||selected.some(c=>{
               const victim=byId.get(c.id);return victim?.ft75HurtRows.length||victim?.ft111HurtRows.length;
             });
             if(targetSensitive&&!runner.unsupportedChargeRows.some(r=>r.id===binding.id&&r.reason===order.reason))
-              runner.unsupportedChargeRows.push({id:binding.id,ft:72,reason:order.reason});
+              runner.unsupportedChargeRows.push({id:binding.id,ft:72,reason:order.reason,
+                ...(order.rankingField ? {rankingField:order.rankingField,preferTarget:order.preferTarget} : {})});
             if(chargeSensitiveCommands||selected.some(c=>{
               const victim=byId.get(c.id);return victim?.ft75HurtRows.length||victim?.ft111HurtRows.length;
             }))continue;

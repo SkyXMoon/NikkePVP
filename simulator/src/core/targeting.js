@@ -40,7 +40,8 @@ export function distanceToAimRay(point,ray){
 /** Skill aim selection reuses the targeting owner; absent ranking inputs are
  * not replaced by arbitrary roster order. Random expected mode keeps all aims.
  */
-export function skillAimChoices(candidates,prefer,{probabilityMode='expected',random,aimRay}={}){
+export function skillAimChoices(candidates,prefer,{probabilityMode='expected',random,aimRay,
+ missingRankingPolicy='require-input',currentTargetId}={}){
  let pool=getCandidates(candidates);const kind=PREFER[prefer];
  if(kind==null)return {supported:false,reason:'skill-aim-preference-not-connected'};
  if(!pool.length)return {supported:true,choices:[]};
@@ -52,8 +53,13 @@ export function skillAimChoices(candidates,prefer,{probabilityMode='expected',ra
   choices:pool.map(target=>({target,probability:1/pool.length}))};
  const field=({LowHP:'hp',HighHP:'hp',HighMaxHP:'maxHp',LowDefence:'defence',HighDefence:'defence',
   LowAttack:'attack',HighAttack:'attack'})[prefer];
- if(pool.length>1&&field&&pool.some(c=>!Number.isFinite(c[field])))
-  return {supported:false,reason:'skill-target-ranking-input-required'};
+ if(pool.length>1&&field&&pool.some(c=>!Number.isFinite(c[field]))){
+  if(missingRankingPolicy!=='current-target')
+   return {supported:false,reason:'skill-target-ranking-input-required',rankingField:field,preferTarget:prefer};
+  const target=pool.find(candidate=>candidate.id===currentTargetId)??pool[0];
+  return {supported:true,ordered:[target,...pool.filter(candidate=>candidate!==target)],
+   choices:[{target,probability:1}],usedRankingFallback:true,rankingField:field};
+ }
  const result=selectTarget(pool,{preferTarget:kind,rand:random});
  if(result.unsupported)return {supported:false,reason:'skill-aim-preference-not-connected'};
  return {supported:true,ordered:result.candidates,choices:result.target?[{target:result.target,probability:1}]:[]};
