@@ -7265,7 +7265,7 @@ function getIconMarkup(src, label, className) {
 function getSacrificeMarkMarkup(frame) {
   const sacrificeFrame = sanitizeSacrificeFrame(frame);
   if (sacrificeFrame === null) return "";
-  return `<span class="sacrifice-mark"><img src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" aria-hidden="true" /><small>${sacrificeFrame}F</small></span>`;
+  return `<span class="sacrifice-mark"><img src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" aria-hidden="true" /><small>${sacrificeFrame}F</small></span>`;
 }
 
 function isSlotSettingsOpen(teamKey, index) {
@@ -11837,7 +11837,7 @@ function renderPaidArenaTeams() {
         settingsButton.type = "button";
         settingsButton.setAttribute("aria-label", `${localize("设置", "Settings")} ${getCharacterLocalizedName(character)}`);
         settingsButton.title = localize("设置", "Settings");
-        settingsButton.innerHTML = '<img src="assets/immutable/icons/ui/settings.3d57b211c6f6.svg" alt="" aria-hidden="true" />';
+        settingsButton.innerHTML = '<img src="assets/immutable/icons/ui/settings.46ca2edb23d9.svg" alt="" aria-hidden="true" />';
         slot.append(settingsButton);
 
         if (isRosanna(character)) {
@@ -11848,7 +11848,7 @@ function renderPaidArenaTeams() {
           sacrificeButton.type = "button";
           sacrificeButton.setAttribute("aria-label", `${localize("设置", "Set")} ${getCharacterLocalizedName(character)} ${localize("献祭", "sacrifice")}`);
           sacrificeButton.title = localize("罗珊娜献祭", "Rosanna sacrifice");
-          sacrificeButton.innerHTML = '<img src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" aria-hidden="true" />';
+          sacrificeButton.innerHTML = '<img src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" aria-hidden="true" />';
           slot.append(sacrificeButton);
         }
         if (isRedHood(character)) {
@@ -11859,7 +11859,7 @@ function renderPaidArenaTeams() {
           pierceButton.setAttribute("aria-label", `${localize("设置", "Set")} ${getCharacterLocalizedName(character)} ${localize("穿透次数", "pierce count")}: ${redHoodPierceCount}`);
           pierceButton.title = `${localize("穿透次数", "Pierce count")} ${redHoodPierceCount}`;
           pierceButton.innerHTML = `
-            <img class="slot-pierce-icon" src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" aria-hidden="true" />
+            <img class="slot-pierce-icon" src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" aria-hidden="true" />
             ${redHoodPierceCount > 0 ? `<span class="slot-pierce-value">${redHoodPierceCount}</span>` : ""}
           `;
           slot.append(pierceButton);
@@ -11870,7 +11870,7 @@ function renderPaidArenaTeams() {
           counterButton.type = "button";
           counterButton.setAttribute("aria-label", `${isScarletCounterEnabled ? localize("关闭", "Disable") : localize("开启", "Enable")} ${getCharacterLocalizedName(character)} ${localize("反击", "counter")}`);
           counterButton.title = `${localize("红莲反击", "Scarlet counter")}: ${isScarletCounterEnabled ? localize("开启", "On") : localize("关闭", "Off")}`;
-          counterButton.innerHTML = '<img src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" aria-hidden="true" />';
+          counterButton.innerHTML = '<img src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" aria-hidden="true" />';
           slot.append(counterButton);
         }
         if (isJackalOwner) {
@@ -11882,7 +11882,7 @@ function renderPaidArenaTeams() {
             `${isActiveLinkOwner ? localize("关闭", "Disable") : localize("开启", "Enable")}${isJackal(character) ? localize("豺狼链接", "Jackal link") : localize("波莉链接", "Poli link")}`,
           );
           linkButton.title = isJackal(character) ? localize("豺狼链接", "Jackal link") : localize("波莉链接", "Poli link");
-          linkButton.innerHTML = '<img src="assets/immutable/icons/ui/link.f89385c39e08.svg" alt="" aria-hidden="true" />';
+          linkButton.innerHTML = '<img src="assets/immutable/icons/ui/link.4c6f6b125df1.svg" alt="" aria-hidden="true" />';
           slot.append(linkButton);
         }
         if (canSelectJackalTarget) {
@@ -11894,7 +11894,7 @@ function renderPaidArenaTeams() {
             `${isJackalTarget ? localize("取消", "Cancel") : localize("选择", "Select")}${linkOwnerName}${localize("目标", " target")} ${getCharacterLocalizedName(character)}`,
           );
           linkTargetButton.title = isJackalTarget ? localize("取消链接", "Cancel link") : localize("链接目标", "Link target");
-          linkTargetButton.innerHTML = isJackalTarget ? '<img src="assets/immutable/icons/ui/link.f89385c39e08.svg" alt="" aria-hidden="true" />' : "<span>+</span>";
+          linkTargetButton.innerHTML = isJackalTarget ? '<img src="assets/immutable/icons/ui/link.4c6f6b125df1.svg" alt="" aria-hidden="true" />' : "<span>+</span>";
           slot.append(linkTargetButton);
         }
       }
@@ -12406,13 +12406,13 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             </span>
           </button>
           <button class="slot-settings-toggle${isSettingsOpen ? " is-open" : ""}" type="button" aria-label="${escapeHtml(localize("设置", "Settings"))} ${escapeHtml(getCharacterLocalizedName(character))}" title="${escapeHtml(localize("设置", "Settings"))}">
-            <img src="assets/immutable/icons/ui/settings.3d57b211c6f6.svg" alt="" aria-hidden="true" />
+            <img src="assets/immutable/icons/ui/settings.46ca2edb23d9.svg" alt="" aria-hidden="true" />
           </button>
           ${
             isRedHood(character)
               ? `
                 <button class="slot-pierce-count${redHoodPierceCount > 0 ? " is-active" : ""}" type="button" data-pierce-count="${redHoodPierceCount}" aria-label="${escapeHtml(localize("设置", "Set"))} ${escapeHtml(getCharacterLocalizedName(character))} ${escapeHtml(localize("穿透次数", "pierce count"))}: ${redHoodPierceCount}" title="${escapeHtml(localize("穿透次数", "Pierce count"))} ${redHoodPierceCount}">
-                  <img class="slot-pierce-icon" src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" aria-hidden="true" />
+                  <img class="slot-pierce-icon" src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" aria-hidden="true" />
                   ${redHoodPierceCount > 0 ? `<span class="slot-pierce-value">${redHoodPierceCount}</span>` : ""}
                 </button>
               `
@@ -12422,7 +12422,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             isScarlet(character)
               ? `
                 <button class="slot-counter-toggle${isScarletCounterEnabled ? " is-active" : ""}" type="button" aria-label="${escapeHtml(isScarletCounterEnabled ? localize("关闭", "Disable") : localize("开启", "Enable"))} ${escapeHtml(getCharacterLocalizedName(character))} ${escapeHtml(localize("反击", "counter"))}" title="${escapeHtml(localize("红莲反击", "Scarlet counter"))}: ${escapeHtml(isScarletCounterEnabled ? localize("开启", "On") : localize("关闭", "Off"))}">
-                  <img src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" aria-hidden="true" />
+                  <img src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" aria-hidden="true" />
                 </button>
               `
               : ""
@@ -12431,7 +12431,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             isRosanna(character)
               ? `
                 <button class="slot-sacrifice-toggle${isRosannaSacrificeSettingsOpen(teamKey, index) || hasSacrificeTarget ? " is-active" : ""}" type="button" aria-label="${escapeHtml(localize("设置", "Set"))} ${escapeHtml(getCharacterLocalizedName(character))} ${escapeHtml(localize("献祭", "sacrifice"))}" title="${escapeHtml(localize("罗珊娜献祭", "Rosanna sacrifice"))}">
-                  <img src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" aria-hidden="true" />
+                  <img src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" aria-hidden="true" />
                 </button>
               `
               : ""
@@ -12440,7 +12440,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             isJackalOwner
               ? `
                 <button class="slot-link-toggle${isActiveLinkOwner ? " is-active" : ""}" type="button" aria-label="${escapeHtml(isActiveLinkOwner ? localize("关闭", "Disable") : localize("开启", "Enable"))}${escapeHtml(isJackal(character) ? localize("豺狼链接", "Jackal link") : localize("波莉链接", "Poli link"))}" title="${escapeHtml(isJackal(character) ? localize("豺狼链接", "Jackal link") : localize("波莉链接", "Poli link"))}">
-                  <img src="assets/immutable/icons/ui/link.f89385c39e08.svg" alt="" aria-hidden="true" />
+                  <img src="assets/immutable/icons/ui/link.4c6f6b125df1.svg" alt="" aria-hidden="true" />
                 </button>
               `
               : ""
@@ -12449,7 +12449,7 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
             canSelectJackalTarget
               ? `
                 <button class="slot-link-target${isJackalTarget ? " is-selected" : ""}" type="button" aria-label="${escapeHtml(isJackalTarget ? localize("取消", "Cancel") : localize("选择", "Select"))}${escapeHtml(linkOwnerName)}${escapeHtml(localize("目标", " target"))} ${escapeHtml(getCharacterLocalizedName(character))}" title="${escapeHtml(isJackalTarget ? localize("取消链接", "Cancel link") : localize("链接目标", "Link target"))}">
-                  ${isJackalTarget ? '<img src="assets/immutable/icons/ui/link.f89385c39e08.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
+                  ${isJackalTarget ? '<img src="assets/immutable/icons/ui/link.4c6f6b125df1.svg" alt="" aria-hidden="true" />' : '<span>+</span>'}
                 </button>
               `
               : ""
@@ -17967,11 +17967,11 @@ function renderHelpCenterTeamSlot(payload, side, rowIndex, slotIndex) {
       : "";
   return `<span class="team-slot filled help-center-slot-snapshot${getTeamSlotRarityClass(character)}" title="${escapeHtml(getCharacterLocalizedName(character))}">
     <span class="slot-remove"><span class="team-avatar">${getAvatarMarkup(character)}</span><span class="slot-copy" aria-hidden="true">${hasRosanna && !isRosanna(character) && sacrificeFrame !== null ? getSacrificeMarkMarkup(sacrificeFrame) : ""}${cubeIconSrc ? `<span class="slot-cube-badge"><img src="${escapeHtml(cubeIconSrc)}" alt="" /></span>` : ""}${badgeText ? `<span class="slot-speed-badge">${escapeHtml(badgeText)}</span>` : ""}</span></span>
-    ${isRedHood(character) ? `<span class="slot-pierce-count${pierceCount > 0 ? " is-active" : ""}"><img class="slot-pierce-icon" src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" />${pierceCount > 0 ? `<span class="slot-pierce-value">${pierceCount}</span>` : ""}</span>` : ""}
-    ${isScarlet(character) ? `<span class="slot-counter-toggle${counterEnabled ? " is-active" : ""}"><img src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" /></span>` : ""}
-    ${isRosanna(character) && hasSacrificeTarget ? `<span class="slot-sacrifice-toggle is-active"><img src="assets/immutable/icons/ui/pierce.913f8c28752e.svg" alt="" /></span>` : ""}
-    ${isLinkOwner ? `<span class="slot-link-toggle is-active"><img src="assets/immutable/icons/ui/link.f89385c39e08.svg" alt="" /></span>` : ""}
-    ${isLinkTarget ? `<span class="slot-link-target is-selected"><img src="assets/immutable/icons/ui/link.f89385c39e08.svg" alt="" /></span>` : ""}
+    ${isRedHood(character) ? `<span class="slot-pierce-count${pierceCount > 0 ? " is-active" : ""}"><img class="slot-pierce-icon" src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" />${pierceCount > 0 ? `<span class="slot-pierce-value">${pierceCount}</span>` : ""}</span>` : ""}
+    ${isScarlet(character) ? `<span class="slot-counter-toggle${counterEnabled ? " is-active" : ""}"><img src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" /></span>` : ""}
+    ${isRosanna(character) && hasSacrificeTarget ? `<span class="slot-sacrifice-toggle is-active"><img src="assets/immutable/icons/ui/pierce.8a4bbe163152.svg" alt="" /></span>` : ""}
+    ${isLinkOwner ? `<span class="slot-link-toggle is-active"><img src="assets/immutable/icons/ui/link.4c6f6b125df1.svg" alt="" /></span>` : ""}
+    ${isLinkTarget ? `<span class="slot-link-target is-selected"><img src="assets/immutable/icons/ui/link.4c6f6b125df1.svg" alt="" /></span>` : ""}
   </span>`;
 }
 
