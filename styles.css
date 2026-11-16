@@ -1305,9 +1305,12 @@ input[type="number"]::-webkit-outer-spin-button {
   background: rgba(34, 111, 198, 0.08);
 }
 
-:root[data-theme="light"] .team-row.is-active,
 :root[data-theme="light"] .team-slot.is-drop-target {
   background: rgba(34, 111, 198, 0.08);
+}
+
+:root[data-theme="light"] .team-row.is-active {
+  background: rgba(244, 182, 55, 0.2);
 }
 
 :root[data-theme="light"] .test-defense-row,
@@ -4963,12 +4966,6 @@ body.has-open-modal .floating-controls {
   transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
 }
 
-.team-row.is-active {
-  border-color: var(--blue);
-  background: rgba(77, 163, 255, 0.08);
-  box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.16);
-}
-
 .team-slots-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -5104,6 +5101,12 @@ body.has-open-modal .floating-controls {
 
 .paid-arena-row.is-attack-side {
   border-color: rgba(255, 94, 108, 0.24);
+}
+
+.team-row.is-active {
+  border-color: #f4c66a;
+  background: rgba(244, 198, 106, 0.18);
+  box-shadow: inset 4px 0 0 #f4c66a, 0 0 0 2px rgba(244, 198, 106, 0.3);
 }
 
 .paid-arena-row.is-row-drop-target {
