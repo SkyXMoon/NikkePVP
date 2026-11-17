@@ -72,8 +72,7 @@ export class CharacterRunner {
     this.fullChargeShots = 0;
     this.pelletHits = 0;
     this.shotHits = 0;
-    this.hurtCount = 0;
-    this.hurtCountUncertain = false;
+    this.hurtCount = 0; // 受击次数；概率命中按期望累加，可以是小数
     this.reloadLeft = 0;
     this.reloadElapsed = f32(0);
     this.fireTimingLeft = 0; // UpTypeFireTiming 窗口（事件数）
@@ -775,15 +774,18 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
       if (!trigger) continue;
       const incoming=(hit.probability??1)*(contact.probability??1);
       if(trigger===7&&r){
-        if(incoming===1&&(hit.expectedOccurrences??1)===1&&!victim.hurtCountUncertain){
-          victim.hurtCount++;
-          victim.functionProgram?.dispatch({type:'OnHurtCount',tick:t,count:victim.hurtCount,
-            target:participant(victim),triggerTarget:participant(r)});
-        }else {
-          victim.hurtCountUncertain=true;
-          for(const node of victim.functionProgram?.roots??[])
-            if(node.trigger==='OnHurtCount'&&!node.excludedBeforeFirstBurst)
-              victim.functionProgram.gap(node,'function-program-correlated-hurt-count-expectation-not-connected');
+        // 受击次数按期望累积。一发只有 p 概率真的落在身上时，这一次贡献 p 次计数，
+        // 累计每跨过一个整数就派发一次 OnHurtCount。这条路径以前一遇到概率就整条
+        // 放弃、只报一个「期望受击计数未接线」的缺口，结果豺狼这类「被攻击 N 次」
+        // 的技能在真实阵容里恒为 0 —— 而 V1 一直是按命中次数算的。
+        const weight=incoming*(hit.expectedOccurrences??1);
+        if(weight>0){
+          const before=Math.floor(victim.hurtCount);
+          victim.hurtCount+=weight;
+          const after=Math.floor(victim.hurtCount);
+          for(let count=before+1;count<=after;count++)
+            victim.functionProgram?.dispatch({type:'OnHurtCount',tick:t,count,
+              target:participant(victim),triggerTarget:participant(r)});
         }
       }
       if(hit.suppressReactions)continue;
