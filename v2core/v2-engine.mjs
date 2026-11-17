@@ -439,31 +439,33 @@ globalThis.getJackalLinkGroups = chartResults => {
   });
 };
 const originalChartMarkup = globalThis.getChargeChartMarkup;
-// Gaps carry driver-internal reasons (`function-program-correlated-hurt-count-
-// expectation-not-connected`). Printing those into the chart card told a player
-// nothing and sat in the middle of the plot, so only gaps that have real wording go
-// out -- and they go through the site's own toast instead of the chart area.
-let lastGapNotice = '';
+// 图表卡片里只画图。说明性文字（计算缺口、按当前攻击目标计算这类假设、未充满提示）
+// 一律不出现在这里：它们把图表挤下去，玩家要看的是轴。这类提示统一走站点的
+// toast，同一批内容只在变化时弹一次，避免每次重算都糊一层。
+// 唯一的例外是「没有任何一队算得出来」——那时候本来就没有图，原地显示错误原文。
+let lastChartNotice = '';
 globalThis.getChargeChartMarkup = function (attack, gutter, defense, chartSize) {
   const results = [attack, defense].filter(Boolean);
-  const messages = results.flatMap(result => [
-    ...(result.error ? [result.error] : []),
+  const errors = [...new Set(results.flatMap(result => (result.error ? [result.error] : [])))];
+  const gaps = results.flatMap(result => result.v2Gaps ?? []);
+  if (gaps.length) console.debug('[v2core] 计算缺口', gaps.map(gap =>
+    `${gap.id} ${gap.functionId ?? ''} ${gap.reason}`.trim()));
+  const notices = [...new Set(results.flatMap(result => [
     ...(result.warning ? [result.warning] : []),
     ...(result.v2TargetingAssumptions?.length ? ['未配置属性排序的技能按当前攻击目标计算。'] : []),
-  ]);
-  const gaps = [...new Set(results.flatMap(result =>
-    (result.v2Gaps ?? []).map(gap => gap.message).filter(Boolean)))];
-  if (gaps.length) console.debug('[v2core] 计算缺口', results.flatMap(result =>
-    (result.v2Gaps ?? []).map(gap => `${gap.id} ${gap.functionId ?? ''} ${gap.reason}`.trim())));
-  const gapNotice = gaps.join(' ');
-  if (gapNotice && gapNotice !== lastGapNotice) {
-    lastGapNotice = gapNotice;
-    if (typeof globalThis.showToast === 'function') globalThis.showToast(gapNotice, { duration: 6000 });
+    ...(result.v2Gaps ?? []).map(gap => gap.message).filter(Boolean),
+  ]))];
+  const notice = notices.join(' ');
+  if (notice && notice !== lastChartNotice) {
+    lastChartNotice = notice;
+    if (typeof globalThis.showToast === 'function') globalThis.showToast(notice, { duration: 6000 });
   }
-  const notices = [...new Set(messages)].map(message => `<p role="status">${escapeHtml(message)}</p>`).join('');
-  if ([attack, defense].some(Boolean) && ![attack, defense].some(result => result && !result.error)) return notices;
+  const drawable = [attack, defense].some(result => result && !result.error);
+  if (results.length && !drawable) {
+    return errors.map(error => `<p role="status">${escapeHtml(error)}</p>`).join('');
+  }
   const markup = originalChartMarkup.call(this, attack, gutter, defense, chartSize);
-  return notices + markup.replace('<svg ', '<svg data-calculation-engine="v2" ');
+  return markup.replace('<svg ', '<svg data-calculation-engine="v2" ');
 };
 globalThis.computePaidArenaBattleResultsForRow = function (rowIndex = state.paidArenaActiveRowIndex) {
   const attack = getPaidArenaSimulationContext(state.paidArenaMode, 'attack', rowIndex);
