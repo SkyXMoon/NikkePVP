@@ -173,6 +173,12 @@ export class CharacterRunner {
       : [];
     this.unsupportedChargeRows.push(...(cfg.chargeFunctionProgram?.sourceGaps??[]));
     this.skillEntityBindings=compileSkillEntities(cfg.chargeBindings,{variant:cfg.chargeVariant,functions:cfg.skills,program:cfg.chargeFunctionProgram});
+    // Program-only skill entities (no charge-binding row at all) are invisible to
+    // matchChargeBindings, so their reasons have to be reported here or they would
+    // stay silent. Bindings that do have a row keep the richer coverage entry below.
+    for(const gap of this.skillEntityBindings.missing)
+      if(!(cfg.chargeBindings??[]).some(row=>row.id===gap.id)&&!this.unsupportedChargeRows.some(row=>row.id===gap.id))
+        this.unsupportedChargeRows.push({id:gap.id,ft:72,skill:gap.id,reason:gap.reason});
     this.observerBindings=compileHitCountObservers(cfg.chargeFunctionProgram);this.hitCountObservers=[];
     this.connectedPeriodic=compileConnectedPeriodicBindings(cfg.chargeBindings,cfg.chargeVariant);
     this.periodicFunctions=new Map();
@@ -926,6 +932,27 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
       } else i += 1;
     }
   };
+  // Native 自动射击就绪 accrues one round per 0.2 s cycle while charging
+  // (247111004: TimingTriggerType 67 OnCheckTime / TimingTriggerValue 20 /
+  // StatusTriggerType 66 IsCharging, feeding the 2471103 group — the same 0.2 s
+  // values[2] encodes) and the auto fire spends one round per sequential hit.
+  // Only a full charge fires, so the loaded rounds are the cycles the gauge
+  // spent, capped by the group rows: 5 normally, 15 once 七个小矮人全面出击 is up.
+  const sequentialAmmoCount=(runner,binding)=>{
+    const {group,cap}=binding.sequentialAmmo??{},interval=binding.targetIntervalSeconds;
+    let limit=null;
+    for(const node of runner.cfg.chargeFunctionProgram?.nodes??[]){
+      if(String(node.groupId)!==group||!(node.fullCount>=1))continue;
+      const live=node.status==='None'?true
+        :node.status==='IsFunctionOn'?runner.functions.group(node.statusValue).length>0
+        :node.status==='IsFunctionOff'?runner.functions.group(node.statusValue).length===0:null;
+      if(live!==true)continue;
+      limit=Math.max(limit??0,node.fullCount);
+    }
+    if(!(limit>0))limit=cap;
+    const cycles=Math.floor(Math.fround(Math.fround(runner.charge?.target??0)/interval)+1e-6);
+    return Math.max(1,Math.min(limit,Math.max(cycles,1)));
+  };
   const reserveSkillEntities=(runner,t,trigger,value)=>{
     for(const binding of runner.skillEntityBindings.connected){
       if(binding.programManaged)continue;
@@ -933,7 +960,8 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
         if(activation.trigger!==trigger)continue;
         const template=activation.chargeTrigger;
         if(!matchChargeTrigger(template,{type:template?.event,count:value,lastAmmo:value}))continue;
-        pendingSkillEntities.push({tick:t+binding.reservationTicks+binding.hitOffsetTicks,runner,binding});
+        pendingSkillEntities.push({tick:t+binding.reservationTicks+binding.hitOffsetTicks,runner,binding,
+          ...(binding.sequentialAmmo?{count:sequentialAmmoCount(runner,binding)}:{})});
         events.push({tick:t,id:runner.cfg.id,team:runner.cfg.team??0,type:'SKILL_RESERVE',
           skillId:binding.id,activationId:activation.id,trigger});
       }
@@ -977,7 +1005,8 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
             ...(spatial?.rankingField ? {rankingField:spatial.rankingField,preferTarget:spatial.preferTarget} : {})});
         continue;
       }
-      const count=binding.spatial?spatial.contacts.length:binding.sequential?(eligible.candidates.length?binding.targetCount:0):Math.min(binding.targetCount,eligible.candidates.length);
+      const requested=request.count??binding.targetCount;
+      const count=binding.spatial?spatial.contacts.length:binding.sequential?(eligible.candidates.length?requested:0):Math.min(requested,eligible.candidates.length);
       if(!count)continue;
       const actor={id:runner.cfg.id,team,kind:'character'};
       runner.functionProgram?.phase(binding.id,'before_use',{tick:t,target:actor,triggerTarget:actor});
@@ -995,7 +1024,17 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
       else if(!binding.spatial&&(count<selected.length||binding.targetIntervalSeconds>0&&count>1)){
         if(binding.entity.preferTarget==='Random'){
           if(probabilityMode==='expected')selected=selected.map(c=>({...c,probability:count/selected.length}));
-          else {const pool=[...selected];selected=[];for(let i=0;i<count;i++)selected.push(pool.splice(Math.floor(runner.rand()*pool.length),1)[0]);}
+          else {
+            // Sampling without replacement, refilled once the pool is exhausted:
+            // 依次攻击 can have more segments than targets (自动射击 spends up to
+            // 15 rounds at one locked target), and an empty pool would push an
+            // undefined contact into the hurt phases.
+            const all=[...selected],pool=[...selected];selected=[];
+            for(let i=0;i<count;i++){
+              if(!pool.length)pool.push(...all);
+              selected.push(pool.splice(Math.floor(runner.rand()*pool.length),1)[0]);
+            }
+          }
         }else {
           const order=skillAimChoices(selected,binding.entity.preferTarget,{probabilityMode,random:()=>runner.rand(),aimRay:aimContext?.aimRay,
             missingRankingPolicy:runner.cfg.skillMissingRankingPolicy,currentTargetId:runner.currentTargetId});
@@ -1018,7 +1057,11 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
       }
       const damageModifiers={};
       const beforeHurtTargets=spatial?.effectContacts??selected;
-      for(const target of beforeHurtTargets)runner.functionProgram?.phase(binding.id,'before_hurt',{tick:t,target,triggerTarget:target,probability:target.probability,damageModifiers});
+      // Hit probability saturates at 1: when the segment count reaches the candidate
+      // count every candidate is hit for sure, so 自动射击's lock-on marker
+      // (1471110 before_hurt -> 147111002 on the target) is deterministic state, not
+      // an unmodelable correlated expectation.
+      for(const target of beforeHurtTargets)runner.functionProgram?.phase(binding.id,'before_hurt',{tick:t,target,triggerTarget:target,probability:Math.min(1,target.probability??1),damageModifiers});
       // AfterUse is synchronous in ProcessCharacterSkill; hurt events are queued
       // by SendWait, and their HurtFunctionList runs before parent gauge charge.
       runner.functionProgram?.phase(binding.id,'after_use',{tick:t,target:actor,triggerTarget:actor});
@@ -1159,6 +1202,10 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
         if(kind==='skill'){
           const binding=[...runner.skillEntityBindings.connected,...runner.observerBindings.connected].find(b=>b.id===skillId);
           if(!binding)return false;
+          // SkillType 29 is registered by the graph (247111001 OnStart ft72) but the
+          // auto fire itself is the weapon's full-charge step: the rounds are only
+          // spent then, and 0.2 s cycles are only accrued while charging.
+          if(binding.sequentialAmmo)return true;
           pendingSkillEntities.push({tick:t+1,runner,binding});
           events.push({tick:t,id:actor.id,team:actor.team,type:'SKILL_RESERVE',skillId,activationId:node.id,trigger:node.trigger});
           return true;
@@ -1356,14 +1403,32 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
               ft111Charge(recipient.cfg.id,team,g,row.value,83,row.skill ?? row.id,t);
           }
         }
+        // trigger 51 (OnFullCharge) is the gauge reaching full, not the shot leaving.
+        // A state written there must be live for this very shot: 471's 247121002 is
+        // ft54 / trigger 51 / TimeSec 500, so 全蓄力穿透特化 has to pierce the shot
+        // that filled the gauge. fireType=1 fires inside this tick, so 51 is
+        // dispatched before the shot below instead of after it.
+        let onFullChargeDone = false;
+        const dispatchOnFullCharge = () => {
+          if (onFullChargeDone || !isFullChargeHit(shotFullChargeRate)) return;
+          onFullChargeDone = true;
+          r.functionProgram?.dispatch({type:'OnFullCharge',tick:t,target:participant(r)});
+        };
         // Both instant-fire and projectile-fire handlers dispatch trigger 6 for a full-charge shot.
         const fullChargeShot = () => {
           if (!isFullChargeHit(shotFullChargeRate)) return;
+          // SkillType 29 自动射击 is part of this same full-charge step and has no
+          // UseCharacterSkillId row, so the function program never reserves it. It is
+          // resolved before the dispatches below: the rounds were loaded during the
+          // charge that just finished, while those dispatches spend the burst's
+          // remaining uses (247110113 RemoveFunctionGroup 1471301 on OnFullChargeShot)
+          // and would otherwise hide the +10 round cap from this very shot.
+          reserveSkillEntities(r, t, 'OnFullChargeShot', 1);
           // 蓄满那一刻（含按住不松）。Arena auto-fires a charged weapon the moment its
           // gauge fills, so 51 lands on the same tick as the shot here — but it does
           // not wait for the shot: it is the gauge reaching full, which is why it is
           // a separate trigger from 6 and not a substitute for it.
-          r.functionProgram?.dispatch({type:'OnFullCharge',tick:t,target:participant(r)});
+          dispatchOnFullCharge();
           r.functionProgram?.dispatch({type:'OnFullChargeShot',tick:t,target:participant(r)});
           r.fullChargeShots++;
           r.functionProgram?.dispatch({type:'OnFullChargeShotNum',tick:t,count:r.fullChargeShots,target:participant(r)});
@@ -1381,6 +1446,7 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
             events.push({tick:t,id:r.cfg.id,team,type:'FN_APPLY',ft:12,trigger:6,skillId:row.id});
           }
           };
+        if (r.cfg.fireType === 1) dispatchOnFullCharge();
         if (r.cfg.fireType !== 1) fullChargeShot();
         if (shooting) {
           // FT54 满蓄穿透在射击前生效：IT=2/3 每次满蓄射击都触发（fireType=1 在 fire 前设参）。

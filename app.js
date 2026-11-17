@@ -74,7 +74,7 @@ const FRONTEND_ADMIN_EMAILS = new Set(["307919309@qq.com"]);
 const CHARACTER_DETAIL_LONG_PRESS_DELAY_MS = 550;
 const CHARACTER_DETAIL_ASSET_TIMEOUT_MS = 3500;
 const CHARACTER_DETAIL_LEVEL_MAX = 1400;
-const APP_VERSION = "V1.80.1128";
+const APP_VERSION = "V1.80.1133";
 let arcaWorkspace=null,arcaWorkspacePromise=null;
 let privateHelpClientPromise=null;
 let pendingPrivateHelpOptions=null;
@@ -18420,6 +18420,12 @@ function schedulePostBootModulePreload() {
 }
 
 async function bootstrap() {
+  // A host page (the V2 core build) installs its own calculation entry after app.js
+  // is parsed. The character data module often finishes before app.js does, so the
+  // awaits below resume before that host script runs -- and the first frame would be
+  // a legacy result the host then replaces. When the host announces a gate, wait for
+  // it before touching any result; plain sites never set this and boot unchanged.
+  if (globalThis.__NIKKE_RENDER_GATE__) await globalThis.__NIKKE_RENDER_GATE__;
   const previewParams = new URLSearchParams(location.search);
   if (previewParams.get("view") === "help" && previewParams.get("standalone") === "1") {
     document.body.classList.add("help-preview-only");

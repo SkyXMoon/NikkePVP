@@ -20,9 +20,19 @@
  */
 (function () {
   const TABLE = globalThis.__V2_TIMING || {};
+  // app.js 的首帧在等这个闸门（见 index.html 里的 __NIKKE_RENDER_GATE__）。覆盖脚本
+  // 没机会跑完就不能让页面一直停在加载态，所以所有退出路径都放行。
+  const release = () => {
+    const open = globalThis.__NIKKE_RELEASE_RENDER__;
+    if (typeof open !== 'function') return;
+    globalThis.__NIKKE_RELEASE_RENDER__ = null;
+    open();
+  };
+  try {
   const orig = globalThis.getChargeFrames;
   if (typeof orig !== 'function') {
     console.error('[v2core] 找不到 getChargeFrames，替换失败');
+    release();
     return;
   }
 
@@ -227,6 +237,9 @@
   globalThis.getPaidArenaChartResultForTeam = loadingResult;
   globalThis.simulateBurst = loadingResult;
   globalThis.simulatePaidArenaBurst = loadingResult;
+  // 占位实现就位之后才放行首帧：此时 app.js 的第一次 render 拿到的是「V2核心加载中」，
+  // 不再是一份 V1 结果。
+  release();
   globalThis.__V2_WITH_V1__ = function (calculate) {
     const current = globalThis.getChargeFrames;
     globalThis.getChargeFrames = orig;
@@ -237,6 +250,10 @@
     }
   };
   console.info('[v2core] 已接管 ', Object.keys(TABLE).length, '人；命中统计见 __V2_COVERAGE__');
+  } finally {
+    // 中途抛错也要放行，否则首帧会一直等到 index.html 里那个兜底超时。
+    release();
+  }
 
   // 角落里放个标记，免得分不清看的是哪一版。
   addEventListener('DOMContentLoaded', () => {

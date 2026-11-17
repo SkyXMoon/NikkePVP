@@ -84,6 +84,21 @@ async function loadCharacterData(region, resourceIds) {
   return { db: Object.fromEntries(rows), crossRegion };
 }
 
+/** Player-facing skill text, keyed by resource id.
+ *
+ *  The calculator reports charge against the native skill entity id (`1471110`),
+ *  which says nothing to a player. `tools/export_skill_text.py` renders the real
+ *  name and description, and also records which id prefix belongs to which slot,
+ *  because that numbering is per-character (471 uses `14711` for skill 1, 011 uses
+ *  `1011` for skill 2). A borrowed character keeps its own region's text.
+ */
+async function loadSkillText(region, resourceIds) {
+  const fileFor = r => `/simulator/data/skill-text${r === 'cn' ? '.cn' : ''}.json`;
+  const primary = await loadJson(fileFor(region));
+  if (resourceIds.every(id => primary[id])) return primary;
+  return { ...(await loadJson(fileFor(region === 'cn' ? 'global' : 'cn'))), ...primary };
+}
+
 /** Per-region arena asset index, cached: a borrowed character needs its own one. */
 const assetIndexCache = new Map();
 async function arenaAssetIndex(region) {
@@ -146,7 +161,7 @@ function snapshot(contexts={}) {
   };
 }
 
-function configuredActor(input, side, db, resourceIds, crossRegion, notes) {
+function configuredActor(input, side, db, resourceIds, crossRegion, notes, skillText) {
   const resourceId = resourceIds.get(String(input.character.id));
   const source = db[resourceId];
   if (!source) throw new Error(`${input.character.name} 缺少${side.region === 'cn' ? '国服' : '国际服'}V2原始数据`);
@@ -187,7 +202,7 @@ function configuredActor(input, side, db, resourceIds, crossRegion, notes) {
   config.penetrationShots=input.penetrationShots;
   config.rankingStats=Object.fromEntries(['attack','defence','hp','maxHp'].filter(key=>Number.isFinite(stats[key]))
     .map(key=>[key,stats[key]]));
-  return { config, character: input.character };
+  return { config, character: input.character, skillText: skillText?.[resourceId] };
 }
 
 async function loadModel(code, index, region) {
@@ -213,13 +228,20 @@ async function calculate(input) {
     return loadCharacterData(input.region, master.linked.filter(row => ids.has(String(row.legacyId)))
       .map(row => String(Number(row.gameCharacterId))));
   });
-  const [{ db, crossRegion }, shooting, bindings, colliders, index, master, arena] = await Promise.all([
+  // Labels are presentation only: a missing or stale text artifact must not take
+  // the calculation down, it only puts the native ids back in the tooltip.
+  const skillTextPromise = masterPromise.then(master => {
+    const ids = new Set([...input.attack, ...input.defense].filter(Boolean).map(slot => String(slot.character.id)));
+    return loadSkillText(input.region, [...new Set(master.linked.filter(row => ids.has(String(row.legacyId)))
+      .map(row => String(Number(row.gameCharacterId))))]);
+  }).catch(() => ({}));
+  const [{ db, crossRegion }, shooting, bindings, colliders, index, master, arena, skillText] = await Promise.all([
     dbPromise,
     loadJson(`/simulator/data/native-shooting${input.region === 'global' ? '.global' : ''}.json`),
     loadJson(`/simulator/data/native-bindings${input.region === 'global' ? '.global' : ''}.json`),
     loadJson(`/simulator/data/native-colliders.${input.region}.json`),
     loadJson(`${regionAssets}out/sd_batch/index.json`), masterPromise,
-    loadJson(`${regionAssets}arena/${input.arena}.json`),
+    loadJson(`${regionAssets}arena/${input.arena}.json`), skillTextPromise,
   ]);
   const resourceIds = new Map(master.linked.map(row => [String(row.legacyId), String(Number(row.gameCharacterId))]));
   const merged = mergeNativeData(shooting, bindings, colliders);
@@ -242,7 +264,7 @@ async function calculate(input) {
         // One unusable slot must not cost the other four their timeline: build it
         // as an empty slot and say why. This also covers a character that is in
         // neither region's export.
-        try { actor = configuredActor(slot, { key, region: input.region }, db, resourceIds, crossRegion, notes[key]); }
+        try { actor = configuredActor(slot, { key, region: input.region }, db, resourceIds, crossRegion, notes[key], skillText); }
         catch (error) {
           actor = emptyActor(key, position);
           notes[key].push(`${slot.character.name} 无法参与计算：${error.message}`);
@@ -417,13 +439,27 @@ globalThis.getJackalLinkGroups = chartResults => {
   });
 };
 const originalChartMarkup = globalThis.getChargeChartMarkup;
+// Gaps carry driver-internal reasons (`function-program-correlated-hurt-count-
+// expectation-not-connected`). Printing those into the chart card told a player
+// nothing and sat in the middle of the plot, so only gaps that have real wording go
+// out -- and they go through the site's own toast instead of the chart area.
+let lastGapNotice = '';
 globalThis.getChargeChartMarkup = function (attack, gutter, defense, chartSize) {
-  const messages = [attack, defense].filter(Boolean).flatMap(result => [
+  const results = [attack, defense].filter(Boolean);
+  const messages = results.flatMap(result => [
     ...(result.error ? [result.error] : []),
     ...(result.warning ? [result.warning] : []),
     ...(result.v2TargetingAssumptions?.length ? ['未配置属性排序的技能按当前攻击目标计算。'] : []),
-    ...(result.v2Gaps ?? []).map(gap => gap.message ?? `V2计算缺口 ${gap.id ?? ''} ${gap.reason}`),
   ]);
+  const gaps = [...new Set(results.flatMap(result =>
+    (result.v2Gaps ?? []).map(gap => gap.message).filter(Boolean)))];
+  if (gaps.length) console.debug('[v2core] 计算缺口', results.flatMap(result =>
+    (result.v2Gaps ?? []).map(gap => `${gap.id} ${gap.functionId ?? ''} ${gap.reason}`.trim())));
+  const gapNotice = gaps.join(' ');
+  if (gapNotice && gapNotice !== lastGapNotice) {
+    lastGapNotice = gapNotice;
+    if (typeof globalThis.showToast === 'function') globalThis.showToast(gapNotice, { duration: 6000 });
+  }
   const notices = [...new Set(messages)].map(message => `<p role="status">${escapeHtml(message)}</p>`).join('');
   if ([attack, defense].some(Boolean) && ![attack, defense].some(result => result && !result.error)) return notices;
   const markup = originalChartMarkup.call(this, attack, gutter, defense, chartSize);

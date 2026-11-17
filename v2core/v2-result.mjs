@@ -1,12 +1,45 @@
-/** Convert V2 events to the existing site's presentation contract. */
+/** Convert V2 events to the existing site's presentation contract.
+ *
+ *  Returns `null` when there is nothing a player can act on: `reason` is an internal
+ *  driver code (`function-program-correlated-hurt-count-expectation-not-connected`),
+ *  and printing it in the chart area told the reader nothing. The code itself stays
+ *  on `v2Gaps[].reason` for auditing; only gaps with a real explanation get wording.
+ */
+const GAP_MESSAGES = {
+  'skill-target-ranking-input-required': (gap, owner) => {
+    const attribute = { attack: '攻击力', defence: '防御力', hp: '当前生命值', maxHp: '最大生命值' }[gap.rankingField] ?? '属性';
+    return `${owner}：技能${gap.functionId ?? gap.skill ?? ''}需要按${attribute}选择目标，当前缺少候选目标的${attribute}数据，相关技能充能可能不完整。`;
+  },
+};
+
 export function formatCalculationGap(gap, actors) {
   const actor = actors.find(entry => entry.config.id === gap.id);
   const owner = actor ? `${actor.config.team === 0 ? '进攻' : '防守'}P${actor.config.slotIndex + 1} ${actor.character?.name ?? ''}` : gap.id;
-  if (gap.reason === 'skill-target-ranking-input-required') {
-    const attribute = { attack: '攻击力', defence: '防御力', hp: '当前生命值', maxHp: '最大生命值' }[gap.rankingField] ?? '属性';
-    return `${owner}：技能${gap.functionId ?? gap.skill ?? ''}需要按${attribute}选择目标，当前缺少候选目标的${attribute}数据，相关技能充能可能不完整。`;
-  }
-  return `V2计算缺口 ${owner ?? ''} ${gap.reason}`;
+  const format = GAP_MESSAGES[gap.reason];
+  return format ? format(gap, owner) : null;
+}
+
+/** Human name for the skill a charge contribution came from.
+ *
+ *  Events carry the native skill entity id (`1471110`), never a slot, and the
+ *  numbering is per character: 471 spends `14711` on skill 1 while 011 spends
+ *  `1011` on skill 2. `skill-text.json` therefore ships the character's own
+ *  id-prefix map next to the rendered text. Without a match the caller keeps the
+ *  raw id, which is still better than inventing a label.
+ */
+const SLOT_NAMES = { skill1: '技能1', skill2: '技能2', burst: '爆裂技能', skill4: '技能4' };
+
+function skillOf(actor, skillId) {
+  const text = actor?.skillText;
+  if (!text || !skillId) return null;
+  const id = String(skillId);
+  const prefixes = text.prefixes ?? {};
+  const prefix = Object.keys(prefixes).filter(key => id.startsWith(key))
+    .sort((a, b) => b.length - a.length)[0];
+  const slot = prefix && prefixes[prefix];
+  const entry = slot && text.slots?.[slot];
+  if (!entry?.name) return null;
+  return { slot, slotName: SLOT_NAMES[slot] ?? slot, name: entry.name };
 }
 
 function missedPassTick(shot) {
@@ -54,12 +87,17 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf) {
       member.attackChargeTotal += charge;
       member.hitFrames.push(frame);
     }
+    const skill = skillOf(actor, event.skillId);
     const contribution = {
       positionIndex: actor.config.slotIndex, characterId: actor.character?.id,
       character: actor.character,
       characterName: actor.character?.name ?? `P${actor.config.slotIndex + 1}万能`,
       charge, cumulativeCharge: member?.totalCharge ?? charge,
-      labels: [!member ? '万能充能' : event.skillId ? `技能 ${event.skillId}` : event.type === 'HIT' ? '普通攻击' : '直接充能'],
+      labels: [!member ? '万能充能'
+        : skill ? `${skill.slotName}「${skill.name}」`
+        : event.skillId ? `技能 ${event.skillId}`
+        : event.type === 'HIT' ? '普通攻击' : '直接充能'],
+      skills: skill ? [{ slot: skill.slot, slotName: skill.slotName, name: skill.name }] : [],
       counterHits: event.contacts.length,
       positionHits: [...targets].map(([positionIndex, hitCount]) => ({ positionIndex, hitCount })),
       targetHits: [...targets].map(([positionIndex, hitCount]) => ({ positionIndex, hitCount })),
@@ -74,6 +112,8 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf) {
       previous.cumulativeCharge = contribution.cumulativeCharge;
       previous.counterHits += contribution.counterHits;
       previous.labels = [...new Set([...previous.labels, ...contribution.labels])];
+      const known = new Set(previous.skills.map(entry => `${entry.slot}/${entry.name}`));
+      previous.skills.push(...contribution.skills.filter(entry => !known.has(`${entry.slot}/${entry.name}`)));
       previous.v2.events.push(contribution.v2);
       for (const field of ['positionHits', 'targetHits']) {
         for (const hit of contribution[field]) {
