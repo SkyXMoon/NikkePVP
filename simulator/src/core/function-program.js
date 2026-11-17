@@ -37,6 +37,14 @@ const PVP_SCOPE_TRIGGERS=new Map([
   ['OnSpawnMonsterIncludeNoneType','arena-no-spawn'], [94,'arena-no-spawn'],
   ['OnSummonMonster','arena-no-spawn'], [62,'arena-no-spawn'],
   ['OnMonsterDead','arena-no-spawn'], [50,'arena-no-spawn'],
+  // 38 OnSpawnTarget was the one spawn trigger left out, and it was the only one
+  // that charged: `TeamContext.OnCheckPassiveSpawnTarget` (RVA 0x5F12060) reads
+  // `SpotMonster` plus `MonsterSpawnActionEndEvent` type slots, and `SpotEventType`
+  // has no general SpawnTarget — only CreateEntity / AppearedTargetMonster /
+  // MonsterSpawn / MonsterSpawnActionEnd, all on the monster path. Arena Nikke are
+  // `SpotObjectType.Character`, so the event never arrives. 伊莱格's 250021002
+  // (100% burst gauge on spawn) used to fire at tick 0 through this path.
+  ['OnSpawnTarget','arena-no-spawn'], [38,'arena-no-spawn'],
   // Barrier exists only as a damage-reduction stat slot. Nothing installs,
   // absorbs or breaks one, so its events never arrive and its predicate can never
   // be true (52 OnInstallBarrier, 91 OnBrokenBarrier).
@@ -95,6 +103,21 @@ export const isStaticRateState=node=>[16,85].includes(node.ft)&&node.target==='S
   ['TimeSec','TimeSec_Ver2','TimeSec_Ver3','Battles','TimeSecBattles'].includes(node.durationType);
 export const isReloadState=node=>[13,159].includes(node.ft)&&node.valueType==='Percent'&&
   ['TimeSec','TimeSec_Ver2','TimeSec_Ver3','Battles','TimeSecBattles','Shots','SkillShots'].includes(node.durationType);
+/** Magazine capacity (FT14 StatAmmo). Native reads MaxAmmo on every use and never
+ * touches CurrentAmmo (SpotWeaponData .ctor sets CurrentAmmo=MaxAmmo once), so
+ * this state does not change the shot in flight — it only changes how many shots
+ * the next magazine holds. Writing the ledger entry *is* the whole job; the
+ * weapon side folds it in when it refills.
+ * Two shapes are verifiable. Percent scales the recipient's base MaxAmmo through
+ * the stat-1 pool (`GetStatValue` @0x5DCF860, the same path FT16/FT13 use), which
+ * is only proven for the User standard — 神罚 226011003's FunctionTarget/Percent
+ * debuff stays a recorded gap rather than quietly writing a number nobody reads.
+ * Integer is a flat bullet count, so its standard does not matter.
+ * 白雪公主：纯真年代 222411001 is the reference case: OnHitNum(30) → +25.66%,
+ * 5s, 5 stacks. */
+export const isAmmoState=node=>node.ft===14&&
+  ['TimeSec','TimeSec_Ver2','TimeSec_Ver3','Battles','TimeSecBattles','Shots','SkillShots'].includes(node.durationType)&&
+  (node.valueType!=='Percent'||node.standard==='User');
 export const isInstantShareEffect=node=>node.ft===135&&['Target','AllMonster'].includes(node.target)&&
   node.standard==='FunctionTarget'&&node.valueType==='Percent'&&node.value===10000&&
   node.durationUnits===0&&node.durationType==='TimeSec'&&node.fullCount===1&&
@@ -107,6 +130,33 @@ const stateOnly=node=>['StatAtk','StatDef','StatChargeDamage','StatCritical','St
   Object.hasOwn(FT_RATE_MAP,node.ft);
 /** Ammo/reload effects: they only change what happens after a magazine empties. */
 export const AMMO_FTS=new Set([13,14,27,108,159]);
+/** 节点条件通过之后，引擎到底对它做什么。
+ *
+ * 这张分类是**唯一真相**：`execute()` 按它分派，`audit()` 按它判断一个节点能不能
+ * 被认领。以前这两处各写一张 ft 白名单，漂移过一次——FT14 两边都没有，于是它的
+ * 技能行既不生效也不报缺口（见审计文档「已修：FT14 弹匣上限」）。
+ *
+ * 返回 'effect' 表示没有专门处理器，只能交给 `onCommand({kind:'effect'})`；
+ * 调用方不认就是缺口，不是"静默跳过"。
+ */
+export const functionKind=(node,{cadenceSupported=false}={})=>
+  node.ft===77?'dispel':
+  node.ft===164?'remove-group':
+  node.ft===167?'reapply':
+  (node.ft===72||node.effect==='UseSkill1'||node.effect==='UseSkill2')?'skill':
+  node.ft===124?'transform':
+  [64,75,202].includes(node.ft)?'damage':
+  // FT111 AddCharge 由命令层实现（driver 的 `onCommand` 直接写爆裂槽并返回 true），
+  // 不在这里写 ledger。所以它既不能进 'state'（会把充能写成一条普通 buff），
+  // 也不能算 'effect'（audit 会当成没人实现而反复报缺口）。
+  node.ft===111?'charge':
+  ([0,6,54,61,102,146].includes(node.ft)||isAmmoState(node)||stateOnly(node)||isReloadState(node)||
+    (cadenceSupported&&isStaticRateState(node)))?'state':
+  'effect';
+// Handled before `execute` ever sees the node: FT134 is the function-cycle
+// container, dispatched inside `invoke` by picking one connected child.
+const HANDLED_BEFORE_EXECUTE=new Set([134]);
+
 /** Group ids a node reads through its status or trigger. */
 export const groupRefs=node=>{
   const refs=[];
@@ -263,8 +313,7 @@ export class FunctionProgram {
       if(node.ft===72||['UseSkill1','UseSkill2'].includes(node.effect)){
         const id=node.ft===72?String(node.value):this.program.skillRoots[node.effect==='UseSkill1'?'skill1':'skill2'];
         if(!skillIds.has(id)&&!this.inertEntity(id))report(node,'function-program-skill-not-connected');
-      }else if(![0,6,54,61,64,75,77,102,111,124,134,146,164,167,202].includes(node.ft)&&
-        !stateOnly(node)&&!isReloadState(node)&&!isInstantShareEffect(node)&&!(this.cadenceSupported&&isStaticRateState(node)))
+      }else if(functionKind(node,this)==='effect'&&!isInstantShareEffect(node)&&!HANDLED_BEFORE_EXECUTE.has(node.ft))
         report(node,'function-program-effect-not-connected');
     }
     return issues;
@@ -422,7 +471,8 @@ export class FunctionProgram {
   execute(node,input){
         const target=input.target;
         const book=this.bookFor(target);
-        if(node.ft===77){
+        switch(functionKind(node,this)){
+        case 'dispel': {
           if(!Number.isInteger(node.value)||node.value<0)return this.gap(node,'function-program-dispel-count-invalid');
           const snapshot=book.list().slice();
           if(book.uncertainGroups?.size||snapshot.some(b=>!b.buffType||!b.buffRemoveType))
@@ -435,17 +485,25 @@ export class FunctionProgram {
               remaining--;this.emit('OnFunctionOff',buff.groupId,target,input);
             }
           }
-        }else if(node.ft===164){
+          break;
+        }
+        case 'remove-group': {
           const removed=book.removeGroup(node.value);
           if(removed.length)this.emit('OnFunctionOff',String(node.value),target,input);
-        }else if(node.ft===167){
+          break;
+        }
+        case 'reapply': {
           const old=book.group(node.value)[0];
           if(old?.stateNode)this.add(old.stateNode,old.casterId,target,node.fullCount,input);
-        }else if(node.ft===72||node.effect==='UseSkill1'||node.effect==='UseSkill2'){
+          break;
+        }
+        case 'skill': {
           const skillId=node.ft===72?String(node.value):this.program.skillRoots[node.effect==='UseSkill1'?'skill1':'skill2'];
           if(!this.onCommand?.({kind:'skill',node,skillId,target,context:input})&&!this.inertEntity(skillId))
             this.gap(node,'function-program-skill-not-connected');
-        }else if(node.ft===124){
+          break;
+        }
+        case 'transform':
           // Transformation: switch the actor's form. The form itself is carried by
           // the connected functions, not by this node — 方舟黑色游侠's 257010118
           // writes group 2570118 with `Battles` duration and the transformed skill
@@ -456,7 +514,8 @@ export class FunctionProgram {
           // to enter, 0 to leave). So the switch adds no charge of its own; the
           // only thing it changes is *when* the child's state lands, which is the
           // delay it already carries.
-        }else if([64,75,202].includes(node.ft)){
+          break;
+        case 'damage':
           if(!this.onCommand?.({kind:'damage',node,target,context:input}))this.gap(node,'function-program-damage-not-connected');
           else if(node.durationUnits>0||node.durationType==='TimeSecBattles'){
             if((input.probability??1)===1)this.add(node,this.actor.id,target,1,input);
@@ -464,10 +523,16 @@ export class FunctionProgram {
               book.uncertainGroups??=new Set();book.uncertainGroups.add(String(node.groupId));
             }
           }
-        }else if([0,6,54,61,102,146].includes(node.ft)||stateOnly(node)||isReloadState(node)||this.cadenceSupported&&isStaticRateState(node)){
+          break;
+        case 'state':
           this.add(node,this.actor.id,target,1,input);
-        }else if(!this.onCommand?.({kind:'effect',node,target,context:input})){
-          this.gap(node,'function-program-effect-not-connected');return;
+          break;
+        // 'charge' 和 'effect' 都只交给命令层：前者由 driver 直接写爆裂槽，
+        // 后者是还没有专门处理器的兜底。
+        case 'charge':
+        default:
+          if(!this.onCommand?.({kind:'effect',node,target,context:input}))
+            this.gap(node,'function-program-effect-not-connected');
         }
   }
 

@@ -14,10 +14,19 @@ export function requireCnResource(roster, resourceId) {
  *  put a global-only rule (SlotOrder / ReverseSlotOrder) onto a CN character, which
  *  is precisely the cross-region mixing this split exists to stop. Absence is
  *  recorded as `arenaOverrideUnknown` instead of a silent 0 or a silent borrow.
+ *
+ *  `foreignIds` are characters that only the other region has. Their data file was
+ *  borrowed from that region, so their `nativeProfile` is that region's table and
+ *  must not be relabelled as a CN shot table; they keep the merged profile.
+ *  A missing entry (`undefined`) is skipped rather than thrown on: the caller
+ *  decides how to degrade, and one absent character must not take the whole team
+ *  down.
  */
-export function addCnShootingProfiles(native, data) {
+export function addCnShootingProfiles(native, data, foreignIds = new Set()) {
   const weapons={...native.weapons};
   for (const [id, character] of Object.entries(data)) {
+    if (!character) continue;
+    if (foreignIds.has(String(id))) continue;
     const profile=character.shot?.nativeProfile;
     if (!profile || profile.shotId!==character.shotId) continue;
     const {preferTargetArena, ...cnProfile}=profile;

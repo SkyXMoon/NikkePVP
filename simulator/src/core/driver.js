@@ -90,7 +90,34 @@ export class CharacterRunner {
     this.reloadSpan = reloadUnits>0?reloadDurationTicks(reloadUnits):0;
     this.perReload = cfg.reloadBulletBp != null && cfg.maxAmmo > 0
       ? Math.round(cfg.maxAmmo * cfg.reloadBulletBp / 10000) : cfg.maxAmmo;
-    // V2.1 伤害接入（数据显式输入）：
+    // 弹匣上限是活的：FT14 StatAmmo 只改上限，不改当前弹量（原生每次读 MaxAmmo，
+    // CurrentAmmo 只在 SpotWeaponData .ctor 里赋过一次初值）。叠加层数与到期由
+    // FunctionTrack.applyState 负责（fullCount 封顶、TimeSec 递减），这里只把账本
+    // 里的 FT14 条目折成武器上限：
+    //   Percent（valueType 2）+ standard==1 → 走 statValue 的 stat-1 池，与 FT16/FT13 同路；
+    //   Integer（valueType 1）→ 直接是「发」，按层数累加到上限上。
+    // 混合形状（既有百分比又有固定发数）按「先缩放基础值、再叠加定值」处理，
+    // 这一顺序尚未从原生证实，只有同时出现两种形状时才会走到。
+    this.liveMaxAmmo = () => {
+      if (!(this.cfg.maxAmmo > 0)) return this.cfg.maxAmmo;
+      const rows = this.functions.byFt(14);
+      if (!rows.length) return this.cfg.maxAmmo;
+      let flat = 0;
+      const percent = [];
+      for (const b of rows) {
+        const n = b.stacks ?? 1;
+        if (b.valueType === 2) { if (b.standard === 1) percent.push({ p: b.value, n, standard: 1 }); }
+        else flat += b.value * n;
+      }
+      const scaled = percent.length ? statValue(this.cfg.maxAmmo, percent).value : this.cfg.maxAmmo;
+      return Math.max(0, scaled + flat);
+    };
+    this.livePerReload = () => {
+      const cap = this.liveMaxAmmo();
+      return this.cfg.reloadBulletBp != null && this.cfg.maxAmmo > 0
+        ? Math.round(cap * this.cfg.reloadBulletBp / 10000) : cap;
+    };
+        // V2.1 伤害接入（数据显式输入）：
     //   attack + shot + skills → 每伤害实例数值（computeShotDamage，静态系数语义）
     //   hp > 0 → 该角色可受击：HP 扣减、归零判死（targeting 的 alive 过滤已在）
     // IT=2/3 只有满蓄才能开火（CanFire 门控）→ 满蓄倍率恒参与乘算区。
@@ -101,12 +128,13 @@ export class CharacterRunner {
     this.hp = cfg.hp > 0 ? cfg.hp : null;
     this.alive = true;
     // 充能技能行分拣（无原生证据的触发时机进 unsupported，不猜语义）：
-    //   FT111 trigger38 OnSpawnTarget → runSpotDriver 开局直接充
     //   FT102 trigger43 OnEndFullBurst → 本队 BURST_END（StepFull→None）时挂载
+    // 开局直充只剩 `burstCharges` 这一路 caller 输入；技能表里的 FT111 trigger38
+    // OnSpawnTarget 在竞技场没有派发源（详见 skills.js 的 pickChargeRows 注释），
+    // 已不再进任何"已实现"桶，只作为 arena-no-spawn 的缺口记录存在。
     const notRegistered=new Set((cfg.chargeBindings??[])
       .filter(row=>row.variant===cfg.chargeVariant&&(row.excludedNotRegistered||row.excludedUnreachable)).map(row=>row.id));
     const chargeRows = cfg.skills ? pickChargeRows(cfg.skills.filter(row=>!notRegistered.has(row.id))) : null;
-    this.ft111SpawnRows = chargeRows ? chargeRows.ft111Spawn : [];
     this.ft111FullChargeShotRows = chargeRows ? chargeRows.ft111FullChargeShot : [];
     this.ft111UseAmmoRows = chargeRows ? chargeRows.ft111UseAmmo : [];
     this.ft111TeamAmmoRows = chargeRows ? chargeRows.ft111TeamAmmo : [];
@@ -131,11 +159,13 @@ export class CharacterRunner {
       ? chargeRows.unsupported.filter(row=>!excludedProgramNodes.has(row.id))
         .map(row=>{
           const scope=pvpScopeFor(row);
-          // A legacy row carries three trigger slots and the crit gate can sit in
-          // any of them: 薇尔维特's FT214 is triggered by a full-charge shot count
-          // but conditioned on an OnCriticalHitNum count.
-          const critGated=[row.trigger,row.statusTrigger,row.statusTrigger2]
-            .some(trigger=>CRITICAL_TRIGGER_IDS.has(trigger));
+          // 只有 `trigger` 用 TimingTriggerType。`statusTrigger` 用的是另一套
+          // StatusTriggerType 枚举，数值区间重叠但含义不同：TimingTriggerType 45 是
+          // OnCriticalHitNum，StatusTriggerType 45 是 IsFunctionOff、46 是
+          // IsCheckFunctionOverlapUp、48 是 IsCheckPosition。拿同一张暴击集合去判
+          // 状态位，会把「本组未生效」这种普通前置条件当成暴击门控——贝斯蒂：战术升级
+          // 的 209410101（statusTrigger 45 + statusValue 2094101）就是这样被剔出首槽清单的。
+          const critGated=CRITICAL_TRIGGER_IDS.has(row.trigger);
           return {...row,
             ...(critGated?{criticalGated:true}:{}),
             ...(scope?{pvpScope:scope}:{})};
@@ -151,7 +181,7 @@ export class CharacterRunner {
     const implementedRows=[
       ...this.ft61FullChargeShotRows,...this.ft12FullChargeShotRows,
       ...this.ft75HitRows,...this.ft75HurtRows,...this.ft111HurtRows,
-      ...this.ft111SpawnRows,...this.ft111FullChargeShotRows,...this.ft111UseAmmoRows,
+      ...this.ft111FullChargeShotRows,...this.ft111UseAmmoRows,
       ...this.ft111TeamAmmoRows,...this.ft111NikkeDeadRows,
       ...(cfg.onStartBuffs ?? []).filter(b=>[102,146].includes(b.ft)),
       ...(chargeRows?.ft102EndFullBurst ?? [])];
@@ -286,7 +316,7 @@ export class CharacterRunner {
         this.reloadLeft=0;
         this.aimRecovery?.finish();
         this.aiming = true;
-        this.ammo = Math.min(this.cfg.maxAmmo, this.ammo + this.perReload);
+        this.ammo = Math.min(this.liveMaxAmmo(), this.ammo + this.livePerReload());
         return { events: [{ type: 'RELOAD_DONE' }] };
       }
       // Diagnostic countdown only: completion uses the actual float accumulator
@@ -531,8 +561,9 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
     gaugeFor(r.cfg.team ?? 0); // 每个参战阵营先建槽（无命中时也在）
   }
 
-  // FT111 BurstGaugeCharge：目标出现时按 burst_energy_max 比例直接充（不经过伤害/FT102）。
-  // 来源两路：技能表自动（trigger 38 OnSpawnTarget，已证）+ 手工 burstCharges 参数。
+  // FT111 BurstGaugeCharge：按 burst_energy_max 比例直接充（不经过伤害/FT102）。
+  // 开局这条路只剩 caller 的 `burstCharges` 参数——技能表里唯一会在开局充的
+  // trigger 38 OnSpawnTarget 在竞技场没有派发源，已从分拣里摘掉（见 skills.js）。
   const ft111Charge = (cid, team, g, val, trigger, skillId, tick = 0, probability = 1,expectedOccurrences=1) => {
     const result = settleChargeEvent({kind:'direct',gauge:g,functionValue:val,probability,expectedOccurrences});
     if (result.becameReady) markReady(tick, team, g, cid, 'FT111');
@@ -541,12 +572,6 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
       creditedCharge:result.creditedCharge, dropped:result.dropped,
       source: 'FT111', trigger, skillId, probability,expectedOccurrences, probabilityMode });
   };
-  for (const r of runners) {
-    const g = gaugeFor(r.cfg.team ?? 0);
-    for (const row of r.ft111SpawnRows) {
-      if (g) ft111Charge(r.cfg.id, r.cfg.team ?? 0, g, row.value, 38, row.skill ?? row.id);
-    }
-  }
   if (burstCharges) {
     for (const [cid, val] of Object.entries(burstCharges)) {
       const r = byId.get(cid);
@@ -1078,16 +1103,20 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
     // 就是这样整条没生效的。
     const penetrationStateNodes=(program?.nodes??[]).filter(n=>n.ft===54&&
       !['Shots','SkillShots'].includes(n.durationType)&&!n.excludedBeforeFirstBurst&&!n.excludedInPvp);
+    // FT14 弹匣上限：它不改当前弹量，只改换弹后这一梭能打多少发，所以只有「换过弹」
+    // 才看得出来。但它必须进覆盖闭包，否则整张图都不会为只带 FT14 的角色建立，
+    // 效果既不进账本也不报缺口——白雪公主：纯真年代 222411001 就是这样静默丢失。
+    const ammoStateNodes=(program?.nodes??[]).filter(n=>n.ft===14&&!n.excludedBeforeFirstBurst&&!n.excludedInPvp);
     const chargeGroups=new Set(chargeSpeedNodes.map(n=>n.groupId));
     const chargeRemovers=(program?.nodes??[]).filter(n=>n.ft===164&&chargeGroups.has(String(n.value))&&!n.excludedBeforeFirstBurst&&!n.excludedInPvp);
     const observedProducers=(program?.nodes??[]).filter(n=>observedFunctionTypes.has(n.ft)&&!n.excludedBeforeFirstBurst&&!n.excludedInPvp);
     if(!program||!runner.cfg.skills?.some(row=>program.nodes.some(node=>node.id===row.id))||
-      !runner.cfg.chargeBindings?.length&&!cadenceNodes.length&&!reloadNodes.length&&!controlNodes.length&&!chargeSpeedNodes.length&&!penetrationStateNodes.length&&!observedProducers.length)continue;
+      !runner.cfg.chargeBindings?.length&&!cadenceNodes.length&&!reloadNodes.length&&!controlNodes.length&&!chargeSpeedNodes.length&&!penetrationStateNodes.length&&!ammoStateNodes.length&&!observedProducers.length)continue;
     const required=new Set(runner.chargeBindingCoverage.missing.filter(b=>b.kind==='function').map(b=>b.id));
     for(const node of cadenceNodes)required.add(node.id);
     for(const node of reloadNodes)required.add(node.id);
     for(const node of controlNodes)required.add(node.id);
-    for(const node of [...chargeSpeedNodes,...chargeRemovers,...penetrationStateNodes])required.add(node.id);
+    for(const node of [...chargeSpeedNodes,...chargeRemovers,...penetrationStateNodes,...ammoStateNodes])required.add(node.id);
     for(const node of observedProducers)required.add(node.id);
     for(const binding of [...runner.skillEntityBindings.connected,...runner.skillEntityBindings.missing]){
       required.add(binding.id);

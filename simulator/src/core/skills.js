@@ -119,15 +119,22 @@ export function rowToBuff(d) {
 /**
  * 充能相关技能行分拣（characters.json 的 skills 行，2026-11-04）。
  * 有原生证据的触发时机才接线，其余原样列出（不猜语义）：
- *   - FT111 trigger 38 OnSpawnTarget：目标出现时按 burst_energy_max×value 直接充（0x5E7A1C9）
  *   - FT111 trigger 6 OnFullChargeShot：满蓄射击时直接充；目前仅支持自身目标
  *   - FT111 trigger 3 OnUseAmmo：个人累计消耗弹药达到阈值倍数时直接充
  *   - FT102 trigger 43 OnEndFullBurst：StepFull→None 跃迁（0x5F0A14A/0x5F0A1B2）时挂载
+ *
+ * FT111 trigger 38 OnSpawnTarget **不接线**：竞技场没有"目标出现"这个事件。
+ * 客户端 `TeamContext.OnCheckPassiveSpawnTarget`（RVA 0x5F12060）的触发源是
+ * `SpotMonster` 与 `MonsterSpawnActionEndEvent`，`SpotEventType` 里也没有泛化的
+ * SpawnTarget，只有 CreateEntity / AppearedTargetMonster / MonsterSpawn / 
+ * MonsterSpawnActionEnd 这几个怪物生成路径。竞技场十名妮姬都是 `SpotObjectType.Character`，
+ * 不生成任何 SpotMonster。所以这一行落进 `unsupported`，由 `PVP_SCOPE_TRIGGERS`
+ * 记成 `arena-no-spawn`——记录在案，但不充能。
+ * 旧注释引用的 0x5E7A1C9 落在 `AddFunction` 内部，只证明充能公式，不证明派发。
  * @param {Array<{ft:number, trigger:number, id:string, skill?:string}>} skills
- * @returns {{ft111Spawn:Array, ft111FullChargeShot:Array, ft111UseAmmo:Array, ft102EndFullBurst:Array, ft75HitRows:Array, unsupported:Array<{ft:number,trigger:number,id:string}>}}
+ * @returns {{ft111FullChargeShot:Array, ft111UseAmmo:Array, ft102EndFullBurst:Array, ft75HitRows:Array, unsupported:Array<{ft:number,trigger:number,id:string}>}}
  */
 export function pickChargeRows(skills = []) {
-  const ft111Spawn = [];
   const ft111FullChargeShot = [];
   const ft111UseAmmo = [];
   const ft111TeamAmmo = [];
@@ -154,8 +161,9 @@ export function pickChargeRows(skills = []) {
     else if (s.ft === 61 && s.trigger === 6 && s.target === 1 && s.fullCount === 1 &&
       (s.durationType === 2 || s.durationType === 3) && !s.statusTrigger && !s.statusTrigger2 && !s.delayValue) ft61FullChargeShot.push(s);
     else if (s.ft === 61 && s.trigger === 1 && (s.target == null || s.target === 1) && onStartChargeConditions(s)) { /* applied by onStartBuffs */ }
-    else if (s.ft === 111 && s.trigger === 38 && (s.target == null || s.target === 1) &&
-      !s.statusTrigger && !s.statusTrigger2 && !s.delayValue) ft111Spawn.push(s);
+    // FT111 trigger 38 OnSpawnTarget 故意没有分支：竞技场没有派发源（见函数头注释），
+    // 让它落到下面的 FT111 兜底桶，进 unsupported 后由 PVP_SCOPE_TRIGGERS 记成
+    // arena-no-spawn。写一个空分支会把它从所有桶里抹掉——那正是"静默消失"的老问题。
     else if (s.ft === 111 && s.trigger === 6 && s.target === 1 && !s.statusTrigger && !s.statusTrigger2 && !s.delayValue) ft111FullChargeShot.push(s);
     else if (s.ft === 111 && s.trigger === 3 && s.target === 1 && s.triggerValue > 0 && !s.statusTrigger && !s.statusTrigger2 && !s.delayValue) ft111UseAmmo.push(s);
     else if (s.ft === 111 && s.trigger === 83 && s.target === 1 && s.triggerValue > 0 && !s.statusTrigger && !s.statusTrigger2 && !s.delayValue) ft111TeamAmmo.push(s);
@@ -185,7 +193,7 @@ export function pickChargeRows(skills = []) {
         ...(s.statusTrigger2 ? {statusTrigger2:s.statusTrigger2} : {}),
         reason: 'charge-row-' + (damageTemplate?.reason ?? 'template-not-connected') });
   }
-  return { ft111Spawn, ft111FullChargeShot, ft111UseAmmo, ft111TeamAmmo, ft111NikkeDead, ft61FullChargeShot, ft12FullChargeShot, ft102EndFullBurst, ft75HitRows, ft75HurtRows, ft111HurtRows, unsupported, excludedInPvp };
+  return { ft111FullChargeShot, ft111UseAmmo, ft111TeamAmmo, ft111NikkeDead, ft61FullChargeShot, ft12FullChargeShot, ft102EndFullBurst, ft75HitRows, ft75HurtRows, ft111HurtRows, unsupported, excludedInPvp };
 }
 
 /**

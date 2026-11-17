@@ -52,12 +52,67 @@ async function loadJson(url) {
   return dataCache.get(url);
 }
 
+/** Character data for the requested ids, borrowing the other region when needed.
+ *
+ *  Two on-disk shapes have to behave the same: the published build writes an index
+ *  (`characterFiles`) with one file per character, while the source tree keeps the
+ *  same rows inline. A team may legitimately mix rosters (a player comparing the
+ *  two clients) and the regions do not share a character list (CN 161, global 213),
+ *  so a missing id falls back to the other region's file instead of leaving
+ *  `undefined` behind — which used to take the whole calculation down.
+ *  The returned map is exact, because everything region-bound downstream (shot
+ *  profile, muzzle binding, arena model) has to follow the same source.
+ */
 async function loadCharacterData(region, resourceIds) {
-  const data = await loadJson(`/simulator/data/characters${region === 'cn' ? '.cn' : ''}.json`);
-  if (!data.characterFiles) return data;
-  const rows = await Promise.all([...new Set(resourceIds)].map(async id =>
-    [id, data.characterFiles[id] ? await loadJson(data.characterFiles[id]) : undefined]));
-  return Object.fromEntries(rows);
+  const other = region === 'cn' ? 'global' : 'cn';
+  const fileFor = r => `/simulator/data/characters${r === 'cn' ? '.cn' : ''}.json`;
+  const ids = [...new Set(resourceIds)];
+  const primary = await loadJson(fileFor(region));
+  const has = (doc, id) => (doc?.characterFiles ? !!doc.characterFiles[id] : !!doc?.[id]);
+  const read = async (doc, id) => doc?.characterFiles
+    ? (doc.characterFiles[id] ? await loadJson(doc.characterFiles[id]) : undefined)
+    : doc?.[id];
+  const missing = ids.filter(id => !has(primary, id));
+  const fallback = missing.length ? await loadJson(fileFor(other)) : null;
+  const crossRegion = new Map();
+  const rows = await Promise.all(ids.map(async id => {
+    if (has(primary, id)) return [id, await read(primary, id)];
+    if (!has(fallback, id)) return [id, undefined];
+    crossRegion.set(String(id), other);
+    return [id, await read(fallback, id)];
+  }));
+  return { db: Object.fromEntries(rows), crossRegion };
+}
+
+/** Per-region arena asset index, cached: a borrowed character needs its own one. */
+const assetIndexCache = new Map();
+async function arenaAssetIndex(region) {
+  const url = `${ASSETS}/${region === 'global' ? 'global/' : ''}out/sd_batch/index.json`;
+  if (!assetIndexCache.has(url)) assetIndexCache.set(url, await loadJson(url));
+  return assetIndexCache.get(url);
+}
+
+/** Native tables for a possibly mixed team.
+ *  Shooting physics and colliders are region-independent in these exports (the two
+ *  `native-shooting*.json` files are byte-identical across 213 weapons), so only
+ *  the character-bound layers move: a borrowed character keeps its own region's
+ *  muzzle binding and shot profile.
+ */
+async function nativeForTeam(base, { region, db, crossRegion }) {
+  let native = base;
+  if (crossRegion.size) {
+    const other = region === 'cn' ? 'global' : 'cn';
+    const borrowed = await loadJson(`/simulator/data/native-bindings${other === 'global' ? '.global' : ''}.json`);
+    const bindings = { ...base.bindings };
+    for (const id of crossRegion.keys()) {
+      const code = `c${String(id).padStart(3, '0')}`;
+      if (borrowed.characters?.[code]) bindings[code] = borrowed.characters[code];
+    }
+    native = { ...base, bindings };
+  }
+  return region === 'cn'
+    ? addCnShootingProfiles(native, db, new Set(crossRegion.keys()))
+    : native;
 }
 
 function slotInput(character, positionIndex, teamKey, team) {
@@ -91,17 +146,26 @@ function snapshot(contexts={}) {
   };
 }
 
-function configuredActor(input, side, db, resourceIds) {
+function configuredActor(input, side, db, resourceIds, crossRegion, notes) {
   const resourceId = resourceIds.get(String(input.character.id));
   const source = db[resourceId];
   if (!source) throw new Error(`${input.character.name} 缺少${side.region === 'cn' ? '国服' : '国际服'}V2原始数据`);
   const code = `c${resourceId.padStart(3, '0')}`;
+  // A character the current client does not ship is computed from the other
+  // region's own files (data, shot profile, muzzle binding, arena model). Its
+  // numbers are that client's numbers, so the result has to say so.
+  const assetRegion = crossRegion.get(String(resourceId)) ?? side.region;
+  if (assetRegion !== side.region) {
+    notes?.push(`${input.character.name} 不在${side.region === 'cn' ? '国服' : '国际服'}，按${assetRegion === 'cn' ? '国服' : '国际服'}数据计算`);
+  }
   const treasure = /珍藏$/.test(input.character.name);
   const config = {
     ...toRunnerConfig(source, { treasure, treasurePhase: input.treasurePhase, hasPresentation: true, presentationKind: 'sd' }),
     id: `${side.key}-${input.positionIndex}`, assetCode: code, resourceId,
     slotIndex: input.positionIndex, team: side.key === 'attack' ? 0 : 1,
     skillMissingRankingPolicy: 'current-target',
+    assetRegion,
+    ...(assetRegion !== side.region ? { crossRegion: assetRegion } : {}),
   };
   const percentages = input.entries.filter(value => Number(value) > 0).map(Number);
   if (percentages.length || !(input.character.chargeSpeedPercent > 0)) {
@@ -149,7 +213,7 @@ async function calculate(input) {
     return loadCharacterData(input.region, master.linked.filter(row => ids.has(String(row.legacyId)))
       .map(row => String(Number(row.gameCharacterId))));
   });
-  const [db, shooting, bindings, colliders, index, master, arena] = await Promise.all([
+  const [{ db, crossRegion }, shooting, bindings, colliders, index, master, arena] = await Promise.all([
     dbPromise,
     loadJson(`/simulator/data/native-shooting${input.region === 'global' ? '.global' : ''}.json`),
     loadJson(`/simulator/data/native-bindings${input.region === 'global' ? '.global' : ''}.json`),
@@ -159,25 +223,40 @@ async function calculate(input) {
   ]);
   const resourceIds = new Map(master.linked.map(row => [String(row.legacyId), String(Number(row.gameCharacterId))]));
   const merged = mergeNativeData(shooting, bindings, colliders);
-  const native = input.region === 'cn' ? addCnShootingProfiles(merged, db) : merged;
+  const native = await nativeForTeam(merged, { region: input.region, db, crossRegion });
   const actors = [];
   const burstCharges = {};
+  const notes = { attack: [], defense: [] };
+  const emptyActor = (key, position) => ({
+    character: null,
+    config: { id: `${key}-${position}`, team: key === 'attack' ? 0 : 1, slotIndex: position,
+      calculationTarget: true, weaponType: 'None', inputType: 1, rateOfFire: 0,
+      initialAcc: 0, maxAmmo: 0, fireType: 1, burstEnergyBp: 0, skills: [] },
+  });
   for (const key of ['attack', 'defense']) {
     for (let position = 0; position < 5; position++) {
       const slot = input[key][position];
-      const actor = slot ? configuredActor(slot, { key, region: input.region }, db, resourceIds) : {
-        character: null,
-        config: { id: `${key}-${position}`, team: key === 'attack' ? 0 : 1, slotIndex: position,
-          calculationTarget: true, weaponType: 'None', inputType: 1, rateOfFire: 0,
-          initialAcc: 0, maxAmmo: 0, fireType: 1, burstEnergyBp: 0, skills: [] },
-      };
+      let actor;
+      if (!slot) actor = emptyActor(key, position);
+      else {
+        // One unusable slot must not cost the other four their timeline: build it
+        // as an empty slot and say why. This also covers a character that is in
+        // neither region's export.
+        try { actor = configuredActor(slot, { key, region: input.region }, db, resourceIds, crossRegion, notes[key]); }
+        catch (error) {
+          actor = emptyActor(key, position);
+          notes[key].push(`${slot.character.name} 无法参与计算：${error.message}`);
+        }
+      }
       actors.push(actor);
       if (!slot && input.universal[key][position] > 0)
         burstCharges[actor.config.id] = Math.round(input.universal[key][position] * 100);
     }
   }
   const models = new Map(await Promise.all(actors.filter(actor => actor.character && ![1,19,21].includes(actor.config.fireType)).map(async actor =>
-    [actor.config.id, await loadModel(actor.config.assetCode, index, input.region)])));
+    [actor.config.id, await loadModel(actor.config.assetCode,
+      actor.config.assetRegion && actor.config.assetRegion !== input.region ? await arenaAssetIndex(actor.config.assetRegion) : index,
+      actor.config.assetRegion ?? input.region)])));
   const passiveEvents=[];
   for(const key of ['attack','defense']){
     const members=actors.filter(actor=>actor.config.team===(key==='attack'?0:1)&&actor.character);
@@ -195,14 +274,21 @@ async function calculate(input) {
   }
   const calculator = await createArenaCalculator({ arena, characters: actors.map(actor => actor.config), native, models });
   const activeTeams = [...new Set(actors.filter(actor => actor.character).map(actor => actor.config.team))];
-  const calculation = calculator.calculate({ totalTicks: 5006, seed: 1, burstCharges, stopWhenTeamsReady: activeTeams,
-    passiveEvents:passiveEvents.filter(event=>event.tick<=5006) });
+  // `simulateBurst` 的 options.continueUntilFrame 折成上限；其余入口不带这个字段。
+  const totalTicks = Number.isInteger(input.totalTicks) && input.totalTicks > 0 ? input.totalTicks : 5006;
+  const calculation = calculator.calculate({ totalTicks, seed: 1, burstCharges, stopWhenTeamsReady: activeTeams,
+    passiveEvents:passiveEvents.filter(event=>event.tick<=totalTicks) });
   const sequence = (members, frame) => getBurstSequence(members).map((entry, index) =>
     ({ ...entry, frame: getBurstStageFrame(frame, index + 1, input.region) }));
   const result = {
     attackResult: projectSiteTeam(calculation, actors, 'attack', sequence),
     defenseResult: projectSiteTeam(calculation, actors, 'defense', sequence),
   };
+  for (const key of ['attack', 'defense']) {
+    const team = key === 'attack' ? result.attackResult : result.defenseResult;
+    if (!team || !notes[key].length) continue;
+    team.warning = [...new Set(notes[key])].join('；');
+  }
   lastCalculation = { input, calculation, result };
   return result;
 }
@@ -244,10 +330,92 @@ async function readyResults(input=snapshot()) {
 
 globalThis.computeBattleResults = () => isPaidArenaModeActive()
   ? computePaidArenaBattleResultsForRow() : requestResults();
-// These old chart helpers derive skill effects from legacy rules. V2 skill
-// contributions already arrive in the projected native event stream.
-globalThis.getScarletCounterGroups = () => [];
-globalThis.getJackalLinkGroups = () => [];
+// The chart asks for two extra rows. V1 derived them from its own rules; V2 already
+// puts both into the native event stream, so these read the same events the chart
+// is showing instead of re-deriving anything.
+//   · 红莲反击: an FT75 OnHurtRatio row. `probabilityMode` is `expected` for the
+//     site calculation, so each event already carries probability × charge — the
+//     expected value, not a sampled roll.
+//   · 豺狼链接: sharing damage out is not a charge source of its own. Each linked
+//     member still charges from being hit (and a linked 红莲 counter-attacks like
+//     any other hit she takes), and that shows on that member's own row. This row
+//     only marks the frames the link was live, so its charge stays 0.
+const frameOfTick = tick => Math.max(0, (tick - 6) * 2);
+function chargeTemplateTriggers(calculation, pattern) {
+  return new Set((calculation.result.chargeTemplates ?? [])
+    .filter(row => pattern.test(row.trigger?.name ?? ''))
+    .map(row => String(row.skillId)));
+}
+function teamCounterGroups(chartResults, build) {
+  const calculation = lastCalculation?.calculation;
+  if (!calculation) return [];
+  return chartResults.flatMap(item => {
+    const teamKey = item.teamKey;
+    return build({ item, teamKey, calculation, members: item.result?.members ?? [] })
+      .filter(group => group && group.timeline.length > 0);
+  });
+}
+globalThis.getScarletCounterGroups = chartResults => {
+  if (!lastCalculation?.calculation) return [];
+  const hurtSkillIds = chargeTemplateTriggers(lastCalculation.calculation, /Hurt|Cover/);
+  return teamCounterGroups(chartResults, ({ teamKey, calculation, members }) => {
+    const gaugeMax = calculation.result.gaugeMax || 1;
+    return members.map(member => {
+      // `counterEnabled` only exists for the character V1 flagged as 红莲; a
+      // switched-off counter drops her hurt rows in the driver, so there is
+      // nothing to show either.
+      const slot = lastCalculation.input?.[teamKey]?.[member.positionIndex];
+      if (!slot || slot.counterEnabled !== true) return null;
+      const actorId = `${teamKey}-${member.positionIndex}`;
+      const events = (calculation.simulation?.events ?? []).filter(event =>
+        event.id === actorId && event.skillId && hurtSkillIds.has(String(event.skillId)) &&
+        (event.contacts?.length ?? 0) > 0);
+      if (!events.length) return null;
+      const chargeOf = event => (event.charge ?? 0) / gaugeMax * 100;
+      let cumulativeCharge = 0;
+      const timeline = events.map(event => {
+        const charge = chargeOf(event);
+        cumulativeCharge += charge;
+        return {
+          frame: frameOfTick(event.tick),
+          triggerCount: event.expectedOccurrences ?? 1,
+          triggerSources: [],
+          charge,
+          cumulativeCharge,
+        };
+      });
+      return {
+        teamKey, groupKey: `${teamKey}-scarlet-counter-${member.positionIndex}`,
+        label: '红莲反击', type: 'scarletCounter', member,
+        chargePerCounter: chargeOf(events[0]), timeline,
+      };
+    });
+  });
+};
+globalThis.getJackalLinkGroups = chartResults => {
+  return teamCounterGroups(chartResults, ({ teamKey, calculation, members }) => {
+    const link = lastCalculation.input?.links?.[teamKey];
+    if (!link?.enabled || !link.ownerId) return [];
+    const linked = new Set([link.ownerId, ...(link.targetIds ?? [])].map(String));
+    const owner = members.find(member => member.character && linked.has(String(member.character.id)) &&
+      String(member.character.id) === String(link.ownerId));
+    if (!owner) return [];
+    // 谁挨打都算链接在分摊，所以按组内任成员的命中事件取帧。
+    const linkedActorIds = new Set(members
+      .filter(member => member.character && linked.has(String(member.character.id)))
+      .map(member => `${teamKey}-${member.positionIndex}`));
+    const frames = [...new Set((calculation.simulation?.events ?? [])
+      .filter(event => event.type === 'HIT' && linkedActorIds.has(event.id) && (event.contacts?.length ?? 0) > 0)
+      .map(event => frameOfTick(event.tick)))].sort((a, b) => a - b);
+    const timeline = frames.map(frame => ({ frame, stageStartFrame: frame, stageEndFrame: frame,
+      hitCount: 0, accumulatedHits: 0, triggerHitCount: 0, triggerSources: [], triggerCount: 0,
+      charge: 0, cumulativeCharge: 0 }));
+    return [{
+      teamKey, groupKey: `${teamKey}-jackal-link-${owner.positionIndex}`,
+      label: '豺狼链接', type: 'jackalLink', member: owner, chargePerLink: 0, timeline,
+    }];
+  });
+};
 const originalChartMarkup = globalThis.getChargeChartMarkup;
 globalThis.getChargeChartMarkup = function (attack, gutter, defense, chartSize) {
   const messages = [attack, defense].filter(Boolean).flatMap(result => [
@@ -269,9 +437,36 @@ globalThis.computePaidArenaBattleResultsForRow = function (rowIndex = state.paid
 globalThis.getPaidArenaChartResultForTeam = function (teamKey, rowIndex) {
   return computePaidArenaBattleResultsForRow(rowIndex)[teamKey === 'defense' ? 'defenseResult' : 'attackResult'];
 };
-globalThis.simulateBurst = function (team, teamKey = 'attack') {
+/** 站点 V1 的 `simulateBurst` 有 12 个参数（`app.js:6438`）。V1 是「一次算一队」的
+ *  帧排布模型，所以外部要把对手的换弹/闪避/嘲讽时间轴、开局眩晕窗口、被动充能
+ *  事件一轮轮喂回去收敛。V2 双方同时逐帧模拟，这些东西由原生技能和射击自己产生，
+ *  再喂一遍会重复计算。所以签名全接、能映射的映射、其余显式丢弃——不再让调用方
+ *  以为传了就生效。
+ *
+ *  真生效的四个：
+ *    opponentTeam            覆盖对侧队伍（不再依赖 snapshot 恰好读到同一份 state）
+ *    universalChargeOverride 覆盖本队空位的万能充能
+ *    sacrificeFrameOverride  覆盖本队献祭帧
+ *    options.continueUntilFrame 折算成本次计算时长上限
+ */
+globalThis.simulateBurst = function (team, teamKey = 'attack',
+  specialChargeEvents = [], opponentReloadTimeline = [], opponentTurnDodgeTimeline = [],
+  stunWindows = [], opponentTauntTarget = null, universalChargeOverride = null,
+  opponentTeam = [], sacrificeFrameOverride = null, stunDodgeEvents = [], options = {}) {
   const input = snapshot();
   input[teamKey] = team.map((character, index) => slotInput(character, index, teamKey, team));
+  const otherKey = teamKey === 'defense' ? 'attack' : 'defense';
+  if (Array.isArray(opponentTeam) && opponentTeam.length)
+    input[otherKey] = opponentTeam.map((character, index) => slotInput(character, index, otherKey, opponentTeam));
+  if (Array.isArray(universalChargeOverride)) input.universal[teamKey] = [...universalChargeOverride];
+  if (Array.isArray(sacrificeFrameOverride)) input.sacrifices[teamKey] = [...sacrificeFrameOverride];
+  const untilFrame = Number(options?.continueUntilFrame);
+  if (Number.isFinite(untilFrame) && untilFrame > 0)
+    input.totalTicks = Math.min(5006, Math.ceil(untilFrame / 2) + 6);
+  // V1 的迭代中间产物，V2 由原生模拟接管（见上）。列出来是为了让读者一眼看到
+  // 「这 6 个确实被考虑过」，而不是漏了。
+  void specialChargeEvents; void opponentReloadTimeline; void opponentTurnDodgeTimeline;
+  void stunWindows; void opponentTauntTarget; void stunDodgeEvents;
   return requestResults(input)[teamKey === 'defense' ? 'defenseResult' : 'attackResult'];
 };
 globalThis.simulatePaidArenaBurst = function (team, chargeSpeeds, universalCharges, sacrificeFrames,
@@ -311,7 +506,7 @@ globalThis.createSlotSettingsModal=function(){
   loadJson('/src/data/character-assets.master.json').then(async master=>{
     if(!backdrop.isConnected)return;
     const resource=master.linked.find(row=>String(row.legacyId)===String(character.id));
-    const db=await loadCharacterData(region,[String(Number(resource?.gameCharacterId))]);
+    const { db } = await loadCharacterData(region,[String(Number(resource?.gameCharacterId))]);
     if(!backdrop.isConnected)return;
     const phases=db[String(Number(resource?.gameCharacterId))]?.treasurePhases??[];
     if(!phases.length)return;
