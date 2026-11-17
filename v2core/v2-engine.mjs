@@ -7,6 +7,7 @@ import { addCnShootingProfiles } from '../simulator/src/stage/cn-roster.js';
 import { createArenaCalculator } from '../simulator/src/calculator/arena-calculator.js';
 import { projectSiteTeam } from './v2-result.mjs';
 import { cloneCalculationModel } from './v2-model.mjs';
+import { buildJackalLinkTimeline } from './v2-link-groups.mjs';
 
 await globalThis.__NIKKE_CHARACTER_DATA_READY__;
 
@@ -358,10 +359,10 @@ globalThis.computeBattleResults = () => isPaidArenaModeActive()
 //   · 红莲反击: an FT75 OnHurtRatio row. `probabilityMode` is `expected` for the
 //     site calculation, so each event already carries probability × charge — the
 //     expected value, not a sampled roll.
-//   · 豺狼链接: sharing damage out is not a charge source of its own. Each linked
-//     member still charges from being hit (and a linked 红莲 counter-attacks like
-//     any other hit she takes), and that shows on that member's own row. This row
-//     only marks the frames the link was live, so its charge stays 0.
+//   · 豺狼链接: 就是「被攻击 N 次」那条原生技能（豺狼是 FT72 / OnHurtCount /
+//     阈值 10 → 1111110）。V1 用自己的一套累计模型画这一行；V2 不另算一遍，
+//     直接读驱动真正派发出来的充能事件，把它显示成「连接触发」。
+//     分摊本身没有充能点，所以链接只负责把受击次数攒起来，充能来自这条技能。
 const frameOfTick = tick => Math.max(0, (tick - 6) * 2);
 function chargeTemplateTriggers(calculation, pattern) {
   return new Set((calculation.result.chargeTemplates ?? [])
@@ -422,19 +423,17 @@ globalThis.getJackalLinkGroups = chartResults => {
     const owner = members.find(member => member.character && linked.has(String(member.character.id)) &&
       String(member.character.id) === String(link.ownerId));
     if (!owner) return [];
-    // 谁挨打都算链接在分摊，所以按组内任成员的命中事件取帧。
-    const linkedActorIds = new Set(members
-      .filter(member => member.character && linked.has(String(member.character.id)))
-      .map(member => `${teamKey}-${member.positionIndex}`));
-    const frames = [...new Set((calculation.simulation?.events ?? [])
-      .filter(event => event.type === 'HIT' && linkedActorIds.has(event.id) && (event.contacts?.length ?? 0) > 0)
-      .map(event => frameOfTick(event.tick)))].sort((a, b) => a - b);
-    const timeline = frames.map(frame => ({ frame, stageStartFrame: frame, stageEndFrame: frame,
-      hitCount: 0, accumulatedHits: 0, triggerHitCount: 0, triggerSources: [], triggerCount: 0,
-      charge: 0, cumulativeCharge: 0 }));
+    const built = buildJackalLinkTimeline({
+      events: calculation.simulation?.events ?? [],
+      gaugeMax: calculation.result?.gaugeMax || 1,
+      ownerActorId: `${teamKey}-${owner.positionIndex}`,
+      members, teamKey,
+    });
+    if (!built) return [];
     return [{
       teamKey, groupKey: `${teamKey}-jackal-link-${owner.positionIndex}`,
-      label: '豺狼链接', type: 'jackalLink', member: owner, chargePerLink: 0, timeline,
+      label: '豺狼链接', type: 'jackalLink', member: owner,
+      chargePerLink: built.chargePerLink, timeline: built.timeline,
     }];
   });
 };

@@ -783,6 +783,14 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
           const before=Math.floor(victim.hurtCount);
           victim.hurtCount+=weight;
           const after=Math.floor(victim.hurtCount);
+          // 站点要按「谁打了几次、攒到几次触发」展示受击计数（豺狼链接那一行），
+          // 所以只有真有 OnHurtCount 根的受击者才记这份流水，其他角色不产生多余事件。
+          if(victim.watchesHurtCount===undefined)
+            victim.watchesHurtCount=(victim.functionProgram?.roots??[])
+              .some(node=>node.trigger==='OnHurtCount'&&!node.excludedBeforeFirstBurst);
+          if(victim.watchesHurtCount)
+            events.push({tick:t,type:'HURT_COUNT',id:contact.id,team:victim.cfg.team??0,
+              count:victim.hurtCount,weight,attackerId:r?.cfg?.id??null});
           for(let count=before+1;count<=after;count++)
             victim.functionProgram?.dispatch({type:'OnHurtCount',tick:t,count,
               target:participant(victim),triggerTarget:participant(r)});
