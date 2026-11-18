@@ -208,16 +208,25 @@ function configuredActor(input, side, db, resourceIds, crossRegion, notes, skill
 
 async function loadModel(code, index, region) {
   const entry = index.characters.find(character => character.code === code) ?? {file:`${code}_00.glb`};
-  const url = `${ASSETS}/${region === 'global' ? 'global/' : ''}out/sd_batch/${entry.file}`;
-  if (!modelCache.has(url)) modelCache.set(url, fetch(url).then(response => {
-    if (!response.ok) throw new Error(`V2模型加载失败 ${response.status} ${code}`);
-    return response.arrayBuffer();
-  }).then(bytes => {
-    const loader = new GLTFLoader();
-    loader.register(() => ({ name: 'calculation_no_texture_decode', loadTexture: () => Promise.resolve(new Texture()) }));
-    return loader.parseAsync(bytes, '');
-  }).catch(error => { modelCache.delete(url); throw error; }));
-  const template = await modelCache.get(url);
+  // 国服的 sd_batch 是分批交付的，新角色往往只有国际服那一份模型；同一个角色的
+  // 两区模型是同一套资源，缺国服文件时退回国际服路径，别让一次 404 把整次计算
+  // 判死。两条都没有才抛，由调用方把该角色降级成空位。
+  const candidates = region === 'global' ? [`${ASSETS}/global/out/sd_batch/${entry.file}`]
+    : [`${ASSETS}/out/sd_batch/${entry.file}`, `${ASSETS}/global/out/sd_batch/${entry.file}`];
+  const cacheKey = `${region}:${code}:${entry.file}`;
+  if (!modelCache.has(cacheKey)) modelCache.set(cacheKey, (async () => {
+    let lastError = null;
+    for (const url of candidates) {
+      const response = await fetch(url);
+      if (!response.ok) { lastError = new Error(`V2模型加载失败 ${response.status} ${code}`); continue; }
+      const bytes = await response.arrayBuffer();
+      const loader = new GLTFLoader();
+      loader.register(() => ({ name: 'calculation_no_texture_decode', loadTexture: () => Promise.resolve(new Texture()) }));
+      return loader.parseAsync(bytes, '');
+    }
+    throw lastError ?? new Error(`V2模型加载失败 ${code}`);
+  })().catch(error => { modelCache.delete(cacheKey); throw error; }));
+  const template = await modelCache.get(cacheKey);
   return cloneCalculationModel(template);
 }
 
@@ -276,10 +285,22 @@ async function calculate(input) {
         burstCharges[actor.config.id] = Math.round(input.universal[key][position] * 100);
     }
   }
-  const models = new Map(await Promise.all(actors.filter(actor => actor.character && ![1,19,21].includes(actor.config.fireType)).map(async actor =>
-    [actor.config.id, await loadModel(actor.config.assetCode,
-      actor.config.assetRegion && actor.config.assetRegion !== input.region ? await arenaAssetIndex(actor.config.assetRegion) : index,
-      actor.config.assetRegion ?? input.region)])));
+  // 逐个加载模型，失败只降级这一个角色：把它换成空位并记一条提示。以前这里是
+  // Promise.all 直接抛，一个角色缺模型就会让整次 calculate 失败，两个队的结果都
+  // 变成错误文本，图表被顶掉——用户看到的就是「图表没了」。
+  const models = new Map();
+  await Promise.all(actors.filter(actor => actor.character && ![1,19,21].includes(actor.config.fireType)).map(async actor => {
+    const assetRegion = actor.config.assetRegion ?? input.region;
+    const modelIndex = actor.config.assetRegion && actor.config.assetRegion !== input.region
+      ? await arenaAssetIndex(actor.config.assetRegion) : index;
+    try {
+      models.set(actor.config.id, await loadModel(actor.config.assetCode, modelIndex, assetRegion));
+    } catch (error) {
+      const key = actor.config.team === 0 ? 'attack' : 'defense';
+      notes[key].push(`${actor.character.name} 的 SD 模型缺失（${error.message}），本次不参与计算`);
+      actors[actors.indexOf(actor)] = emptyActor(key, actor.config.slotIndex);
+    }
+  }));
   const passiveEvents=[];
   for(const key of ['attack','defense']){
     const members=actors.filter(actor=>actor.config.team===(key==='attack'?0:1)&&actor.character);
