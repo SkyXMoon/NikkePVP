@@ -74,7 +74,7 @@ const FRONTEND_ADMIN_EMAILS = new Set(["307919309@qq.com"]);
 const CHARACTER_DETAIL_LONG_PRESS_DELAY_MS = 550;
 const CHARACTER_DETAIL_ASSET_TIMEOUT_MS = 3500;
 const CHARACTER_DETAIL_LEVEL_MAX = 1400;
-const APP_VERSION = "V1.80.1137";
+const APP_VERSION = "V1.80.1138";
 let arcaWorkspace=null,arcaWorkspacePromise=null;
 let privateHelpClientPromise=null;
 let pendingPrivateHelpOptions=null;
