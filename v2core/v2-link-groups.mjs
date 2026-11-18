@@ -85,3 +85,55 @@ export function buildJackalLinkTimeline({ events = [], gaugeMax = 1, ownerActorI
   if (!timeline.length) return null;
   return { chargePerLink: chargeEvents.length ? percentOf(chargeEvents[0]) : 0, timeline };
 }
+
+/**
+ * 红莲反击那一行。
+ *
+ * V1 是展示层模型：每被命中一次，按 0.3 概率获得「一次普攻」的充能。原生数据里
+ * c225 这条被动是伤害行（FT72 × 3），不是充能行，驱动不会为它派发充能事件，所以
+ * 这里按 V1 的口径补算。调用方若拿到原生派发的同一条充能，应优先用原生事件，
+ * 不要两边都算——那正是「同一笔充能在两行各画一次」的来源。
+ *
+ * `positions` 是「算作被她挨打」的站位集合：她单独站着就只算自己；在豺狼链接里
+ * 就整组算，与 V1 的 getJackalLinkedHitCount 同一条口径。
+ */
+export const SCARLET_COUNTER_PROBABILITY = 0.3;
+
+export function buildScarletCounterTimeline({ events = [], gaugeMax = 1, team, positions = [], unit = 0, nameOf = () => null }) {
+  if (!(unit > 0)) return null;
+  const frameOfTick = tick => Math.max(0, (tick - 6) * 2);
+  const targets = new Set(positions);
+  const chargePerCounter = unit / gaugeMax * 100 * SCARLET_COUNTER_PROBABILITY;
+  const timeline = events
+    .filter(event => event.type === 'HIT' && Number.isFinite(event.team) && event.team !== team)
+    .map(event => {
+      let triggerCount = 0;
+      const sources = new Map();
+      for (const contact of event.contacts ?? []) {
+        const position = positionOf(contact.id);
+        if (!targets.has(position)) continue;
+        // 站点默认按期望算，命中概率就是这一击的权重。
+        const weight = contact.probability ?? 1;
+        if (!(weight > 0)) continue;
+        triggerCount += weight;
+        const key = String(event.id);
+        const source = sources.get(key) ?? { frame: frameOfTick(event.tick),
+          attackerPositionIndex: positionOf(event.id), characterName: nameOf(event.id), hits: [] };
+        source.hits.push({ positionIndex: position, hitCount: weight });
+        sources.set(key, source);
+      }
+      if (!(triggerCount > 0)) return null;
+      return { frame: frameOfTick(event.tick), triggerCount, triggerSources: [...sources.values()],
+        charge: chargePerCounter * triggerCount };
+    })
+    .filter(Boolean);
+  if (!timeline.length) return null;
+  let cumulativeCharge = 0;
+  return {
+    chargePerCounter,
+    timeline: timeline.map(entry => {
+      cumulativeCharge += entry.charge;
+      return { ...entry, cumulativeCharge };
+    }),
+  };
+}

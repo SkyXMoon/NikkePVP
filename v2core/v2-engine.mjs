@@ -7,7 +7,7 @@ import { addCnShootingProfiles } from '../simulator/src/stage/cn-roster.js';
 import { createArenaCalculator } from '../simulator/src/calculator/arena-calculator.js';
 import { projectSiteTeam, specialChargeRows } from './v2-result.mjs';
 import { cloneCalculationModel } from './v2-model.mjs';
-import { buildJackalLinkTimeline } from './v2-link-groups.mjs';
+import { buildJackalLinkTimeline, buildScarletCounterTimeline } from './v2-link-groups.mjs';
 
 await globalThis.__NIKKE_CHARACTER_DATA_READY__;
 
@@ -428,10 +428,43 @@ function teamCounterGroups(chartResults, build) {
       .filter(group => group && group.timeline.length > 0);
   });
 }
+// 红莲反击：V1 是展示层模型——每次被命中按 0.3 概率拿到「一次普攻」的充能。
+// 原生数据里 c225 这条被动是伤害行（FT72 × 3），不是充能行，驱动不会为它派发充能
+// 事件，所以 V2 这里只能沿用 V1 的口径补算，数值与 V1 同源。
+// 如果将来原生真的派发了同一条充能（hurtSkillIds 命中），就用原生事件，不重复补算。
+/** 一次普攻的充能（与 gaugeMax 同单位）。取众数，避开首槽/暴击这类单次异常。 */
+function plainChargeUnit(calculation, team, actorId) {
+  const rows = calculation.result.teams.find(row => row.team === team)?.timeline ?? [];
+  const counts = new Map();
+  for (const row of rows) {
+    if (row.actorId !== actorId || row.skillId || !(row.generatedCharge > 0)) continue;
+    counts.set(row.generatedCharge, (counts.get(row.generatedCharge) ?? 0) + 1);
+  }
+  let best = 0;
+  let bestCount = 0;
+  for (const [value, count] of counts) if (count > bestCount) { best = value; bestCount = count; }
+  return best;
+}
+
+/** 红莲在豺狼链接里时，受击按整组算——与 V1 的 getJackalLinkedHitCount 同一条口径。 */
+function counterTargetPositions(teamKey, member, members) {
+  const fallback = new Set([member.positionIndex]);
+  const link = lastCalculation.input?.links?.[teamKey];
+  if (!link?.enabled || !link.ownerId) return fallback;
+  const ids = new Set([String(link.ownerId), ...(link.targetIds ?? []).map(String)]);
+  if (!ids.has(String(member.character?.id))) return fallback;
+  const positions = members.filter(entry => entry.character && ids.has(String(entry.character.id)))
+    .map(entry => entry.positionIndex);
+  return positions.length ? new Set(positions) : fallback;
+}
+
 globalThis.getScarletCounterGroups = chartResults => {
   if (!lastCalculation?.calculation) return [];
   const hurtSkillIds = chargeTemplateTriggers(lastCalculation.calculation, /Hurt|Cover/);
+  const nameOf = id => (lastCalculation.actors ?? [])
+    .find(actor => actor.config.id === String(id))?.character?.name ?? null;
   return teamCounterGroups(chartResults, ({ teamKey, calculation, members }) => {
+    const team = teamKey === 'attack' ? 0 : 1;
     const gaugeMax = calculation.result.gaugeMax || 1;
     return members.map(member => {
       // `counterEnabled` only exists for the character V1 flagged as 红莲; a
@@ -440,27 +473,41 @@ globalThis.getScarletCounterGroups = chartResults => {
       const slot = lastCalculation.input?.[teamKey]?.[member.positionIndex];
       if (!slot || slot.counterEnabled !== true) return null;
       const actorId = `${teamKey}-${member.positionIndex}`;
-      const events = (calculation.simulation?.events ?? []).filter(event =>
+      const native = (calculation.simulation?.events ?? []).filter(event =>
         event.id === actorId && event.skillId && hurtSkillIds.has(String(event.skillId)) &&
         (event.contacts?.length ?? 0) > 0);
-      if (!events.length) return null;
-      const chargeOf = event => (event.charge ?? 0) / gaugeMax * 100;
-      let cumulativeCharge = 0;
-      const timeline = events.map(event => {
-        const charge = chargeOf(event);
-        cumulativeCharge += charge;
-        return {
-          frame: frameOfTick(event.tick),
-          triggerCount: event.expectedOccurrences ?? 1,
-          triggerSources: [],
-          charge,
-          cumulativeCharge,
-        };
-      });
+      let chargePerCounter;
+      let timeline;
+      if (native.length) {
+        let cumulativeCharge = 0;
+        chargePerCounter = (native[0].charge ?? 0) / gaugeMax * 100;
+        timeline = native.map(event => {
+          const charge = (event.charge ?? 0) / gaugeMax * 100;
+          cumulativeCharge += charge;
+          return {
+            frame: frameOfTick(event.tick),
+            triggerCount: event.expectedOccurrences ?? 1,
+            triggerSources: [],
+            charge, cumulativeCharge,
+          };
+        });
+      } else {
+        const built = buildScarletCounterTimeline({
+          events: calculation.simulation?.events ?? [],
+          gaugeMax, team,
+          positions: [...counterTargetPositions(teamKey, member, members)],
+          unit: plainChargeUnit(calculation, team, actorId),
+          nameOf,
+        });
+        if (!built) return null;
+        chargePerCounter = built.chargePerCounter;
+        timeline = built.timeline;
+      }
+      if (!timeline.length) return null;
       return {
         teamKey, groupKey: `${teamKey}-scarlet-counter-${member.positionIndex}`,
         label: '红莲反击', type: 'scarletCounter', member,
-        chargePerCounter: chargeOf(events[0]), timeline,
+        chargePerCounter, timeline,
       };
     });
   });
