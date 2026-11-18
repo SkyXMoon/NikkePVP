@@ -1,4 +1,4 @@
-const NIKKE_CHARACTER_CORE_DATA_VERSION = "598e7515f3d0";
+const NIKKE_CHARACTER_CORE_DATA_VERSION = "f296db87e594";
 const NIKKE_CHARACTER_ASSETS_DATA_VERSION = "1cec03d35ecc";
 
 globalThis.__NIKKE_CHARACTER_DATA_READY__ = import(`./modules/generated-character-core-data.js?v=${encodeURIComponent(NIKKE_CHARACTER_CORE_DATA_VERSION)}`)
