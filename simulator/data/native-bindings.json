@@ -795,6 +795,16 @@
     "aim_start": 2.0
    }
   },
+  "c240": {
+   "bundle": "719f89aec3201f4ba8efb673a89c6918",
+   "muzzles": [
+    "c240_00_var/Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Prop1/socket_rifle"
+   ],
+   "stateSpeeds": {
+    "aim_end": 2.0,
+    "aim_start": 2.0
+   }
+  },
   "c241": {
    "bundle": "1d5f1f536883a2065a4f447102fe5f60",
    "muzzles": [
