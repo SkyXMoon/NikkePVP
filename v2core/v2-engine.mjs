@@ -5,7 +5,7 @@ import { groupByValue } from '../simulator/src/core/stat.js';
 import { mergeNativeData } from '../simulator/src/stage/native-data.js';
 import { addCnShootingProfiles } from '../simulator/src/stage/cn-roster.js';
 import { createArenaCalculator } from '../simulator/src/calculator/arena-calculator.js';
-import { projectSiteTeam } from './v2-result.mjs';
+import { projectSiteTeam, specialChargeRows } from './v2-result.mjs';
 import { cloneCalculationModel } from './v2-model.mjs';
 import { buildJackalLinkTimeline } from './v2-link-groups.mjs';
 
@@ -351,16 +351,18 @@ async function calculate(input) {
     passiveEvents:passiveEvents.filter(event=>event.tick<=totalTicks) });
   const sequence = (members, frame) => getBurstSequence(members).map((entry, index) =>
     ({ ...entry, frame: getBurstStageFrame(frame, index + 1, input.region) }));
+  // 豺狼链接这类「独立一行」的充能：原生技能派发，但不在成员行画（与 V1 一致）。
+  const specialRows = specialChargeRows(calculation, input, actors);
   const result = {
-    attackResult: projectSiteTeam(calculation, actors, 'attack', sequence),
-    defenseResult: projectSiteTeam(calculation, actors, 'defense', sequence),
+    attackResult: projectSiteTeam(calculation, actors, 'attack', sequence, { specialRows }),
+    defenseResult: projectSiteTeam(calculation, actors, 'defense', sequence, { specialRows }),
   };
   for (const key of ['attack', 'defense']) {
     const team = key === 'attack' ? result.attackResult : result.defenseResult;
     if (!team || !notes[key].length) continue;
     team.warning = [...new Set(notes[key])].join('；');
   }
-  lastCalculation = { input, calculation, result };
+  lastCalculation = { input, calculation, result, actors };
   return result;
 }
 
@@ -475,6 +477,10 @@ globalThis.getJackalLinkGroups = chartResults => {
       events: calculation.simulation?.events ?? [],
       gaugeMax: calculation.result?.gaugeMax || 1,
       ownerActorId: `${teamKey}-${owner.positionIndex}`,
+      // 打人的人是敌方，名字必须从双方演员表里取；用本队 members 兜底会把
+      // 敌方 P1 显示成本队 P1，玩家看到的「谁打的」就全是自己人。
+      nameOf: id => (lastCalculation.actors ?? [])
+        .find(actor => actor.config.id === String(id))?.character?.name ?? null,
       members, teamKey,
     });
     if (!built) return [];

@@ -35,8 +35,22 @@ export async function bindNativeMuzzles(glb, binding) {
   nodes.forEach((n,i)=>(n.children??[]).forEach(c=>parents.set(c,i)));
   const path=i=>parents.has(i)?`${path(parents.get(i))}/${nodes[i].name}`:nodes[i].name;
   const paths=nodes.map((_,i)=>path(i));
+  // 同一角色的不同皮肤共用一套骨架与 socket 名，路径里只有皮肤号
+  // （cXXX_NN_var）不同，而且导出时根节点外层常多一层 cXXX_NN_root。绑定表
+  // 按角色码导出，记的可能不是这个皮肤的号（例如记 02、模型是 00），比较时把
+  // 皮肤号这一段归一，命中仍然要求唯一。
+  const skinless=p=>p.replace(/(c\d+_)\d+(_var)(?=\/|$)/g,'$1*$2');
+  const pick=(paths,p)=>{
+    const exact=paths.map((v,i)=>({v,i})).filter(({v})=>v===p || p.endsWith('/'+v) || v.endsWith('/'+p));
+    if(exact.length) return exact;
+    const target=skinless(p);
+    return paths.map((v,i)=>({v,i})).filter(({v})=>{
+      const candidate=skinless(v);
+      return candidate===target || target.endsWith('/'+candidate) || candidate.endsWith('/'+target);
+    });
+  };
   return Promise.all(binding.muzzles.map(p=>{
-    const hits=paths.map((v,i)=>({v,i})).filter(({v})=>v===p || p.endsWith('/'+v) || v.endsWith('/'+p));
+    const hits=pick(paths,p);
     if(hits.length!==1) throw new Error(`Native muzzle binding ambiguous/missing: ${p}`);
     return glb.parser.getDependency('node',hits[0].i);
   }));

@@ -20,7 +20,7 @@ function positionOf(id) {
   return match ? Number(match[1]) : -1;
 }
 
-export function buildJackalLinkTimeline({ events = [], gaugeMax = 1, ownerActorId, members = [], teamKey }) {
+export function buildJackalLinkTimeline({ events = [], gaugeMax = 1, ownerActorId, members = [], teamKey, nameOf }) {
   const percentOf = event => (event.charge ?? 0) / gaugeMax * 100;
   const frameOfTick = tick => Math.max(0, (tick - 6) * 2);
   const hurts = events.filter(event => event.type === 'HURT_COUNT' && String(event.id) === ownerActorId);
@@ -34,17 +34,22 @@ export function buildJackalLinkTimeline({ events = [], gaugeMax = 1, ownerActorI
   // 预约事件在触发那一拍，入槽事件在下一拍。切批次按预约拍切，充能取入槽值。
   const reserves = events.filter(event => event.type === 'SKILL_RESERVE' && String(event.id) === ownerActorId &&
     event.skillId && hurtSkillIds.has(String(event.skillId)));
-  // 名字只用于显示，取不到就留空，不影响数值。
+  // 名字只用于显示。攻击者在对面那一队，所以优先用调用方给的双方演员表查；
+  // 拿不到再退回本队成员（会串位，仅作兜底），都没有就留空。
   const memberAt = id => members.find(entry => `${teamKey}-${entry.positionIndex}` === String(id)) ??
     members.find(entry => entry.positionIndex === positionOf(id));
+  const nameAt = id => (nameOf ? nameOf(id) : null) ?? memberAt(id)?.character?.name ?? null;
   // 触发点直接用充能事件本身：阈值多少由数据决定，这里不猜，也不按「每个整数
   // 都算一次」去数——那样每次接触都会被当成一次触发。
   let cumulativeCharge = 0;
   let hurtIndex = 0;
   let lastCount = 0;
   const timeline = [];
-  for (const [index, reserve] of reserves.entries()) {
-    const chargeEvent = chargeEvents[index];
+  // 预约与入槽是一对一，但槽满时只有预约、没有入槽的情况要能容错，所以按 tick 取。
+  const remainingCharges = [...chargeEvents];
+  for (const reserve of reserves) {
+    const at = remainingCharges.findIndex(event => event.tick >= reserve.tick);
+    const chargeEvent = at >= 0 ? remainingCharges.splice(at, 1)[0] : null;
     const batch = [];
     while (hurtIndex < hurts.length && hurts[hurtIndex].tick <= reserve.tick) batch.push(hurts[hurtIndex++]);
     const crossed = batch.at(-1)?.count ?? lastCount;
@@ -53,9 +58,11 @@ export function buildJackalLinkTimeline({ events = [], gaugeMax = 1, ownerActorI
     let batchHits = 0;
     for (const entry of batch) {
       batchHits += entry.weight;
-      const key = `${entry.attackerId}|${entry.id}`;
+      // 按「哪一帧 + 谁 + 打在谁身上」分组：同一角色在不同帧的攻击要分开列，
+      // 否则 tooltip 只会报一个首帧，看不出累积是怎么攒起来的。
+      const key = `${entry.tick}|${entry.attackerId}|${entry.id}`;
       const source = sources.get(key) ?? { frame: frameOfTick(entry.tick), hitCount: 0,
-        characterName: memberAt(entry.attackerId)?.character?.name ?? null,
+        characterName: nameAt(entry.attackerId),
         attackerPositionIndex: positionOf(entry.attackerId), hits: [] };
       source.hitCount += entry.weight;
       const target = source.hits.find(hit => hit.positionIndex === positionOf(entry.id));

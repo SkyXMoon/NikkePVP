@@ -53,12 +53,39 @@ function missedPassTick(shot) {
   return index > 0 ? shot.fireTick + index : shot.endTick;
 }
 
-export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf) {
+/** 独立展示行（豺狼链接、红莲反击）的充能来源。
+ *
+ *  这些充能在原生驱动里就是当事人自己的技能派发的，但站点把它们画成单独一行。
+ *  V1 的做法是把这类充能以 `showOnMember:false` 注入，只累加队总与角色累计，
+ *  不在成员行打点。V2 走的是真技能，如果不标出来，同一笔充能会在成员行和独立
+ *  行各显示一次（用户看到的就是「链接充能跑到了豺狼身上」）。
+ *
+ *  `specialRows[actorId] = { label, skillIds }`：该角色这些技能的充能归到哪一行。
+ */
+export function specialChargeRows(calculation, input, actors) {
+  const rows = {};
+  const hurtSkills = new Set((calculation.simulation?.events ?? [])
+    .filter(event => event.type === 'SKILL_RESERVE' && event.trigger === 'OnHurtCount')
+    .map(event => String(event.skillId)));
+  if (!hurtSkills.size) return rows;
+  for (const key of ['attack', 'defense']) {
+    const link = input.links?.[key];
+    if (!link?.enabled || !link.ownerId) continue;
+    const team = key === 'attack' ? 0 : 1;
+    const owner = actors.find(actor => actor.character && actor.config.team === team &&
+      String(actor.character.id) === String(link.ownerId));
+    if (owner) rows[owner.config.id] = { label: '豺狼链接', skillIds: hurtSkills };
+  }
+  return rows;
+}
+
+export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf, options = {}) {
   const team = teamKey === 'attack' ? 0 : 1;
   const entries = actors.filter(actor => actor.config.team === team && actor.character);
   const native = calculation.result.teams.find(row => row.team === team);
   if (!entries.length && !native?.timeline.some(event => event.generatedCharge > 0)) return null;
   const frameOf = tick => Math.max(0, (tick - 6) * 2);
+  const specialRows = options.specialRows ?? {};
   const byId = new Map(actors.map(actor => [actor.config.id, actor]));
   const events = calculation.result.events.filter(event => event.team === team);
   const members = entries.map(actor => ({
@@ -82,10 +109,15 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf) {
       if (target) targets.set(target.config.slotIndex,
         (targets.get(target.config.slotIndex) ?? 0) + (contact.probability ?? 1));
     }
+    // 独立展示行的充能：只进队总与角色累计，不在成员行画点。
+    const special = specialRows[event.actorId];
+    const isSpecial = !!special && special.skillIds.has(String(event.skillId));
     if (member) {
       member.totalCharge += charge;
-      member.attackChargeTotal += charge;
-      member.hitFrames.push(frame);
+      if (!isSpecial) {
+        member.attackChargeTotal += charge;
+        member.hitFrames.push(frame);
+      }
     }
     const skill = skillOf(actor, event.skillId);
     const contribution = {
@@ -93,7 +125,8 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf) {
       character: actor.character,
       characterName: actor.character?.name ?? `P${actor.config.slotIndex + 1}万能`,
       charge, cumulativeCharge: member?.totalCharge ?? charge,
-      labels: [!member ? '万能充能'
+      labels: [isSpecial ? special.label
+        : !member ? '万能充能'
         : skill ? `${skill.slotName}「${skill.name}」`
         : event.skillId ? `技能 ${event.skillId}`
         : event.type === 'HIT' ? '普通攻击' : '直接充能'],
@@ -101,7 +134,7 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf) {
       counterHits: event.contacts.length,
       positionHits: [...targets].map(([positionIndex, hitCount]) => ({ positionIndex, hitCount })),
       targetHits: [...targets].map(([positionIndex, hitCount]) => ({ positionIndex, hitCount })),
-      showOnMember: !!member,
+      showOnMember: !!member && !isSpecial,
       v2: { tick: event.tick, skillId: event.skillId, templateId: event.templateId,
         source: event.source, instances: event.instances },
     };
