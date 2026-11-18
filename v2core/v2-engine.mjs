@@ -114,18 +114,23 @@ async function arenaAssetIndex(region) {
  *  the character-bound layers move: a borrowed character keeps its own region's
  *  muzzle binding and shot profile.
  */
-async function nativeForTeam(base, { region, db, crossRegion }) {
-  let native = base;
-  if (crossRegion.size) {
-    const other = region === 'cn' ? 'global' : 'cn';
-    const borrowed = await loadJson(`/simulator/data/native-bindings${other === 'global' ? '.global' : ''}.json`);
-    const bindings = { ...base.bindings };
-    for (const id of crossRegion.keys()) {
-      const code = `c${String(id).padStart(3, '0')}`;
-      if (borrowed.characters?.[code]) bindings[code] = borrowed.characters[code];
-    }
-    native = { ...base, bindings };
+async function nativeForTeam(base, { region, db, crossRegion, codes = [] }) {
+  // 绑定表（muzzle socket / stateSpeeds）和模型是同一批 SD 资产的两种导出。国服的
+  // 资产是分批交付的：一个新角色可能只有国际服那一份模型，对应也就只有国际服的
+  // 绑定。既然 `loadModel` 已经允许模型跨区回退，绑定必须按同一条判据回退，否则
+  // 会出现「模型拿到了、绑定没有」的错配——`requireBinding` 会在装配 calculator
+  // 时抛错，把整次计算连带两个队一起判死，图表跟着消失。
+  const other = region === 'cn' ? 'global' : 'cn';
+  const borrowedDoc = await loadJson(`/simulator/data/native-bindings${other === 'global' ? '.global' : ''}.json`);
+  const bindings = { ...base.bindings };
+  const borrowedBindings = {};
+  const wanted = new Set([...codes, ...[...crossRegion.keys()].map(id => `c${String(id).padStart(3, '0')}`)]);
+  for (const code of wanted) {
+    if (bindings[code]?.muzzles?.length) continue;
+    const alt = borrowedDoc.characters?.[code];
+    if (alt?.muzzles?.length) { bindings[code] = alt; borrowedBindings[code] = other; }
   }
+  const native = { ...base, bindings, borrowedBindings };
   return region === 'cn'
     ? addCnShootingProfiles(native, db, new Set(crossRegion.keys()))
     : native;
@@ -254,8 +259,13 @@ async function calculate(input) {
     loadJson(`${regionAssets}arena/${input.arena}.json`), skillTextPromise,
   ]);
   const resourceIds = new Map(master.linked.map(row => [String(row.legacyId), String(Number(row.gameCharacterId))]));
+  // 本队实际会用到的角色码，供绑定表决定要不要跨区借。码表与 `configuredActor`
+  // 同源（legacyId → gameCharacterId），不要拿 legacyId 直接拼，那会错到别的角色上。
+  const teamCodes = [...new Set([...input.attack, ...input.defense].filter(Boolean)
+    .map(slot => resourceIds.get(String(slot.character.id))).filter(Boolean)
+    .map(rid => `c${rid.padStart(3, '0')}`))];
   const merged = mergeNativeData(shooting, bindings, colliders);
-  const native = await nativeForTeam(merged, { region: input.region, db, crossRegion });
+  const native = await nativeForTeam(merged, { region: input.region, db, crossRegion, codes: teamCodes });
   const actors = [];
   const burstCharges = {};
   const notes = { attack: [], defense: [] };
@@ -301,6 +311,23 @@ async function calculate(input) {
       actors[actors.indexOf(actor)] = emptyActor(key, actor.config.slotIndex);
     }
   }));
+  // 模型与绑定必须成对可用：`createArenaCalculator` 建 sampler 时会 `requireBinding`，
+  // 那里的失败是整体抛出的，一个角色就能顶掉两队的图。所以缺绑定的角色在这里先降级
+  // 成空位，和缺模型走同一条路——提示只进 notes（最终合成 toast），不进图表。
+  for (const actor of [...actors]) {
+    if (!actor.character || [1, 19, 21].includes(actor.config.fireType)) continue;
+    if (native.bindings?.[actor.config.assetCode]?.muzzles?.length) continue;
+    const key = actor.config.team === 0 ? 'attack' : 'defense';
+    notes[key].push(`${actor.character.name} 的枪口绑定缺失，本次不参与计算`);
+    actors[actors.indexOf(actor)] = emptyActor(key, actor.config.slotIndex);
+  }
+  // 绑定是跨区借来的角色明确说一句，别让人以为用的是本区资产。
+  for (const actor of actors) {
+    if (!actor.character) continue;
+    const from = native.borrowedBindings?.[actor.config.assetCode];
+    if (from) notes[actor.config.team === 0 ? 'attack' : 'defense']
+      .push(`${actor.character.name} 的枪口绑定借用${from === 'cn' ? '国服' : '国际服'}资产`);
+  }
   const passiveEvents=[];
   for(const key of ['attack','defense']){
     const members=actors.filter(actor=>actor.config.team===(key==='attack'?0:1)&&actor.character);
@@ -459,10 +486,12 @@ globalThis.getJackalLinkGroups = chartResults => {
   });
 };
 const originalChartMarkup = globalThis.getChargeChartMarkup;
-// 图表卡片里只画图。说明性文字（计算缺口、按当前攻击目标计算这类假设、未充满提示）
-// 一律不出现在这里：它们把图表挤下去，玩家要看的是轴。这类提示统一走站点的
-// toast，同一批内容只在变化时弹一次，避免每次重算都糊一层。
-// 唯一的例外是「没有任何一队算得出来」——那时候本来就没有图，原地显示错误原文。
+// 图表卡片里只画图。说明性文字（计算缺口、按当前攻击目标计算这类假设、未充满提示、
+// 计算失败的原因）一律不出现在这里：它们把图表挤下去，玩家要看的是轴。这类提示
+// 统一走站点的 toast，同一批内容只在变化时弹一次，避免每次重算都糊一层。
+// 以前这里还留了一个「两队都算不出来就原地显示错误原文」的例外——那等于给自己留
+// 后门，任何一次单点异常都会把图换成一段红字。现在没有例外：画不出图就留空，
+// 错误只走 toast。
 let lastChartNotice = '';
 globalThis.getChargeChartMarkup = function (attack, gutter, defense, chartSize) {
   const results = [attack, defense].filter(Boolean);
@@ -474,16 +503,14 @@ globalThis.getChargeChartMarkup = function (attack, gutter, defense, chartSize) 
     ...(result.warning ? [result.warning] : []),
     ...(result.v2TargetingAssumptions?.length ? ['未配置属性排序的技能按当前攻击目标计算。'] : []),
     ...(result.v2Gaps ?? []).map(gap => gap.message).filter(Boolean),
-  ]))];
+  ]).concat(errors))];
   const notice = notices.join(' ');
   if (notice && notice !== lastChartNotice) {
     lastChartNotice = notice;
     if (typeof globalThis.showToast === 'function') globalThis.showToast(notice, { duration: 6000 });
   }
-  const drawable = [attack, defense].some(result => result && !result.error);
-  if (results.length && !drawable) {
-    return errors.map(error => `<p role="status">${escapeHtml(error)}</p>`).join('');
-  }
+  const drawable = results.some(result => result && !result.error);
+  if (!drawable) return '';
   const markup = originalChartMarkup.call(this, attack, gutter, defense, chartSize);
   return markup.replace('<svg ', '<svg data-calculation-engine="v2" ');
 };
