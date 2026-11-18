@@ -64,17 +64,29 @@ function missedPassTick(shot) {
  */
 export function specialChargeRows(calculation, input, actors) {
   const rows = {};
+  const add = (actorId, label, skillIds) => {
+    const row = (rows[actorId] ??= { label, skillIds: new Set() });
+    row.label = label;
+    for (const id of skillIds) row.skillIds.add(String(id));
+  };
   const hurtSkills = new Set((calculation.simulation?.events ?? [])
     .filter(event => event.type === 'SKILL_RESERVE' && event.trigger === 'OnHurtCount')
     .map(event => String(event.skillId)));
-  if (!hurtSkills.size) return rows;
   for (const key of ['attack', 'defense']) {
+    if (!hurtSkills.size) break;
     const link = input.links?.[key];
     if (!link?.enabled || !link.ownerId) continue;
     const team = key === 'attack' ? 0 : 1;
     const owner = actors.find(actor => actor.character && actor.config.team === team &&
       String(actor.character.id) === String(link.ownerId));
-    if (owner) rows[owner.config.id] = { label: '豺狼链接', skillIds: hurtSkills };
+    if (owner) add(owner.config.id, '豺狼链接', hurtSkills);
+  }
+  // 红莲反击：受击概率充能（FT75／OnHurtRatio）在 V1 里同样只上独立行。
+  for (const template of calculation.result?.chargeTemplates ?? []) {
+    if (!/OnHurtRatio/i.test(template.trigger?.name ?? '')) continue;
+    const actor = actors.find(entry => entry.config.id === String(template.actorId));
+    if (!actor || actor.config.counterEnabled !== true) continue;
+    add(actor.config.id, '红莲反击', [template.skillId]);
   }
   return rows;
 }
