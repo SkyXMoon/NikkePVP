@@ -76,7 +76,7 @@ const FRONTEND_ADMIN_EMAILS = new Set(["307919309@qq.com"]);
 const CHARACTER_DETAIL_LONG_PRESS_DELAY_MS = 550;
 const CHARACTER_DETAIL_ASSET_TIMEOUT_MS = 3500;
 const CHARACTER_DETAIL_LEVEL_MAX = 1400;
-const APP_VERSION = "V1.80.1153";
+const APP_VERSION = "V1.80.1154";
 let arcaWorkspace=null,arcaWorkspacePromise=null;
 let privateHelpClientPromise=null;
 let pendingPrivateHelpOptions=null;
@@ -16087,8 +16087,18 @@ function getChampionDisplayNameForFile(rows = [], file = "") {
   return backendChampionName || getChampionNameFromRows(fileRows) || getChampionNameFromFile(file);
 }
 
-function sortChampionSeasons(seasons = []) {
+function sortChampionSeasons(seasons = [], recencyBySeason = null) {
+  // 赛季编号只在同一轮里单调递增：外服重置回 S1 后，纯编号倒序会把新赛季排到最后。
+  // 有来源更新的时间戳时先按「最近一次导入」排，时间相同或缺失才回落到编号。
+  const recencyOf = (season) => {
+    if (!recencyBySeason) return "";
+    const value = typeof recencyBySeason.get === "function" ? recencyBySeason.get(season) : recencyBySeason[season];
+    return String(value || "");
+  };
   return [...seasons].sort((a, b) => {
+    const leftRecency = recencyOf(a);
+    const rightRecency = recencyOf(b);
+    if (leftRecency !== rightRecency) return rightRecency.localeCompare(leftRecency);
     const left = Number(String(a).match(/\d+/)?.[0] || 0);
     const right = Number(String(b).match(/\d+/)?.[0] || 0);
     return right - left || String(b).localeCompare(String(a));

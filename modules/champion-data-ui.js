@@ -1,9 +1,9 @@
-let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typeof t!="function")throw new Error(`Missing champion data UI API: ${e}`);return t}function n(){return P.championDataState||{}}function be(){return P.state||{}}function A(){return Number(P.teamSize)||5}function K(){return P.championAllSeasonsKey||"all"}function ke(e="c"){return Number(P.paidArenaTeamCounts?.[e])||(e==="c"?5:3)}function c(...e){return l("escapeHtml")(...e)}function o(...e){return l("localize")(...e)}function oe(...e){return l("resolveChampionCharacterId")(...e)}function X(...e){return l("getCharacterById")(...e)}function Ce(...e){return l("getChampionCharacterByName")(...e)}function Qe(...e){return l("getTeamSlotRarityClass")(...e)}function Ze(...e){return l("getAvatarMarkup")(...e)}function ea(...e){return l("getImmutableAssetUrl")(...e)}function re(...e){return l("getCharacterLocalizedName")(...e)}function Me(...e){return l("getTeamLabel")(...e)}function aa(...e){return l("getChampionRowsByMatchKey")(...e)}function we(...e){return l("getChampionFilteredRows")(...e)}function W(...e){return l("getChampionMatchSummary")(...e)}function q(...e){return l("getChampionMatchWinnerName")(...e)}function it(...e){return l("getChampionMatchLoserName")(...e)}function st(...e){return l("getChampionStageRank")(...e)}function ct(...e){return l("getChampionStageBaseLabel")(...e)}function le(...e){return l("getChampionGameNo")(...e)}function ta(...e){return l("getChampionRows")(...e)}function J(...e){return l("getChampionSourceKey")(...e)}function na(...e){return l("getChampionSeason")(...e)}function ia(...e){return l("sortChampionSeasons")(...e)}function sa(...e){return l("getChampionDisplayNameForFile")(...e)}function ca(...e){return l("loadChampionFileRows")(...e)}function oa(...e){return l("loadChampionTeamStats")(...e)}function ra(...e){return l("refreshChampionMatchRows")(...e)}function la(...e){return l("isChampionStatsPayload")(...e)}function ue(...e){return l("getChampionDivision")(...e)}function ua(...e){return l("getUniqueChampionValues")(...e)}function da(...e){return l("getChampionMatchGroups")(...e)}function de(...e){return l("getChampionRowsByStageRank")(...e)}function me(...e){return l("closeChampionPlayerDetailModal")(...e)}function Te(...e){return l("getChargeChartSize")(...e)}function ot(...e){return l("getChampionTeamSavedScarletCounterEnabled")(...e)}function rt(...e){return l("getChampionTeamSavedRosannaSacrificeFrames")(...e)}function lt(...e){return l("simulateBattle")(...e)}function ma(...e){return l("getChargeChartMarkup")(...e)}function ut(...e){return l("formatFrame")(...e)}function dt(...e){return l("getPaidArenaModeLabel")(...e)}function mt(...e){return l("getPaidArenaDataTeamKey")(...e)}function pt(...e){return l("computePaidArenaBattleResultsForRow")(...e)}function pa(...e){return l("normalizeTeamKey")(...e)}function ht(...e){return l("getPaidArenaResultText")(...e)}function ft(...e){return l("getTauntTargetState")(...e)}function gt(...e){return l("getEffectiveLinkOwnerForTeam")(...e)}function St(...e){return l("isEffectiveLinkEnabledForTeam")(...e)}function yt(...e){return l("getEffectiveLinkTargetIdsForTeam")(...e)}function $t(...e){return l("isRosanna")(...e)}function vt(...e){return l("sanitizeSacrificeFrame")(...e)}function bt(...e){return l("getCubeIconSrc")(...e)}function kt(...e){return l("getSavedCharacterCubeType")(...e)}function Ct(...e){return l("sanitizeUniversalCharge")(...e)}function Mt(...e){return l("canShowFinishMarker")(...e)}function ha(...e){return l("isRedHood")(...e)}function wt(...e){return l("sanitizeRedHoodPierceCount")(...e)}function Tt(...e){return l("isScarlet")(...e)}function Rt(...e){return l("sanitizeScarletCounterEnabled")(...e)}function At(...e){return l("formatChargeNumber")(...e)}function fa(...e){return l("formatNumber")(...e)}function Lt(...e){return l("canEditChargeSpeed")(...e)}function Nt(...e){return l("sanitizeChargeSpeed")(...e)}function Wt(...e){return l("getDisplayMagazine")(...e)}function Et(...e){return l("isLocalDevRuntime")(...e)}function Ft(...e){return l("getStandardChargeBand")(...e)}function xt(...e){return l("getRosannaSacrificeFrameState")(...e)}function Pt(...e){return l("getRedHoodPierceCountState")(...e)}function Dt(...e){return l("getScarletCounterEnabledState")(...e)}function _t(...e){return l("normalizeJackalLink")(...e)}function ga(...e){return l("getSavedCharacterChargeSpeed")(...e)}function Sa(...e){return l("getSavedCharacterRedHoodPierceCount")(...e)}function ya(...e){return l("createEmptyJackalLinkState")(...e)}function $a(...e){return l("isJackal")(...e)}function va(...e){return l("isLinkProvider")(...e)}function ba(...e){return l("createEmptyPaidArenaLineupSlot")(...e)}function ka(...e){return l("normalizePaidArenaLineupSlot")(...e)}function Ca(...e){return l("isPaidArenaModeActive")(...e)}function Ma(...e){return l("saveCurrentPaidArenaLineupSlot")(...e)}function wa(...e){return l("ensurePaidArenaLineupSlots")(...e)}function Ta(...e){return l("getPaidArenaLineupSlotCount")(...e)}function Ra(...e){return l("loadPaidArenaLineupSlot")(...e)}function Aa(...e){return l("syncPaidArenaChargeSpeedsFromSavedData")(...e)}function La(...e){return l("closeChampionDataModal")(...e)}function Na(...e){return l("hideChartTooltip")(...e)}function Wa(...e){return l("saveTeam")(...e)}function Ea(...e){return l("render")(...e)}function Re(...e){return l("showToast")(...e)}function Fa(...e){return l("clearOpenSettings")(...e)}function Ae(...e){return l("withPaidArenaSimulationState")(...e)}function Y(...e){return l("getStunWindowsForTeam")(...e)}function Le(...e){return l("getDodgedStunEventsForTeam")(...e)}function Q(...e){return l("simulateBurst")(...e)}function Ne(...e){return l("getSpecialChargeEventsForTeam")(...e)}function xa(...e){return l("getSharedBattleCalculationEndFrame")(...e)}function Z(...e){return l("getResultSignature")(...e)}function pe(e,t,a,i){const s=i.map(r=>{const d=String(r.value??r),p=String(r.label??r);return`<option value="${c(d)}"${String(a||"")===d?" selected":""}>${c(p)}</option>`}).join("");return`
+let D={};const it=74;function Ze(e={}){D=e||{}}function l(e){const t=D[e];if(typeof t!="function")throw new Error(`Missing champion data UI API: ${e}`);return t}function n(){return D.championDataState||{}}function be(){return D.state||{}}function N(){return Number(D.teamSize)||5}function K(){return D.championAllSeasonsKey||"all"}function ke(e="c"){return Number(D.paidArenaTeamCounts?.[e])||(e==="c"?5:3)}function c(...e){return l("escapeHtml")(...e)}function o(...e){return l("localize")(...e)}function oe(...e){return l("resolveChampionCharacterId")(...e)}function Y(...e){return l("getCharacterById")(...e)}function Ce(...e){return l("getChampionCharacterByName")(...e)}function ea(...e){return l("getTeamSlotRarityClass")(...e)}function aa(...e){return l("getAvatarMarkup")(...e)}function ta(...e){return l("getImmutableAssetUrl")(...e)}function re(...e){return l("getCharacterLocalizedName")(...e)}function Me(...e){return l("getTeamLabel")(...e)}function na(...e){return l("getChampionRowsByMatchKey")(...e)}function we(...e){return l("getChampionFilteredRows")(...e)}function x(...e){return l("getChampionMatchSummary")(...e)}function q(...e){return l("getChampionMatchWinnerName")(...e)}function st(...e){return l("getChampionMatchLoserName")(...e)}function ct(...e){return l("getChampionStageRank")(...e)}function ot(...e){return l("getChampionStageBaseLabel")(...e)}function le(...e){return l("getChampionGameNo")(...e)}function ia(...e){return l("getChampionRows")(...e)}function z(...e){return l("getChampionSourceKey")(...e)}function Te(...e){return l("getChampionSeason")(...e)}function sa(...e){return l("sortChampionSeasons")(...e)}function ca(...e){return l("getChampionDisplayNameForFile")(...e)}function oa(...e){return l("loadChampionFileRows")(...e)}function ra(...e){return l("loadChampionTeamStats")(...e)}function la(...e){return l("refreshChampionMatchRows")(...e)}function ua(...e){return l("isChampionStatsPayload")(...e)}function ue(...e){return l("getChampionDivision")(...e)}function da(...e){return l("getUniqueChampionValues")(...e)}function ma(...e){return l("getChampionMatchGroups")(...e)}function de(...e){return l("getChampionRowsByStageRank")(...e)}function me(...e){return l("closeChampionPlayerDetailModal")(...e)}function Re(...e){return l("getChargeChartSize")(...e)}function rt(...e){return l("getChampionTeamSavedScarletCounterEnabled")(...e)}function lt(...e){return l("getChampionTeamSavedRosannaSacrificeFrames")(...e)}function ut(...e){return l("simulateBattle")(...e)}function pa(...e){return l("getChargeChartMarkup")(...e)}function dt(...e){return l("formatFrame")(...e)}function mt(...e){return l("getPaidArenaModeLabel")(...e)}function pt(...e){return l("getPaidArenaDataTeamKey")(...e)}function ht(...e){return l("computePaidArenaBattleResultsForRow")(...e)}function ha(...e){return l("normalizeTeamKey")(...e)}function ft(...e){return l("getPaidArenaResultText")(...e)}function gt(...e){return l("getTauntTargetState")(...e)}function St(...e){return l("getEffectiveLinkOwnerForTeam")(...e)}function yt(...e){return l("isEffectiveLinkEnabledForTeam")(...e)}function $t(...e){return l("getEffectiveLinkTargetIdsForTeam")(...e)}function vt(...e){return l("isRosanna")(...e)}function bt(...e){return l("sanitizeSacrificeFrame")(...e)}function kt(...e){return l("getCubeIconSrc")(...e)}function Ct(...e){return l("getSavedCharacterCubeType")(...e)}function Mt(...e){return l("sanitizeUniversalCharge")(...e)}function wt(...e){return l("canShowFinishMarker")(...e)}function fa(...e){return l("isRedHood")(...e)}function Tt(...e){return l("sanitizeRedHoodPierceCount")(...e)}function Rt(...e){return l("isScarlet")(...e)}function At(...e){return l("sanitizeScarletCounterEnabled")(...e)}function Lt(...e){return l("formatChargeNumber")(...e)}function ga(...e){return l("formatNumber")(...e)}function Nt(...e){return l("canEditChargeSpeed")(...e)}function Wt(...e){return l("sanitizeChargeSpeed")(...e)}function Et(...e){return l("getDisplayMagazine")(...e)}function Ft(...e){return l("isLocalDevRuntime")(...e)}function xt(...e){return l("getStandardChargeBand")(...e)}function Pt(...e){return l("getRosannaSacrificeFrameState")(...e)}function Dt(...e){return l("getRedHoodPierceCountState")(...e)}function _t(...e){return l("getScarletCounterEnabledState")(...e)}function It(...e){return l("normalizeJackalLink")(...e)}function Sa(...e){return l("getSavedCharacterChargeSpeed")(...e)}function ya(...e){return l("getSavedCharacterRedHoodPierceCount")(...e)}function $a(...e){return l("createEmptyJackalLinkState")(...e)}function va(...e){return l("isJackal")(...e)}function ba(...e){return l("isLinkProvider")(...e)}function ka(...e){return l("createEmptyPaidArenaLineupSlot")(...e)}function Ca(...e){return l("normalizePaidArenaLineupSlot")(...e)}function Ma(...e){return l("isPaidArenaModeActive")(...e)}function wa(...e){return l("saveCurrentPaidArenaLineupSlot")(...e)}function Ta(...e){return l("ensurePaidArenaLineupSlots")(...e)}function Ra(...e){return l("getPaidArenaLineupSlotCount")(...e)}function Aa(...e){return l("loadPaidArenaLineupSlot")(...e)}function La(...e){return l("syncPaidArenaChargeSpeedsFromSavedData")(...e)}function Na(...e){return l("closeChampionDataModal")(...e)}function Wa(...e){return l("hideChartTooltip")(...e)}function Ea(...e){return l("saveTeam")(...e)}function Fa(...e){return l("render")(...e)}function Ae(...e){return l("showToast")(...e)}function xa(...e){return l("clearOpenSettings")(...e)}function Le(...e){return l("withPaidArenaSimulationState")(...e)}function Q(...e){return l("getStunWindowsForTeam")(...e)}function Ne(...e){return l("getDodgedStunEventsForTeam")(...e)}function Z(...e){return l("simulateBurst")(...e)}function We(...e){return l("getSpecialChargeEventsForTeam")(...e)}function Pa(...e){return l("getSharedBattleCalculationEndFrame")(...e)}function ee(...e){return l("getResultSignature")(...e)}function pe(e,t,a,i){const s=i.map(r=>{const d=String(r.value??r),p=String(r.label??r);return`<option value="${c(d)}"${String(a||"")===d?" selected":""}>${c(p)}</option>`}).join("");return`
     <label class="champion-data-select">
       <span>${c(t)}</span>
       <select id="${c(e)}" name="${c(e)}">${s}</select>
     </label>
-  `}function he(e={}){const t=e?.name||"",a=oe(e?.character_id??e?.characterId??e?.id),i=X(a)||Ce(t),s=String(e?.name_code??e?.nameCode??"").trim(),r=s?ea(`assets/avatars/namecode/${encodeURIComponent(s)}.webp`):"",d=i?Qe(i):"",p=i?Ze(i):r?`<img src="${c(r)}" alt="${c(t||s)}" loading="lazy" />`:`<span class="avatar-fallback"><span class="avatar-fallback-name">${c(t||"?")}</span></span>`;return`
+  `}function he(e={}){const t=e?.name||"",a=oe(e?.character_id??e?.characterId??e?.id),i=Y(a)||Ce(t),s=String(e?.name_code??e?.nameCode??"").trim(),r=s?ta(`assets/avatars/namecode/${encodeURIComponent(s)}.webp`):"",d=i?ea(i):"",p=i?aa(i):r?`<img src="${c(r)}" alt="${c(t||s)}" loading="lazy" />`:`<span class="avatar-fallback"><span class="avatar-fallback-name">${c(t||"?")}</span></span>`;return`
     <span class="champion-member ${d}">
       <span class="champion-member-avatar team-avatar">${p}</span>
       <span class="champion-member-meta">
@@ -14,34 +14,34 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
     <div class="champion-round-team champion-${t}${r}"${d}>
       <strong>${c(s)}</strong>
       <div class="champion-member-list">
-        ${Array.from({length:A()},(p,u)=>he(e[u]||{position:u+1})).join("")}
+        ${Array.from({length:N()},(p,u)=>he(e[u]||{position:u+1})).join("")}
       </div>
     </div>
-  `}function z(e=[]){return`
+  `}function O(e=[]){return`
     <div class="champion-round-team champion-lineup-only">
       <div class="champion-member-list">
-        ${Array.from({length:A()},(t,a)=>he(e[a]||{position:a+1})).join("")}
+        ${Array.from({length:N()},(t,a)=>he(e[a]||{position:a+1})).join("")}
       </div>
     </div>
-  `}function O(e){return`${Math.trunc((Number(e)||0)*1e4)/100}%`}function ee(e,t="",a={}){const i=Number(e?.recommend_score),s=Number.isFinite(i)&&i>0?`<span>${c(o(`\u63A8\u8350\u5206 ${Math.round(i)}`,`Score ${Math.round(i)}`))}</span>`:"",r=String(a.matchupTeamKey||""),d=r?` role="button" tabindex="0" data-champion-matchup-team-key="${c(r)}"`:"";return`
+  `}function j(e){return`${Math.trunc((Number(e)||0)*1e4)/100}%`}function ae(e,t="",a={}){const i=Number(e?.recommend_score),s=Number.isFinite(i)&&i>0?`<span>${c(o(`\u63A8\u8350\u5206 ${Math.round(i)}`,`Score ${Math.round(i)}`))}</span>`:"",r=String(a.matchupTeamKey||""),d=r?` role="button" tabindex="0" data-champion-matchup-team-key="${c(r)}"`:"";return`
     <div class="${`champion-stat-card${a.selected?" is-selected":""}${r?" is-clickable":""}`}"${d}>
       <div class="champion-stat-rank">
         <span>${c(t)}</span>
       </div>
       <div class="champion-stat-team">
-        ${z(e.team||[])}
+        ${O(e.team||[])}
       </div>
       <div class="champion-stat-metrics">
-        <strong>${c(O(e.win_rate??e.winRate))}</strong>
+        <strong>${c(j(e.win_rate??e.winRate))}</strong>
         <span>${c(o(`${e.wins}\u80DC${e.losses}\u8D1F / ${e.games}\u573A`,`${e.wins}W ${e.losses}L / ${e.games}`))}</span>
         ${s}
       </div>
     </div>
-  `}function Pa(e,t=""){const a=Number(e?.system_score),i=Array.isArray(e?.core_members)?e.core_members:[],s=Array.isArray(e?.common_fillers)?e.common_fillers:[],r=s.length?`
+  `}function Da(e,t=""){const a=Number(e?.system_score),i=Array.isArray(e?.core_members)?e.core_members:[],s=Array.isArray(e?.common_fillers)?e.common_fillers:[],r=s.length?`
     <div class="champion-core-fillers">
       <strong>${c(o("\u5E38\u89C1\u7B2C5\u4EBA","Common 5th"))}</strong>
       <div class="champion-core-filler-list">
-        ${s.slice(0,4).map(d=>{const p=X(d.character_id),u=p?re(p):String(d.character_id||""),h=Number(d.games||d.count||0),g=Number(d.wins||0),S=Number(d.win_rate),y=Number.isFinite(S)&&S>0?O(S):"";return`
+        ${s.slice(0,4).map(d=>{const p=Y(d.character_id),u=p?re(p):String(d.character_id||""),h=Number(d.games||d.count||0),g=Number(d.wins||0),S=Number(d.win_rate),y=Number.isFinite(S)&&S>0?j(S):"";return`
             <span class="champion-core-filler">
               <span>${c(u)}</span>
               <small>${c(o(`${h}\u573A${y?` / ${y}`:""}`,`${h}G${y?` / ${y}`:""}`))}</small>
@@ -57,16 +57,16 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
         <small>${c(o("\u6838\u5FC34\u4EBA","Core 4"))}</small>
       </div>
       <div class="champion-stat-team">
-        ${z(i)}
+        ${O(i)}
         ${r}
       </div>
       <div class="champion-stat-metrics">
-        <strong>${c(O(e?.win_rate))}</strong>
+        <strong>${c(j(e?.win_rate))}</strong>
         <span>${c(o(`${e?.wins||0}\u80DC${e?.losses||0}\u8D1F / ${e?.games||0}\u573A`,`${e?.wins||0}W ${e?.losses||0}L / ${e?.games||0}`))}</span>
         <span>${c(o(`\u4F53\u7CFB\u5206 ${Math.round(a||0)}`,`System ${Math.round(a||0)}`))}</span>
       </div>
     </div>
-  `}function We(e,t=""){const a=oe(e?.character_id),i=X(a),s=i?re(i):String(e?.character_id||"");return`
+  `}function Ee(e,t=""){const a=oe(e?.character_id),i=Y(a),s=i?re(i):String(e?.character_id||"");return`
     <div class="champion-stat-card champion-character-stat-card">
       <div class="champion-stat-rank">
         <span>${c(t)}</span>
@@ -75,76 +75,76 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
         ${he({character_id:a,name:s})}
       </div>
       <div class="champion-stat-metrics">
-        <strong>${c(O(e?.win_rate))}</strong>
+        <strong>${c(j(e?.win_rate))}</strong>
         <span>${c(o(`${e?.wins||0}\u80DC${e?.losses||0}\u8D1F / ${e?.games||0}\u573A`,`${e?.wins||0}W ${e?.losses||0}L / ${e?.games||0}`))}</span>
       </div>
     </div>
-  `}function Da(e,t=""){return`
+  `}function _a(e,t=""){return`
     <div class="champion-stat-card champion-matchup-stat-card">
       <div class="champion-stat-rank">
         <span>${c(t)}</span>
       </div>
       <div class="champion-stat-team">
-        ${z(e.opponent_team||[])}
+        ${O(e.opponent_team||[])}
       </div>
       <div class="champion-stat-metrics">
-        <strong>${c(O(e.win_rate))}</strong>
+        <strong>${c(j(e.win_rate))}</strong>
         <span>${c(o(`${e.wins||0}\u80DC${e.losses||0}\u8D1F / ${e.games||0}\u573A`,`${e.wins||0}W ${e.losses||0}L / ${e.games||0}`))}</span>
       </div>
     </div>
-  `}function Ee(e=[],t){return!Array.isArray(e)||!e.length?`<p class="champion-data-empty">${c(t)}</p>`:`
+  `}function Fe(e=[],t){return!Array.isArray(e)||!e.length?`<p class="champion-data-empty">${c(t)}</p>`:`
     <div class="champion-stats-list champion-matchup-list">
-      ${e.map((a,i)=>Da(a,`#${i+1}`)).join("")}
+      ${e.map((a,i)=>_a(a,`#${i+1}`)).join("")}
     </div>
-  `}function _a(e=[],t){if(!Array.isArray(e)||!e.length)return`<p class="champion-data-empty">${c(t)}</p>`;const a=new Map;e.forEach(s=>{const r=Number(s.game_no);!Number.isInteger(r)||r<1||(a.has(r)||a.set(r,[]),a.get(r).push(s))});const i=[1,2,3,4,5].filter(s=>a.has(s));return i.length?`
+  `}function Ia(e=[],t){if(!Array.isArray(e)||!e.length)return`<p class="champion-data-empty">${c(t)}</p>`;const a=new Map;e.forEach(s=>{const r=Number(s.game_no);!Number.isInteger(r)||r<1||(a.has(r)||a.set(r,[]),a.get(r).push(s))});const i=[1,2,3,4,5].filter(s=>a.has(s));return i.length?`
     <section class="champion-stat-section">
       <div class="champion-stats-list champion-round-stats-list">
         ${i.map(s=>{const r=(a.get(s)||[]).slice(0,5),d=r[0],p=r.slice(1),u=String(n().expandedStatRound||"")===String(s);return`
             <article class="champion-round-stat-group${u?" is-expanded":""}" data-champion-stat-round-group="${c(String(s))}">
               <button class="champion-round-stat-primary" type="button" data-champion-stat-round-toggle="${c(String(s))}" aria-expanded="${u?"true":"false"}">
-                ${ee(d,`R${s}`)}
+                ${ae(d,`R${s}`)}
                 ${p.length?`<span class="champion-round-stat-stack" aria-hidden="true">${p.map(()=>"<i></i>").join("")}</span>`:""}
               </button>
               ${p.length?`
                 <div class="champion-round-stat-extra">
-                  ${p.map((h,g)=>ee(h,`#${g+2}`)).join("")}
+                  ${p.map((h,g)=>ae(h,`#${g+2}`)).join("")}
                 </div>
               `:""}
             </article>
           `}).join("")}
       </div>
     </section>
-  `:`<p class="champion-data-empty">${c(t)}</p>`}function Ia(e=[],t,a={}){return!Array.isArray(e)||!e.length?`<p class="champion-data-empty">${c(t)}</p>`:a.showRound?_a(e,t):`
+  `:`<p class="champion-data-empty">${c(t)}</p>`}function Ba(e=[],t,a={}){return!Array.isArray(e)||!e.length?`<p class="champion-data-empty">${c(t)}</p>`:a.showRound?Ia(e,t):`
     <section class="champion-stat-section">
       <div class="champion-stats-list">
-        ${e.map((i,s)=>ee(i,`#${s+1}`)).join("")}
+        ${e.map((i,s)=>ae(i,`#${s+1}`)).join("")}
       </div>
     </section>
-  `}function Ba(e={}){const t=n().selectedStatSide==="combined"?"combined":n().selectedStatSide==="defense"?"defense":"attack";let a=["recommend","systems","rate","round","characters"].includes(n().selectedStatRankType)?n().selectedStatRankType:"games";t==="combined"&&!["recommend","systems","characters"].includes(a)&&(a="recommend"),t!=="combined"&&["recommend","systems","characters"].includes(a)&&(a="games");const i=Array.isArray(e?.topByRate)?e.topByRate:[],s=Array.isArray(e?.topByGames)?e.topByGames:[],r=Array.isArray(e?.bestByRound)?e.bestByRound:[],d=Array.isArray(e?.ranking?.recommendations)?e.ranking.recommendations:[],p=Array.isArray(e?.ranking?.characters)?e.ranking.characters:[],u=Array.isArray(e?.ranking?.cores)?e.ranking.cores:[],h=e?.ranking?.matchups&&typeof e.ranking.matchups=="object"?e.ranking.matchups:{},g=Array.isArray(h.strongAgainst)?h.strongAgainst:[],S=Array.isArray(h.weakAgainst)?h.weakAgainst:[],y=String(n().selectedMatchupTeamKey||""),M=y?d.find(k=>String(k?.team_key||"")===y):null,b=Math.max(0,Math.trunc(Number(e?.minWins)||30)),w=o("\u63A8\u8350\u5206 = \u80DC\u7387\xD755 + \u6837\u672C\u5206\xD720 + \u51FA\u573A\u5206\xD715 + \u8D5B\u5B63\u8986\u76D6\u5206\xD710\u3002\u6837\u672C\u5206\u6309\u8FBE\u5230\u6700\u4F4E\u80DC\u573A\u8BA1\u7B97\uFF0C\u51FA\u573A\u5206\u6309\u5F53\u524D\u8303\u56F4\u6700\u9AD8\u51FA\u573A\u8BA1\u7B97\u3002","Score = win rate x55 + sample x20 + usage x15 + season coverage x10. Sample score uses the minimum wins threshold; usage score is relative to the highest games in the current scope."),v=o("\u4F53\u7CFB\u5206 = \u80DC\u7387\xD745 + \u6837\u672C\u5206\xD718 + \u51FA\u573A\u5206\xD714 + \u8D5B\u5B63\u8986\u76D6\u5206\xD710 + \u53D8\u4F53\u5206\xD713\u3002\u4EC5\u7EDF\u8BA1\u51FA\u73B0\u8FC7\u81F3\u5C11\u4E24\u79CD\u4E0D\u540C\u7B2C5\u4EBA\u53D8\u4F53\u76844\u4EBA\u6838\u5FC3\uFF0C\u4E0D\u533A\u5206\u7AD9\u4F4D\u3002","System score = win rate x45 + sample x18 + usage x14 + season coverage x10 + variant x13. Only 4-unit cores with at least two different 5th-member variants are listed, ignoring positions."),f=a==="recommend"?d:a==="systems"?u:a==="rate"?i:a==="round"?r:a==="characters"?p:s,C=a==="recommend"?o("\u6682\u65E0\u7EFC\u5408\u63A8\u8350\u6570\u636E\u3002","No recommendation data."):a==="rate"?o(`\u6682\u65E0${b}\u80DC\u4EE5\u4E0A\u80DC\u7387\u7EDF\u8BA1\u3002`,`No win-rate data with at least ${b} wins.`):a==="characters"?o("\u6682\u65E0\u89D2\u8272\u73AF\u5883\u7EDF\u8BA1\u3002","No character meta data."):a==="systems"?o("\u6682\u65E0\u4F53\u7CFB\u699C\u6570\u636E\u3002","No system data."):a==="round"?o("\u6682\u65E0\u5C40\u5185\u8D70\u4F4D\u7EDF\u8BA1\u3002","No round-position data."):o("\u6682\u65E0\u51FA\u573A\u7EDF\u8BA1\u3002","No usage data.");return!i.length&&!s.length&&!r.length&&!d.length&&!p.length&&!u.length?`
+  `}function Ha(e={}){const t=n().selectedStatSide==="combined"?"combined":n().selectedStatSide==="defense"?"defense":"attack";let a=["recommend","systems","rate","round","characters"].includes(n().selectedStatRankType)?n().selectedStatRankType:"games";t==="combined"&&!["recommend","systems","characters"].includes(a)&&(a="recommend"),t!=="combined"&&["recommend","systems","characters"].includes(a)&&(a="games");const i=Array.isArray(e?.topByRate)?e.topByRate:[],s=Array.isArray(e?.topByGames)?e.topByGames:[],r=Array.isArray(e?.bestByRound)?e.bestByRound:[],d=Array.isArray(e?.ranking?.recommendations)?e.ranking.recommendations:[],p=Array.isArray(e?.ranking?.characters)?e.ranking.characters:[],u=Array.isArray(e?.ranking?.cores)?e.ranking.cores:[],h=e?.ranking?.matchups&&typeof e.ranking.matchups=="object"?e.ranking.matchups:{},g=Array.isArray(h.strongAgainst)?h.strongAgainst:[],S=Array.isArray(h.weakAgainst)?h.weakAgainst:[],y=String(n().selectedMatchupTeamKey||""),w=y?d.find(k=>String(k?.team_key||"")===y):null,v=Math.max(0,Math.trunc(Number(e?.minWins)||30)),C=o("\u63A8\u8350\u5206 = \u80DC\u7387\xD755 + \u6837\u672C\u5206\xD720 + \u51FA\u573A\u5206\xD715 + \u8D5B\u5B63\u8986\u76D6\u5206\xD710\u3002\u6837\u672C\u5206\u6309\u8FBE\u5230\u6700\u4F4E\u80DC\u573A\u8BA1\u7B97\uFF0C\u51FA\u573A\u5206\u6309\u5F53\u524D\u8303\u56F4\u6700\u9AD8\u51FA\u573A\u8BA1\u7B97\u3002","Score = win rate x55 + sample x20 + usage x15 + season coverage x10. Sample score uses the minimum wins threshold; usage score is relative to the highest games in the current scope."),$=o("\u4F53\u7CFB\u5206 = \u80DC\u7387\xD745 + \u6837\u672C\u5206\xD718 + \u51FA\u573A\u5206\xD714 + \u8D5B\u5B63\u8986\u76D6\u5206\xD710 + \u53D8\u4F53\u5206\xD713\u3002\u4EC5\u7EDF\u8BA1\u51FA\u73B0\u8FC7\u81F3\u5C11\u4E24\u79CD\u4E0D\u540C\u7B2C5\u4EBA\u53D8\u4F53\u76844\u4EBA\u6838\u5FC3\uFF0C\u4E0D\u533A\u5206\u7AD9\u4F4D\u3002","System score = win rate x45 + sample x18 + usage x14 + season coverage x10 + variant x13. Only 4-unit cores with at least two different 5th-member variants are listed, ignoring positions."),f=a==="recommend"?d:a==="systems"?u:a==="rate"?i:a==="round"?r:a==="characters"?p:s,M=a==="recommend"?o("\u6682\u65E0\u7EFC\u5408\u63A8\u8350\u6570\u636E\u3002","No recommendation data."):a==="rate"?o(`\u6682\u65E0${v}\u80DC\u4EE5\u4E0A\u80DC\u7387\u7EDF\u8BA1\u3002`,`No win-rate data with at least ${v} wins.`):a==="characters"?o("\u6682\u65E0\u89D2\u8272\u73AF\u5883\u7EDF\u8BA1\u3002","No character meta data."):a==="systems"?o("\u6682\u65E0\u4F53\u7CFB\u699C\u6570\u636E\u3002","No system data."):a==="round"?o("\u6682\u65E0\u5C40\u5185\u8D70\u4F4D\u7EDF\u8BA1\u3002","No round-position data."):o("\u6682\u65E0\u51FA\u573A\u7EDF\u8BA1\u3002","No usage data.");return!i.length&&!s.length&&!r.length&&!d.length&&!p.length&&!u.length?`
       <section class="champion-stats-panel">
         ${Se(t)}
-        ${ge(a,b,t)}
+        ${ge(a,v,t)}
         <p class="champion-data-empty">${c(o("\u6682\u65E0\u53EF\u7EDF\u8BA1\u7684\u961F\u4F0D\u6570\u636E\u3002","No team statistics data."))}</p>
       </section>
     `:t==="combined"?`
       <section class="champion-stats-panel">
         ${Se(t)}
-        ${ge(a,b,t)}
+        ${ge(a,v,t)}
         <section class="champion-stat-section champion-combined-stat-section">
           <div class="champion-stats-head">
             <div class="champion-stats-title">
               <strong>${c(a==="characters"?o("\u89D2\u8272\u699C","Characters"):a==="systems"?o("\u4F53\u7CFB\u699C\uFF084+1\uFF0C\u4E0D\u5206\u7AD9\u4F4D\uFF09","Systems (4+1, positionless)"):o("\u7EFC\u5408\u63A8\u8350","Recommended"))}</strong>
               ${a==="recommend"||a==="systems"?`
                 <span class="champion-score-help-wrap">
-                  <button class="champion-score-help" type="button" aria-label="${c(a==="systems"?v:w)}" aria-describedby="championScoreTooltip">?</button>
+                  <button class="champion-score-help" type="button" aria-label="${c(a==="systems"?$:C)}" aria-describedby="championScoreTooltip">?</button>
                 </span>
               `:""}
             </div>
             <span>${c(a==="characters"?o("\u6309\u51FA\u573A\u91CF\u548C\u80DC\u7387\u5C55\u793A\u73AF\u5883\u89D2\u8272","Shows meta characters by usage and win rate."):a==="systems"?o("\u63094\u4EBA\u6838\u5FC3\u548C\u5E38\u89C1\u7B2C5\u4EBA\u53D8\u4F53\u5C55\u793A\u4F53\u7CFB","Shows systems as a 4-unit core plus common 5th variants."):o("\u6309\u80DC\u7387\u3001\u6837\u672C\u3001\u51FA\u573A\u548C\u8D5B\u5B63\u8986\u76D6\u7EFC\u5408\u6392\u5E8F","Ranked by win rate, sample size, usage, and season coverage."))}</span>
-            ${a==="recommend"||a==="systems"?`<span id="championScoreTooltip" class="champion-score-tooltip" role="tooltip">${c(a==="systems"?v:w)}</span>`:""}
+            ${a==="recommend"||a==="systems"?`<span id="championScoreTooltip" class="champion-score-tooltip" role="tooltip">${c(a==="systems"?$:C)}</span>`:""}
           </div>
           <div class="champion-stats-list">
-            ${a==="characters"?p.length?p.map((k,$)=>We(k,`#${$+1}`)).join(""):`<p class="champion-data-empty">${c(o("\u6682\u65E0\u89D2\u8272\u73AF\u5883\u7EDF\u8BA1\u3002","No character meta data."))}</p>`:a==="systems"?u.length?u.map((k,$)=>Pa(k,`#${$+1}`)).join(""):`<p class="champion-data-empty">${c(o("\u6682\u65E0\u4F53\u7CFB\u699C\u6570\u636E\u3002","No system data."))}</p>`:d.length?d.map((k,$)=>ee(k,`#${$+1}`,{matchupTeamKey:k.team_key,selected:y&&y===String(k.team_key||"")})).join(""):`<p class="champion-data-empty">${c(o("\u6682\u65E0\u7EFC\u5408\u63A8\u8350\u6570\u636E\u3002","No recommendation data."))}</p>`}
+            ${a==="characters"?p.length?p.map((k,b)=>Ee(k,`#${b+1}`)).join(""):`<p class="champion-data-empty">${c(o("\u6682\u65E0\u89D2\u8272\u73AF\u5883\u7EDF\u8BA1\u3002","No character meta data."))}</p>`:a==="systems"?u.length?u.map((k,b)=>Da(k,`#${b+1}`)).join(""):`<p class="champion-data-empty">${c(o("\u6682\u65E0\u4F53\u7CFB\u699C\u6570\u636E\u3002","No system data."))}</p>`:d.length?d.map((k,b)=>ae(k,`#${b+1}`,{matchupTeamKey:k.team_key,selected:y&&y===String(k.team_key||"")})).join(""):`<p class="champion-data-empty">${c(o("\u6682\u65E0\u7EFC\u5408\u63A8\u8350\u6570\u636E\u3002","No recommendation data."))}</p>`}
           </div>
         </section>
         ${a==="recommend"&&y?`
@@ -157,17 +157,17 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
                 ${c(o("\u8FD4\u56DE\u63A8\u8350\u5217\u8868","Back to recommendations"))}
               </button>
               <div class="champion-matchup-selected-team" aria-label="${c(o("\u5DF2\u9009\u961F\u4F0D","Selected team"))}">
-                ${z(M?.team||[])}
+                ${O(w?.team||[])}
               </div>
             </div>
             <div class="champion-matchup-columns">
               <section class="champion-matchup-column">
                 <strong>${c(o("\u64C5\u957F\u6253\u8C01","Strong against"))}</strong>
-                ${Ee(g,o("\u6682\u65E0\u514B\u5236\u6570\u636E\u3002","No favorable matchup data."))}
+                ${Fe(g,o("\u6682\u65E0\u514B\u5236\u6570\u636E\u3002","No favorable matchup data."))}
               </section>
               <section class="champion-matchup-column">
                 <strong>${c(o("\u6015\u8C01","Weak against"))}</strong>
-                ${Ee(S,o("\u6682\u65E0\u88AB\u514B\u6570\u636E\u3002","No weak matchup data."))}
+                ${Fe(S,o("\u6682\u65E0\u88AB\u514B\u6570\u636E\u3002","No weak matchup data."))}
               </section>
             </div>
           </section>
@@ -176,8 +176,8 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
     `:`
     <section class="champion-stats-panel">
       ${Se(t)}
-      ${ge(a,b,t)}
-      ${a==="characters"?`<section class="champion-stat-section"><div class="champion-stats-list">${p.length?p.map((k,$)=>We(k,`#${$+1}`)).join(""):`<p class="champion-data-empty">${c(C)}</p>`}</div></section>`:Ia(f,C,{showRound:a==="round"})}
+      ${ge(a,v,t)}
+      ${a==="characters"?`<section class="champion-stat-section"><div class="champion-stats-list">${p.length?p.map((k,b)=>Ee(k,`#${b+1}`)).join(""):`<p class="champion-data-empty">${c(M)}</p>`}</div></section>`:Ba(f,M,{showRound:a==="round"})}
     </section>
   `}function ge(e="games",t=30,a="attack"){return a==="combined"?`
       <div class="champion-stat-rank-tabs is-combined" role="tablist" aria-label="${c(o("\u7EFC\u5408\u7EDF\u8BA1\u699C\u5355","Combined ranking type"))}">
@@ -215,7 +215,7 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
         ${c(o("\u9632\u5B88\u961F","Defense Teams"))}
       </button>
     </div>
-  `}function Ha(e,t=0){const a=e.winner==="attack"?o("\u653B\u65B9\u80DC","Attack Win"):e.winner==="defense"?o("\u5B88\u65B9\u80DC","Defense Win"):o("\u672A\u77E5","Unknown"),i=e.winner==="attack"?"is-attack-win":e.winner==="defense"?"is-defense-win":"",s=le(e);return`
+  `}function Ka(e,t=0){const a=e.winner==="attack"?o("\u653B\u65B9\u80DC","Attack Win"):e.winner==="defense"?o("\u5B88\u65B9\u80DC","Defense Win"):o("\u672A\u77E5","Unknown"),i=e.winner==="attack"?"is-attack-win":e.winner==="defense"?"is-defense-win":"",s=le(e);return`
     <article class="champion-round-card ${i}">
       <div class="champion-round-head">
         <strong>Round ${c(String(s||"?"))}</strong>
@@ -226,9 +226,9 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
         <span class="champion-round-vs">VS</span>
         ${fe(e.defense_team||[],"defense",e.winner,{chartIndex:t})}
       </div>
-      ${Ja(e,t)}
+      ${Ya(e,t)}
     </article>
-  `}function It(e){const t=e.winner==="attack"?o("\u8FDB\u653B\u65B9\u80DC","Attack Win"):e.winner==="defense"?o("\u8FDB\u653B\u65B9\u8D1F","Attack Lose"):o("\u672A\u77E5","Unknown"),a=e.winner==="attack"?"is-attack-win":e.winner==="defense"?"is-defense-win":"",i=le(e);return`
+  `}function Bt(e){const t=e.winner==="attack"?o("\u8FDB\u653B\u65B9\u80DC","Attack Win"):e.winner==="defense"?o("\u8FDB\u653B\u65B9\u8D1F","Attack Lose"):o("\u672A\u77E5","Unknown"),a=e.winner==="attack"?"is-attack-win":e.winner==="defense"?"is-defense-win":"",i=le(e);return`
     <article class="champion-round-card champion-attack-only ${a}">
       <div class="champion-round-head">
         <strong>Round ${c(String(i||"?"))}</strong>
@@ -236,33 +236,33 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
       </div>
       ${fe(e.attack_team||[],"attack",e.winner)}
     </article>
-  `}function Ka(e,t=""){const i=e.defense_player===t&&e.attack_player!==t?"defense":"attack",s=le(e);return`
+  `}function qa(e,t=""){const i=e.defense_player===t&&e.attack_player!==t?"defense":"attack",s=le(e);return`
     <article class="champion-round-card champion-lineup-card">
       <div class="champion-round-head">
         <strong>Round ${c(String(s||"?"))}</strong>
       </div>
-      ${z(e[`${i}_team`]||[])}
+      ${O(e[`${i}_team`]||[])}
     </article>
-  `}function qa(e={}){const t=oe(e?.character_id??e?.characterId??e?.id);return X(t)||Ce(e?.name||"")}function j(e=[]){return Array.from({length:A()},(t,a)=>qa(e[a]||null)||null)}function za(e=[],t="attack"){return Array.from({length:A()},(a,i)=>{const s=e?.[i];return s?ga(s,t):0})}function Oa(e=[],t="attack"){return Array.from({length:A()},(a,i)=>{const s=e?.[i];return s&&ha(s)?Sa(s,t):0})}const ja=[0,2,4];function Fe(e=[]){const t=e.find(s=>s&&$a(s))||e.find(s=>s&&va(s));if(!t)return ya();const a=e.findIndex(s=>s&&s.id===t.id),i=[...new Set([a,...ja])].filter(s=>Number.isInteger(s)&&s>=0&&s<A()&&!!e[s]);return{enabled:!0,ownerId:t.id,targetIds:i.map(s=>e[s]).filter(s=>s&&s.id!==t.id).map(s=>s.id).slice(0,2),fixedLinkedPositionIndices:i}}function Va(e=[]){const a=ba("c");return e.slice(0,ke("c")).forEach((i,s)=>{const r=j(i.attack_team||[]),d=j(i.defense_team||[]);[{teamKey:"attack",team:r},{teamKey:"defense",team:d}].forEach(({teamKey:u,team:h})=>{a.teams[u][s]=h.map(g=>g?.id||null),a.chargeSpeeds[u][s]=za(h,u),a.redHoodPierceCounts[u][s]=Oa(h,u),a.scarletCounterEnabled[u][s]=Array(A()).fill(!0),a.jackalLinks[u][s]=Fe(h)})}),a.activeRowIndex=0,a.activeTeamKey="attack",ka(a,"c")}function Ua(e=[]){const t=Array.isArray(e)?e.slice(0,ke("c")):[];if(!t.some(r=>{const d=j(r.attack_team||[]),p=j(r.defense_team||[]);return[...d,...p].some(Boolean)})){Re(o("\u8D5B\u5B63\u961F\u4F0D\u4E3A\u7A7A\uFF0C\u65E0\u6CD5\u5957\u7528","Season teams are empty and cannot be applied"));return}const i=be();Ca()&&Ma(i.paidArenaMode);const s=wa("c");Ta(s[0],"c")>0&&!window.confirm(o("\u5F53\u524D\u5C06\u8986\u76D6\u65B9\u68481\uFF0C\u662F\u5426\u786E\u8BA4\uFF1F","This will overwrite Plan 1. Continue?"))||(s[0]=Va(t),i.paidArenaMode="c",i.paidArenaActiveLineupIndex.c=0,i.paidArenaDisplayMode="round",i.paidArenaDataTeamKey="attack",i.paidArenaActiveRowIndex=0,Ra("c",0),i.paidArenaDisplayMode="round",i.paidArenaDataTeamKey="attack",i.paidArenaActiveRowIndex=0,Aa("c"),Fa(),me(),La(),Na(),Wa(),Ea(),Re(o("\u5DF2\u5957\u7528\u6574\u573A\u5BF9\u5C40\u5230\u51A0\u519B\u7ADE\u6280\u573A\u65B9\u68481","Applied the full match to Champion Arena Plan 1")))}function ae(e=[],t="attack"){const a=j(e);return{mode:"c",teamKey:pa(t),rowIndex:0,team:a,universalCharges:Array(A()).fill(0),sacrificeFrames:Array(A()).fill(null),redHoodPierceCounts:Array(A()).fill(0),scarletCounterEnabled:Array(A()).fill(!0),jackalLink:Fe(a),chargeSpeeds:Array(A()).fill(0),result:null}}function xe(e={}){const t=be(),a=ae(e.attack_team||[],"attack"),i=ae(e.defense_team||[],"defense");return Ae(a,i,()=>{let s=Y("attack"),r=Y("defense"),d=[],p=[],u=Q(t.team,"attack",[],[],[],s,[],a.universalCharges,t.defenseTeam,a.sacrificeFrames,d),h=Q(t.defenseTeam,"defense",[],[],[],r,[],i.universalCharges,t.team,i.sacrificeFrames,p);for(let g=0;g<8;g+=1){s=Y("attack",u?.reloadTimeline||[]),r=Y("defense",h?.reloadTimeline||[]),d=Le("attack",u?.reloadTimeline||[]),p=Le("defense",h?.reloadTimeline||[]);const S=Ne(u,h),y=Ne(h,u),M=xa(u,h),b=Q(t.team,"attack",S,h?.reloadTimeline||[],h?.turnDodgeTimeline||[],s,h?.tauntTimeline||[],a.universalCharges,t.defenseTeam,a.sacrificeFrames,d,{continueUntilFrame:M}),w=Q(t.defenseTeam,"defense",y,u?.reloadTimeline||[],u?.turnDodgeTimeline||[],r,u?.tauntTimeline||[],i.universalCharges,t.team,i.sacrificeFrames,p,{continueUntilFrame:M}),v=Z(b)===Z(u)&&Z(w)===Z(h);if(u=b,h=w,v)break}return{attackResult:u,defenseResult:h}})}function Pe(e){return!e||e.error||!Number.isFinite(e.fullFrame)?"?RL":`${fa(e.fullFrame/74,2)}RL`}function Ga(e={}){try{const{attackResult:t,defenseResult:a}=xe(e);return`${Pe(t)} VS ${Pe(a)}`}catch{return"?RL VS ?RL"}}function Xa(e){requestAnimationFrame(()=>{const t=e.getBoundingClientRect(),a=window.innerHeight||document.documentElement.clientHeight;(t.bottom>a-16||t.top<16)&&e.scrollIntoView({block:"nearest",behavior:"smooth"})})}function De(e){const t=e?.getBoundingClientRect?.(),a=Te();return{width:Math.max(320,Math.round(t?.width||a.width||1800)),height:Math.max(260,Math.round(t?.height||a.height||660))}}function _e(e={},t=Te()){const a=ae(e.attack_team||[],"attack"),i=ae(e.defense_team||[],"defense");return Ae(a,i,()=>{const{attackResult:s,defenseResult:r}=xe(e);return ma(s,null,r,t)})}function Ie(e,t=[]){const a=Number(e?.dataset?.championChartIndex);if(!Number.isInteger(a)||!t[a])return;const i=e.closest(".champion-round-card");if(!i)return;const s=e?.dataset?.championChartSide||"summary",r=`${a}:${s}`,p=i.querySelector(".champion-inline-chart")?.dataset?.championChartKey===r;if(document.querySelectorAll(".champion-inline-chart").forEach(S=>S.remove()),document.querySelectorAll(".champion-round-team.is-chart-active, .champion-round-chart-toggle.is-chart-active").forEach(S=>S.classList.remove("is-chart-active")),p)return;const u=document.createElement("div"),h=t[a].winner==="attack"?"is-attack-win":t[a].winner==="defense"?"is-defense-win":"";u.className=`champion-inline-chart charge-chart ${h}`.trim(),u.dataset.championChartKey=r,i.append(u);const g=t[a];u.innerHTML=_e(g,De(u)),requestAnimationFrame(()=>{!u.isConnected||u.dataset.championChartKey!==r||(u.innerHTML=_e(g,De(u)))}),e.classList.add("is-chart-active"),i.querySelector(".champion-round-chart-toggle")?.classList.add("is-chart-active"),Xa(u)}function Ja(e={},t=0){return`
+  `}function za(e={}){const t=oe(e?.character_id??e?.characterId??e?.id);return Y(t)||Ce(e?.name||"")}function V(e=[]){return Array.from({length:N()},(t,a)=>za(e[a]||null)||null)}function Oa(e=[],t="attack"){return Array.from({length:N()},(a,i)=>{const s=e?.[i];return s?Sa(s,t):0})}function ja(e=[],t="attack"){return Array.from({length:N()},(a,i)=>{const s=e?.[i];return s&&fa(s)?ya(s,t):0})}const Va=[0,2,4];function xe(e=[]){const t=e.find(s=>s&&va(s))||e.find(s=>s&&ba(s));if(!t)return $a();const a=e.findIndex(s=>s&&s.id===t.id),i=[...new Set([a,...Va])].filter(s=>Number.isInteger(s)&&s>=0&&s<N()&&!!e[s]);return{enabled:!0,ownerId:t.id,targetIds:i.map(s=>e[s]).filter(s=>s&&s.id!==t.id).map(s=>s.id).slice(0,2),fixedLinkedPositionIndices:i}}function Ua(e=[]){const a=ka("c");return e.slice(0,ke("c")).forEach((i,s)=>{const r=V(i.attack_team||[]),d=V(i.defense_team||[]);[{teamKey:"attack",team:r},{teamKey:"defense",team:d}].forEach(({teamKey:u,team:h})=>{a.teams[u][s]=h.map(g=>g?.id||null),a.chargeSpeeds[u][s]=Oa(h,u),a.redHoodPierceCounts[u][s]=ja(h,u),a.scarletCounterEnabled[u][s]=Array(N()).fill(!0),a.jackalLinks[u][s]=xe(h)})}),a.activeRowIndex=0,a.activeTeamKey="attack",Ca(a,"c")}function Ga(e=[]){const t=Array.isArray(e)?e.slice(0,ke("c")):[];if(!t.some(r=>{const d=V(r.attack_team||[]),p=V(r.defense_team||[]);return[...d,...p].some(Boolean)})){Ae(o("\u8D5B\u5B63\u961F\u4F0D\u4E3A\u7A7A\uFF0C\u65E0\u6CD5\u5957\u7528","Season teams are empty and cannot be applied"));return}const i=be();Ma()&&wa(i.paidArenaMode);const s=Ta("c");Ra(s[0],"c")>0&&!window.confirm(o("\u5F53\u524D\u5C06\u8986\u76D6\u65B9\u68481\uFF0C\u662F\u5426\u786E\u8BA4\uFF1F","This will overwrite Plan 1. Continue?"))||(s[0]=Ua(t),i.paidArenaMode="c",i.paidArenaActiveLineupIndex.c=0,i.paidArenaDisplayMode="round",i.paidArenaDataTeamKey="attack",i.paidArenaActiveRowIndex=0,Aa("c",0),i.paidArenaDisplayMode="round",i.paidArenaDataTeamKey="attack",i.paidArenaActiveRowIndex=0,La("c"),xa(),me(),Na(),Wa(),Ea(),Fa(),Ae(o("\u5DF2\u5957\u7528\u6574\u573A\u5BF9\u5C40\u5230\u51A0\u519B\u7ADE\u6280\u573A\u65B9\u68481","Applied the full match to Champion Arena Plan 1")))}function te(e=[],t="attack"){const a=V(e);return{mode:"c",teamKey:ha(t),rowIndex:0,team:a,universalCharges:Array(N()).fill(0),sacrificeFrames:Array(N()).fill(null),redHoodPierceCounts:Array(N()).fill(0),scarletCounterEnabled:Array(N()).fill(!0),jackalLink:xe(a),chargeSpeeds:Array(N()).fill(0),result:null}}function Pe(e={}){const t=be(),a=te(e.attack_team||[],"attack"),i=te(e.defense_team||[],"defense");return Le(a,i,()=>{let s=Q("attack"),r=Q("defense"),d=[],p=[],u=Z(t.team,"attack",[],[],[],s,[],a.universalCharges,t.defenseTeam,a.sacrificeFrames,d),h=Z(t.defenseTeam,"defense",[],[],[],r,[],i.universalCharges,t.team,i.sacrificeFrames,p);for(let g=0;g<8;g+=1){s=Q("attack",u?.reloadTimeline||[]),r=Q("defense",h?.reloadTimeline||[]),d=Ne("attack",u?.reloadTimeline||[]),p=Ne("defense",h?.reloadTimeline||[]);const S=We(u,h),y=We(h,u),w=Pa(u,h),v=Z(t.team,"attack",S,h?.reloadTimeline||[],h?.turnDodgeTimeline||[],s,h?.tauntTimeline||[],a.universalCharges,t.defenseTeam,a.sacrificeFrames,d,{continueUntilFrame:w}),C=Z(t.defenseTeam,"defense",y,u?.reloadTimeline||[],u?.turnDodgeTimeline||[],r,u?.tauntTimeline||[],i.universalCharges,t.team,i.sacrificeFrames,p,{continueUntilFrame:w}),$=ee(v)===ee(u)&&ee(C)===ee(h);if(u=v,h=C,$)break}return{attackResult:u,defenseResult:h}})}function De(e){return!e||e.error||!Number.isFinite(e.fullFrame)?"?RL":`${ga(e.fullFrame/74,2)}RL`}function Xa(e={}){try{const{attackResult:t,defenseResult:a}=Pe(e);return`${De(t)} VS ${De(a)}`}catch{return"?RL VS ?RL"}}function Ja(e){requestAnimationFrame(()=>{const t=e.getBoundingClientRect(),a=window.innerHeight||document.documentElement.clientHeight;(t.bottom>a-16||t.top<16)&&e.scrollIntoView({block:"nearest",behavior:"smooth"})})}function _e(e){const t=e?.getBoundingClientRect?.(),a=Re();return{width:Math.max(320,Math.round(t?.width||a.width||1800)),height:Math.max(260,Math.round(t?.height||a.height||660))}}function Ie(e={},t=Re()){const a=te(e.attack_team||[],"attack"),i=te(e.defense_team||[],"defense");return Le(a,i,()=>{const{attackResult:s,defenseResult:r}=Pe(e);return pa(s,null,r,t)})}function Be(e,t=[]){const a=Number(e?.dataset?.championChartIndex);if(!Number.isInteger(a)||!t[a])return;const i=e.closest(".champion-round-card");if(!i)return;const s=e?.dataset?.championChartSide||"summary",r=`${a}:${s}`,p=i.querySelector(".champion-inline-chart")?.dataset?.championChartKey===r;if(document.querySelectorAll(".champion-inline-chart").forEach(S=>S.remove()),document.querySelectorAll(".champion-round-team.is-chart-active, .champion-round-chart-toggle.is-chart-active").forEach(S=>S.classList.remove("is-chart-active")),p)return;const u=document.createElement("div"),h=t[a].winner==="attack"?"is-attack-win":t[a].winner==="defense"?"is-defense-win":"";u.className=`champion-inline-chart charge-chart ${h}`.trim(),u.dataset.championChartKey=r,i.append(u);const g=t[a];u.innerHTML=Ie(g,_e(u)),requestAnimationFrame(()=>{!u.isConnected||u.dataset.championChartKey!==r||(u.innerHTML=Ie(g,_e(u)))}),e.classList.add("is-chart-active"),i.querySelector(".champion-round-chart-toggle")?.classList.add("is-chart-active"),Ja(u)}function Ya(e={},t=0){return`
     <button class="champion-round-chart-toggle" type="button" data-champion-chart-index="${c(String(t))}">
-      <span class="champion-round-chart-toggle-speed">${c(Ga(e))}</span>
+      <span class="champion-round-chart-toggle-speed">${c(Xa(e))}</span>
       <span class="champion-round-chart-toggle-hint">${c(o("\u70B9\u51FB\u53EF\u67E5\u770B\u5145\u80FD\u8BE6\u60C5","Tap to view charge details"))}</span>
     </button>
-  `}function V(e,t,a={}){if(!e?.playerName)return"";const i=e.side==="attack"?"is-attack-win":e.side==="defense"?"is-defense-win":"",s=!!a.hideMeta,r=!!a.hideStage,d=Array.from(String(e.playerName||"")).length,p=d>6?" is-name-tiny":d>4?" is-name-small":"",u=s?"":`<span class="champion-player-seed">${c(t)}</span>`,h=s||r?"":`<span class="champion-player-stage">${c(e.scoreText||e.stageLabel||"")}</span>`,g=e.altMatchKey?` data-champion-alt-match="${c(String(e.altMatchKey))}" data-champion-alt-label="${c(String(e.altMatchLabel||""))}"`:"";return`
+  `}function U(e,t,a={}){if(!e?.playerName)return"";const i=e.side==="attack"?"is-attack-win":e.side==="defense"?"is-defense-win":"",s=!!a.hideMeta,r=!!a.hideStage,d=Array.from(String(e.playerName||"")).length,p=d>6?" is-name-tiny":d>4?" is-name-small":"",u=s?"":`<span class="champion-player-seed">${c(t)}</span>`,h=s||r?"":`<span class="champion-player-stage">${c(e.scoreText||e.stageLabel||"")}</span>`,g=e.altMatchKey?` data-champion-alt-match="${c(String(e.altMatchKey))}" data-champion-alt-label="${c(String(e.altMatchLabel||""))}"`:"";return`
     <button class="champion-player-node ${i}${e.isWinner?" is-winner":" is-loser"}" type="button" data-champion-player="${c(e.playerName)}" data-champion-match="${c(String(e.matchKey||""))}" data-champion-detail="${c(e.detailMode||"match")}"${g}>
       ${u}
       <span class="champion-player-name${p}"><span class="champion-player-name-text">${c(e.playerName)}</span></span>
       ${h}
     </button>
-  `}function Bt(e,t){const a=e.rows[0]||{},i=W(e.rows),s={playerName:a.attack_player||"",matchKey:e.key,side:"attack",stageLabel:e.stageLabel,scoreText:`${i.attackWins}`,isWinner:i.winner==="attack"},r={playerName:a.defense_player||"",matchKey:e.key,side:"defense",stageLabel:e.stageLabel,scoreText:`${i.defenseWins}`,isWinner:i.winner==="defense"},d=s.isWinner?s:r.isWinner?r:s,p=s.isWinner?r:r.isWinner?s:r;return`
+  `}function Ht(e,t){const a=e.rows[0]||{},i=x(e.rows),s={playerName:a.attack_player||"",matchKey:e.key,side:"attack",stageLabel:e.stageLabel,scoreText:`${i.attackWins}`,isWinner:i.winner==="attack"},r={playerName:a.defense_player||"",matchKey:e.key,side:"defense",stageLabel:e.stageLabel,scoreText:`${i.defenseWins}`,isWinner:i.winner==="defense"},d=s.isWinner?s:r.isWinner?r:s,p=s.isWinner?r:r.isWinner?s:r;return`
     <article class="champion-match-pair">
       <div class="champion-match-pair-label">${c(e.matchLabel==="FINAL"?"FINAL":`M${t+1}`)}</div>
       <div class="champion-match-pair-nodes">
-        ${V(d,"WIN")}
-        ${V(p,"LOSE")}
+        ${U(d,"WIN")}
+        ${U(p,"LOSE")}
       </div>
     </article>
-  `}function E(e){const t=e?.rows?.[0]||{},a=W(e?.rows||[]);return[{playerName:t.attack_player||"",matchKey:e?.key||"",side:"attack",stageLabel:e?.stageLabel||"",scoreText:`${a.attackWins}`,isWinner:a.winner==="attack"},{playerName:t.defense_player||"",matchKey:e?.key||"",side:"defense",stageLabel:e?.stageLabel||"",scoreText:`${a.defenseWins}`,isWinner:a.winner==="defense"}].filter(i=>i.playerName)}function Ya(e,t=[]){if(!e||!t.length)return"winner";const a=t.find(i=>E(i).some(s=>s.playerName===e));return a?q(a.rows)===e?"winner":"loser":"winner"}function Ht(e=[],t=[],a=[]){const i=a[0]||null,s=i?q(i.rows):"",r=t.length?getChampionWinnerNodes(t).map(u=>({...u,isWinner:u.playerName===s})):i?E(i).map(u=>({...u,isWinner:u.playerName===s})):[],d=getChampionWinnerNodes(e).map(u=>({...u,isWinner:Ya(u.playerName,t)==="winner"})),p=e.flatMap(u=>E(u).map(h=>({...h,detailMode:"player-team",isWinner:h.isWinner})));return[{key:"champion",label:o("\u5C0F\u7EC4\u51A0\u519B","Group Champion"),nodes:s?[{playerName:s,matchKey:i?.key||"",side:W(i?.rows||[]).winner,stageLabel:o("\u51A0\u519B","Champion"),scoreText:"WIN",isWinner:!0}]:[]},{key:"top2",label:"2\u8FDB1",nodes:r,matches:i?[i]:[]},{key:"top4",label:"4\u8FDB2",nodes:d,matches:t},{key:"top8",label:"8\u8FDB4",nodes:p,matches:e}]}function Qa(e,t,a){const i=a?.key==="top2"||a?.key==="top4";return V(e,e.isWinner?e.scoreText||"WIN":e.scoreText||"LOSE",{hideMeta:!i,hideStage:!0}).replace('class="champion-player-node ',`class="champion-player-node champion-tree-node champion-tree-node-${t+1} `)}function Be(e,t,a,i={}){const s=!!i.showScore,r=!!i.hideMeta;return V(e,e.isWinner?e.scoreText||"WIN":e.scoreText||"LOSE",{hideMeta:r||!s,hideStage:!0}).replace('class="champion-player-node ',`class="champion-player-node champion-tree-node champion-tree-node-${t+1} `)}function Za(e,t,a){const i=E(e),s=W(e.rows||[]),r=i.find(h=>h.isWinner)||i[0];if(!r)return"";const d=a?.key==="top2"||a?.key==="top4",p=Be({...r,scoreText:`${s.attackWins}:${s.defenseWins}`,isWinner:!0},0,a,{showScore:d}),u=i.map((h,g)=>Be({...h,detailMode:a?.key==="top8"?"player-team":h.detailMode},g+1,a,{hideMeta:a?.key==="top8"})).join("");return`
+  `}function P(e){const t=e?.rows?.[0]||{},a=x(e?.rows||[]);return[{playerName:t.attack_player||"",matchKey:e?.key||"",side:"attack",stageLabel:e?.stageLabel||"",scoreText:`${a.attackWins}`,isWinner:a.winner==="attack"},{playerName:t.defense_player||"",matchKey:e?.key||"",side:"defense",stageLabel:e?.stageLabel||"",scoreText:`${a.defenseWins}`,isWinner:a.winner==="defense"}].filter(i=>i.playerName)}function Qa(e,t=[]){if(!e||!t.length)return"winner";const a=t.find(i=>P(i).some(s=>s.playerName===e));return a?q(a.rows)===e?"winner":"loser":"winner"}function Kt(e=[],t=[],a=[]){const i=a[0]||null,s=i?q(i.rows):"",r=t.length?getChampionWinnerNodes(t).map(u=>({...u,isWinner:u.playerName===s})):i?P(i).map(u=>({...u,isWinner:u.playerName===s})):[],d=getChampionWinnerNodes(e).map(u=>({...u,isWinner:Qa(u.playerName,t)==="winner"})),p=e.flatMap(u=>P(u).map(h=>({...h,detailMode:"player-team",isWinner:h.isWinner})));return[{key:"champion",label:o("\u5C0F\u7EC4\u51A0\u519B","Group Champion"),nodes:s?[{playerName:s,matchKey:i?.key||"",side:x(i?.rows||[]).winner,stageLabel:o("\u51A0\u519B","Champion"),scoreText:"WIN",isWinner:!0}]:[]},{key:"top2",label:"2\u8FDB1",nodes:r,matches:i?[i]:[]},{key:"top4",label:"4\u8FDB2",nodes:d,matches:t},{key:"top8",label:"8\u8FDB4",nodes:p,matches:e}]}function Za(e,t,a){const i=a?.key==="top2"||a?.key==="top4";return U(e,e.isWinner?e.scoreText||"WIN":e.scoreText||"LOSE",{hideMeta:!i,hideStage:!0}).replace('class="champion-player-node ',`class="champion-player-node champion-tree-node champion-tree-node-${t+1} `)}function He(e,t,a,i={}){const s=!!i.showScore,r=!!i.hideMeta;return U(e,e.isWinner?e.scoreText||"WIN":e.scoreText||"LOSE",{hideMeta:r||!s,hideStage:!0}).replace('class="champion-player-node ',`class="champion-player-node champion-tree-node champion-tree-node-${t+1} `)}function et(e,t,a){const i=P(e),s=x(e.rows||[]),r=i.find(h=>h.isWinner)||i[0];if(!r)return"";const d=a?.key==="top2"||a?.key==="top4",p=He({...r,scoreText:`${s.attackWins}:${s.defenseWins}`,isWinner:!0},0,a,{showScore:d}),u=i.map((h,g)=>He({...h,detailMode:a?.key==="top8"?"player-team":h.detailMode},g+1,a,{hideMeta:a?.key==="top8"})).join("");return`
     <article class="champion-tree-match-card champion-tree-match-${c(a?.key||"")}">
       <div class="champion-tree-match-winner">${p}</div>
       <div class="champion-tree-match-lines" aria-hidden="true"></div>
@@ -270,67 +270,67 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
         ${u}
       </div>
     </article>
-  `}function Kt(e){const t=Array.isArray(e.matches)&&e.matches.length>0;return`
+  `}function qt(e){const t=Array.isArray(e.matches)&&e.matches.length>0;return`
     <section class="champion-tree-row champion-tree-${c(e.key)}">
       <div class="champion-tree-row-title">${c(e.label)}</div>
       <div class="${t?"champion-tree-row-matches":"champion-tree-row-nodes"}">
-        ${t?e.matches.map((a,i)=>Za(a,i,e)).join(""):e.nodes.length?e.nodes.map((a,i)=>Qa(a,i,e)).join(""):`<span class="champion-empty-node">${c(o("\u6682\u65E0","Empty"))}</span>`}
+        ${t?e.matches.map((a,i)=>et(a,i,e)).join(""):e.nodes.length?e.nodes.map((a,i)=>Za(a,i,e)).join(""):`<span class="champion-empty-node">${c(o("\u6682\u65E0","Empty"))}</span>`}
       </div>
     </section>
-  `}function He(e=[],t=[],a=new Set){const i=e.map(r=>q(r.rows||[])).filter(Boolean),s=t.find(r=>a.has(r.key)?!1:E(r).some(d=>i.includes(d.playerName)));return s?.key&&a.add(s.key),s||null}function te(e,t="",a={}){const i=!!a.hideMeta,s=a.detailMode||e?.detailMode||"match";return V({...e,detailMode:s},t,{hideMeta:i,hideStage:!0}).replace('class="champion-player-node ','class="champion-player-node champion-tree-node champion-elim-node ')}function qt(e,t,a={}){if(!e?.rows?.length)return"";const i=E(e),s=W(e.rows||[]),r=i.find(u=>u.isWinner)||i[0];if(!r)return"";const d=!!a.hideParticipantMeta,p=`${s.attackWins}:${s.defenseWins}`;return`
+  `}function Ke(e=[],t=[],a=new Set){const i=e.map(r=>q(r.rows||[])).filter(Boolean),s=t.find(r=>a.has(r.key)?!1:P(r).some(d=>i.includes(d.playerName)));return s?.key&&a.add(s.key),s||null}function ne(e,t="",a={}){const i=!!a.hideMeta,s=a.detailMode||e?.detailMode||"match";return U({...e,detailMode:s},t,{hideMeta:i,hideStage:!0}).replace('class="champion-player-node ','class="champion-player-node champion-tree-node champion-elim-node ')}function zt(e,t,a={}){if(!e?.rows?.length)return"";const i=P(e),s=x(e.rows||[]),r=i.find(u=>u.isWinner)||i[0];if(!r)return"";const d=!!a.hideParticipantMeta,p=`${s.attackWins}:${s.defenseWins}`;return`
     <article class="champion-elim-match">
       <div class="champion-elim-match-label">${c(t)}</div>
       <div class="champion-elim-match-winner">
-        ${te({...r,scoreText:p,isWinner:!0},p)}
+        ${ne({...r,scoreText:p,isWinner:!0},p)}
       </div>
       <div class="champion-elim-lines" aria-hidden="true"></div>
       <div class="champion-elim-participants">
-        ${i.map(u=>te({...u,detailMode:a.participantDetailMode||u.detailMode},u.isWinner?u.scoreText||"WIN":u.scoreText||"LOSE",{hideMeta:d})).join("")}
+        ${i.map(u=>ne({...u,detailMode:a.participantDetailMode||u.detailMode},u.isWinner?u.scoreText||"WIN":u.scoreText||"LOSE",{hideMeta:d})).join("")}
       </div>
     </article>
-  `}function ye(e={}){return`${e.attackWins||0}:${e.defenseWins||0}`}function D(e,t,a="",i={}){return e?.playerName?`<div class="champion-elim-slot ${c(t)}">${te(e,a,i)}</div>`:`<span class="champion-empty-node ${c(t)}">${c(o("\u6682\u65E0","Empty"))}</span>`}function et(e,t={}){const a=e==="bottom",i=a?38:14,s=a?86:62,r=a?62:38,d=a?62:38,p=a?24:76,u=p,h=t.leftWinnerIndex===0,g=t.rightWinnerIndex===0,S=t.halfWinnerSide==="left",y=(v,f)=>`<path class="champion-elim-line-path ${f?"is-win-line":"is-lose-line"}" d="${v}" />`,M=(v,f,C=p)=>`
-    <svg class="champion-elim-lines-svg ${v}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  `}function ye(e={}){return`${e.attackWins||0}:${e.defenseWins||0}`}function _(e,t,a="",i={}){return e?.playerName?`<div class="champion-elim-slot ${c(t)}">${ne(e,a,i)}</div>`:`<span class="champion-empty-node ${c(t)}">${c(o("\u6682\u65E0","Empty"))}</span>`}function at(e,t={}){const a=e==="bottom",i=a?38:14,s=a?86:62,r=a?62:38,d=a?62:38,p=a?24:76,u=p,h=t.leftWinnerIndex===0,g=t.rightWinnerIndex===0,S=t.halfWinnerSide==="left",y=($,f)=>`<path class="champion-elim-line-path ${f?"is-win-line":"is-lose-line"}" d="${$}" />`,w=($,f,M=p)=>`
+    <svg class="champion-elim-lines-svg ${$}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
       ${y(`M ${f.leftOuter} ${i} H ${f.leftMergeX} V ${r} H ${f.leftWinner}`,h)}
       ${y(`M ${f.leftOuter} ${s} H ${f.leftMergeX} V ${r} H ${f.leftWinner}`,!h)}
       ${y(`M ${f.rightOuter} ${i} H ${f.rightMergeX} V ${r} H ${f.rightWinner}`,g)}
       ${y(`M ${f.rightOuter} ${s} H ${f.rightMergeX} V ${r} H ${f.rightWinner}`,!g)}
-      ${y(`M ${f.leftFinal} ${d} H 50 V ${C}`,S)}
-      ${y(`M ${f.rightFinal} ${d} H 50 V ${C}`,!S)}
+      ${y(`M ${f.leftFinal} ${d} H 50 V ${M}`,S)}
+      ${y(`M ${f.rightFinal} ${d} H 50 V ${M}`,!S)}
     </svg>
-  `,b={leftOuter:12,leftMergeX:20,leftWinner:23.5,rightOuter:88,rightMergeX:80,rightWinner:76.5,leftFinal:39,rightFinal:61},w={leftOuter:18,leftMergeX:21,leftWinner:21.5,rightOuter:82,rightMergeX:79,rightWinner:78.5,leftFinal:41,rightFinal:59};return`
-    ${M("is-desktop-lines",b)}
-    ${M("is-mobile-lines",w,u)}
-  `}function at(e,t=null,a=null){return e&&(t?.rows?.length?E(t):[]).find(s=>s.playerName===e)||a}function Ke(e,t=[],a=null,i=null){const s=t.slice(0,2).map($=>{const T=E($).map(F=>({...F,detailMode:"player-team"}));return{group:$,participants:T,winner:T.find(F=>F.isWinner)||T[0]||null,summary:W($.rows||[])}}),r=s[0]||{},d=s[1]||{},p=r.participants||[],u=d.participants||[],h=W(a?.rows||[]),g=a?E(a):[],S=g.find($=>$.isWinner)||g[0]||null,y=W(i?.rows||[]),M=i?q(i.rows):"",b=S?{...at(S.playerName,i,S)||S,scoreText:ye(h),isWinner:M?S.playerName===M:!0,altMatchKey:a?.key||"",altMatchLabel:o("\u67E5\u770B4\u8FDB2\u5BF9\u5C40","View semifinal")}:null,w=r.winner?{...r.winner,scoreText:ye(r.summary),isWinner:!0}:null,v=d.winner?{...d.winner,scoreText:ye(d.summary),isWinner:!0}:null,f=$=>{const T=$.participants||[],F=$.winner?.playerName,B=T.findIndex(ne=>ne.playerName===F);return B>=0?B:0},C=S?.playerName&&v?.playerName===S.playerName?"right":"left",k=e==="top"?o("\u4E0A\u534A\u533A","Upper Half"):o("\u4E0B\u534A\u533A","Lower Half");return`
+  `,v={leftOuter:12,leftMergeX:20,leftWinner:23.5,rightOuter:88,rightMergeX:80,rightWinner:76.5,leftFinal:39,rightFinal:61},C={leftOuter:18,leftMergeX:21,leftWinner:21.5,rightOuter:82,rightMergeX:79,rightWinner:78.5,leftFinal:41,rightFinal:59};return`
+    ${w("is-desktop-lines",v)}
+    ${w("is-mobile-lines",C,u)}
+  `}function tt(e,t=null,a=null){return e&&(t?.rows?.length?P(t):[]).find(s=>s.playerName===e)||a}function qe(e,t=[],a=null,i=null){const s=t.slice(0,2).map(b=>{const A=P(b).map(T=>({...T,detailMode:"player-team"}));return{group:b,participants:A,winner:A.find(T=>T.isWinner)||A[0]||null,summary:x(b.rows||[])}}),r=s[0]||{},d=s[1]||{},p=r.participants||[],u=d.participants||[],h=x(a?.rows||[]),g=a?P(a):[],S=g.find(b=>b.isWinner)||g[0]||null,y=x(i?.rows||[]),w=i?q(i.rows):"",v=S?{...tt(S.playerName,i,S)||S,scoreText:ye(h),isWinner:w?S.playerName===w:!0,altMatchKey:a?.key||"",altMatchLabel:o("\u67E5\u770B4\u8FDB2\u5BF9\u5C40","View semifinal")}:null,C=r.winner?{...r.winner,scoreText:ye(r.summary),isWinner:!0}:null,$=d.winner?{...d.winner,scoreText:ye(d.summary),isWinner:!0}:null,f=b=>{const A=b.participants||[],T=b.winner?.playerName,B=A.findIndex(G=>G.playerName===T);return B>=0?B:0},M=S?.playerName&&$?.playerName===S.playerName?"right":"left",k=e==="top"?o("\u4E0A\u534A\u533A","Upper Half"):o("\u4E0B\u534A\u533A","Lower Half");return`
     <section class="champion-elim-half champion-elim-half-${c(e)}" aria-label="${c(k)}">
-      ${et(e,{leftWinnerIndex:f(r),rightWinnerIndex:f(d),halfWinnerSide:C})}
-      ${D(p[0],"slot-left-1","",{hideMeta:!0})}
-      ${D(u[0],"slot-right-1","",{hideMeta:!0})}
-      ${D(w,"slot-left-winner",w?.scoreText||"",{detailMode:"match"})}
-      ${D(v,"slot-right-winner",v?.scoreText||"",{detailMode:"match"})}
-      ${D(p[1],"slot-left-2","",{hideMeta:!0})}
-      ${D(u[1],"slot-right-2","",{hideMeta:!0})}
-      ${D(b,"slot-half-winner",b?.scoreText||"",{detailMode:"match"})}
+      ${at(e,{leftWinnerIndex:f(r),rightWinnerIndex:f(d),halfWinnerSide:M})}
+      ${_(p[0],"slot-left-1","",{hideMeta:!0})}
+      ${_(u[0],"slot-right-1","",{hideMeta:!0})}
+      ${_(C,"slot-left-winner",C?.scoreText||"",{detailMode:"match"})}
+      ${_($,"slot-right-winner",$?.scoreText||"",{detailMode:"match"})}
+      ${_(p[1],"slot-left-2","",{hideMeta:!0})}
+      ${_(u[1],"slot-right-2","",{hideMeta:!0})}
+      ${_(v,"slot-half-winner",v?.scoreText||"",{detailMode:"match"})}
       <span class="champion-elim-connector connector-left-pair" aria-hidden="true"></span>
       <span class="champion-elim-connector connector-right-pair" aria-hidden="true"></span>
       <span class="champion-elim-connector connector-left-final" aria-hidden="true"></span>
       <span class="champion-elim-connector connector-right-final" aria-hidden="true"></span>
       <span class="champion-elim-connector connector-half-final" aria-hidden="true"></span>
     </section>
-  `}function zt(e=null,t=[]){const a=e?.rows?.length?E(e):getChampionWinnerNodes(t),i=W(e?.rows||[]),s=e?q(e.rows):"",r=e?`${i.attackWins}:${i.defenseWins}`:"";return`
+  `}function Ot(e=null,t=[]){const a=e?.rows?.length?P(e):getChampionWinnerNodes(t),i=x(e?.rows||[]),s=e?q(e.rows):"",r=e?`${i.attackWins}:${i.defenseWins}`:"";return`
     <section class="champion-elim-final" aria-label="${c(o("\u51B3\u8D5B","Final"))}">
       <div class="champion-elim-final-label">${c(o("2\u8FDB1","Final"))}</div>
       <div class="champion-elim-final-lines" aria-hidden="true"></div>
       <div class="champion-elim-final-nodes">
-        ${a.length?a.map(d=>te({...d,scoreText:r,isWinner:s?d.playerName===s:d.isWinner},r||(d.isWinner?"WIN":"LOSE"),{hideMeta:!e})).join(""):`<span class="champion-empty-node">${c(o("\u6682\u65E0","Empty"))}</span>`}
+        ${a.length?a.map(d=>ne({...d,scoreText:r,isWinner:s?d.playerName===s:d.isWinner},r||(d.isWinner?"WIN":"LOSE"),{hideMeta:!e})).join(""):`<span class="champion-empty-node">${c(o("\u6682\u65E0","Empty"))}</span>`}
       </div>
     </section>
-  `}function tt(e=[],t=[],a=[]){const i=e.slice(0,2),s=e.slice(2,4),r=new Set,d=He(i,t,r),p=He(s,t,r)||t.find(h=>!r.has(h.key))||null,u=a[0]||null;return`
+  `}function nt(e=[],t=[],a=[]){const i=e.slice(0,2),s=e.slice(2,4),r=new Set,d=Ke(i,t,r),p=Ke(s,t,r)||t.find(h=>!r.has(h.key))||null,u=a[0]||null;return`
     <div class="champion-elim-board">
-      ${Ke("top",i,d,u)}
+      ${qe("top",i,d,u)}
       <div class="champion-elim-vs" aria-hidden="true">VS</div>
-      ${Ke("bottom",s,p,u)}
+      ${qe("bottom",s,p,u)}
     </div>
-  `}function $e(e,t="",a="match",i="",s=""){me();const r=aa(we(),t),d=r[0]||{},p=a==="player-team",u=W(r),h=d.attack_player||o("\u8FDB\u653B\u65B9","Attack"),g=d.defense_player||o("\u9632\u5B88\u65B9","Defense"),S=!p&&i&&i!==t,y=n().selectedDivision==="champion"?o("\u67E5\u770B\u51A0\u519B\u5BF9\u5C40","View final"):o("\u67E5\u770B\u5C0F\u7EC4\u51A0\u519B\u5BF9\u5C40","View group final"),M=p?c(`${e||o("\u9009\u624B","Player")} ${o("\u961F\u4F0D\u4FE1\u606F","Teams")}`):`
+  `}function $e(e,t="",a="match",i="",s=""){me();const r=na(we(),t),d=r[0]||{},p=a==="player-team",u=x(r),h=d.attack_player||o("\u8FDB\u653B\u65B9","Attack"),g=d.defense_player||o("\u9632\u5B88\u65B9","Defense"),S=!p&&i&&i!==t,y=n().selectedDivision==="champion"?o("\u67E5\u770B\u51A0\u519B\u5BF9\u5C40","View final"):o("\u67E5\u770B\u5C0F\u7EC4\u51A0\u519B\u5BF9\u5C40","View group final"),w=p?c(`${e||o("\u9009\u624B","Player")} ${o("\u961F\u4F0D\u4FE1\u606F","Teams")}`):`
       <span class="champion-matchup-player is-attack">${c(h)}</span>
       <span class="champion-matchup-score">\uFF08${c(String(u.attackWins))} VS ${c(String(u.defenseWins))}\uFF09</span>
       <span class="champion-matchup-player is-defense">${c(g)}</span>
@@ -342,26 +342,26 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
       <button class="champion-round-apply-button" type="button" data-champion-apply-match="1">
         ${c(o("\u5957\u7528\u67E5\u770B","Apply to view"))}
       </button>
-    `,b=p?`
+    `,v=p?`
       <strong>${c(o("\u53C2\u8D5B\u9635\u5BB9","Lineups"))}</strong>
       <span>${c(o("\u8BE5\u9009\u624B\u76845\u961F\u9635\u5BB9","This player's 5 lineups"))}</span>
-    `:"",w=r.length?r.map((f,C)=>p?Ka(f,e):Ha(f,C)).join(""):`<p class="champion-data-empty">${c(o("\u6682\u65E0\u8BE5\u9009\u624B\u5BF9\u5C40\u3002","No matches for this player."))}</p>`,v=document.createElement("div");v.className="help-modal-backdrop champion-player-detail-backdrop",v.innerHTML=`
+    `:"",C=r.length?r.map((f,M)=>p?qa(f,e):Ka(f,M)).join(""):`<p class="champion-data-empty">${c(o("\u6682\u65E0\u8BE5\u9009\u624B\u5BF9\u5C40\u3002","No matches for this player."))}</p>`,$=document.createElement("div");$.className="help-modal-backdrop champion-player-detail-backdrop",$.innerHTML=`
     <section class="help-modal champion-player-detail-modal" role="dialog" aria-modal="true" aria-label="${c(o("\u80DC\u8D1F\u6570\u636E\u961F\u4F0D","Match teams"))}">
       <div class="help-modal-head">
         <div>
           <span class="help-modal-kicker">Champion</span>
-          <strong class="${p?"":"champion-matchup-title"}">${M}</strong>
+          <strong class="${p?"":"champion-matchup-title"}">${w}</strong>
         </div>
         <button class="help-modal-close" type="button" aria-label="${c(o("\u5173\u95ED","Close"))}">X</button>
       </div>
       <div class="help-modal-content champion-player-detail-content">
-        ${b?`<div class="champion-round-title">${b}</div>`:""}
+        ${v?`<div class="champion-round-title">${v}</div>`:""}
         <div class="champion-round-list">
-          ${w}
+          ${C}
         </div>
       </div>
     </section>
-  `,document.body.append(v),v.querySelector(".help-modal-close")?.addEventListener("click",me),v.querySelectorAll("[data-champion-chart-index]").forEach(f=>{f.addEventListener("click",()=>Ie(f,r)),f.addEventListener("keydown",C=>{["Enter"," "].includes(C.key)&&(C.preventDefault(),Ie(f,r))})}),v.querySelector("[data-champion-apply-match]")?.addEventListener("click",()=>Ua(r)),v.querySelector("[data-champion-switch-match]")?.addEventListener("click",f=>{const C=f.currentTarget?.dataset?.championSwitchMatch||"",k=f.currentTarget?.dataset?.championSwitchLabel||"";$e(e,C,"match",t,k)})}function N(e){const t=e?.querySelector(".champion-data-content");if(!t)return;if(t.classList.toggle("is-loading",!!n().loading),n().loading&&(n().loadingMode==="meta"||!Array.isArray(n().sourceSets))){t.innerHTML=`<p class="champion-data-empty champion-data-loading">${c(o("\u6B63\u5728\u83B7\u53D6\u8D5B\u5B63\u6570\u636E...","Loading season data..."))}</p>`;return}if(n().error){t.innerHTML=`<p class="champion-data-empty is-error">${c(n().error)}</p>`;return}const a=["cn","international"].includes(n().selectedServerRegion)?n().selectedServerRegion:"cn",s=(Array.isArray(n().sourceSets)?n().sourceSets:[]).filter(m=>String(m?.server_region||"cn")===a),r=s.length>0,d=s.map(m=>J(m)).filter(Boolean),p=new Map(d.map(m=>{const x=s.find(_=>J(_)===m);return[m,x?.season||na(m)]})),u=ia([...new Set([...p.values()])]),h=n().selectedModule==="stats",g=u[0]||"",S=g?[g]:[];h&&(!n().selectedSeason||n().selectedSeason!==K()&&!S.includes(n().selectedSeason))&&(n().selectedSeason=g||K(),n().selectedMatchupTeamKey=""),n().selectedSeason===K()&&n().selectedModule!=="stats"&&(n().selectedSeason=""),n().selectedSeason&&n().selectedSeason!==K()&&!u.includes(n().selectedSeason)&&(n().selectedSeason="");const y=d.filter(m=>p.get(m)===n().selectedSeason);n().selectedFile&&!y.includes(n().selectedFile)&&(n().selectedFile="");const M=ta(),b=M.filter(m=>J(m)===n().selectedFile),w=[...h?[{value:K(),label:o("\u5168\u8D5B\u5B63","All seasons")}]:[{value:"",label:o("\u9009\u62E9\u8D5B\u5B63","Select season")}],...(h?S:u).map(m=>({value:m,label:m}))],v=[{value:"",label:o("\u9009\u62E9\u51A0\u519B","Select champion")},...y.map(m=>{const x=s.find(_=>J(_)===m);return{value:m,label:x?.champion_name||sa(M,m)}})],f=[{value:"cn",label:o("\u56FD\u670D","China")},{value:"international",label:o("\u56FD\u9645\u670D","Global")}],C=`
+  `,document.body.append($),$.querySelector(".help-modal-close")?.addEventListener("click",me),$.querySelectorAll("[data-champion-chart-index]").forEach(f=>{f.addEventListener("click",()=>Be(f,r)),f.addEventListener("keydown",M=>{["Enter"," "].includes(M.key)&&(M.preventDefault(),Be(f,r))})}),$.querySelector("[data-champion-apply-match]")?.addEventListener("click",()=>Ga(r)),$.querySelector("[data-champion-switch-match]")?.addEventListener("click",f=>{const M=f.currentTarget?.dataset?.championSwitchMatch||"",k=f.currentTarget?.dataset?.championSwitchLabel||"";$e(e,M,"match",t,k)})}function E(e){const t=e?.querySelector(".champion-data-content");if(!t)return;if(t.classList.toggle("is-loading",!!n().loading),n().loading&&(n().loadingMode==="meta"||!Array.isArray(n().sourceSets))){t.innerHTML=`<p class="champion-data-empty champion-data-loading">${c(o("\u6B63\u5728\u83B7\u53D6\u8D5B\u5B63\u6570\u636E...","Loading season data..."))}</p>`;return}if(n().error){t.innerHTML=`<p class="champion-data-empty is-error">${c(n().error)}</p>`;return}const a=["cn","international"].includes(n().selectedServerRegion)?n().selectedServerRegion:"cn",s=(Array.isArray(n().sourceSets)?n().sourceSets:[]).filter(m=>String(m?.server_region||"cn")===a),r=s.length>0,d=s.map(m=>z(m)).filter(Boolean),p=new Map(d.map(m=>{const L=s.find(F=>z(F)===m);return[m,L?.season||Te(m)]})),u=new Map;for(const m of s){const L=m?.season||Te(z(m)),F=String(m?.updated_at||"");!L||!F||(!u.has(L)||F>u.get(L))&&u.set(L,F)}const h=sa([...new Set([...p.values()])],u),g=n().selectedModule==="stats",S=h[0]||"",y=S?[S]:[];g&&(!n().selectedSeason||n().selectedSeason!==K()&&!y.includes(n().selectedSeason))&&(n().selectedSeason=S||K(),n().selectedMatchupTeamKey=""),n().selectedSeason===K()&&n().selectedModule!=="stats"&&(n().selectedSeason=""),n().selectedSeason&&n().selectedSeason!==K()&&!h.includes(n().selectedSeason)&&(n().selectedSeason="");const w=d.filter(m=>p.get(m)===n().selectedSeason);n().selectedFile&&!w.includes(n().selectedFile)&&(n().selectedFile="");const v=ia(),C=v.filter(m=>z(m)===n().selectedFile),$=[...g?[{value:K(),label:o("\u5168\u8D5B\u5B63","All seasons")}]:[{value:"",label:o("\u9009\u62E9\u8D5B\u5B63","Select season")}],...(g?y:h).map(m=>({value:m,label:m}))],f=[{value:"",label:o("\u9009\u62E9\u51A0\u519B","Select champion")},...w.map(m=>{const L=s.find(F=>z(F)===m);return{value:m,label:L?.champion_name||ca(v,m)}})],M=[{value:"cn",label:o("\u56FD\u670D","China")},{value:"international",label:o("\u56FD\u9645\u670D","Global")}],k=`
     <div class="champion-module-tabs" role="tablist" aria-label="${c(o("\u8D5B\u5B63\u6570\u636E\u6A21\u5757","Season data modules"))}">
       <button class="champion-module-tab${n().selectedModule==="matches"?" is-active":""}" type="button" data-champion-module="matches">
         ${c(o("\u8D5B\u5B63\u5BF9\u5C40","Season Matches"))}
@@ -370,63 +370,63 @@ let P={};const nt=74;function Ye(e={}){P=e||{}}function l(e){const t=P[e];if(typ
         ${c(o("\u961F\u4F0D\u80DC\u7387\u7EDF\u8BA1","Team Win Rate"))}
       </button>
     </div>
-  `,k=`
+  `,b=`
     <div class="champion-data-select-group${n().selectedModule==="stats"?" is-season-only":""}">
-      ${pe("championDataServerRegion",o("\u670D\u52A1\u5668","Server"),a,f)}
-      ${pe("championDataSeason",o("\u8D5B\u5B63","Season"),n().selectedSeason,w)}
-      ${n().selectedModule==="stats"?"":pe("championDataFile",o("\u51A0\u519B","Champion"),n().selectedFile,v)}
+      ${pe("championDataServerRegion",o("\u670D\u52A1\u5668","Server"),a,M)}
+      ${pe("championDataSeason",o("\u8D5B\u5B63","Season"),n().selectedSeason,$)}
+      ${n().selectedModule==="stats"?"":pe("championDataFile",o("\u51A0\u519B","Champion"),n().selectedFile,f)}
     </div>
-  `,$=`
-    ${C}
-    <div class="champion-data-toolbar">${k}</div>
-  `,T=()=>{t.querySelectorAll("[data-champion-module]").forEach(m=>{m.addEventListener("click",()=>{n().selectedModule=m.dataset.championModule==="stats"?"stats":"matches",n().selectedModule==="stats"&&(n().selectedFile="",n().selectedStatSide="combined",n().selectedStatRankType="recommend",n().selectedMatchupTeamKey=""),n().selectedMatchNo=null,n().selectedPlayerName="",N(e)})}),t.querySelector("#championDataServerRegion")?.addEventListener("change",m=>{n().selectedServerRegion=["cn","international"].includes(m.target.value)?m.target.value:"cn",n().selectedServerRegion==="international"&&(n().selectedStatSide="attack"),n().selectedSeason="",n().selectedFile="",n().rows=null,n().expandedStatRound=null,n().selectedMatchupTeamKey="",n().selectedDivision="champion",n().selectedGroup="",n().selectedMatchNo=null,n().selectedPlayerName="",ra(e)}),t.querySelector("#championDataSeason")?.addEventListener("change",m=>{n().selectedSeason=m.target.value,n().selectedFile="",n().rows=null,n().expandedStatRound=null,n().selectedMatchupTeamKey="",n().selectedDivision="champion",n().selectedGroup="",n().selectedMatchNo=null,n().selectedPlayerName="",N(e)}),t.querySelector("#championDataFile")?.addEventListener("change",m=>{n().selectedFile=m.target.value,n().expandedStatRound=null,n().selectedDivision="champion",n().selectedGroup="",n().selectedMatchNo=null,n().selectedPlayerName="",n().selectedFile?ca(e,n().selectedFile):(n().rows=null,N(e))})};if(!r){t.innerHTML=`
-      ${$}
+  `,A=`
+    ${k}
+    <div class="champion-data-toolbar">${b}</div>
+  `,T=()=>{t.querySelectorAll("[data-champion-module]").forEach(m=>{m.addEventListener("click",()=>{n().selectedModule=m.dataset.championModule==="stats"?"stats":"matches",n().selectedModule==="stats"&&(n().selectedFile="",n().selectedStatSide="combined",n().selectedStatRankType="recommend",n().selectedMatchupTeamKey=""),n().selectedMatchNo=null,n().selectedPlayerName="",E(e)})}),t.querySelector("#championDataServerRegion")?.addEventListener("change",m=>{n().selectedServerRegion=["cn","international"].includes(m.target.value)?m.target.value:"cn",n().selectedServerRegion==="international"&&(n().selectedStatSide="attack"),n().selectedSeason="",n().selectedFile="",n().rows=null,n().expandedStatRound=null,n().selectedMatchupTeamKey="",n().selectedDivision="champion",n().selectedGroup="",n().selectedMatchNo=null,n().selectedPlayerName="",la(e)}),t.querySelector("#championDataSeason")?.addEventListener("change",m=>{n().selectedSeason=m.target.value,n().selectedFile="",n().rows=null,n().expandedStatRound=null,n().selectedMatchupTeamKey="",n().selectedDivision="champion",n().selectedGroup="",n().selectedMatchNo=null,n().selectedPlayerName="",E(e)}),t.querySelector("#championDataFile")?.addEventListener("change",m=>{n().selectedFile=m.target.value,n().expandedStatRound=null,n().selectedDivision="champion",n().selectedGroup="",n().selectedMatchNo=null,n().selectedPlayerName="",n().selectedFile?oa(e,n().selectedFile):(n().rows=null,E(e))})};if(!r){t.innerHTML=`
+      ${A}
       <p class="champion-data-empty">${c(a!=="cn"?o("\u8BE5\u533A\u670D\u8D5B\u5B63\u6570\u636E\u6B63\u5728\u51C6\u5907\u4E2D\uFF0C\u5BFC\u5165\u540E\u4F1A\u5728\u8FD9\u91CC\u6309\u8D5B\u5B63\u5C55\u793A\u3002","Season data for this server is being prepared and will appear here after import."):o("\u6682\u65E0\u51A0\u519B\u7ADE\u6280\u573A\u6570\u636E\u3002","No champion arena data."))}</p>
     `,T();return}if(!n().selectedSeason){t.innerHTML=`
-      ${$}
+      ${A}
       <p class="champion-data-empty">${c(n().selectedModule==="stats"?o("\u8BF7\u9009\u62E9\u8D5B\u5B63\u540E\u67E5\u770B\u961F\u4F0D\u80DC\u7387\u7EDF\u8BA1\u3002","Select a season to view team win rates."):o("\u8BF7\u9009\u62E9\u8D5B\u5B63\u548C\u51A0\u519B\u540E\u67E5\u770B\u6570\u636E\u3002","Select a season and champion to view data."))}</p>
-    `,T();return}if(n().selectedModule==="stats"){const m=n().selectedStatSide==="combined"?"combined":n().selectedStatSide==="defense"?"defense":"attack",x=m==="combined"?String(n().selectedMatchupTeamKey||""):"",_=`${n().selectedSeason}|${m}|${x}`,Je=n().statsBySeasonSide?.[_],ce=la(Je)?n().statsBySeasonSide[_]:null;if(!ce&&!n().loading&&oa(e,n().selectedSeason,m),!ce||n().loadingMode==="stats"){t.innerHTML=`
-        ${$}
+    `,T();return}if(n().selectedModule==="stats"){const m=n().selectedStatSide==="combined"?"combined":n().selectedStatSide==="defense"?"defense":"attack",L=m==="combined"?String(n().selectedMatchupTeamKey||""):"",F=`${n().selectedSeason}|${m}|${L}`,Qe=n().statsBySeasonSide?.[F],ce=ua(Qe)?n().statsBySeasonSide[F]:null;if(!ce&&!n().loading&&ra(e,n().selectedSeason,m),!ce||n().loadingMode==="stats"){t.innerHTML=`
+        ${A}
         <p class="champion-data-empty champion-data-loading">${c(o("\u6B63\u5728\u8BFB\u53D6\u961F\u4F0D\u80DC\u7387\u7EDF\u8BA1...","Loading team win rates..."))}</p>
       `,T();return}t.innerHTML=`
-      ${$}
+      ${A}
       <div class="champion-data-result">
-        ${Ba(ce)}
+        ${Ha(ce)}
       </div>
-    `,T(),t.querySelectorAll("[data-champion-stat-side]").forEach(R=>{R.addEventListener("click",()=>{n().selectedStatSide=R.dataset.championStatSide==="combined"?"combined":R.dataset.championStatSide==="defense"?"defense":"attack",n().selectedMatchupTeamKey="",n().selectedStatSide==="combined"&&(n().selectedStatRankType="recommend"),n().expandedStatRound=null,N(e)})}),t.querySelectorAll("[data-champion-stat-rank]").forEach(R=>{R.addEventListener("click",()=>{n().selectedStatRankType=["recommend","systems","rate","round","characters"].includes(R.dataset.championStatRank)?R.dataset.championStatRank:"games",["recommend","systems","characters"].includes(n().selectedStatRankType)&&n().selectedStatSide!=="combined"?n().selectedStatSide="combined":!["recommend","systems","characters"].includes(n().selectedStatRankType)&&n().selectedStatSide==="combined"&&(n().selectedStatSide="attack"),n().selectedStatRankType!=="recommend"&&(n().selectedMatchupTeamKey=""),n().expandedStatRound=null,N(e)})}),t.querySelectorAll("[data-champion-matchup-team-key]").forEach(R=>{const H=()=>{const L=String(R.dataset.championMatchupTeamKey||"");!L||L===n().selectedMatchupTeamKey||(n().selectedMatchupTeamKey=L,n().selectedStatSide="combined",n().selectedStatRankType="recommend",N(e))};R.addEventListener("click",H),R.addEventListener("keydown",L=>{L.key!=="Enter"&&L.key!==" "||(L.preventDefault(),H())})}),t.querySelector("[data-champion-matchup-back]")?.addEventListener("click",()=>{n().selectedMatchupTeamKey="",N(e)}),t.querySelectorAll("[data-champion-stat-round-toggle]").forEach(R=>{R.addEventListener("click",()=>{const H=R.dataset.championStatRoundToggle||"";n().expandedStatRound=String(n().expandedStatRound||"")===String(H)?null:H,N(e),n().expandedStatRound&&requestAnimationFrame(()=>{const L=t.querySelector(`[data-champion-stat-round-group="${String(n().expandedStatRound)}"]`),I=L?.closest(".champion-stats-list");if(!L||!I)return;const U=L.getBoundingClientRect(),G=I.getBoundingClientRect();U.top<G.top?I.scrollTo({top:I.scrollTop-(G.top-U.top)-6,behavior:"smooth"}):U.bottom>G.bottom&&I.scrollTo({top:I.scrollTop+(U.bottom-G.bottom)+6,behavior:"smooth"})})})});return}if(!n().selectedFile){t.innerHTML=`
-      ${$}
+    `,T(),t.querySelectorAll("[data-champion-stat-side]").forEach(R=>{R.addEventListener("click",()=>{n().selectedStatSide=R.dataset.championStatSide==="combined"?"combined":R.dataset.championStatSide==="defense"?"defense":"attack",n().selectedMatchupTeamKey="",n().selectedStatSide==="combined"&&(n().selectedStatRankType="recommend"),n().expandedStatRound=null,E(e)})}),t.querySelectorAll("[data-champion-stat-rank]").forEach(R=>{R.addEventListener("click",()=>{n().selectedStatRankType=["recommend","systems","rate","round","characters"].includes(R.dataset.championStatRank)?R.dataset.championStatRank:"games",["recommend","systems","characters"].includes(n().selectedStatRankType)&&n().selectedStatSide!=="combined"?n().selectedStatSide="combined":!["recommend","systems","characters"].includes(n().selectedStatRankType)&&n().selectedStatSide==="combined"&&(n().selectedStatSide="attack"),n().selectedStatRankType!=="recommend"&&(n().selectedMatchupTeamKey=""),n().expandedStatRound=null,E(e)})}),t.querySelectorAll("[data-champion-matchup-team-key]").forEach(R=>{const H=()=>{const W=String(R.dataset.championMatchupTeamKey||"");!W||W===n().selectedMatchupTeamKey||(n().selectedMatchupTeamKey=W,n().selectedStatSide="combined",n().selectedStatRankType="recommend",E(e))};R.addEventListener("click",H),R.addEventListener("keydown",W=>{W.key!=="Enter"&&W.key!==" "||(W.preventDefault(),H())})}),t.querySelector("[data-champion-matchup-back]")?.addEventListener("click",()=>{n().selectedMatchupTeamKey="",E(e)}),t.querySelectorAll("[data-champion-stat-round-toggle]").forEach(R=>{R.addEventListener("click",()=>{const H=R.dataset.championStatRoundToggle||"";n().expandedStatRound=String(n().expandedStatRound||"")===String(H)?null:H,E(e),n().expandedStatRound&&requestAnimationFrame(()=>{const W=t.querySelector(`[data-champion-stat-round-group="${String(n().expandedStatRound)}"]`),I=W?.closest(".champion-stats-list");if(!W||!I)return;const X=W.getBoundingClientRect(),J=I.getBoundingClientRect();X.top<J.top?I.scrollTo({top:I.scrollTop-(J.top-X.top)-6,behavior:"smooth"}):X.bottom>J.bottom&&I.scrollTo({top:I.scrollTop+(X.bottom-J.bottom)+6,behavior:"smooth"})})})});return}if(!n().selectedFile){t.innerHTML=`
+      ${A}
       <p class="champion-data-empty">${c(o("\u8BF7\u9009\u62E9\u51A0\u519B\u540E\u67E5\u770B\u5BF9\u5C40\u6570\u636E\u3002","Select a champion to view match data."))}</p>
     `,T();return}if(n().loading&&n().loadingMode==="file"){t.innerHTML=`
-      ${$}
+      ${A}
       <p class="champion-data-empty champion-data-loading">${c(o("\u6B63\u5728\u8BFB\u53D6\u8BE5\u51A0\u519B\u6570\u636E...","Loading selected champion data..."))}</p>
-    `,T();return}if(!b.length){t.innerHTML=`
-      ${$}
+    `,T();return}if(!C.length){t.innerHTML=`
+      ${A}
       <p class="champion-data-empty">${c(o("\u6682\u65E0\u8BE5\u51A0\u519B\u6570\u636E\u3002","No data for this champion."))}</p>
-    `,T();return}const F=b.some(m=>ue(m)==="champion"),B=b.some(m=>ue(m)==="qualifier");n().selectedDivision==="champion"&&!F&&(n().selectedDivision="qualifier"),n().selectedDivision==="qualifier"&&!B&&(n().selectedDivision="champion");const ne=b.filter(m=>ue(m)==="qualifier"),ie=ua(ne,"stage_group").sort((m,x)=>Number(m)-Number(x));n().selectedDivision==="qualifier"&&(!n().selectedGroup||!ie.map(String).includes(String(n().selectedGroup)))&&(n().selectedGroup=String(ie[0]||""));const qe=we(),se=da(qe),ze=de(se,1),Oe=de(se,2),je=de(se,3),Ve=tt(ze,Oe,je),ve=ie.map(m=>({value:m,label:`GROUP ${String(m).padStart(2,"0")}`})),Ue=n().selectedDivision==="champion"?o("\u51A0\u519B\u4E89\u9738\u8D5B","Champion Finals"):o("\u664B\u7EA7\u8D5B","Qualifier"),Ge=ve.find(m=>String(m.value)===String(n().selectedGroup))?.label||"",Xe=n().selectedDivision==="qualifier"?`<div class="champion-group-tabs" role="tablist" aria-label="${c(o("\u664B\u7EA7\u8D5B\u5C0F\u7EC4","Qualifier groups"))}">
+    `,T();return}const B=C.some(m=>ue(m)==="champion"),G=C.some(m=>ue(m)==="qualifier");n().selectedDivision==="champion"&&!B&&(n().selectedDivision="qualifier"),n().selectedDivision==="qualifier"&&!G&&(n().selectedDivision="champion");const ze=C.filter(m=>ue(m)==="qualifier"),ie=da(ze,"stage_group").sort((m,L)=>Number(m)-Number(L));n().selectedDivision==="qualifier"&&(!n().selectedGroup||!ie.map(String).includes(String(n().selectedGroup)))&&(n().selectedGroup=String(ie[0]||""));const Oe=we(),se=ma(Oe),je=de(se,1),Ve=de(se,2),Ue=de(se,3),Ge=nt(je,Ve,Ue),ve=ie.map(m=>({value:m,label:`GROUP ${String(m).padStart(2,"0")}`})),Xe=n().selectedDivision==="champion"?o("\u51A0\u519B\u4E89\u9738\u8D5B","Champion Finals"):o("\u664B\u7EA7\u8D5B","Qualifier"),Je=ve.find(m=>String(m.value)===String(n().selectedGroup))?.label||"",Ye=n().selectedDivision==="qualifier"?`<div class="champion-group-tabs" role="tablist" aria-label="${c(o("\u664B\u7EA7\u8D5B\u5C0F\u7EC4","Qualifier groups"))}">
         ${ve.map(m=>`
           <button class="champion-group-tab${String(m.value)===String(n().selectedGroup)?" is-active":""}" type="button" data-champion-group="${c(String(m.value))}">
             ${c(m.label)}
           </button>
         `).join("")}
       </div>`:"";t.innerHTML=`
-    ${C}
+    ${k}
     <div class="champion-data-toolbar">
-      ${k}
+      ${b}
       <div class="champion-division-tabs" role="tablist" aria-label="${c(o("\u8D5B\u7A0B","Bracket type"))}">
-        <button class="champion-division-tab${n().selectedDivision==="qualifier"?" is-active":""}" type="button" data-champion-division="qualifier" ${B?"":"disabled"}>${c(o("\u664B\u7EA7\u8D5B","Qualifier"))}</button>
-        <button class="champion-division-tab${n().selectedDivision==="champion"?" is-active":""}" type="button" data-champion-division="champion" ${F?"":"disabled"}>${c(o("\u51A0\u519B\u8D5B","Champion"))}</button>
+        <button class="champion-division-tab${n().selectedDivision==="qualifier"?" is-active":""}" type="button" data-champion-division="qualifier" ${G?"":"disabled"}>${c(o("\u664B\u7EA7\u8D5B","Qualifier"))}</button>
+        <button class="champion-division-tab${n().selectedDivision==="champion"?" is-active":""}" type="button" data-champion-division="champion" ${B?"":"disabled"}>${c(o("\u51A0\u519B\u8D5B","Champion"))}</button>
       </div>
     </div>
     <div class="champion-data-result">
-      ${Xe}
+      ${Ye}
       <section class="champion-bracket-panel">
         <div class="champion-bracket-title">
-          <span>${c(Ue)}</span>
-          <strong>${c(n().selectedDivision==="qualifier"?Ge:o("8\u7EC4\u51A0\u519B\u5BF9\u5C40","Top 8 group winners"))}</strong>
+          <span>${c(Xe)}</span>
+          <strong>${c(n().selectedDivision==="qualifier"?Je:o("8\u7EC4\u51A0\u519B\u5BF9\u5C40","Top 8 group winners"))}</strong>
         </div>
         <div class="champion-bracket-board">
-          ${Ve}
+          ${Ge}
         </div>
       </section>
     </div>
-  `,T(),t.querySelectorAll("[data-champion-division]").forEach(m=>{m.addEventListener("click",()=>{n().selectedDivision=m.dataset.championDivision==="champion"?"champion":"qualifier",n().selectedMatchNo=null,n().selectedPlayerName="",N(e)})}),t.querySelectorAll("[data-champion-group]").forEach(m=>{m.addEventListener("click",()=>{n().selectedGroup=m.dataset.championGroup||"",n().selectedMatchNo=null,n().selectedPlayerName="",N(e)})}),t.querySelectorAll("[data-champion-player]").forEach(m=>{m.addEventListener("click",()=>{n().selectedMatchNo=m.dataset.championMatch||null,n().selectedPlayerName=m.dataset.championPlayer||"",$e(n().selectedPlayerName,n().selectedMatchNo,m.dataset.championDetail||"match",m.dataset.championAltMatch||"",m.dataset.championAltLabel||"")})})}export{$e as openChampionPlayerDetailModal,N as renderChampionDataModalContent,Ye as setChampionDataUiApi};
+  `,T(),t.querySelectorAll("[data-champion-division]").forEach(m=>{m.addEventListener("click",()=>{n().selectedDivision=m.dataset.championDivision==="champion"?"champion":"qualifier",n().selectedMatchNo=null,n().selectedPlayerName="",E(e)})}),t.querySelectorAll("[data-champion-group]").forEach(m=>{m.addEventListener("click",()=>{n().selectedGroup=m.dataset.championGroup||"",n().selectedMatchNo=null,n().selectedPlayerName="",E(e)})}),t.querySelectorAll("[data-champion-player]").forEach(m=>{m.addEventListener("click",()=>{n().selectedMatchNo=m.dataset.championMatch||null,n().selectedPlayerName=m.dataset.championPlayer||"",$e(n().selectedPlayerName,n().selectedMatchNo,m.dataset.championDetail||"match",m.dataset.championAltMatch||"",m.dataset.championAltLabel||"")})})}export{$e as openChampionPlayerDetailModal,E as renderChampionDataModalContent,Ze as setChampionDataUiApi};
