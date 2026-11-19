@@ -13262,6 +13262,7 @@ body.has-open-modal .pwa-install-card {
 .arca-picture [data-arca-loading] { display:block; padding:8px 12px; color:var(--muted,#9ba8ba); font-size:12px; }
 .arca-error { flex-shrink:0; margin:8px 12px; font-size:12px; color:var(--muted); white-space:pre-wrap; overflow-wrap:anywhere; }
 .arca-error:empty { margin:0; }
+.arca-note { grid-column:1/-1; margin:0; font-size:12px; line-height:1.5; color:var(--muted,#9ba8ba); }
 .arca-modal [data-arca-form] { min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-width:none; }
 .arca-modal [data-arca-form]::-webkit-scrollbar { display:none; }
 .arca-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:12px; }

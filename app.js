@@ -74,7 +74,7 @@ const FRONTEND_ADMIN_EMAILS = new Set(["307919309@qq.com"]);
 const CHARACTER_DETAIL_LONG_PRESS_DELAY_MS = 550;
 const CHARACTER_DETAIL_ASSET_TIMEOUT_MS = 3500;
 const CHARACTER_DETAIL_LEVEL_MAX = 1400;
-const APP_VERSION = "V1.80.1145";
+const APP_VERSION = "V1.80.1151";
 let arcaWorkspace=null,arcaWorkspacePromise=null;
 let privateHelpClientPromise=null;
 let pendingPrivateHelpOptions=null;
@@ -178,7 +178,6 @@ const UI_TEXTS = {
     shareButton: "分享",
     shareImageButton: "分享队伍图片",
     recognizeButton: "识别图片填充队伍",
-    missShotToggle: "计算空枪",
     sortSummaryLabel: "",
     sortSummaryBy: "充能从高到低",
     filterCommon: "常",
@@ -196,7 +195,6 @@ const UI_TEXTS = {
     filterTitle: "筛选",
     listCountSuffix: "名角色",
     helpModalTitle: "使用说明",
-    paidInference: "空枪反推",
     paidCMode: "冠军竞技场",
     paidPMode: "特殊竞技场",
     swapTeam: "切换进攻防守队伍",
@@ -230,7 +228,6 @@ const UI_TEXTS = {
     shareButton: "Share",
     shareImageButton: "Share team image",
     recognizeButton: "Recognize image",
-    missShotToggle: "Enable missed-shot calculation",
     sortSummaryLabel: "",
     sortSummaryBy: "Charge high to low",
     filterCommon: "PVP",
@@ -248,7 +245,6 @@ const UI_TEXTS = {
     filterTitle: "Filters",
     listCountSuffix: "characters",
     helpModalTitle: "Help",
-    paidInference: "Missed shots estimate",
     paidCMode: "Championship",
     paidPMode: "Special",
     swapTeam: "Swap attack/defense",
@@ -271,7 +267,6 @@ const WEAPON_ORDER = ["SMG", "AR", "SG", "MG", "SR", "RL"];
 const TEST_NOAH_ID = 12;
 const TEST_SCARLET_ID = 37;
 const TEST_SCARLET_MAGAZINES = Array.from({ length: 69 }, (_, index) => index + 20);
-const DEFAULT_AUTO_TEST_SHOTS = 3;
 const OCR_MAX_RETRY_COUNT = 5;
 const OCR_MAX_CROP_SELECTIONS = 2;
 const OCR_RAW_SPECIAL_NAME_MATCHES = new Set(["A2", "2B"]);
@@ -338,7 +333,6 @@ const ROSANNA_SACRIFICE_CHARGE = 36.54;
 const RED_HOOD_CHARGE_SPEED_PER_ATTACK = 3.81;
 const RED_HOOD_MAX_CHARGE_SPEED_STACKS = 10;
 const EMILIA_CHARGE_SPEED_AFTER_FIRST_SHOT = 13.01;
-const TURN_DODGE_WINDOW_FRAMES = 6;
 const FIXED_CHARGE_SPEED_FRAMES_60 = new Map([
   [0, 60],
   [1, 60],
@@ -407,6 +401,10 @@ const CUBE_TYPE_ASSIST = "assist";
 const CUBE_TYPE_DESTRUCTION = "destruction";
 const CUBE_TYPE_PIERCING = "piercing";
 const CHARGE_SPEED_CUBE_VALUE = 2.12;
+// 魔方不再由阿卡数据传递，改由队伍设置本地选择。满级（15 级）数值与阿卡侧一致：
+// 命中率增强魔方 +29.69% 弹容、回弹魔方 -29.69% 换弹时间、蓄力速度魔方 +2.12%。
+const CUBE_AMMO_BONUS_PERCENT = 29.69;
+const CUBE_RELOAD_REDUCTION_PERCENT = 29.69;
 const CUBE_TYPE_META = Object.freeze({
   [CUBE_TYPE_CHARGE_SPEED]: { zh: "\u84c4\u529b\u901f\u5ea6\u9b54\u65b9", en: "Adjutant Cube", icon: "adjutant.webp" },
   [CUBE_TYPE_QUANTUM]: { zh: "\u91cf\u5b50\u9b54\u65b9", en: "Quantum Cube", icon: "quantum.webp" },
@@ -433,6 +431,7 @@ const TEAM_CUBE_TYPE_IDS = Object.freeze({
   [CUBE_TYPE_TEMPERING]: 6,
   [CUBE_TYPE_VIGOR]: 7,
   [CUBE_TYPE_ASSIST]: 8,
+  [CUBE_TYPE_WINGMAN]: 9,
 });
 const TEAM_CUBE_OPTIONS = Object.entries(TEAM_CUBE_TYPE_IDS).map(([type, id]) => {
   const meta = CUBE_TYPE_META[type];
@@ -675,6 +674,7 @@ const state = {
     defense: {},
     attack: {},
   },
+  characterReloadSeconds: { defense: {}, attack: {} },
   characterMagazines: {
     defense: {},
     attack: {},
@@ -730,9 +730,7 @@ const state = {
     c: createEmptyPaidArenaJackalLinksBySide("c"),
     p: createEmptyPaidArenaJackalLinksBySide("p"),
   },
-  allowMissedShots: true,
   battlePowerBase: 0,
-  testMode: false,
   compactAvatarIcons: true,
   activeTeamKey: "defense",
   teamPresets: [],
@@ -784,7 +782,6 @@ const els = {
   appVersion: document.querySelector("#appVersion"),
   teamPanelTitle: document.querySelector("#teamPanelTitle"),
   battlePowerStrip: document.querySelector(".battle-power-strip"),
-  paidInferenceButton: document.querySelector("#paidInferenceButton"),
   paidCModeButton: document.querySelector("#paidCModeButton"),
   paidPModeButton: document.querySelector("#paidPModeButton"),
   teamShareButton: document.querySelector("#teamShareButton"),
@@ -793,7 +790,6 @@ const els = {
   loadTeamPresetButton: document.querySelector("#loadTeamPresetButton"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
   swapTeamButton: document.querySelector("#swapTeamButton"),
-  allowMissedShotsToggle: document.querySelector("#allowMissedShotsToggle"),
   battlePowerBaseInput: document.querySelector("#battlePowerBaseInput"),
   battlePowerDefense: document.querySelector("#battlePowerDefense"),
   battlePowerAttack: document.querySelector("#battlePowerAttack"),
@@ -863,13 +859,6 @@ let guidedTourModulePromise = null;
 let isSidebarOpen = false;
 let featureHintSeenKeys = new Set();
 let favoriteCharacterIds = new Set();
-const localPaidInferenceState = {
-  result: null,
-  error: "",
-  loading: false,
-  requestSignature: "",
-  refreshTimer: null,
-};
 const championDataState = {
   rows: null,
   rowsByFile: {},
@@ -955,6 +944,7 @@ function normalizeTeamPresetTeam(rawPreset = {}) {
       rosannaSacrificeFrames: Array(TEAM_SIZE).fill(null),
       cubeTypes: Array(TEAM_SIZE).fill(CUBE_TYPE_NONE),
       magazines: Array(TEAM_SIZE).fill(0),
+      reloadSeconds: Array(TEAM_SIZE).fill(null),
       useArca: Array(TEAM_SIZE).fill(null),
       jackalLinks: {
         defense: {
@@ -991,6 +981,7 @@ function normalizeTeamPresetTeam(rawPreset = {}) {
     ),
     cubeTypes: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeCubeType(rawPreset.cubeTypes?.[index])),
     magazines: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeMagazine(rawPreset.magazines?.[index])),
+    reloadSeconds: Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeReloadSeconds(rawPreset.reloadSeconds?.[index])),
     useArca: Array.from({length:TEAM_SIZE},(_,index)=>typeof rawPreset.useArca?.[index]==='boolean'?rawPreset.useArca[index]:null),
     jackalLinks: {
       defense: normalizeTeamPresetJackalLink(rawJackalLinks.defense),
@@ -1014,6 +1005,7 @@ function serializeCurrentTeamAsPreset(teamKey = state.activeTeamKey) {
     rosannaSacrificeFrames: [...getRosannaSacrificeFrameState(normalizedTeamKey)],
     cubeTypes: currentTeam.map((member) => getSavedCharacterCubeType(member, normalizedTeamKey)),
     magazines: currentTeam.map((member) => getSavedCharacterMagazine(member, normalizedTeamKey)),
+    reloadSeconds: currentTeam.map((member) => getSavedCharacterReloadSeconds(member, normalizedTeamKey)),
     useArca: currentTeam.map(member=>typeof member?.useArca==='boolean'?member.useArca:null),
     jackalLinks: {
       defense: { ...normalizeJackalLink("defense"), targetIds: [...normalizeJackalLink("defense").targetIds] },
@@ -1055,6 +1047,7 @@ function serializeCurrentPaidArenaTeamAsPreset() {
     rosannaSacrificeFrames: [...rosannaSacrificeFrames],
     cubeTypes: team.map((member) => getSavedCharacterCubeType(member, teamKey)),
     magazines: team.map((member) => getSavedCharacterMagazine(member, teamKey)),
+    reloadSeconds: team.map((member) => getSavedCharacterReloadSeconds(member, teamKey)),
     useArca: team.map(member=>typeof member?.useArca==='boolean'?member.useArca:null),
     jackalLinks: {
       defense: createEmptyJackalLinkState(),
@@ -1156,6 +1149,7 @@ function pushTeamShareSideRowParams(params, side, rowNumber, rowData = {}) {
   pushTeamShareArrayParam(params, `${side}cube${rowNumber}`, rowData.cubeTypes, (value) => sanitizeCubeType(value) !== CUBE_TYPE_NONE, encodeTeamShareCubeType);
   pushTeamShareArrayParam(params, `${side}magazine${rowNumber}`, rowData.magazines, (value) => Number(value) > 0,
     (value) => Number(value) > 0 ? sanitizeMagazine(value) : 0);
+  pushTeamShareArrayParam(params, `${side}reload${rowNumber}`, rowData.reloadSeconds, (value) => sanitizeReloadSeconds(value) != null, (value) => sanitizeReloadSeconds(value) ?? "x");
   const link = encodeTeamShareLink(rowData.jackalLink);
   if (link) params.push([`${side}link${rowNumber}`, link]);
 }
@@ -1171,6 +1165,7 @@ function getTeamShareSideRowParams(params, side, rowNumber) {
     cubeTypes: params.has(`${side}cube${rowNumber}`) ? decodeTeamShareSlotValues(params.get(`${side}cube${rowNumber}`), decodeTeamShareCubeType) : Array(TEAM_SIZE).fill(CUBE_TYPE_NONE),
     magazines: params.has(`${side}magazine${rowNumber}`) ? decodeTeamShareSlotValues(params.get(`${side}magazine${rowNumber}`),
       (value) => Number(value) > 0 ? sanitizeMagazine(value) : 0) : Array(TEAM_SIZE).fill(0),
+    reloadSeconds: params.has(`${side}reload${rowNumber}`) ? decodeTeamShareSlotValues(params.get(`${side}reload${rowNumber}`), (value) => value === "x" ? null : sanitizeReloadSeconds(value)) : Array(TEAM_SIZE).fill(null),
     jackalLink: params.has(`${side}link${rowNumber}`) ? decodeTeamShareLink(params.get(`${side}link${rowNumber}`)) : createEmptyJackalLinkState(),
   };
 }
@@ -1199,6 +1194,7 @@ function getCurrentTeamShareParams() {
       rosannaSacrificeFrames: state.rosannaSacrificeFrames,
       cubeTypes: state.team.map((member) => getSavedCharacterCubeType(member, "attack")),
       magazines: state.team.map((member) => getSavedCharacterMagazine(member, "attack")),
+      reloadSeconds: state.team.map((member) => getSavedCharacterReloadSeconds(member, "attack")),
       jackalLink: state.jackalLinks.attack,
     });
     pushTeamShareSideRowParams(params, "defence", 1, {
@@ -1210,6 +1206,7 @@ function getCurrentTeamShareParams() {
       rosannaSacrificeFrames: state.defenseRosannaSacrificeFrames,
       cubeTypes: state.defenseTeam.map((member) => getSavedCharacterCubeType(member, "defense")),
       magazines: state.defenseTeam.map((member) => getSavedCharacterMagazine(member, "defense")),
+      reloadSeconds: state.defenseTeam.map((member) => getSavedCharacterReloadSeconds(member, "defense")),
       jackalLink: state.jackalLinks.defense,
     });
     return params;
@@ -1242,6 +1239,7 @@ function getCurrentTeamShareParams() {
       rosannaSacrificeFrames: attackSacrifices[index],
       cubeTypes: attackTeam.map((member) => getSavedCharacterCubeType(member, "attack")),
       magazines: attackTeam.map((member) => getSavedCharacterMagazine(member, "attack")),
+      reloadSeconds: attackTeam.map((member) => getSavedCharacterReloadSeconds(member, "attack")),
       jackalLink: attackLinks[index],
     });
     pushTeamShareSideRowParams(params, "defence", index + 1, {
@@ -1253,6 +1251,7 @@ function getCurrentTeamShareParams() {
       rosannaSacrificeFrames: defenseSacrifices[index],
       cubeTypes: defenseTeam.map((member) => getSavedCharacterCubeType(member, "defense")),
       magazines: defenseTeam.map((member) => getSavedCharacterMagazine(member, "defense")),
+      reloadSeconds: defenseTeam.map((member) => getSavedCharacterReloadSeconds(member, "defense")),
       jackalLink: defenseLinks[index],
     });
   }
@@ -1276,7 +1275,7 @@ function getCurrentTeamShareUrl() {
 function clearTeamShareParams(params) {
   params.delete("mode");
   params.delete(TEAM_SHARE_URL_PARAM);
-  const suffixes = ["team", "speed", "charge", "pierce", "counter", "rosanna", "cube", "magazine", "link"];
+  const suffixes = ["team", "speed", "charge", "pierce", "counter", "rosanna", "cube", "magazine", "reload", "link"];
   for (let index = 1; index <= PAID_ARENA_TEAM_COUNTS.c; index += 1) {
     suffixes.forEach((suffix) => {
       params.delete(`attack${suffix}${index}`);
@@ -1334,12 +1333,16 @@ function applyTeamSharePresetFromLocation() {
     attackRow.team.forEach((character, index) => {
       saveCharacterCubeType(character, attackRow.cubeTypes[index], "attack");
       if (character && attackRow.magazines[index] > 0) saveCharacterMagazine(character, attackRow.magazines[index], "attack");
+      else if (character) resetCharacterMagazine(character, "attack");
+      if (character) saveCharacterReloadSeconds(character, attackRow.reloadSeconds[index], "attack");
       if (character) saveCharacterChargeSpeed(character, attackRow.chargeSpeeds[index], "attack");
       if (isRedHood(character)) saveCharacterRedHoodPierceCount(character, attackRow.redHoodPierceCounts[index], "attack");
     });
     defenseRow.team.forEach((character, index) => {
       saveCharacterCubeType(character, defenseRow.cubeTypes[index], "defense");
       if (character && defenseRow.magazines[index] > 0) saveCharacterMagazine(character, defenseRow.magazines[index], "defense");
+      else if (character) resetCharacterMagazine(character, "defense");
+      if (character) saveCharacterReloadSeconds(character, defenseRow.reloadSeconds[index], "defense");
       if (character) saveCharacterChargeSpeed(character, defenseRow.chargeSpeeds[index], "defense");
       if (isRedHood(character)) saveCharacterRedHoodPierceCount(character, defenseRow.redHoodPierceCounts[index], "defense");
     });
@@ -1376,12 +1379,16 @@ function applyTeamSharePresetFromLocation() {
       attackRow.team.forEach((character, slotIndex) => {
         saveCharacterCubeType(character, attackRow.cubeTypes[slotIndex], "attack");
         if (character && attackRow.magazines[slotIndex] > 0) saveCharacterMagazine(character, attackRow.magazines[slotIndex], "attack");
+      else if (character) resetCharacterMagazine(character, "attack");
+        if (character) saveCharacterReloadSeconds(character, attackRow.reloadSeconds[slotIndex], "attack");
         if (character) saveCharacterChargeSpeed(character, attackRow.chargeSpeeds[slotIndex], "attack");
         if (isRedHood(character)) saveCharacterRedHoodPierceCount(character, attackRow.redHoodPierceCounts[slotIndex], "attack");
       });
       defenseRow.team.forEach((character, slotIndex) => {
         saveCharacterCubeType(character, defenseRow.cubeTypes[slotIndex], "defense");
         if (character && defenseRow.magazines[slotIndex] > 0) saveCharacterMagazine(character, defenseRow.magazines[slotIndex], "defense");
+      else if (character) resetCharacterMagazine(character, "defense");
+        if (character) saveCharacterReloadSeconds(character, defenseRow.reloadSeconds[slotIndex], "defense");
         if (character) saveCharacterChargeSpeed(character, defenseRow.chargeSpeeds[slotIndex], "defense");
         if (isRedHood(character)) saveCharacterRedHoodPierceCount(character, defenseRow.redHoodPierceCounts[slotIndex], "defense");
       });
@@ -1459,6 +1466,7 @@ function getTeamPresetUniqueKey(preset = {}) {
     rosannaSacrificeFrames: safePreset.rosannaSacrificeFrames,
     cubeTypes: safePreset.cubeTypes,
     magazines: safePreset.magazines,
+    reloadSeconds: safePreset.reloadSeconds,
     jackalLinks: {
       defense: {
         enabled: linkBySide.defense.enabled,
@@ -1500,7 +1508,8 @@ function applyTeamPresetToTeamState(teamKey, preset = {}) {
     saveCharacterCubeType(character, safePreset.cubeTypes[index] || CUBE_TYPE_NONE, normalizedTeamKey);
     if (character && safePreset.magazines[index] > 0) {
       saveCharacterMagazine(character, safePreset.magazines[index], normalizedTeamKey);
-    }
+    } else if (character) resetCharacterMagazine(character, normalizedTeamKey);
+    if (character) saveCharacterReloadSeconds(character, safePreset.reloadSeconds[index], normalizedTeamKey);
     universalCharges[index] = safePreset.universalCharges[index] || 0;
     redHoodPierceCounts[index] = isRedHood(character) ? safePreset.redHoodPierceCounts[index] || 0 : 0;
     scarletCounterEnabled[index] = safePreset.scarletCounterEnabled[index] !== false;
@@ -1552,7 +1561,8 @@ function applyTeamPresetToPaidArenaActiveRow(preset = {}) {
     saveCharacterCubeType(character, safePreset.cubeTypes[index] || CUBE_TYPE_NONE, teamKey);
     if (character && safePreset.magazines[index] > 0) {
       saveCharacterMagazine(character, safePreset.magazines[index], teamKey);
-    }
+    } else if (character) resetCharacterMagazine(character, teamKey);
+    if (character) saveCharacterReloadSeconds(character, safePreset.reloadSeconds[index], teamKey);
     if (character) {
       saveCharacterChargeSpeed(character, chargeSpeeds[rowIndex][index], teamKey);
       if (isRedHood(character)) {
@@ -1980,18 +1990,10 @@ function applyLanguage(language) {
     els.languageToggleButton.setAttribute("title", nextLabel);
   }
   syncAnnouncementBar();
-  if (els.paidInferenceButton) els.paidInferenceButton.setAttribute("title", ui.paidInference);
   if (els.paidCModeButton) els.paidCModeButton.setAttribute("title", ui.paidCMode);
   if (els.paidPModeButton) els.paidPModeButton.setAttribute("title", ui.paidPMode);
-  els.paidInferenceButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Test" : "测试"));
   els.paidCModeButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "C" : "冠军"));
   els.paidPModeButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "P" : "特殊"));
-  const missShotLabel = els.allowMissedShotsToggle?.closest("label");
-  if (missShotLabel) {
-    missShotLabel.setAttribute("aria-label", ui.missShotToggle);
-    missShotLabel.setAttribute("title", ui.missShotToggle);
-    missShotLabel.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Miss" : "空枪"));
-  }
   els.teamShareButton?.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Share" : "分享"));
   if (els.saveTeamPresetButton) {
     els.saveTeamPresetButton.querySelector(".team-action-text")?.replaceChildren(
@@ -2902,16 +2904,18 @@ function formatChargeSpeedEntry(value) {
 }
 
 function sanitizeMagazine(value) {
-  const magazine = Math.floor(Number(value) || 0);
-  if (magazine < 20) return 20;
-  return Math.min(88, magazine);
+  const magazine = Number(value);
+  return Number.isSafeInteger(magazine) && magazine > 0 ? magazine : 0;
 }
 
 function parseCompleteMagazine(value) {
-  const magazine = Math.floor(Number(value));
-  if (!Number.isFinite(magazine)) return null;
-  if (magazine >= 20 && magazine <= 88) return magazine;
-  return null;
+  return sanitizeMagazine(value) || null;
+}
+
+function sanitizeReloadSeconds(value) {
+  if (value == null || String(value).trim() === "") return null;
+  const seconds = Number(value);
+  return Number.isFinite(seconds) && seconds >= 0 ? Math.round(seconds * 100) / 100 : null;
 }
 
 function usesArcaParameters(character, teamKey = state.activeTeamKey) {
@@ -2919,10 +2923,35 @@ function usesArcaParameters(character, teamKey = state.activeTeamKey) {
   if (borrowed) return typeof character?.useArca === 'boolean' ? character.useArca : normalizeTeamKey(teamKey) === borrowed.item.purpose;
   return typeof character?.useArca === 'boolean' ? character.useArca : normalizeTeamKey(teamKey) === 'attack';
 }
-function getArcaChargeParameters(character, teamKey = state.activeTeamKey) {
+function getRawArcaChargeParameters(character, teamKey = state.activeTeamKey) {
   const borrowed = state.helpCenter.solveWorkspace?.privateHelp;
   if (borrowed) return character?.id && usesArcaParameters(character,teamKey) ? borrowed.parameters[character.id] || null : null;
   return character?.id && usesArcaParameters(character,teamKey) ? state.arcaChargeParameters?.[character.id] || null : null;
+}
+// 阿卡数据只提供装备词条；魔方取本地队伍设置，随时可改，不受阿卡锁定。
+function applyLocalCubeToArcaParameters(character, parameters, cubeType = CUBE_TYPE_NONE) {
+  if (!parameters) return parameters;
+  const cube = sanitizeCubeType(cubeType);
+  const baseMagazine = Number(character?.stats?.magazine);
+  const baseReload = Number(character?.stats?.reloadSeconds);
+  let chargeSpeed = Number(parameters.chargeSpeed) || 0;
+  let magazine = Number(parameters.magazine) || 0;
+  let reloadSeconds = Number(parameters.reloadSeconds) || 0;
+  if (cube === CUBE_TYPE_CHARGE_SPEED) chargeSpeed = Math.round((chargeSpeed + CHARGE_SPEED_CUBE_VALUE) * 100) / 100;
+  if (cube === CUBE_TYPE_WINGMAN && baseMagazine > 0) {
+    magazine = Math.floor(baseMagazine * (1 + ((Number(parameters.ammoBonus) || 0) + CUBE_AMMO_BONUS_PERCENT) / 100));
+  }
+  if (cube === CUBE_TYPE_RESILIENCE && Number.isFinite(baseReload) && baseReload >= 0) {
+    reloadSeconds = baseReload * (1 - CUBE_RELOAD_REDUCTION_PERCENT / 100);
+  }
+  const cubeKind = cube === CUBE_TYPE_QUANTUM ? CUBE_TYPE_QUANTUM : cube === CUBE_TYPE_CHARGE_SPEED ? CUBE_TYPE_CHARGE_SPEED : CUBE_TYPE_NONE;
+  return { ...parameters, chargeSpeed, magazine, reloadSeconds, displayCubeType: cube, cubeType: cubeKind,
+    cubeName: cube === CUBE_TYPE_NONE ? "" : cube, cubeLabel: CUBE_TYPE_META[cube]?.zh || "无", cubeLv: 0 };
+}
+function getArcaChargeParameters(character, teamKey = state.activeTeamKey) {
+  const parameters = getRawArcaChargeParameters(character, teamKey);
+  if (!parameters) return null;
+  return applyLocalCubeToArcaParameters(character, parameters, getSavedCharacterCubeType(character, teamKey));
 }
 
 function getSavedCharacterChargeSpeed(character, teamKey = state.activeTeamKey) {
@@ -3019,8 +3048,8 @@ function getSavedCharacterMagazine(character, teamKey = state.activeTeamKey) {
 function getDisplayMagazine(character, teamKey = state.activeTeamKey) {
   const arca = getArcaChargeParameters(character, teamKey);
   if (arca) return arca.magazine;
-  if (!state.allowMissedShots || !isScarlet(character)) return null;
-  return getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine);
+  const saved = getSavedCharacterMagazine(character, teamKey);
+  return saved || (isScarlet(character) ? sanitizeMagazine(character.stats?.magazine) : null);
 }
 
 function saveCharacterMagazine(character, value, teamKey = state.activeTeamKey) {
@@ -3031,6 +3060,18 @@ function saveCharacterMagazine(character, value, teamKey = state.activeTeamKey) 
 function resetCharacterMagazine(character, teamKey = state.activeTeamKey) {
   if (!character?.id) return;
   delete getCharacterMagazineMemory(teamKey)[character.id];
+}
+
+function getSavedCharacterReloadSeconds(character, teamKey = state.activeTeamKey) {
+  return sanitizeReloadSeconds(state.characterReloadSeconds[normalizeTeamKey(teamKey)]?.[character?.id]);
+}
+
+function saveCharacterReloadSeconds(character, value, teamKey = state.activeTeamKey) {
+  if (!character?.id) return;
+  const memory = state.characterReloadSeconds[normalizeTeamKey(teamKey)];
+  const seconds = sanitizeReloadSeconds(value);
+  if (seconds == null) delete memory[character.id];
+  else memory[character.id] = seconds;
 }
 
 function hasSavedCharacterRedHoodPierceCount(character, teamKey = state.activeTeamKey) {
@@ -6180,7 +6221,6 @@ function hasActualPositionHit(positionHits = []) {
 }
 
 function getMagazineSize(character) {
-  if (isChargeWeapon(character)) return Infinity;
   const magazine = Math.floor(Number(character.stats?.magazine) || 0);
   return magazine > 0 ? magazine : Infinity;
 }
@@ -6193,10 +6233,11 @@ function getReloadFrames(character) {
 function getEffectiveCharacterStats(character, teamKey = "attack") {
   const arca = getArcaChargeParameters(character, teamKey);
   if (arca) return {...character.stats, magazine: arca.magazine, reloadSeconds: arca.reloadSeconds};
-  if (!isScarlet(character)) return character.stats;
-  if (!state.allowMissedShots) return { ...character.stats, magazine: 60 };
-  const savedMagazine = getSavedCharacterMagazine(character, teamKey);
-  return savedMagazine ? { ...character.stats, magazine: savedMagazine } : character.stats;
+  const magazine = getSavedCharacterMagazine(character, teamKey);
+  const reloadSeconds = getSavedCharacterReloadSeconds(character, teamKey);
+  return { ...character.stats,
+    ...(magazine != null ? { magazine } : {}),
+    ...(reloadSeconds != null ? { reloadSeconds } : {}) };
 }
 
 function getRedHoodChargeSpeedStacksAfterAttack(event, shotCount = 1) {
@@ -6321,7 +6362,7 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []
     event.redHoodChargeSpeedStacks = nextRedHoodStacks;
   }
 
-  if (Number.isFinite(magazine) && reloadFrames > 0 && event.shotsInMagazine >= magazine) {
+  if (Number.isFinite(magazine) && event.shotsInMagazine >= magazine) {
     event.shotsInMagazine %= magazine;
     const reloadEvent = {
       positionIndex: event.positionIndex,
@@ -6331,67 +6372,14 @@ function advanceAttackEvent(event, currentFrame, shotCount = 1, stunWindows = []
       reloadFrames,
     };
     event.reloadEvents.push(reloadEvent);
-    event.nextFrame = getReloadAttackFrameAfterStun(event, reloadEvent.endFrame, baseNextFrame + reloadFrames, stunWindows);
+    event.nextFrame = reloadFrames === 0
+      ? getNextAttackFrameAfterStun(event, currentFrame, baseNextFrame, stunWindows)
+      : getReloadAttackFrameAfterStun(event, reloadEvent.endFrame, baseNextFrame + reloadFrames, stunWindows);
     return reloadEvent;
   }
 
   event.nextFrame = getNextAttackFrameAfterStun(event, currentFrame, baseNextFrame, stunWindows);
   return null;
-}
-
-function getTurnDodgeStartFrame(event, currentFrame) {
-  return Math.max(0, currentFrame - (Number(event.projectileFlightFrames) || 0));
-}
-
-function getTurnDodgeFrames(event) {
-  if (!isChargeWeapon(event.character)) return 0;
-  if (isCinderella(event.character)) return 0;
-  if (isA2(event.character)) return 0;
-  if (isVestiTacticalUpgrade(event.character) || isRaven(event.character)) return 0;
-  const turnFrames = Number(event.character.timing?.turnFrames ?? event.character.turnFrames ?? 0) || 0;
-  return Math.min(TURN_DODGE_WINDOW_FRAMES, Math.max(0, turnFrames));
-}
-
-function addTurnDodgeEvent(event, currentFrame) {
-  const dodgeFrames = getTurnDodgeFrames(event);
-  if (dodgeFrames <= 0) return;
-  const startFrame = getTurnDodgeStartFrame(event, currentFrame);
-  event.turnDodgeEvents.push({
-    positionIndex: event.positionIndex,
-    characterName: event.character.name,
-    startFrame,
-    endFrame: startFrame + dodgeFrames,
-    dodgeFrames,
-  });
-}
-
-function isMissedByDodgeWindow(positionIndex, flightStartFrame, hitFrame, window) {
-  if (window.positionIndex !== positionIndex) return false;
-  return flightStartFrame < window.startFrame && window.startFrame < hitFrame && hitFrame < window.endFrame;
-}
-
-function getRlShotMissDodgeWindow(
-  event,
-  currentFrame,
-  teamKey,
-  opponentReloadTimeline = [],
-  opponentTurnDodgeTimeline = [],
-  targetPositionIndexOverride = null,
-) {
-  if (!state.allowMissedShots) return false;
-  if (isCinderella(event.character)) return false;
-  if (event.character.weapon !== "RL" || event.projectileFlightFrames <= 0) return false;
-  const targetPositionIndex = Number.isInteger(targetPositionIndexOverride)
-    ? Math.max(0, Math.min(ENEMY_TEAM_SIZE - 1, targetPositionIndexOverride))
-    : getTargetPositionIndex(event.character, teamKey);
-  const flightStartFrame = Math.max(0, currentFrame - event.projectileFlightFrames);
-  return [
-    ...opponentReloadTimeline.map((window) => ({ ...window, type: "reload" })),
-    ...opponentTurnDodgeTimeline.map((window) => ({ ...window, type: "turn" })),
-  ].find((window) =>
-    !isCinderellaName(window.characterName) &&
-    isMissedByDodgeWindow(targetPositionIndex, flightStartFrame, currentFrame, window)
-  );
 }
 
 function characterForSlot(character, positionIndex, teamKey = "attack", team = []) {
@@ -6484,8 +6472,6 @@ function simulateBurst(
       hitFrames: [],
       reloadEvents: [],
       flightEvents: [],
-      missedShotEvents: [],
-      turnDodgeEvents: [],
       poisonChargeTargets: new Set(),
       ravenPoisonNextTickByTarget: new Map(),
     };
@@ -6659,19 +6645,9 @@ function simulateBurst(
         currentFrame,
         opponentTauntTarget,
       );
-      const missDodgeWindow = getRlShotMissDodgeWindow(
-        event,
-        currentFrame,
-        teamKey,
-        opponentReloadTimeline,
-        opponentTurnDodgeTimeline,
-        tauntedTargetPositionIndex,
-      );
-      const isMissedShot = Boolean(missDodgeWindow);
       event.hits += shotCount;
       const chargeShotNumber = getAttackChargeShotNumber(event, shotCount);
       event.hitFrames.push(shotCount > 1 ? `${currentFrame}×${shotCount}` : currentFrame);
-      addTurnDodgeEvent(event, currentFrame);
       if (event.character.weapon === "RL" && event.projectileFlightFrames > 0) {
         const flightEvent = {
           positionIndex: event.positionIndex,
@@ -6679,30 +6655,8 @@ function simulateBurst(
           startFrame: Math.max(0, currentFrame - event.projectileFlightFrames),
           endFrame: currentFrame,
           flightFrames: event.projectileFlightFrames,
-          missed: isMissedShot,
         };
         event.flightEvents.push(flightEvent);
-        if (isMissedShot) {
-          event.missedShotEvents.push({
-            positionIndex: event.positionIndex,
-            characterName: event.character.name,
-            frame: currentFrame,
-            flightStartFrame: flightEvent.startFrame,
-            flightFrames: event.projectileFlightFrames,
-            dodgeType: missDodgeWindow.type,
-            dodgeStartFrame: missDodgeWindow.startFrame,
-            dodgeEndFrame: missDodgeWindow.endFrame,
-            dodgerName: missDodgeWindow.characterName,
-            dodgerPositionIndex: missDodgeWindow.positionIndex,
-          });
-        }
-      }
-
-      if (isMissedShot) {
-        const reloadEvent = advanceAttackEvent(event, currentFrame, shotCount, stunWindows);
-        const magazineEmptyExtra = getMagazineEmptyExtraEvent(event, reloadEvent);
-        if (magazineEmptyExtra) pendingExtraEvents.push(magazineEmptyExtra);
-        return;
       }
 
       const hitProfile = getAttackHitProfile(
@@ -6809,9 +6763,9 @@ function simulateBurst(
     timeline,
     tauntTimeline,
     reloadTimeline: events.flatMap((event) => event.reloadEvents),
-    turnDodgeTimeline: events.flatMap((event) => event.turnDodgeEvents),
+    turnDodgeTimeline: [],
     flightTimeline: events.flatMap((event) => event.flightEvents),
-    missedTimeline: events.flatMap((event) => event.missedShotEvents),
+    missedTimeline: [],
     stunTimeline: stunWindows,
     stunDodgeTimeline: stunDodgeEvents,
     members: events,
@@ -7855,9 +7809,8 @@ function createSlotSettingsModal() {
       </label>
     `;
   }).join("");
-  const isScarletSettings = state.allowMissedShots && isScarlet(character);
-  const magazineValue = arca?.magazine ?? (isScarletSettings ? getSavedCharacterMagazine(character, teamKey) || sanitizeMagazine(character.stats?.magazine) : Number(character.stats?.magazine)||0);
-  const reloadValue=arca?.reloadSeconds ?? (Number(character.stats?.reloadSeconds)||0);
+  const magazineValue = arca?.magazine ?? getSavedCharacterMagazine(character, teamKey) ?? (Number(character.stats?.magazine) || 0);
+  const reloadValue = arca?.reloadSeconds ?? getSavedCharacterReloadSeconds(character, teamKey) ?? (Number(character.stats?.reloadSeconds) || 0);
   const backdrop = document.createElement("div");
   backdrop.className = "slot-settings-backdrop";
   backdrop.setAttribute("role", "presentation");
@@ -7891,13 +7844,13 @@ function createSlotSettingsModal() {
           ? `
             <label class="settings-field">
               <span>${escapeHtml(localize("弹容", "Ammo"))}</span>
-              <input class="slot-settings-magazine" type="number" min="20" max="88" step="1" name="magazine-${settingsFieldScope}" id="magazine-${settingsFieldScope}" value="${magazineValue}" />
+              <input class="slot-settings-magazine" type="number" min="1" step="1" name="magazine-${settingsFieldScope}" id="magazine-${settingsFieldScope}" value="${magazineValue}" />
               <span>${escapeHtml(localize("发", "shots"))}</span>
             </label>
           `
           : ""
       }
-      <div class="settings-field"><span>换弹</span><input type="text" disabled value="${formatNumber(reloadValue,3)}" aria-label="换弹时间" /><span>秒</span></div>
+      <div class="settings-field"><span>换弹</span><input class="slot-settings-reload" type="number" min="0" step="0.01" value="${reloadValue}" aria-label="换弹时间" /><span>秒</span></div>
       <div class="settings-cube-field" role="radiogroup" aria-label="${escapeHtml(localize("魔方选择", "Cube selection"))}">
         <span>${escapeHtml(localize("魔方", "Cube"))}${locked&&arca?.cubeLv?` Lv.${arca.cubeLv}`:""}</span>
         <label class="settings-cube-option is-none">
@@ -7926,8 +7879,32 @@ function createSlotSettingsModal() {
     render();
   });
 
-  if(locked){backdrop.querySelectorAll('input,select,button').forEach(node=>{if(!node.classList.contains('slot-settings-arca')&&!node.classList.contains('slot-settings-close'))node.disabled=true;});return backdrop;}
-  if(!isScarletSettings){const input=backdrop.querySelector('.slot-settings-magazine');if(input)input.disabled=true;}
+  const bindCubeTypeInputs = () => {
+    backdrop.querySelectorAll(".slot-settings-cube-type").forEach((input) => {
+      input.addEventListener("change", (event) => {
+        if (!event.target.checked) return;
+        saveCharacterCubeType(character, event.target.value, teamKey);
+        chargeSpeeds[index] = getSavedCharacterChargeSpeed(character, teamKey);
+        applySavedChargeSpeedToNormalTeam(character, teamKey);
+        refreshSlotSettingsChanges(context);
+        render();
+      });
+    });
+  };
+
+  if(locked){
+    // 魔方随时可换，不跟随阿卡数据锁定；其余（词条、弹容、换弹）仍以阿卡为准。
+    backdrop.querySelectorAll('input,select,button').forEach(node=>{
+      if(node.classList.contains('slot-settings-arca')||node.classList.contains('slot-settings-close'))return;
+      if(node.classList.contains('slot-settings-cube-type')){
+        node.disabled = node.value === CUBE_TYPE_CHARGE_SPEED && !showChargeSpeedSettings;
+        return;
+      }
+      node.disabled=true;
+    });
+    bindCubeTypeInputs();
+    return backdrop;
+  }
   const speedEntrySelects = [...backdrop.querySelectorAll(".slot-settings-speed-entry")];
   if (speedEntrySelects.length) {
     const speedFramePreview = backdrop.querySelector(".slot-settings-frame-preview");
@@ -8004,7 +7981,7 @@ function createSlotSettingsModal() {
   }
 
   const magazineInput = backdrop.querySelector(".slot-settings-magazine");
-  if (magazineInput && isScarletSettings) {
+  if (magazineInput) {
     magazineInput.addEventListener("pointerdown", (event) => event.stopPropagation());
     magazineInput.addEventListener("focus", (event) => event.target.select());
     magazineInput.addEventListener("click", (event) => event.target.select());
@@ -8016,23 +7993,30 @@ function createSlotSettingsModal() {
       refreshSlotSettingsChanges(context);
     });
     magazineInput.addEventListener("blur", (event) => {
-      const magazine = sanitizeMagazine(event.target.value);
-      event.target.value = magazine;
-      saveCharacterMagazine(character, magazine, teamKey);
+      const magazine = parseCompleteMagazine(event.target.value);
+      if (String(event.target.value).trim() === "") resetCharacterMagazine(character, teamKey);
+      else if (magazine != null) saveCharacterMagazine(character, magazine, teamKey);
+      event.target.value = getSavedCharacterMagazine(character, teamKey) ?? (Number(character.stats?.magazine) || 0);
       refreshSlotSettingsChanges(context);
     });
   }
 
-  backdrop.querySelectorAll(".slot-settings-cube-type").forEach((input) => {
-    input.addEventListener("change", (event) => {
-      if (!event.target.checked) return;
-      saveCharacterCubeType(character, event.target.value, teamKey);
-      chargeSpeeds[index] = getSavedCharacterChargeSpeed(character, teamKey);
-      applySavedChargeSpeedToNormalTeam(character, teamKey);
-      refreshSlotSettingsChanges(context);
-      render();
-    });
+  const reloadInput = backdrop.querySelector(".slot-settings-reload");
+  reloadInput.addEventListener("pointerdown", event => event.stopPropagation());
+  reloadInput.addEventListener("focus", event => event.target.select());
+  reloadInput.addEventListener("input", event => {
+    const seconds = sanitizeReloadSeconds(event.target.value);
+    if (seconds == null) return;
+    saveCharacterReloadSeconds(character, seconds, teamKey);
+    refreshSlotSettingsChanges(context);
   });
+  reloadInput.addEventListener("blur", event => {
+    saveCharacterReloadSeconds(character, event.target.value, teamKey);
+    event.target.value = getSavedCharacterReloadSeconds(character, teamKey) ?? (Number(character.stats?.reloadSeconds) || 0);
+    refreshSlotSettingsChanges(context);
+  });
+
+  bindCubeTypeInputs();
 
   backdrop.querySelector(".slot-settings-reset").addEventListener("click", (event) => {
     event.preventDefault();
@@ -8041,6 +8025,7 @@ function createSlotSettingsModal() {
     applySavedChargeSpeedToNormalTeam(character, teamKey);
     resetCharacterQuantumCube(character, teamKey);
     resetCharacterMagazine(character, teamKey);
+    saveCharacterReloadSeconds(character, null, teamKey);
     saveTeam();
     render();
   });
@@ -9041,7 +9026,6 @@ function closeTopmostModalLayer() {
     [".account-modal-backdrop", closeAccountModal],
     [".legal-modal-backdrop", closeLegalModal],
     [".champion-data-modal-backdrop", closeChampionDataModal],
-    [".paid-modal-backdrop", closePaidFeatureModal],
     [".changelog-modal-backdrop", closeChangelogModal],
     [".suggestion-modal-backdrop", closeSuggestionModal],
     [".help-modal-backdrop", closeHelpModal],
@@ -10174,221 +10158,8 @@ function syncLocalAccountEntryControl() {
   syncAccountFeatureVisibility();
 }
 
-function closePaidFeatureModal() {
-  document.querySelector(".paid-modal-backdrop")?.remove();
-}
-
 function isMobileCopyChoiceRuntime() {
   return window.matchMedia?.("(pointer: coarse)")?.matches || window.matchMedia?.("(max-width: 760px)")?.matches;
-}
-
-function getLocalPaidInferencePayload() {
-  return {
-    attackTeam: state.team.map((character) => character?.id || null),
-    attackChargeSpeeds: [...state.chargeSpeeds],
-    maxAutoShots: 3,
-  };
-}
-
-function sanitizeMissShot(value) {
-  const shot = Math.floor(Number(value) || 0);
-  return Math.max(0, Math.min(DEFAULT_AUTO_TEST_SHOTS, shot));
-}
-
-function getTestAttackCharacter(character, positionIndex, chargeSpeeds = []) {
-  if (!character) return null;
-  return {
-    ...character,
-    chargeSpeedPercent: sanitizeChargeSpeed(chargeSpeeds[positionIndex]) || character.chargeSpeedPercent || 0,
-  };
-}
-
-function getAttackRlShotWindow(character, positionIndex, shotNumber, chargeSpeeds = []) {
-  if (!character || character.weapon !== "RL" || shotNumber <= 0) return null;
-  const attackCharacter = getTestAttackCharacter(character, positionIndex, chargeSpeeds);
-  const timing = getChargeFrames(attackCharacter, positionIndex, "attack");
-  const flightFrames = Number(timing.projectileFlightFrames) || 0;
-  if (flightFrames <= 0) return null;
-  const hitFrame = timing.firstFrame + (shotNumber - 1) * timing.interval;
-  return {
-    positionIndex,
-    characterId: character.id,
-    characterName: character.name,
-    shotNumber,
-    launchFrame: hitFrame - flightFrames,
-    hitFrame,
-    flightFrames,
-  };
-}
-
-function getAttackRlShotWindows(character, positionIndex, chargeSpeeds = [], maxShots = DEFAULT_AUTO_TEST_SHOTS) {
-  const shotCount = Math.max(1, Math.min(DEFAULT_AUTO_TEST_SHOTS, Math.floor(Number(maxShots) || DEFAULT_AUTO_TEST_SHOTS)));
-  return Array.from({ length: shotCount }, (_, index) =>
-    getAttackRlShotWindow(character, positionIndex, index + 1, chargeSpeeds),
-  ).filter(Boolean);
-}
-
-function matchesDodgeWindow(attackWindow, dodgeStartFrame, dodgeFrames) {
-  return isMissedByDodgeWindow(
-    attackWindow.targetPositionIndex ?? 0,
-    attackWindow.launchFrame,
-    attackWindow.hitFrame,
-    {
-      positionIndex: attackWindow.targetPositionIndex ?? 0,
-      startFrame: dodgeStartFrame,
-      endFrame: dodgeStartFrame + dodgeFrames,
-    },
-  );
-}
-
-function groupNumberRanges(values = []) {
-  const sorted = [...new Set(values)].sort((a, b) => a - b);
-  const ranges = [];
-  sorted.forEach((value) => {
-    const last = ranges.at(-1);
-    if (last && value === last.end + 1) {
-      last.end = value;
-    } else {
-      ranges.push({ start: value, end: value });
-    }
-  });
-  return ranges.map((range) => (range.start === range.end ? String(range.start) : `${range.start}-${range.end}`));
-}
-
-function formatInferenceValues(values = [], suffix = "") {
-  if (!values.length) return [];
-  return groupNumberRanges(values).map((value) => `${value}${suffix}`);
-}
-
-function getAllLauncherInferenceValues(attackWindows = [], matches = [], key) {
-  const launcherKeys = [
-    ...new Set(attackWindows.map((window) => `${window.positionIndex}:${window.characterId}`)),
-  ];
-  if (launcherKeys.length <= 1) return [];
-  const valueSetsByLauncher = new Map(launcherKeys.map((launcherKey) => [launcherKey, new Set()]));
-  matches.forEach((match) => {
-    const window = match.attackWindow;
-    const launcherKey = window ? `${window.positionIndex}:${window.characterId}` : "";
-    if (!valueSetsByLauncher.has(launcherKey)) return;
-    (match[key] || []).forEach((value) => valueSetsByLauncher.get(launcherKey).add(value));
-  });
-  if ([...valueSetsByLauncher.values()].some((valueSet) => valueSet.size === 0)) return [];
-  const [firstSet, ...restSets] = [...valueSetsByLauncher.values()];
-  return [...firstSet].filter((value) => restSets.every((valueSet) => valueSet.has(value))).sort((a, b) => a - b);
-}
-
-function getNoahChargeSpeedsForAttackWindow(attackWindow) {
-  const noah = getCharacterById(TEST_NOAH_ID);
-  if (!noah || !attackWindow) return [];
-  return [...FIXED_CHARGE_SPEED_FRAMES_60.keys()]
-    .filter((speed) => speed >= 0 && speed <= 26)
-    .filter((speed) => {
-      const defenseNoah = { ...noah, chargeSpeedPercent: speed };
-      const timing = getChargeFrames(defenseNoah, 0, "defense");
-      const flightFrames = Number(timing.projectileFlightFrames) || 0;
-      const intervalFrames = Number(timing.interval) || 0;
-      const turnFrames = Math.min(TURN_DODGE_WINDOW_FRAMES, Math.max(0, Number(noah.timing?.turnFrames ?? noah.turnFrames ?? 0) || 0));
-      const firstTurnFrame = timing.firstFrame - flightFrames;
-      if (intervalFrames <= 0) return false;
-      const maxFrame = attackWindow.hitFrame + intervalFrames;
-      for (let turnFrame = firstTurnFrame; turnFrame <= maxFrame; turnFrame += intervalFrames) {
-        if (matchesDodgeWindow(attackWindow, turnFrame, turnFrames)) return true;
-      }
-      return false;
-    });
-}
-
-function getScarletReloadStarts(magazine, maxFrame) {
-  const scarlet = getCharacterById(TEST_SCARLET_ID);
-  const intervalFrames = 6;
-  const reloadFrames = getReloadFrames(scarlet);
-  const starts = [];
-  let reloadStart = (magazine - 1) * intervalFrames;
-  while (reloadStart <= maxFrame) {
-    starts.push(reloadStart);
-    reloadStart += reloadFrames + magazine * intervalFrames;
-  }
-  return starts;
-}
-
-function getScarletMagazinesForAttackWindow(attackWindow) {
-  if (!attackWindow) return [];
-  const maxFrame = attackWindow.hitFrame + 240;
-  const scarlet = getCharacterById(TEST_SCARLET_ID);
-  const reloadFrames = getReloadFrames(scarlet);
-  return TEST_SCARLET_MAGAZINES.filter((magazine) =>
-    getScarletReloadStarts(magazine, maxFrame).some((reloadStart) =>
-      matchesDodgeWindow(attackWindow, reloadStart, reloadFrames),
-    ),
-  );
-}
-
-function inferMissCandidates(payload = {}) {
-  const attackIds = payload.attackTeam || payload.team || [];
-  const chargeSpeeds = payload.attackChargeSpeeds || payload.chargeSpeeds || [];
-  const missShots = payload.missShots || payload.attackMissShots || [];
-  const maxAutoShots = Math.max(1, Math.min(DEFAULT_AUTO_TEST_SHOTS, Math.floor(Number(payload.maxAutoShots) || DEFAULT_AUTO_TEST_SHOTS)));
-  const attackTeam = Array.from({ length: TEAM_SIZE }, (_, index) => getCharacterById(attackIds[index]));
-  const normalizedChargeSpeeds = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeChargeSpeed(chargeSpeeds[index]));
-  const normalizedMissShots = Array.from({ length: TEAM_SIZE }, (_, index) => sanitizeMissShot(missShots[index]));
-  const hasManualMissShots = normalizedMissShots.some((shotNumber) => shotNumber > 0);
-  const attackWindows = attackTeam.flatMap((character, positionIndex) =>
-    hasManualMissShots
-      ? [getAttackRlShotWindow(character, positionIndex, normalizedMissShots[positionIndex], normalizedChargeSpeeds)].filter(Boolean)
-      : getAttackRlShotWindows(character, positionIndex, normalizedChargeSpeeds, maxAutoShots),
-  );
-  const noah = getCharacterById(TEST_NOAH_ID);
-  const scarlet = getCharacterById(TEST_SCARLET_ID);
-  const noahMatches = attackWindows
-    .map((attackWindow) => ({ attackWindow, values: getNoahChargeSpeedsForAttackWindow(attackWindow) }))
-    .filter((entry) => entry.values.length > 0);
-  const scarletMatches = attackWindows
-    .map((attackWindow) => ({ attackWindow, values: getScarletMagazinesForAttackWindow(attackWindow) }))
-    .filter((entry) => entry.values.length > 0);
-  const noahAllLauncherValues = getAllLauncherInferenceValues(
-    attackWindows,
-    noahMatches.map((entry) => ({ attackWindow: entry.attackWindow, chargeSpeeds: entry.values })),
-    "chargeSpeeds",
-  );
-  const scarletAllLauncherValues = getAllLauncherInferenceValues(
-    attackWindows,
-    scarletMatches.map((entry) => ({ attackWindow: entry.attackWindow, magazines: entry.values })),
-    "magazines",
-  );
-
-  return {
-    attackWindows,
-    candidates: [
-      {
-        type: "noah-charge-speed",
-        characterId: noah?.id ?? TEST_NOAH_ID,
-        characterName: noah?.name ?? "诺雅",
-        allLauncherValues: noahAllLauncherValues,
-        allLauncherDisplayValues: formatInferenceValues(noahAllLauncherValues, "%"),
-        matches: noahMatches.map((entry) => ({
-          attackPosition: entry.attackWindow.positionIndex + 1,
-          attackCharacterName: entry.attackWindow.characterName,
-          shotNumber: entry.attackWindow.shotNumber,
-          chargeSpeeds: entry.values,
-          displayValues: formatInferenceValues(entry.values, "%"),
-        })),
-      },
-      {
-        type: "scarlet-magazine",
-        characterId: scarlet?.id ?? TEST_SCARLET_ID,
-        characterName: scarlet?.name ?? "红莲",
-        allLauncherValues: scarletAllLauncherValues,
-        allLauncherDisplayValues: formatInferenceValues(scarletAllLauncherValues),
-        matches: scarletMatches.map((entry) => ({
-          attackPosition: entry.attackWindow.positionIndex + 1,
-          attackCharacterName: entry.attackWindow.characterName,
-          shotNumber: entry.attackWindow.shotNumber,
-          magazines: entry.values,
-          displayValues: formatInferenceValues(entry.values),
-        })),
-      },
-    ],
-  };
 }
 
 function createEmptyPaidArenaTeams(mode) {
@@ -11165,156 +10936,6 @@ function findNextPaidArenaFillRowIndex(teams, currentRowIndex) {
   return currentRowIndex;
 }
 
-function getLocalPaidInferenceSignature() {
-  return JSON.stringify(getLocalPaidInferencePayload());
-}
-
-function formatPaidInferenceMatch(match, key) {
-  const values = match.displayValues?.length ? match.displayValues.join(" / ") : (match[key] || []).join(" / ");
-  return `P${match.attackPosition} ${match.attackCharacterName} 第${match.shotNumber}发：${values || "无匹配"}`;
-}
-
-function createPaidCandidateLine(text, highlight = false) {
-  return { text: String(text || ""), highlight: Boolean(highlight) };
-}
-
-function scheduleLocalPaidInferenceRefresh() {
-  if (!state.testMode) return;
-  const signature = getLocalPaidInferenceSignature();
-  if (signature === localPaidInferenceState.requestSignature && (localPaidInferenceState.loading || localPaidInferenceState.result || localPaidInferenceState.error)) return;
-  if (localPaidInferenceState.refreshTimer) clearTimeout(localPaidInferenceState.refreshTimer);
-  localPaidInferenceState.refreshTimer = setTimeout(() => {
-    localPaidInferenceState.refreshTimer = null;
-    localPaidInferenceState.requestSignature = signature;
-    refreshLocalPaidInference();
-  }, 0);
-}
-
-function refreshLocalPaidInference() {
-  localPaidInferenceState.loading = false;
-  localPaidInferenceState.error = "";
-  localPaidInferenceState.result = null;
-  try {
-    localPaidInferenceState.result = inferMissCandidates(getLocalPaidInferencePayload());
-  } catch (error) {
-    localPaidInferenceState.error = `空枪反推计算失败${error?.message ? `：${error.message}` : ""}`;
-  }
-  renderTeam();
-}
-
-function getPaidCandidateLines(candidateType, valueKey) {
-  const candidate = localPaidInferenceState.result?.candidates?.find((item) => item.type === candidateType);
-  if (localPaidInferenceState.loading) return [createPaidCandidateLine("计算中...")];
-  if (localPaidInferenceState.error) return [createPaidCandidateLine(localPaidInferenceState.error)];
-  if (!candidate?.matches?.length) return [createPaidCandidateLine("无匹配")];
-  const allLauncherValues = candidate.allLauncherDisplayValues?.length ? candidate.allLauncherDisplayValues.join(" / ") : "";
-  return [
-    ...(allLauncherValues ? [createPaidCandidateLine(`全发射器：${allLauncherValues}`, true)] : []),
-    ...candidate.matches.map((match) => createPaidCandidateLine(formatPaidInferenceMatch(match, valueKey))),
-  ];
-}
-
-function renderTestDefenseRow() {
-  const row = document.createElement("section");
-  row.className = `team-row test-defense-row${state.activeTeamKey === "defense" ? " is-active" : ""}`;
-  row.dataset.teamKey = "defense";
-  row.addEventListener("click", () => {
-    const wasActive = state.activeTeamKey === "defense";
-    setActiveTeam("defense");
-    if (!wasActive) render();
-  });
-  row.setAttribute("aria-label", "空枪反推候选");
-  row.innerHTML = '<div class="test-candidates-row"></div>';
-  const slotsRow = row.querySelector(".test-candidates-row");
-  const candidates = [
-    {
-      character: getCharacterById(12),
-      lines: getPaidCandidateLines("noah-charge-speed", "chargeSpeeds"),
-      hasMatch: Boolean(localPaidInferenceState.result?.candidates?.find((candidate) => candidate.type === "noah-charge-speed")?.matches?.length),
-    },
-    {
-      character: getCharacterById(37),
-      lines: getPaidCandidateLines("scarlet-magazine", "magazines"),
-      hasMatch: Boolean(localPaidInferenceState.result?.candidates?.find((candidate) => candidate.type === "scarlet-magazine")?.matches?.length),
-    },
-  ];
-
-  candidates.forEach((candidate) => {
-    const slot = document.createElement("div");
-    slot.className = `test-candidate${candidate.hasMatch ? " has-test-match" : ""}${localPaidInferenceState.error ? " is-error" : ""}`;
-    slot.innerHTML = `
-      <span class="test-candidate-avatar" aria-label="${escapeHtml(candidate.character?.name || "")}">
-        <span class="team-avatar">${candidate.character ? getAvatarMarkup(candidate.character) : ""}</span>
-      </span>
-      <span class="test-candidate-result">
-        ${candidate.lines.map((line) => `<strong${line.highlight ? ' class="is-all-launcher-match"' : ""}>${escapeHtml(line.text)}</strong>`).join("")}
-      </span>
-    `;
-    slotsRow.append(slot);
-  });
-
-  return row;
-}
-
-function createPaidFeatureModal(title = "空枪反推") {
-  const modalTitle = isEnglishLanguage() && title === "空枪反推" ? "Missed-shot inference" : title;
-  const backdrop = document.createElement("div");
-  backdrop.className = "paid-modal-backdrop";
-  backdrop.setAttribute("role", "presentation");
-  backdrop.innerHTML = `
-    <section class="paid-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(localize("功能提示", "Feature notice"))}">
-      <div class="paid-modal-head">
-        <div>
-          <span class="paid-modal-kicker">Pro</span>
-          <strong>${escapeHtml(modalTitle)}</strong>
-        </div>
-        <button class="paid-modal-close" type="button" aria-label="${escapeHtml(localize("关闭", "Close"))}">X</button>
-      </div>
-      <div class="paid-modal-content">
-        <p>${escapeHtml(localize("该功能正在开发中！", "This feature is under development."))}</p>
-      </div>
-      <div class="paid-modal-actions">
-        <button class="paid-modal-confirm" type="button">${escapeHtml(localize("知道了", "Got it"))}</button>
-      </div>
-    </section>
-  `;
-  backdrop.addEventListener("click", (event) => {
-    if (event.target === backdrop) closePaidFeatureModal();
-  });
-  backdrop.querySelector(".paid-modal").addEventListener("click", (event) => event.stopPropagation());
-  backdrop.querySelector(".paid-modal-close").addEventListener("click", closePaidFeatureModal);
-  backdrop.querySelector(".paid-modal-confirm").addEventListener("click", closePaidFeatureModal);
-  return backdrop;
-}
-
-function setPaidTestMode(enabled) {
-  if (state.helpCenter.solveWorkspace) {
-    showToast(localize("临时解题中不能切换竞技场模式", "Cannot change arena mode while solving."));
-    return;
-  }
-  state.testMode = Boolean(enabled);
-  if (state.testMode) state.paidArenaMode = "normal";
-  if (!state.testMode) {
-    localPaidInferenceState.result = null;
-    localPaidInferenceState.error = "";
-    localPaidInferenceState.loading = false;
-    localPaidInferenceState.requestSignature = "";
-  } else {
-    localPaidInferenceState.result = null;
-    localPaidInferenceState.error = "";
-    localPaidInferenceState.loading = false;
-    localPaidInferenceState.requestSignature = "";
-  }
-  setActiveTeam("attack");
-  hideChartTooltip();
-  render();
-}
-
-function openPaidInferenceFeature() {
-  closePaidFeatureModal();
-  setPaidTestMode(!state.testMode);
-}
-
 function getPaidArenaFeatureTitle(mode) {
   return mode === "c" ? localize("冠军竞技场", "Champion Arena") : localize("特殊竞技场", "Special Arena");
 }
@@ -11344,7 +10965,6 @@ function setPaidArenaMode(mode) {
   if (isPaidArenaModeActive()) {
     state.paidArenaActiveLineupIndex[nextMode] = getPaidArenaActiveLineupIndex(nextMode);
     loadPaidArenaLineupSlot(nextMode, state.paidArenaActiveLineupIndex[nextMode]);
-    state.testMode = false;
     state.paidArenaDisplayMode = "side";
     state.paidArenaDataTeamKey = "attack";
     state.paidArenaActiveRowIndex = 0;
@@ -11365,7 +10985,6 @@ function openPaidArenaFeature(mode) {
   }
   const nextMode = normalizePaidArenaMode(mode);
   if (nextMode === "normal") return;
-  closePaidFeatureModal();
   setPaidArenaMode(state.paidArenaMode === nextMode ? "normal" : nextMode);
 }
 
@@ -11493,10 +11112,6 @@ function renderLineupSlots() {
 }
 
 function syncPaidFeatureButtons() {
-  if (els.paidInferenceButton) {
-    els.paidInferenceButton.classList.toggle("is-active", state.testMode);
-    els.paidInferenceButton.setAttribute("aria-pressed", String(state.testMode));
-  }
   if (els.paidCModeButton) {
     els.paidCModeButton.classList.toggle("is-active", state.paidArenaMode === "c");
     els.paidCModeButton.setAttribute("aria-pressed", String(state.paidArenaMode === "c"));
@@ -12319,10 +11934,6 @@ function renderTeam(battleResults = getBattleResultsSnapshot()) {
   ]);
 
   ["defense", "attack"].forEach((teamKey) => {
-    if (state.testMode && teamKey === "defense") {
-      fragment.append(renderTestDefenseRow());
-      return;
-    }
     const team = getTeamState(teamKey);
     const chargeSpeeds = getChargeSpeedState(teamKey);
     const universalCharges = getUniversalChargeState(teamKey);
@@ -12900,7 +12511,6 @@ function teamHasLittleMermaid(team = []) {
 }
 
 function isFrameInReloadDodgeWindow(positionIndex, frame, reloadTimeline = []) {
-  if (!state.allowMissedShots) return false;
   return reloadTimeline.some((reload) => {
     if (reload.positionIndex !== positionIndex) return false;
     return reload.startFrame < frame && frame < reload.endFrame;
@@ -13690,42 +13300,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     })),
   );
   const visibleReloadEvents = chartResults.flatMap((item) => {
-    if (!state.allowMissedShots) return [];
     const displayEndFrame = getBurstDisplayEndFrame(item.result);
     return (item.result.reloadTimeline || [])
       .filter((reload) => reload.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
       .map((reload) => ({ ...reload, teamKey: item.teamKey, displayEndFrame }));
-  });
-  const visibleDodgeEvents = state.allowMissedShots
-    ? chartResults.flatMap((item) => {
-        const displayEndFrame = getBurstDisplayEndFrame(item.result);
-        return [
-          ...(item.result.reloadTimeline || []).map((reload) => ({
-            ...reload,
-            type: "reload",
-            startFrame: reload.startFrame,
-            endFrame: reload.endFrame,
-            durationFrames: reload.reloadFrames || Math.max(0, reload.endFrame - reload.startFrame),
-            teamKey: item.teamKey,
-            displayEndFrame,
-          })),
-          ...(item.result.turnDodgeTimeline || []).map((turn) => ({
-            ...turn,
-            type: "turn",
-            endFrame: turn.endFrame,
-            durationFrames: turn.dodgeFrames || Math.max(0, turn.endFrame - turn.startFrame),
-            teamKey: item.teamKey,
-            displayEndFrame,
-          })),
-        ].filter((window) => window.startFrame <= Math.min(CHART_MAX_FRAME, displayEndFrame));
-      })
-    : [];
-  const visibleMissedEvents = chartResults.flatMap((item) => {
-    if (!state.allowMissedShots && item.result.engine !== "v2") return [];
-    const displayEndFrame = getBurstDisplayEndFrame(item.result);
-    return (item.result.missedTimeline || [])
-      .filter((miss) => miss.frame <= Math.min(CHART_MAX_FRAME, displayEndFrame))
-      .map((miss) => ({ ...miss, teamKey: item.teamKey, displayEndFrame }));
   });
   const visibleStunEvents = chartResults.flatMap((item) => {
     const displayEndFrame = getBurstDisplayEndFrame(item.result);
@@ -13821,10 +13399,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
     return [
       item.result.fullFrame,
       ...getAvailableBurstMarkers(item.result).map((marker) => marker.frame),
-      ...visibleDodgeEvents
-        .filter((entry) => entry.teamKey === item.teamKey)
-        .map((entry) => Math.min(entry.endFrame, CHART_MAX_FRAME, displayEndFrame)),
-      ...(item.result.missedTimeline || []).map((entry) => Math.min(entry.frame, CHART_MAX_FRAME, displayEndFrame)),
     ];
   });
   resultFrameCandidates.push(...burstCoverageEvents.flatMap((event) => [event.startFrame, event.endFrame]));
@@ -14095,19 +13669,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       if (group.frames.length < 2) return "";
       const firstFrame = Math.min(...group.frames);
       const lastFrame = Math.max(...group.frames);
-      const groupMisses = visibleMissedEvents
-        .filter((miss) => miss.teamKey === group.teamKey && miss.positionIndex === group.member.positionIndex)
-        .map((miss) => {
-          const previousFrame = group.frames.filter((frame) => frame < miss.frame).at(-1);
-          return previousFrame === undefined
-            ? null
-            : {
-                startFrame: previousFrame,
-                endFrame: miss.frame,
-              };
-        })
-        .filter(Boolean);
-      return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupMisses, ...groupStuns]).map((segment, index, segments) =>
+      return getTrackSegments(firstFrame, lastFrame, [...groupReloads, ...groupStuns]).map((segment, index, segments) =>
         makeTrackLine(segment.start, segment.end, index === segments.length - 1),
       );
     })
@@ -14162,63 +13724,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
         `${getTeamLabel(stun.teamKey)} P${stun.positionIndex + 1}\n${localize("时间", "Time")}: ${stun.frame} F\n${localize("状态", "Status")}: ${localize("晕眩被规避", "Stun dodged")}\n${localize("来源", "Source")}: ${localize("小美人鱼晕眩", "Little Mermaid stun")}\n${localize("换弹窗口", "Reload window")}: ${stun.dodgeStartFrame}F → ${stun.dodgeEndFrame}F`,
       );
       return `<circle class="chart-stun-dodge-point team-${stun.teamKey}" cx="${xForFrame(stun.frame)}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle>`;
-    })
-    .join("");
-  const reloadDurationTracks = visibleReloadEvents
-    .flatMap((reload) => {
-      const y = yForGroup(`${reload.teamKey}-${reload.positionIndex}`);
-      const startFrame = Math.min(reload.startFrame, maxFrame);
-      const group = memberPointGroups.find((item) => item.teamKey === reload.teamKey && item.member.positionIndex === reload.positionIndex);
-      const nextHitFrame = group?.frames.find((frame) => frame > reload.startFrame) ?? reload.endFrame;
-      const endFrame = Math.min(nextHitFrame, maxFrame, reload.displayEndFrame);
-      if (endFrame <= startFrame) return [];
-      const dodgeEndFrame = reload.endFrame;
-      const visibleDodgeEndFrame = Math.min(dodgeEndFrame, endFrame, maxFrame, reload.displayEndFrame);
-      const tooltip = escapeHtml(
-        `${getLocalizedCharacterNameByName(reload.characterName)}\n${localize("换弹", "Reload")}: ${reload.startFrame}F → ${reload.endFrame}F\n${localize("可空判定", "Miss window")}: ${reload.startFrame}F → ${dodgeEndFrame}F`,
-      );
-      const lines = [];
-      if (visibleDodgeEndFrame > startFrame) {
-        lines.push(
-          `<line class="chart-dodge-track chart-dodge-reload-window team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(visibleDodgeEndFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`,
-        );
-      }
-      if (endFrame > visibleDodgeEndFrame) {
-        lines.push(
-          `<line class="chart-dodge-track chart-dodge-reload-duration team-${reload.teamKey}" x1="${xForFrame(visibleDodgeEndFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`,
-        );
-      }
-      return lines;
-    })
-    .join("");
-  const dodgeTracks = visibleDodgeEvents
-    .filter((window) => window.type !== "reload")
-    .map((window) => {
-      const y = yForGroup(`${window.teamKey}-${window.positionIndex}`);
-      const startFrame = Math.min(window.startFrame, maxFrame);
-      const endFrame = Math.min(window.endFrame, maxFrame, window.displayEndFrame);
-      if (endFrame <= startFrame) return "";
-      const label = window.source === "v2-collider-pose"
-        ? localize("Hide碰撞窗口", "Hide collider window")
-        : window.type === "reload" ? localize("换弹可空", "Reload miss window") : localize("转身可空", "Turn miss window");
-      const tooltip = escapeHtml(`${getLocalizedCharacterNameByName(window.characterName)}\n${label}: ${window.startFrame}F → ${window.endFrame}F\n${localize("判定", "Window")}: ${window.durationFrames}F`);
-      return `<line class="chart-dodge-track chart-dodge-${window.type} team-${window.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`;
-    })
-    .join("");
-  const missedPoints = visibleMissedEvents
-    .map((miss) => {
-      const y = yForGroup(`${miss.teamKey}-${miss.positionIndex}`);
-      const dodgeLabel = miss.dodgeType === "reload" ? localize("换弹可空", "Reload miss window") : localize("转身可空", "Turn miss window");
-      const dodgerLine = miss.dodgerName
-        ? `\n${localize("目标", "Target")}: P${Number(miss.dodgerPositionIndex) + 1} ${getLocalizedCharacterNameByName(miss.dodgerName)}`
-        : "";
-      const detail = miss.source === "v2-projectile"
-        ? `\n${localize("发射", "Fired")}: ${miss.flightStartFrame}F\n${localize("充能", "Charge")}: 0`
-        : `\n${dodgeLabel}: ${miss.dodgeStartFrame}F → ${miss.dodgeEndFrame}F`;
-      const tooltip = escapeHtml(
-        `${getLocalizedCharacterNameByName(miss.characterName)}\n${localize("时间", "Time")}: ${miss.frame} F\n${localize("结果", "Result")}: ${localize("空枪，未命中", "Missed shot")}${dodgerLine}${detail}`,
-      );
-      return `<circle class="chart-missed-point" cx="${xForFrame(miss.frame)}" cy="${y}" r="5" data-tooltip="${tooltip}"></circle>`;
     })
     .join("");
   const scarletCounterTracks = scarletCounterGroups
@@ -14373,7 +13878,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
 
   // Paint every outline before any colored center so dense nodes cannot erase
   // the preceding node's fill. Keep tooltips only on the original fill layer.
-  const markerMarkup = [standardPoints, universalChargePoints, pointMarks, missedPoints, stunPoints, stunDodgePoints, scarletCounterPoints, totalPoints, burstPoints].join("");
+  const markerMarkup = [standardPoints, universalChargePoints, pointMarks, stunPoints, stunDodgePoints, scarletCounterPoints, totalPoints, burstPoints].join("");
   const markerCircles = markerMarkup.match(/<circle\b[^>]*><\/circle>/g) || [];
   const markerOutlines = markerCircles.map((circle) => circle.replace(/ data-tooltip="[^"]*"/, "").replace("<circle ", '<circle style="fill:none" pointer-events="none" ')).join("");
   const markerFills = markerCircles.map((circle) => circle.replace("<circle ", '<circle style="stroke:none" ')).join("");
@@ -14388,8 +13893,6 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${standardReferenceLines}
       ${standardTrack}
       ${tracks}
-      ${reloadDurationTracks}
-      ${dodgeTracks}
       ${scarletCounterTracks}
       ${chargeTotalTrack}
       ${burstTotalTrack}
@@ -14613,18 +14116,9 @@ function renderResults(battleResults = getBattleResultsSnapshot()) {
 }
 
 function render() {
-  const engineSwitch = document.getElementById('calculatorEngineSwitch');
-  if (engineSwitch && !engineSwitch.dataset.bound) {
-    engineSwitch.dataset.bound = 'true';
-    engineSwitch.addEventListener('click', event => {
-      event.preventDefault();
-      const url = new URL(getCurrentTeamShareUrl() || location.href);
-      url.pathname = engineSwitch.getAttribute('href');
-      url.searchParams.delete('v');
-      if (url.pathname === '/') url.searchParams.delete('v2phase');
-      location.assign(url.href);
-    });
-  }
+  // 计算核心开关由 v2-switch.js 托管：同页切换，不换路径。这里只保证每次 render
+  // 之后按钮文案与当前核心一致（绑定本身带 dataset.bound 去重）。
+  globalThis.__bindEngineSwitch?.(document.getElementById('calculatorEngineSwitch'));
   if (state.arcaParameterRegion !== state.filters.region) {state.arcaParameterRegion=state.filters.region;state.arcaChargeParameters=arcaWorkspace?.parameters(state.filters.region)||{};}
   renderCharacters();
   renderBattlePowerStrip();
@@ -14635,7 +14129,6 @@ function render() {
   renderResults(battleResults);
   syncFilterControls();
   refreshHelpCenterSolveSubmitButton();
-  scheduleLocalPaidInferenceRefresh();
   refreshBattleResults();
 }
 
@@ -15398,6 +14891,7 @@ function saveTeam() {
       characterCubeTypes: state.characterCubeTypes,
       characterQuantumCubes: state.characterQuantumCubes,
       characterMagazines: state.characterMagazines,
+      characterReloadSeconds: state.characterReloadSeconds,
       characterRedHoodPierceCounts: state.characterRedHoodPierceCounts,
       activeLineupIndex: state.activeLineupIndex,
       lineupSlots: state.lineupSlots,
@@ -15437,14 +14931,12 @@ function saveTeam() {
         p: serializePaidArenaJackalLinks("p"),
       },
       jackalLinks: state.jackalLinks,
-      allowMissedShots: state.allowMissedShots,
       battlePowerBase: state.battlePowerBase,
       compactAvatarIcons: state.compactAvatarIcons,
       filters: state.filters,
       activeTeamKey: state.activeTeamKey,
     }),
   );
-  scheduleLocalPaidInferenceRefresh();
 }
 
 function loadTeam() {
@@ -15485,6 +14977,9 @@ function loadTeam() {
         defense: normalizeSavedCharacterMagazines(saved.characterMagazines?.defense),
         attack: normalizeSavedCharacterMagazines(saved.characterMagazines?.attack),
       };
+      state.characterReloadSeconds = Object.fromEntries(["defense", "attack"].map(side => [side,
+        Object.fromEntries(Object.entries(saved.characterReloadSeconds?.[side] || {})
+          .map(([id, value]) => [id, sanitizeReloadSeconds(value)]).filter(([, value]) => value != null))]));
       state.characterRedHoodPierceCounts = {
         defense: normalizeSavedCharacterRedHoodPierceCounts(saved.characterRedHoodPierceCounts?.defense),
         attack: normalizeSavedCharacterRedHoodPierceCounts(saved.characterRedHoodPierceCounts?.attack),
@@ -15568,7 +15063,6 @@ function loadTeam() {
         ),
       );
       if (isPaidArenaModeActive()) syncPaidArenaChargeSpeedsFromSavedData();
-      state.allowMissedShots = typeof saved.allowMissedShots === "boolean" ? saved.allowMissedShots : true;
       state.battlePowerBase = sanitizeBattlePowerBase(saved.battlePowerBase);
       state.compactAvatarIcons = saved.compactAvatarIcons !== false;
       state.filters = {
@@ -15612,6 +15106,7 @@ function loadTeam() {
     state.characterCubeTypes = { defense: {}, attack: {} };
     state.characterQuantumCubes = { defense: {}, attack: {} };
     state.characterMagazines = { defense: {}, attack: {} };
+    state.characterReloadSeconds = { defense: {}, attack: {} };
     state.activeLineupIndex = 0;
     state.lineupSlots = Array.from({ length: LINEUP_SLOT_COUNT }, () => createEmptyLineupSlot());
     state.paidArenaMode = "normal";
@@ -15656,7 +15151,6 @@ function loadTeam() {
       defense: { enabled: false, ownerId: null, targetIds: [] },
       attack: { enabled: false, ownerId: null, targetIds: [] },
     };
-    state.allowMissedShots = true;
     state.battlePowerBase = 0;
   }
 }
@@ -17548,10 +17042,10 @@ function rememberHelpCenterShareRowSettings(row, teamKey) {
 const HELP_SOLVE_ISOLATED_FIELDS = [
   "defenseTeam", "defenseChargeSpeeds", "defenseUniversalCharges", "defenseRedHoodPierceCounts", "defenseScarletCounterEnabled", "defenseRosannaSacrificeFrames",
   "team", "chargeSpeeds", "universalCharges", "redHoodPierceCounts", "scarletCounterEnabled", "rosannaSacrificeFrames",
-  "characterChargeSpeeds", "characterChargeSpeedEntries", "characterQuantumCubes", "characterCubeTypes", "characterMagazines", "characterRedHoodPierceCounts",
+  "characterChargeSpeeds", "characterChargeSpeedEntries", "characterQuantumCubes", "characterCubeTypes", "characterMagazines", "characterReloadSeconds", "characterRedHoodPierceCounts",
   "jackalLinks", "activeTeamKey", "activeLineupIndex", "lineupSlots", "paidArenaMode", "paidArenaActiveRowIndex", "paidArenaActiveLineupIndex", "paidArenaDisplayMode", "paidArenaDataTeamKey",
   "paidArenaTeams", "paidArenaLineupSlots", "paidArenaUniversalCharges", "paidArenaChargeSpeeds", "paidArenaRosannaSacrificeFrames", "paidArenaRedHoodPierceCounts", "paidArenaScarletCounterEnabled", "paidArenaJackalLinks",
-  "filters", "testMode", "allowMissedShots", "battlePowerBase", "compactAvatarIcons",
+  "filters", "battlePowerBase", "compactAvatarIcons",
 ];
 
 function getHelpCenterSolveDraftKey(requestId, options = {}) {
@@ -17651,9 +17145,8 @@ function beginHelpCenterSolveWorkspace(request, options = {}) {
       return true;
     }
     state.filters.region = region;
-    state.testMode = false;
     if(options.privateHelp){
-      for(const field of ['characterChargeSpeeds','characterChargeSpeedEntries','characterQuantumCubes','characterCubeTypes','characterMagazines','characterRedHoodPierceCounts'])state[field]={defense:{},attack:{}};
+      for(const field of ['characterChargeSpeeds','characterChargeSpeedEntries','characterQuantumCubes','characterCubeTypes','characterMagazines','characterReloadSeconds','characterRedHoodPierceCounts'])state[field]={defense:{},attack:{}};
     }
     if (mode === "normal") {
       const attack = useCurrentAttack ? { team: state.team, chargeSpeeds: state.chargeSpeeds, universalCharges: state.universalCharges, redHoodPierceCounts: state.redHoodPierceCounts, scarletCounterEnabled: state.scarletCounterEnabled, rosannaSacrificeFrames: state.rosannaSacrificeFrames, jackalLink: state.jackalLinks.attack } : createEmptyHelpCenterShareRow();
@@ -17720,7 +17213,6 @@ function clearHelpCenterSolveDraft(requestId = "") {
     state.helpCenter.solveRequestId = "";
     state.helpCenter.solveRequestTitle = "";
     state.helpCenter.solveRequestRegion = "";
-    if (workspace && els.allowMissedShotsToggle) els.allowMissedShotsToggle.checked = state.allowMissedShots;
     refreshHelpCenterSolveSubmitButton();
   }
 }
@@ -17913,9 +17405,11 @@ function getHelpCenterPayloadChargeLabel(payload, side, rowIndex = 0) {
   const previousCubeTypes = state.characterCubeTypes[side];
   const previousQuantumCubes = state.characterQuantumCubes[side];
   const previousMagazines = state.characterMagazines[side];
+  const previousReloadSeconds = state.characterReloadSeconds[side];
   state.characterCubeTypes[side] = {};
   state.characterQuantumCubes[side] = {};
   state.characterMagazines[side] = {};
+  state.characterReloadSeconds[side] = {};
   team.forEach((character, index) => {
     if (!character) return;
     const cubeType = getCubeTypeById(cubeIds[index]);
@@ -17934,6 +17428,7 @@ function getHelpCenterPayloadChargeLabel(payload, side, rowIndex = 0) {
     state.characterCubeTypes[side] = previousCubeTypes;
     state.characterQuantumCubes[side] = previousQuantumCubes;
     state.characterMagazines[side] = previousMagazines;
+    state.characterReloadSeconds[side] = previousReloadSeconds;
   }
 }
 
@@ -18105,7 +17600,6 @@ function bindEvents() {
   });
   els.themeToggleButton?.addEventListener("click", toggleTheme);
   els.languageToggleButton?.addEventListener("click", toggleLanguage);
-  els.paidInferenceButton?.addEventListener("click", openPaidInferenceFeature);
   els.paidCModeButton?.addEventListener("click", () => openPaidArenaFeature("c"));
   els.paidPModeButton?.addEventListener("click", () => openPaidArenaFeature("p"));
   els.saveTeamPresetButton?.addEventListener("click", saveCurrentTeamPreset);
@@ -18158,11 +17652,6 @@ function bindEvents() {
     void handleGlobalOcrPaste(event);
   }, { capture: true });
   els.swapTeamButton.addEventListener("click", swapBattleTeams);
-  els.allowMissedShotsToggle.addEventListener("change", (event) => {
-    state.allowMissedShots = event.target.checked;
-    saveTeam();
-    render();
-  });
   els.battlePowerBaseInput?.addEventListener("focus", (event) => {
     event.target.select();
   });
@@ -18452,7 +17941,6 @@ async function bootstrap() {
   setSidebarOpen(false);
   loadTeam();
   applyTeamSharePresetFromLocation();
-  els.allowMissedShotsToggle.checked = state.allowMissedShots;
   syncFilterControls();
   syncLocalAccountEntryControl();
   render();
@@ -18494,6 +17982,10 @@ async function bootstrap() {
   }
 }
 
+// V2 计算核心以外部脚本/模块接入，靠替换 globalThis 上的入口接管计算。它依赖的是
+// app.js 以**脚本语义**发布（顶层函数声明就是全局属性），所以构建脚本刻意不把 app.js
+// 打成 iife —— 包成闭包后站点内部调用不再经过 globalThis，转发器会被完全绕过。
+// 这里不需要额外搬运一份全局：那是两套来源，容易只改一边。
 bootstrap().catch((error) => {
   console.error(error);
   els.toast.textContent = error?.message || localize("\u521d\u59cb\u5316\u5931\u8d25", "Initialization failed");

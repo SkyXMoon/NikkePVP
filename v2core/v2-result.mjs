@@ -183,7 +183,8 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf, o
       if (event.type === 'RELOAD_DONE' && reloadStart != null) {
         member.reloadEvents.push({ positionIndex: member.positionIndex,
           characterName: member.character.name, startFrame: reloadStart,
-          endFrame: frameOf(event.tick), reloadFrames: frameOf(event.tick) - reloadStart });
+          endFrame: frameOf(event.tick), reloadFrames: frameOf(event.tick) - reloadStart,
+          ...(calculation.colliderMotion ? { colliderMotion:calculation.colliderMotion.mode } : {}) });
         reloadStart = null;
       }
     }
@@ -191,7 +192,7 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf, o
     for (const event of (calculation.stanceEvents ?? []).filter(event => event.id === actor.config.id)) {
       if (hidden) {
         const endTick = Math.min(event.tick, native.readyTick ?? calculation.result.totalTicks);
-        if (hidden.cause === 'stance' && endTick > hidden.tick) {
+        if (!calculation.colliderMotion && hidden.cause === 'stance' && endTick > hidden.tick) {
           member.turnDodgeEvents.push({ positionIndex: member.positionIndex,
             characterName: member.character.name, startFrame: frameOf(hidden.tick),
             endFrame: frameOf(endTick), dodgeFrames: (endTick - hidden.tick) * 2,

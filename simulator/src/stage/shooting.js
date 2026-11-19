@@ -14,6 +14,19 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const SHOT_TABLE_SCALE = 0.005;
 const INSTANT_BOX_DEPTH = 90;
 
+/** NKColliders.UpdateTick advances local offset by (Aim-Hide) / SPEED * dt. */
+export function stepColliderOffset(position, aim, hide, stance, dt, motion) {
+  const target = stance === 2 ? aim : hide;
+  const distance = position.map((value, axis) => f32(value - target[axis]));
+  const squared = f32(f32(f32(distance[0] * distance[0]) + f32(distance[1] * distance[1])) + f32(distance[2] * distance[2]));
+  if (squared < motion.positionEpsilonSquared) return [...position];
+  return position.map((value, axis) => {
+    const direction = stance === 2 ? f32(aim[axis] - hide[axis]) : f32(hide[axis] - aim[axis]);
+    const next = f32(value + f32(f32(direction / motion.durationSeconds) * dt));
+    return motion.clampedAxes.includes(axis) ? Math.max(hide[axis], Math.min(aim[axis], next)) : next;
+  });
+}
+
 /** Exact sphere/OBB sweep: distance to a box is quadratic between slab crossings.
  * Unlike expanding all three slabs, this does not introduce square corner hits.
  */
@@ -92,6 +105,10 @@ function curvePoint(s, dt) {
 }
 
 export function createArenaShooting({arena, characters, native, muzzleAt, heightOffset=()=>0}) {
+  const motion = native.colliderMotion;
+  if (motion && (motion.mode !== 'offset-linear' || !(motion.durationSeconds > 0) ||
+      !Array.isArray(motion.spotConstant) || !Array.isArray(motion.clampedAxes)))
+    throw new Error('Unsupported native collider motion profile');
   const placements=assignCovers(arena.covers,characters);
   const states=new Map();
   for (const cfg of characters) {
@@ -107,14 +124,18 @@ export function createArenaShooting({arena, characters, native, muzzleAt, height
         center:new T.Vector3(),rotation:rot.clone().multiply(new T.Quaternion(...toGltfRotation(def.rotation))),
         half:V(def.size).multiply(V(def.scale)).multiply(scale).multiplyScalar(.5)};
     }
-    states.set(cfg.id,{cfg,pl,matrix,pos,boxes,height:off,stance:2,curveIndex:0});
+    states.set(cfg.id,{cfg,pl,matrix,pos,boxes,height:off,stance:2,curveIndex:0,
+      characterOffset:[...(motion?.resetToHideOnInit ? native.colliders.hidePosition : native.colliders.character.position)]});
   }
   const active=[],shots=[],stanceEvents=[];
-  function updateBoxes() {
-    for (const s of states.values()) {
+  function updateBoxes(selected=states.values(),dt=0) {
+    for (const s of selected) {
+      if (motion && dt > 0) s.characterOffset = stepColliderOffset(s.characterOffset,
+        native.colliders.aimPosition, native.colliders.hidePosition, s.stance, dt, motion);
       for (const kind of ['character','cover']) {
         const def=native.colliders[kind];
-        const p=kind==='character' ? native.colliders[s.stance===2?'aimPosition':'hidePosition'] : def.position;
+        const offset=kind==='character' ? (motion ? s.characterOffset : native.colliders[s.stance===2?'aimPosition':'hidePosition']) : def.position;
+        const p=motion ? offset.map((value,axis)=>f32(value+motion.spotConstant[axis])) : offset;
         if(kind==='character')s.characterOrigin=V(toGltf(p)).applyMatrix4(s.matrix);
         const local=V(toGltf(def.center)).multiply(V(def.scale)).applyQuaternion(new T.Quaternion(...toGltfRotation(def.rotation))).add(V(toGltf(p)));
         s.boxes[kind].center.copy(local.applyMatrix4(s.matrix));
@@ -122,6 +143,24 @@ export function createArenaShooting({arena, characters, native, muzzleAt, height
     }
   }
   updateBoxes();
+  function sampleRunners(tick,rs) {
+    const selected=[];
+    for (const r of rs) {
+      const s=states.get(r.cfg.id);
+      s.alive=r.alive!==false;
+      const stance=r.reloadLeft>0?3:r.aiming?2:0;
+      if(s.stance!==stance)stanceEvents.push({tick,id:r.cfg.id,team:r.cfg.team,
+        pose:stance===2?'aim':'hide',cause:r.reloadLeft>0?'reload':'stance'});
+      s.stance=stance;
+      selected.push(s);
+    }
+    updateBoxes(selected,motion ? EVENT_DT_30 : 0);
+    for (const r of rs) {
+      const own=states.get(r.cfg.id);
+      r.cfg.enemies=[...states.values()].filter(s=>s.cfg.team!==r.cfg.team).map(s=>({...s.cfg.rankingStats,id:s.cfg.id,alive:s.alive!==false,inZone:true,
+        distance:own.pos.distanceTo(s.pos),x:s.pos.x,slotIndex:s.pl.slot}));
+    }
+  }
   // An actor whose native fire type or projectile script is not modelled cannot
   // fire at all. Reporting that while firing would abort the whole lineup for one
   // character, so it is detected once here, exposed through `unsupported`, and the
@@ -203,6 +242,8 @@ export function createArenaShooting({arena, characters, native, muzzleAt, height
   }
   return {
     stanceEvents,
+    colliderMotion:motion,
+    ...(motion ? { beforeTeamTick:sampleRunners, afterTeamTick:sampleRunners } : {}),
     shots,states,placements,supportsParts:false,unsupported,
     getSkillAimContext:skillAimContext,
     resolveSkillTargets({cfg,binding,candidates,probabilityMode}){
@@ -235,21 +276,7 @@ export function createArenaShooting({arena, characters, native, muzzleAt, height
       return {supported:true,contacts,...selection};
     },
     beforeTick(tick,rs) {
-      const alive = new Map(rs.map(r=>[r.cfg.id,r.alive!==false]));
-      for (const r of rs) {
-        const s=states.get(r.cfg.id);
-        s.alive=alive.get(r.cfg.id);
-        const stance=r.reloadLeft>0?3:r.aiming?2:0;
-        if(s.stance!==stance)stanceEvents.push({tick,id:r.cfg.id,team:r.cfg.team,
-          pose:stance===2?'aim':'hide',cause:r.reloadLeft>0?'reload':'stance'});
-        s.stance=stance;
-      }
-      updateBoxes();
-      for (const r of rs) {
-        const own=states.get(r.cfg.id);
-        r.cfg.enemies=[...states.values()].filter(s=>s.cfg.team!==r.cfg.team).map(s=>({...s.cfg.rankingStats,id:s.cfg.id,alive:alive.get(s.cfg.id)!==false,inZone:true,
-          distance:own.pos.distanceTo(s.pos),x:s.pos.x,slotIndex:s.pl.slot}));
-      }
+      sampleRunners(tick,rs);
     },
     fire({tick,cfg,targetId,lastAmmo=false,fullChargeRate}) {
       const own=states.get(cfg.id),target=states.get(targetId);

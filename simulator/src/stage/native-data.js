@@ -38,7 +38,9 @@ export function mergeNativeData(shooting, bindings, colliderDoc, fallbackCollide
     throw new Error(`缺少竞技场碰撞体：${colliderDoc?.region ?? '未知区服'} 没有本区资源，也没有可借用的区服`);
   }
 
-  return { ...shooting, colliders, colliderProvenance, bindings: characters,
+  return { ...shooting, colliders,
+    colliderMotion: colliderDoc?.colliders ? colliderDoc.motion : fallbackColliderDoc?.motion,
+    colliderProvenance, bindings: characters,
     bindingProvenance: bindings?.region ?? null,
     // Named, not silent: callers that need a muzzle must ask through requireBinding.
     missingBindings: missing };

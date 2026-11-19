@@ -20,6 +20,16 @@
  */
 (function () {
   const TABLE = globalThis.__V2_TIMING || {};
+  // 同一张页面里 V1/V2 并存：全局入口由 v2-switch.js 换成了按模式分派的转发器。
+  // 登记而不是直接覆盖，V1 才能随时切回来；取「原实现」也走 __v1，否则拿到的是
+  // 转发器本身，V2 模式下会绕回自己。
+  const register = (name, fn) => (typeof globalThis.__v2Register === 'function'
+    ? globalThis.__v2Register(name, fn)
+    : (globalThis[name] = fn));
+  const v1 = name => (typeof globalThis.__v1 === 'function'
+    ? globalThis.__v1(name)
+    : globalThis[name]);
+  const v2Mode = () => globalThis.__CALC_ENGINE__?.current === 'v2';
   // app.js 的首帧在等这个闸门（见 index.html 里的 __NIKKE_RENDER_GATE__）。覆盖脚本
   // 没机会跑完就不能让页面一直停在加载态，所以所有退出路径都放行。
   const release = () => {
@@ -29,7 +39,7 @@
     open();
   };
   try {
-  const orig = globalThis.getChargeFrames;
+  const orig = v1('getChargeFrames') || globalThis.getChargeFrames;
   if (typeof orig !== 'function') {
     console.error('[v2core] 找不到 getChargeFrames，替换失败');
     release();
@@ -159,7 +169,7 @@
     return { row, ticks, units, frames, source, delta: frames - baseFrames };
   }
 
-  globalThis.getChargeFrames = function (character, positionIndex, teamKey) {
+  register('getChargeFrames', function (character, positionIndex, teamKey) {
     const base = orig.call(this, character, positionIndex, teamKey);
     const r = framesOf(character, teamKey);
     if (!r) {
@@ -188,23 +198,23 @@
       v2ChargeSource: r.source,
       v2ChargeSpeed: speedOf(character),
     });
-  };
+  });
 
   // 详情页那行「蓄力时间：2s（120F）」的帧数也换成 V2：秒数不动，帧数用整 tick。
   // 这一层不带槽位蓄速（原站同样不带），所以只换算基础蓄力。
-  const origInfo = globalThis.getCharacterChargeFrameInfo;
+  const origInfo = v1('getCharacterChargeFrameInfo');
   if (typeof origInfo === 'function') {
-    globalThis.getCharacterChargeFrameInfo = function (character) {
+    register('getCharacterChargeFrameInfo', function (character) {
       const base = origInfo.call(this, character);
       const r = framesOf(character, undefined, false);
       if (!r) return base;
       return { seconds: base.seconds, frames: r.ticks * 2 };
-    };
+    });
   }
 
-  const originalTimingLabel = globalThis.getTimingLabel;
+  const originalTimingLabel = v1('getTimingLabel');
   if (typeof originalTimingLabel === 'function') {
-    globalThis.getTimingLabel = function (character) {
+    register('getTimingLabel', function (character) {
       const r = framesOf(character, undefined, false);
       if (!r) return originalTimingLabel.call(this, character);
       const row = r.row;
@@ -215,56 +225,37 @@
       else if (row.intervalTicks != null) parts.push(`周期 ${row.intervalTicks}F（30fps）`);
       if (row.firstFireRel != null) parts.push(`首发 ${row.firstFireRel}F（30fps）`);
       return parts.join(' / ');
-    };
+    });
   }
 
-  const originalDetailLines = globalThis.getChargeWeaponDetailLines;
+  const originalDetailLines = v1('getChargeWeaponDetailLines');
   if (typeof originalDetailLines === 'function') {
-    globalThis.getChargeWeaponDetailLines = function (character) {
+    register('getChargeWeaponDetailLines', function (character) {
       const r = framesOf(character, undefined, false);
       if (!r) return originalDetailLines.call(this, character);
       const lines = originalDetailLines.call(this, character);
+      // 这里走全局名：v2 模式下转发到本文件的 getTimingLabel，v1 模式下走原实现。
       return [getTimingLabel(character), ...lines.slice(1)];
-    };
+    });
   }
 
   globalThis.__V2_COVERAGE__ = stats;
-  // Keep the initial async module load from displaying legacy calculated results.
-  const loadingResult = () => ({ engine: 'v2', error: 'V2核心加载中…', members: [] });
-  const loadingPair = () => ({ attackResult: loadingResult(), defenseResult: loadingResult() });
-  globalThis.computeBattleResults = loadingPair;
-  globalThis.computePaidArenaBattleResultsForRow = loadingPair;
-  globalThis.getPaidArenaChartResultForTeam = loadingResult;
-  globalThis.simulateBurst = loadingResult;
-  globalThis.simulatePaidArenaBurst = loadingResult;
-  // 占位实现就位之后才放行首帧：此时 app.js 的第一次 render 拿到的是「V2核心加载中」，
-  // 不再是一份 V1 结果。
+  // 只有真要跑 V2 时才把计算入口先占成「加载中」：V1 模式下这等于把页面按在错误态。
+  // 占位实现就位之后才放行首帧 —— app.js 的第一次 render 拿到「V2核心加载中」，
+  // 不会先画一份 V1 结果再被替换（刷新时那一下闪）。
+  if (v2Mode()) {
+    const loadingResult = () => ({ engine: 'v2', error: 'V2核心加载中…', members: [] });
+    const loadingPair = () => ({ attackResult: loadingResult(), defenseResult: loadingResult() });
+    register('computeBattleResults', loadingPair);
+    register('computePaidArenaBattleResultsForRow', loadingPair);
+    register('getPaidArenaChartResultForTeam', loadingResult);
+    register('simulateBurst', loadingResult);
+    register('simulatePaidArenaBurst', loadingResult);
+  }
   release();
-  globalThis.__V2_WITH_V1__ = function (calculate) {
-    const current = globalThis.getChargeFrames;
-    globalThis.getChargeFrames = orig;
-    try {
-      return calculate();
-    } finally {
-      globalThis.getChargeFrames = current;
-    }
-  };
   console.info('[v2core] 已接管 ', Object.keys(TABLE).length, '人；命中统计见 __V2_COVERAGE__');
   } finally {
     // 中途抛错也要放行，否则首帧会一直等到 index.html 里那个兜底超时。
     release();
   }
-
-  // 角落里放个标记，免得分不清看的是哪一版。
-  addEventListener('DOMContentLoaded', () => {
-    if (globalThis.__V2_ENGINE__) return;
-    const tag = document.createElement('div');
-    tag.textContent = 'V2 蓄力时序 · 标准周期37F（30fps）';
-    tag.id = 'v2-timing-status';
-    tag.title = '蓄力、首发与间隔由V2竞技场SD路径计算。标准1秒UP为31次蓄力计步、6步准备，周期37F（30fps）。';
-    tag.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:99999;' +
-      'background:#2b3a67;color:#dfe4ff;border:1px solid #4a6cf7;border-radius:999px;' +
-      'padding:4px 10px;font-size:11.5px;line-height:1.6;opacity:.85;pointer-events:none;';
-    document.body.appendChild(tag);
-  });
 })();

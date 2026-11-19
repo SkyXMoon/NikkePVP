@@ -55,7 +55,8 @@ export async function createArenaCalculator({ arena, characters, native, models 
           return muzzleWorldAtPose(sampler, index);
         } });
       const calculation = runChargeCalculation({ characters, shooting, totalTicks, seed, burstCharges, stopWhenTeamsReady, passiveEvents });
-      return { ...calculation, shots: shooting.shots, stanceEvents: shooting.stanceEvents };
+      return { ...calculation, shots: shooting.shots, stanceEvents: shooting.stanceEvents,
+        colliderMotion:shooting.colliderMotion };
     },
   };
 }

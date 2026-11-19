@@ -217,11 +217,11 @@
     <div class="app-sidebar-backdrop" id="appSidebarBackdrop" hidden></div>
     <aside class="app-sidebar" id="appSidebar" aria-label="页面菜单">
       <div class="app-sidebar-head">
-      <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.80.1145</span></strong>
+      <strong>NIKKE PVP <span class="app-version" id="appVersion" aria-label="当前版本">V1.80.1151</span></strong>
         <button class="app-sidebar-close" id="sidebarCloseButton" type="button" aria-label="关闭侧边栏">X</button>
       </div>
       <nav class="app-sidebar-nav" aria-label="页面操作">
-        <a class="app-sidebar-item" id="calculatorEngineSwitch" href="/v2core/index.html">使用V2计算器</a>
+        <button class="app-sidebar-item" id="calculatorEngineSwitch" type="button">计算核心：V1</button>
         <button class="app-sidebar-item" id="changelogButton" type="button">更新日志</button>
         <button class="app-sidebar-item" id="sidebarHelpButton" type="button" hidden style="display:none">使用说明</button>
         <button class="app-sidebar-item" id="championDataButton" type="button">冠军竞技场赛季数据</button>
@@ -288,13 +288,6 @@
                     </button>
                   </div>
                   <div class="team-action-row">
-                    <button class="icon-button paid-feature-button" id="paidInferenceButton" type="button" aria-label="空枪反推付费功能" title="空枪反推付费功能">
-                      <span class="team-action-text" aria-hidden="true">测试</span>
-                    </button>
-                    <label class="icon-toggle miss-toggle" aria-label="计算空枪" title="计算空枪">
-                      <input id="allowMissedShotsToggle" type="checkbox" checked />
-                      <span class="team-action-text" aria-hidden="true">空枪</span>
-                    </label>
                     <button class="icon-button swap-team-button" id="swapTeamButton" type="button" aria-label="切换进攻防守队伍" title="切换进攻防守队伍">
                       <span class="team-action-text" aria-hidden="true">交换</span>
                     </button>
@@ -380,9 +373,25 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="runtime-config.js"></script>
+    <!-- V2 是同一张页面上的另一个计算核心（不是另一个地址）。首帧闸门必须在 app.js
+         之前立好：character data 模块常常在 app.js 还没解析完时就绪，bootstrap 的
+         await 会先跑一遍 V1 计算并画出来；选了 V2 的用户就会看到数字闪一下再变。
+         v2-switch.js 在 v1 模式下立刻放行，在 v2 模式下等覆盖脚本装好再放行。
+         覆盖脚本 404 或抛错时不能把页面永远按在加载态。 -->
+    <script nonce="nikke-seo-v1">
+      globalThis.__NIKKE_RENDER_GATE__ = new Promise((resolve) => {
+        globalThis.__NIKKE_RELEASE_RENDER__ = resolve;
+        setTimeout(resolve, 8000);
+      });
+    </script>
+    <!-- v2-engine.mjs 里的 `import 'three'` 需要这张表。必须静态写在这里：动态插入
+         importmap 在已有模块加载之后会被浏览器直接拒绝，而本页的模块加载从 data.js
+         就开始了。 -->
+    <script type="importmap" nonce="nikke-seo-v1">{"imports":{"three":"/v2core/assets/lib/three.module.js","three/addons/":"/v2core/assets/lib/jsm/"}}</script>
     <script src="data.min.js"></script>
     <script defer src="immutable-assets.js"></script>
     <script src="app.min.js"></script>
+    <script src="/v2core/v2-switch.js?v=V1.80.1151"></script>
     <script nonce="nikke-seo-v1">
       (() => {
         if (location.hostname !== "nikke.skyxmoon.cn") return;

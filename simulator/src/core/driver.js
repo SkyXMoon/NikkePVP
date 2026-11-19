@@ -286,14 +286,22 @@ export class CharacterRunner {
   }
 
   step(eventDt, btBeforeWeapon = false, tick = 0, deferShotConsumption = false) {
+    const phases = this.stepPhases(eventDt, btBeforeWeapon, tick, deferShotConsumption);
+    const weapon = phases.next();
+    if (weapon.done) return weapon.value;
+    const behavior = phases.next();
+    return { events: [...weapon.value.events, ...behavior.value.events] };
+  }
+
+  *stepPhases(eventDt, btBeforeWeapon = false, tick = 0, deferShotConsumption = false) {
     this.currentTick=tick;
     // --- BT 求值（前置相位）：请求 Aim ---
-    const out = [];
+    let out = [];
     this.aimRecovery?.advancePreviousPresentation(eventDt);
 
     // Time-based effects continue to expire during reload as well as while firing.
     this.functions.tick(eventDt);
-    const canAct=!this.isStunned();
+    let canAct=!this.isStunned();
     if (btBeforeWeapon && canAct && this.reloadLeft === 0 && this.aimRecovery?.ready) {
       this.aimRecovery.finish();
       this.aiming = true;
@@ -346,6 +354,37 @@ export class CharacterRunner {
     if (this.aiming&&canAct) this.pre.tick(eventDt, STANCE_AIM); // 0x5E073D5
 
     let fired = false;
+    // UP weapons fire through the subsequent BT evaluation. It observes this
+    // tick's updated charge, unlike DOWN_Charge's weapon-update fire check.
+    const btAfterCharge = this.cfg.inputType === 2 && !btBeforeWeapon;
+    if (btAfterCharge && canAct && this.aiming && this.pre.isReady() &&
+        this.mfs.current <= 0 && this.fireTimingLeft <= 0 && !this.charge.isFull()) {
+      this.charge.tick(eventDt);
+    }
+    // Input2's Idle request is rejected while MaintainFireStance is positive.
+    // Once it expires, apply ResetFire once, then re-enter Aim on the next tick.
+    // ResetFire clears charge/pre-delay and both locks (0x5F19984..0x5F19A31).
+    if (this.mfsIdlePending && this.mfs.current <= 0) {
+      this.mfsIdlePending = false;
+      out.push({ type: 'IDLE' });
+      this.aiming = false;
+      this.resumeAimPending = this.reloadLeft === 0;
+      if (this.aimRecovery && this.resumeAimPending) {
+        this.aimRecovery.begin();
+        this.aiming = false;
+        this.resumeAimPending = false;
+      }
+      this.pre.reset();
+      this.charge?.reset();
+      this.fireTimingLeft = 0;
+      this.acc.acc = Math.max(1, this.acc.acc);
+    }
+
+    if (btAfterCharge) {
+      yield { events: out };
+      out = [];
+      canAct = !this.isStunned();
+    }
     // 目标门控：每事件现算（0x5E07930）
     //   enemies 存在 → 走真实选择（候选池→嘲讽优先→PreferTarget 排序）
     //   否则退回 blockedRanges 手动语义
@@ -362,13 +401,6 @@ export class CharacterRunner {
       this.currentTargetId = chosen?.id;
     } else {
       hasTarget = !this.isBlocked(tick);
-    }
-    // UP weapons fire through the subsequent BT evaluation. It observes this
-    // tick's updated charge, unlike DOWN_Charge's weapon-update fire check.
-    const btAfterCharge = this.cfg.inputType === 2 && !btBeforeWeapon;
-    if (btAfterCharge && canAct && this.aiming && this.pre.isReady() &&
-        this.mfs.current <= 0 && this.fireTimingLeft <= 0 && !this.charge.isFull()) {
-      this.charge.tick(eventDt);
     }
     const canFire = canAct && hasTarget && this.aiming && this.pre.isReady() && this.mfs.current <= 0
       && this.fireTimingLeft <= 0 && this.acc.isOverThreshold(FIRE_THRESHOLD)
@@ -428,23 +460,10 @@ export class CharacterRunner {
       this.charge.tick(eventDt);
     }
 
-    // Input2's Idle request is rejected while MaintainFireStance is positive.
-    // Once it expires, apply ResetFire once, then re-enter Aim on the next tick.
-    // ResetFire clears charge/pre-delay and both locks (0x5F19984..0x5F19A31).
-    if (this.mfsIdlePending && this.mfs.current <= 0) {
-      this.mfsIdlePending = false;
-      out.push({ type: 'IDLE' });
-      this.aiming = false;
-      this.resumeAimPending = this.reloadLeft === 0;
-      if (this.aimRecovery && this.resumeAimPending) {
-        this.aimRecovery.begin();
-        this.aiming = false;
-        this.resumeAimPending = false;
-      }
-      this.pre.reset();
-      this.charge?.reset();
-      this.fireTimingLeft = 0;
-      this.acc.acc = Math.max(1, this.acc.acc);
+    if (!btAfterCharge) {
+      yield { events: out };
+      out = [];
+      canAct = !this.isStunned();
     }
 
     // --- BT 求值（后置相位，默认）：UP在本次蓄力更新后判定发射 ---
@@ -1331,7 +1350,7 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
     for(const book of externalBooks.values())book.tick(EVENT_DT_30);
     recordControls(t);
     stepBurst(t); // 爆裂释放/结束在 tick 边界结算
-    shooting?.beforeTick(t, runners);
+    if (!shooting?.beforeTeamTick) shooting?.beforeTick(t, runners);
     // SpotSkill initializes CurrentCooltime to MaxCooltime for normal skills;
     // UpdateSkillStatus subtracts float32(dt*100), including during reload.
     for(const runner of runners)if(runner.alive)for(const binding of runner.skillEntityBindings.connected){
@@ -1374,15 +1393,7 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
         fullChargeBurstEnergy: cfg.fullChargeBurstEnergyBp ?? 0, isTarget: false,
         targetId: hit.targetId ?? hit.target });
     };
-    for (const hit of shooting?.advance(t) ?? []) settleShot(hit);
-    processArrivals(t); // 跨 tick 到达的飞弹
-    for (const r of runners) {
-      if (!r.alive) { // 死亡角色不再行动（GetCandidateList 剔除死者的推论）
-        ammoById.get(r.cfg.id)[t] = r.ammo;
-        continue;
-      }
-      const shotFunctions = r.functions.list().slice();
-      const res = r.step(EVENT_DT_30, btBeforeWeapon, t, true);
+    const processRunnerEvents = (r, res, shotFunctions) => {
       ammoById.get(r.cfg.id)[t] = r.ammo;
       for (const ev of res.events ?? []) {
         events.push({ tick: t, id: r.cfg.id, team: r.cfg.team ?? 0, ...ev });
@@ -1527,6 +1538,36 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
         });
         if (r.cfg.fireType === 1) { processArrivals(t); fullChargeShot(); }
         r.finishShot(shotFunctions, EVENT_DT_30);
+      }
+    };
+    if (shooting?.beforeTeamTick && shooting?.afterTeamTick) {
+      // TeamContext collision -> weapon -> collision, then ProjectileContext, then BTContext.
+      const behaviorSteps = [];
+      for (const team of [...new Set(runners.map(r => r.cfg.team ?? 0))].sort((a,b) => a-b)) {
+        const members = runners.filter(r => (r.cfg.team ?? 0) === team);
+        shooting.beforeTeamTick(t, members);
+        for (const r of members) {
+          if (!r.alive) { ammoById.get(r.cfg.id)[t] = r.ammo; continue; }
+          const shotFunctions = r.functions.list().slice();
+          const phases = r.stepPhases(EVENT_DT_30, btBeforeWeapon, t, true);
+          const weapon = phases.next();
+          processRunnerEvents(r, weapon.value, shotFunctions);
+          if (!weapon.done) behaviorSteps.push({ r, phases, shotFunctions });
+        }
+        shooting.afterTeamTick(t, members);
+      }
+      for (const hit of shooting.advance(t)) settleShot(hit);
+      processArrivals(t);
+      for (const { r, phases, shotFunctions } of behaviorSteps) {
+        if (r.alive) processRunnerEvents(r, phases.next().value, shotFunctions);
+      }
+    } else {
+      for (const hit of shooting?.advance(t) ?? []) settleShot(hit);
+      processArrivals(t);
+      for (const r of runners) {
+        if (!r.alive) { ammoById.get(r.cfg.id)[t] = r.ammo; continue; }
+        const shotFunctions = r.functions.list().slice();
+        processRunnerEvents(r, r.step(EVENT_DT_30, btBeforeWeapon, t, true), shotFunctions);
       }
     }
     processArrivals(t); // 本 tick 发射的瞬发命中（flight=0）

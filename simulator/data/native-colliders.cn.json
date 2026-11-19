@@ -1,6 +1,15 @@
 {
   "schema": 1,
   "region": "cn",
+  "motion": {
+    "mode": "offset-linear",
+    "durationSeconds": 0.20000000298023224,
+    "positionEpsilonSquared": 9.999999439624929e-11,
+    "resetToHideOnInit": true,
+    "spotConstant": [0, 0.6000000238418579, 0],
+    "clampedAxes": [0, 1],
+    "source": "CN ob18 2026-11-18 NKColliders.Init 0x5AE89A0 / UpdateTick 0x5AE91E0; SpotSetting.UseColliderOffset=1"
+  },
   "source": {
     "bundleId": "757cb8176a7994942daf755ece44903b",
     "path": "E:\\Games\\胜利女神：新的希望(2002017)\\nikke_Data\\runtime_data\\cache\\f97fa6db0ba26f3173d2de9c12169c64\\757cb8176a7994942daf755ece44903b\\__data",

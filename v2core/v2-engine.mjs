@@ -11,6 +11,12 @@ import { buildJackalLinkTimeline } from './v2-link-groups.mjs';
 
 await globalThis.__NIKKE_CHARACTER_DATA_READY__;
 
+// 同一张页面里 V1/V2 并存：入口由 v2-switch.js 换成按模式分派的转发器。这里一律
+// 「登记」，不再直接覆盖全局；要取原实现走 __v1，否则拿到转发器会绕回自己。
+const register = (name, fn) => (typeof globalThis.__v2Register === 'function'
+  ? globalThis.__v2Register(name, fn) : (globalThis[name] = fn));
+const v1 = name => (typeof globalThis.__v1 === 'function' ? globalThis.__v1(name) : globalThis[name]);
+
 const ASSETS = '/v2core/assets';
 const dataCache = new Map();
 const modelCache = new Map();
@@ -34,8 +40,8 @@ try {
     localStorage.setItem(treasureStorageKey, JSON.stringify(treasurePhases));
   }
 } catch { /* Invalid optional share settings leave the stored selection in use. */ }
-const originalShareParams = globalThis.getCurrentTeamShareParams;
-globalThis.getCurrentTeamShareParams = function () {
+const originalShareParams = v1('getCurrentTeamShareParams');
+register('getCurrentTeamShareParams', function () {
   const params = originalShareParams();
   if (params.some(([key]) => key !== 'mode' && key !== 'region')) {
     const phases = Object.fromEntries(Object.entries(treasurePhases)
@@ -43,7 +49,7 @@ globalThis.getCurrentTeamShareParams = function () {
     if (Object.keys(phases).length) params.push(['v2phase', encodeURIComponent(JSON.stringify(phases))]);
   }
   return params;
-};
+});
 
 async function loadJson(url) {
   if (!dataCache.has(url)) dataCache.set(url, fetch(url).then(response => {
@@ -109,10 +115,8 @@ async function arenaAssetIndex(region) {
 }
 
 /** Native tables for a possibly mixed team.
- *  Shooting physics and colliders are region-independent in these exports (the two
- *  `native-shooting*.json` files are byte-identical across 213 weapons), so only
- *  the character-bound layers move: a borrowed character keeps its own region's
- *  muzzle binding and shot profile.
+ *  Arena colliders and motion follow the selected client region. A borrowed
+ *  character keeps its own muzzle binding and shot profile within that arena.
  */
 async function nativeForTeam(base, { region, db, crossRegion, codes = [] }) {
   // 绑定表（muzzle socket / stateSpeeds）和模型是同一批 SD 资产的两种导出。国服的
@@ -147,7 +151,7 @@ function slotInput(character, positionIndex, teamKey, team) {
     cubeBonus: arca ? Math.max(0, Math.round((arca.chargeSpeed - (arca.speedEntries ?? [])
       .reduce((sum, value) => sum + Number(value || 0), 0)) * 100) / 100) : null,
     magazine: arca?.magazine ?? getSavedCharacterMagazine(character, teamKey),
-    reloadSeconds: arca?.reloadSeconds ?? null,
+    reloadSeconds: arca?.reloadSeconds ?? getSavedCharacterReloadSeconds(character, teamKey),
     treasurePhase: /珍藏$/.test(effective.name) ? treasurePhases[treasureKey(character,teamKey)] : 0,
     counterEnabled: isScarlet(character)?effective.scarletCounterEnabled:undefined,
     penetrationShots: isRedHood(character)?effective.redHoodPierceCount:undefined,
@@ -387,7 +391,12 @@ function requestResults(input = snapshot()) {
       results.set(key, messageResults(input, `V2计算失败：${error.message}`));
     }).finally(() => {
       pending.delete(key);
-      render();
+      // app.js 的 getBattleResultsSnapshot() 会把「计算中」这个占位对象缓存在
+      // state.battleResults 里，之后一直复用它。V2 是异步算的，算完必须先作废这份
+      // 缓存再重绘，否则 render 又读到占位，界面就永远停在「计算中」/空图 ——
+      // 用户看到的现象是「切到 V2 了，图和数字都不动」。
+      if (typeof globalThis.invalidateBattleResults === 'function') globalThis.invalidateBattleResults();
+      if (typeof globalThis.render === 'function') globalThis.render();
     });
     pending.set(key, job);
   }
@@ -401,8 +410,8 @@ async function readyResults(input=snapshot()) {
   return results.get(key)??{attackResult:null,defenseResult:null};
 }
 
-globalThis.computeBattleResults = () => isPaidArenaModeActive()
-  ? computePaidArenaBattleResultsForRow() : requestResults();
+register('computeBattleResults', () => isPaidArenaModeActive()
+  ? computePaidArenaBattleResultsForRow() : requestResults());
 // The chart asks for two extra rows. V1 derived them from its own rules; V2 already
 // puts both into the native event stream, so these read the same events the chart
 // is showing instead of re-deriving anything.
@@ -432,7 +441,7 @@ function teamCounterGroups(chartResults, build) {
 // threshold 3000，原生在角色受击入口 0x5F0D210→0x5F0D613 派发 7，驱动按本体受击逐次
 // 生成 skillId=222221001 的充能事件（一次本体受击 = 自身基础 0.45% × 30% = 0.135%）。
 // 掩体受击走 0x5F0E55D 的 13，不算本体受击，也不在这里。
-globalThis.getScarletCounterGroups = chartResults => {
+register('getScarletCounterGroups', chartResults => {
   if (!lastCalculation?.calculation) return [];
   const hurtSkillIds = chargeTemplateTriggers(lastCalculation.calculation, /Hurt|Cover/);
   const nameOf = id => (lastCalculation.actors ?? [])
@@ -477,8 +486,8 @@ globalThis.getScarletCounterGroups = chartResults => {
       };
     });
   });
-};
-globalThis.getJackalLinkGroups = chartResults => {
+});
+register('getJackalLinkGroups', chartResults => {
   return teamCounterGroups(chartResults, ({ teamKey, calculation, members }) => {
     const link = lastCalculation.input?.links?.[teamKey];
     if (!link?.enabled || !link.ownerId) return [];
@@ -503,8 +512,8 @@ globalThis.getJackalLinkGroups = chartResults => {
       chargePerLink: built.chargePerLink, timeline: built.timeline,
     }];
   });
-};
-const originalChartMarkup = globalThis.getChargeChartMarkup;
+});
+const originalChartMarkup = v1('getChargeChartMarkup');
 // 图表卡片里只画图。说明性文字（计算缺口、按当前攻击目标计算这类假设、未充满提示、
 // 计算失败的原因）一律不出现在这里：它们把图表挤下去，玩家要看的是轴。这类提示
 // 统一走站点的 toast，同一批内容只在变化时弹一次，避免每次重算都糊一层。
@@ -512,7 +521,7 @@ const originalChartMarkup = globalThis.getChargeChartMarkup;
 // 后门，任何一次单点异常都会把图换成一段红字。现在没有例外：画不出图就留空，
 // 错误只走 toast。
 let lastChartNotice = '';
-globalThis.getChargeChartMarkup = function (attack, gutter, defense, chartSize) {
+register('getChargeChartMarkup', function (attack, gutter, defense, chartSize) {
   const results = [attack, defense].filter(Boolean);
   const errors = [...new Set(results.flatMap(result => (result.error ? [result.error] : [])))];
   const gaps = results.flatMap(result => result.v2Gaps ?? []);
@@ -529,18 +538,21 @@ globalThis.getChargeChartMarkup = function (attack, gutter, defense, chartSize) 
     if (typeof globalThis.showToast === 'function') globalThis.showToast(notice, { duration: 6000 });
   }
   const drawable = results.some(result => result && !result.error);
-  if (!drawable) return '';
+  // 一个角色都没填时不走「算不出来」的短路：那会留下一片空白，看起来像加载失败。
+  // 交给 V1 的画法铺一张空图（坐标轴＋网格），和 V1 的空态一致。
+  // 真选了角色但两队都报错才返回空字符串，错误本身已经进了 toast。
+  if (!drawable && (attack || defense)) return '';
   const markup = originalChartMarkup.call(this, attack, gutter, defense, chartSize);
   return markup.replace('<svg ', '<svg data-calculation-engine="v2" ');
-};
-globalThis.computePaidArenaBattleResultsForRow = function (rowIndex = state.paidArenaActiveRowIndex) {
+});
+register('computePaidArenaBattleResultsForRow', function (rowIndex = state.paidArenaActiveRowIndex) {
   const attack = getPaidArenaSimulationContext(state.paidArenaMode, 'attack', rowIndex);
   const defense = getPaidArenaSimulationContext(state.paidArenaMode, 'defense', rowIndex);
   return withPaidArenaSimulationState(attack, defense, () => requestResults(snapshot({attack,defense})));
-};
-globalThis.getPaidArenaChartResultForTeam = function (teamKey, rowIndex) {
+});
+register('getPaidArenaChartResultForTeam', function (teamKey, rowIndex) {
   return computePaidArenaBattleResultsForRow(rowIndex)[teamKey === 'defense' ? 'defenseResult' : 'attackResult'];
-};
+});
 /** 站点 V1 的 `simulateBurst` 有 12 个参数（`app.js:6438`）。V1 是「一次算一队」的
  *  帧排布模型，所以外部要把对手的换弹/闪避/嘲讽时间轴、开局眩晕窗口、被动充能
  *  事件一轮轮喂回去收敛。V2 双方同时逐帧模拟，这些东西由原生技能和射击自己产生，
@@ -553,7 +565,7 @@ globalThis.getPaidArenaChartResultForTeam = function (teamKey, rowIndex) {
  *    sacrificeFrameOverride  覆盖本队献祭帧
  *    options.continueUntilFrame 折算成本次计算时长上限
  */
-globalThis.simulateBurst = function (team, teamKey = 'attack',
+register('simulateBurst', function (team, teamKey = 'attack',
   specialChargeEvents = [], opponentReloadTimeline = [], opponentTurnDodgeTimeline = [],
   stunWindows = [], opponentTauntTarget = null, universalChargeOverride = null,
   opponentTeam = [], sacrificeFrameOverride = null, stunDodgeEvents = [], options = {}) {
@@ -572,8 +584,8 @@ globalThis.simulateBurst = function (team, teamKey = 'attack',
   void specialChargeEvents; void opponentReloadTimeline; void opponentTurnDodgeTimeline;
   void stunWindows; void opponentTauntTarget; void stunDodgeEvents;
   return requestResults(input)[teamKey === 'defense' ? 'defenseResult' : 'attackResult'];
-};
-globalThis.simulatePaidArenaBurst = function (team, chargeSpeeds, universalCharges, sacrificeFrames,
+});
+register('simulatePaidArenaBurst', function (team, chargeSpeeds, universalCharges, sacrificeFrames,
   pierceCounts, counterEnabled, jackalLink, teamKey = 'attack') {
   const input = snapshot();
   input[teamKey] = team.map((character, index) => {
@@ -590,7 +602,7 @@ globalThis.simulatePaidArenaBurst = function (team, chargeSpeeds, universalCharg
     slot.entries=[];slot.cubeBonus=0;
   }
   return requestResults(input)[teamKey === 'defense' ? 'defenseResult' : 'attackResult'];
-};
+});
 globalThis.__V2_ENGINE__ = { engine: 'v2', ready:(rowIndex=state.paidArenaActiveRowIndex)=>{
   if(!isPaidArenaModeActive())return readyResults();
   const row=rowIndex;
@@ -600,8 +612,8 @@ globalThis.__V2_ENGINE__ = { engine: 'v2', ready:(rowIndex=state.paidArenaActive
 }, get lastCalculation() { return lastCalculation; },
   get pending() { return pending.size; } };
 
-const originalSettingsModal=globalThis.createSlotSettingsModal;
-globalThis.createSlotSettingsModal=function(){
+const originalSettingsModal=v1('createSlotSettingsModal');
+register('createSlotSettingsModal',function(){
   const backdrop=originalSettingsModal();
   const context=getSlotSettingsContext();
   if(!backdrop||!context||!/珍藏$/.test(context.character.name))return backdrop;
@@ -628,19 +640,9 @@ globalThis.createSlotSettingsModal=function(){
     label.append(select);backdrop.querySelector('.slot-settings-modal').append(label);
   }).catch(error=>console.error('[v2 treasure]',error));
   return backdrop;
-};
+});
 
-const originalRender = globalThis.render;
-globalThis.render = function () {
-  originalRender();
-  document.getElementById('paidInferenceButton')?.remove();
-};
-
-const badge = document.createElement('div');
-badge.id = 'v2-engine-status';
-badge.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:99999;background:#2b3a67;color:#dfe4ff;border-radius:8px;padding:4px 10px;font-size:12px;pointer-events:none';
-badge.textContent = 'V2核心 · 逐帧射击／命中／技能充能';
-badge.title = '未填角色的站位使用静止标准碰撞靶；计算采用本区数据与期望概率，时间轴为60fps显示帧。';
-document.getElementById('v2-timing-status')?.remove();
-document.body.append(badge);
+// 角标与首帧放行都归 v2-switch.js：同一张页面可能随时切回 V1，标记得跟着模式变。
+// 这里原先还包了一层空的 render（`render = () => originalRender()`），什么也没做，
+// 已删掉。
 render();
