@@ -5,6 +5,8 @@ const LINEUP_SLOT_COUNT = 10;
 const PAID_ARENA_TEAM_COUNTS = { c: 5, p: 3 };
 const BATTLE_POWER_ADVANTAGE_RATE = 0.154;
 const DEFAULT_RL_TARGET_INDEX = 0;
+// RL 单发周期（帧）：客户端 tick 模型下为 37 tick × 2 = 74F，图表 RL 刻度与帧换算统一走这个值。
+const RL_CYCLE_FRAMES = 74;
 const BURST_EPSILON = 1e-6;
 const BURST_STAGE_INTERVAL_FRAMES = 32;
 const BURST_START_DELAY_BY_REGION = {
@@ -74,7 +76,7 @@ const FRONTEND_ADMIN_EMAILS = new Set(["307919309@qq.com"]);
 const CHARACTER_DETAIL_LONG_PRESS_DELAY_MS = 550;
 const CHARACTER_DETAIL_ASSET_TIMEOUT_MS = 3500;
 const CHARACTER_DETAIL_LEVEL_MAX = 1400;
-const APP_VERSION = "V1.80.1151";
+const APP_VERSION = "V1.80.1153";
 let arcaWorkspace=null,arcaWorkspacePromise=null;
 let privateHelpClientPromise=null;
 let pendingPrivateHelpOptions=null;
@@ -2114,7 +2116,7 @@ function formatFrameCount(frame) {
 }
 
 function getStandardChargeBand(frame) {
-  const rlValue = frame / 76;
+  const rlValue = frame / RL_CYCLE_FRAMES;
   const formattedRlValue = Number.isInteger(rlValue)
     ? String(rlValue)
     : rlValue
@@ -11147,8 +11149,8 @@ function getPaidArenaResultText(
   if (rowResult.error) return rowResult.error;
   const frame = rowResult.fullFrame;
   return localize(
-    `等于${formatNumber(frame / 76, 2)}RL(${frame}F)等于${formatNumber(frame / 42 + 1, 2)}SG`,
-    `equals ${formatNumber(frame / 76, 2)} RL (${frame}F), equals ${formatNumber(frame / 42 + 1, 2)} SG`,
+    `等于${formatNumber(frame / RL_CYCLE_FRAMES, 2)}RL(${frame}F)等于${formatNumber(frame / 42 + 1, 2)}SG`,
+    `equals ${formatNumber(frame / RL_CYCLE_FRAMES, 2)} RL (${frame}F), equals ${formatNumber(frame / 42 + 1, 2)} SG`,
   );
 }
 
@@ -13404,10 +13406,10 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
   resultFrameCandidates.push(...burstCoverageEvents.flatMap((event) => [event.startFrame, event.endFrame]));
   const counterFrameCandidates = scarletCounterGroups.flatMap((group) => group.timeline.map((entry) => entry.frame));
   const maxFrame = Math.min(CHART_MAX_FRAME, Math.max(...resultFrameCandidates, ...counterFrameCandidates, chartResults.length ? 1 : CHART_MAX_FRAME));
-  const rlStandards = Array.from({ length: Math.floor(maxFrame / 76) }, (_, index) => ({
+  const rlStandards = Array.from({ length: Math.floor(maxFrame / RL_CYCLE_FRAMES) }, (_, index) => ({
     label: `${index + 1}RL`,
-    tooltip: localize(`${index + 1}RL · ${(index + 1) * 76} F`, `${index + 1} RL · ${(index + 1) * 76} F`),
-    frame: (index + 1) * 76,
+    tooltip: localize(`${index + 1}RL · ${(index + 1) * RL_CYCLE_FRAMES} F`, `${index + 1} RL · ${(index + 1) * RL_CYCLE_FRAMES} F`),
+    frame: (index + 1) * RL_CYCLE_FRAMES,
   }));
   const standardEvents = [
     ...(hasRosanna ? STANDARD_TIMELINE_EVENTS : []),
@@ -13726,6 +13728,35 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       return `<circle class="chart-stun-dodge-point team-${stun.teamKey}" cx="${xForFrame(stun.frame)}" cy="${y}" r="4" data-tooltip="${tooltip}"></circle>`;
     })
     .join("");
+  // 换弹区间：换弹期间这一位不产充能，轴上必须能直接看出来。
+  // 实线画换弹本身（startFrame → endFrame），虚线补到下一发命中，和旧版视觉一致。
+  const reloadTracks = visibleReloadEvents
+    .flatMap((reload) => {
+      const groupKey = `${reload.teamKey}-${reload.positionIndex}`;
+      if (!laneByGroupKey.has(groupKey)) return [];
+      const y = yForGroup(groupKey);
+      const group = memberPointGroups.find((item) => item.teamKey === reload.teamKey && item.member.positionIndex === reload.positionIndex);
+      const startFrame = Math.min(reload.startFrame, maxFrame);
+      const nextHitFrame = group?.frames.find((frame) => frame > reload.startFrame) ?? reload.endFrame;
+      const endFrame = Math.min(nextHitFrame, maxFrame, reload.displayEndFrame);
+      if (endFrame <= startFrame) return [];
+      const reloadFrames = Number.isFinite(reload.reloadFrames) ? reload.reloadFrames : Math.max(0, reload.endFrame - reload.startFrame);
+      const reloadEndFrame = Math.min(reload.endFrame, endFrame);
+      const tooltip = formatTooltipLines([
+        getLocalizedCharacterNameByName(reload.characterName),
+        `${localize("换弹", "Reload")}: ${reload.startFrame} F → ${reload.endFrame} F`,
+        `${localize("换弹时长", "Reload duration")}: ${reloadFrames} F`,
+      ]);
+      const lines = [];
+      if (reloadEndFrame > startFrame) {
+        lines.push(`<line class="chart-dodge-track chart-dodge-reload-window team-${reload.teamKey}" x1="${xForFrame(startFrame)}" y1="${y}" x2="${xForFrame(reloadEndFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`);
+      }
+      if (endFrame > reloadEndFrame) {
+        lines.push(`<line class="chart-dodge-track chart-dodge-reload-duration team-${reload.teamKey}" x1="${xForFrame(reloadEndFrame)}" y1="${y}" x2="${xForFrame(endFrame)}" y2="${y}" data-tooltip="${tooltip}"></line>`);
+      }
+      return lines;
+    })
+    .join("");
   const scarletCounterTracks = scarletCounterGroups
     .map((group) => {
       if (group.timeline.length < 2) return "";
@@ -13893,6 +13924,7 @@ function getChargeChartMarkup(result, measuredLabelGutter = null, defenseResult 
       ${standardReferenceLines}
       ${standardTrack}
       ${tracks}
+      ${reloadTracks}
       ${scarletCounterTracks}
       ${chargeTotalTrack}
       ${burstTotalTrack}
@@ -17419,7 +17451,7 @@ function getHelpCenterPayloadChargeLabel(payload, side, rowIndex = 0) {
   try {
     const result = simulatePaidArenaBurst(team, chargeSpeeds, universalCharges, sacrificeFrames, redHoodPierceCounts, scarletCounterEnabled, link, side);
     if (result?.engine === 'v2' && result.error) return result.error.includes('计算中') ? '计算中…' : '?RL';
-    const label = result && !result.error && Number.isFinite(result.fullFrame) ? `${formatNumber(result.fullFrame / 76, 2)}RL` : "?RL";
+    const label = result && !result.error && Number.isFinite(result.fullFrame) ? `${formatNumber(result.fullFrame / RL_CYCLE_FRAMES, 2)}RL` : "?RL";
     helpCenterPayloadChargeLabelCache.set(cacheKey, label);
     return label;
   } catch {
