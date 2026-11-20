@@ -1,7 +1,13 @@
 /** Native arena shooting subset. Addresses and resource extraction: README.md.
  * All vectors here are glTF world space. Rendering consumes the recorded paths.
  */
-import * as T from 'three';
+// 只用到三个数学类。`import * as T from 'three'` 会拖进整包 244KB（three 的 build
+// 单文件带顶层副作用，tree-shake 完全失效），而 src/math/*.js 是模块化源码，只留被
+// 引用的部分（实测 20.9KB）。纯数值核心要进小程序，包体积是硬约束，所以走深路径。
+import { Vector3 } from 'three/src/math/Vector3.js';
+import { Quaternion } from 'three/src/math/Quaternion.js';
+import { Matrix4 } from 'three/src/math/Matrix4.js';
+const T = { Vector3, Quaternion, Matrix4 };
 import { characterPlacement, toGltf, toGltfRotation, assignCovers } from './geometry.js';
 import { EVENT_DT_30, f32 } from '../core/time.js';
 import {skillAimChoices} from '../core/targeting.js';

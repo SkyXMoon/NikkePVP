@@ -21,7 +21,8 @@ import { toRunnerConfig } from '../core/data.js';
 import { createArenaShooting } from './shooting.js';
 import { loadProjectileAsset, createTracer, resetTracer, updateTracer } from './projectiles.js';
 import { applyPose, extractShotEvents, timelineFor, poseAt, facingAt, muzzleWorldAtPose, bindNativeMuzzles } from './animation.js';
-import { toGltf, validateArenaContract, applyCharacterPlacement, applyModelFacing, assignCovers } from './geometry.js';
+import { toGltf, validateArenaContract, applyCharacterPlacement, applyModelFacing, assignCovers, muzzleWorld } from './geometry.js';
+import { setMuzzleBakeTable, bakeDurations, bakeShotTime, bakeMuzzles, muzzleBakeReady, muzzleBakeCount, muzzleBakeGaps } from './muzzle-table.js';
 
 import {selectBoundEffects,selectDefaultEffects} from './weapon-fx.js';
 
@@ -34,6 +35,17 @@ const DEFAULT_LINEUP = {
 
 const $ = (id) => document.getElementById(id);
 const status = $('status');
+// 分阶段耗时：模型/场地改成后台加载后，「数值多久可用」必须可观测，不能靠体感。
+const BOOT_T0 = performance.now();
+const marks = {};
+function mark(name) { marks[name] = Math.round(performance.now() - BOOT_T0); return marks[name]; }
+function markText() {
+  const mb = (n) => `${(n / 1048576).toFixed(1)}MB`;
+  return Object.entries(marks).map(([k, v]) => `${k} ${(v / 1000).toFixed(2)}s`).join(' · ')
+    + (firstFrameBytes ? ` · 首屏 ${mb(firstFrameBytes)}` : '');
+}
+window.__bootMarks = marks;
+window.__bootBytes = () => ({ firstFrame: firstFrameBytes, total: preloadBytes });
 new ResizeObserver(()=>{
   document.documentElement.style.setProperty('--toolbar-bottom',`${$('top').getBoundingClientRect().bottom+12}px`);
 }).observe($('top'));
@@ -95,21 +107,30 @@ let shooting;
 let currentArena;
 
 // ---------- 资源 ----------
-async function loadJson(url) {
-  const r = await fetch(url, { cache: 'no-store' });
-  if (!r.ok) throw new Error(`${url} → HTTP ${r.status}`);
-  return r.json();
-}
+// 首帧前实际下载的字节数：模型/场地改成后台加载后，这是唯一可复现的提速指标。
+let preloadBytes = 0;
+let paintReady = false;
+let firstFrameBytes = 0;
 
-async function loadGlb(url) {
+async function fetchBuffer(url) {
   // serve.py 已返回 no-store；主动绕过历史 HTTP 缓存及 Three.FileLoader 的内存缓存。
   const r = await fetch(url, { cache: 'no-store' });
   if (!r.ok) throw new Error(`${url} → HTTP ${r.status}`);
-  return loader.parseAsync(await r.arrayBuffer(), new URL('.', new URL(url, location.href)).href);
+  const buf = await r.arrayBuffer();
+  if (!paintReady) preloadBytes += buf.byteLength;
+  return buf;
+}
+
+async function loadJson(url) {
+  return JSON.parse(new TextDecoder().decode(await fetchBuffer(url)));
+}
+
+async function loadGlb(url) {
+  return loader.parseAsync(await fetchBuffer(url), new URL('.', new URL(url, location.href)).href);
 }
 
 async function loadIndex() {
-  const [idx, data, native, bindings, colliders, cnColliders, effects, roster] = await Promise.all([
+  const [idx, data, native, bindings, colliders, cnColliders, effects, roster, muzzleBake] = await Promise.all([
     loadJson(`${ASSET}/out/sd_batch/index.json`),
     loadJson(new URL('../../data/characters.cn.json', import.meta.url)),
     loadJson(new URL('../../data/native-shooting.json', import.meta.url)),
@@ -118,7 +139,10 @@ async function loadIndex() {
     loadJson(new URL('../../data/native-colliders.cn.json', import.meta.url)),
     loadJson(new URL('../../data/weapon-effects.json', import.meta.url)),
     loadJson(new URL('../../data/cn-roster.json', import.meta.url)),
+    // 枪口/剪辑数值表：模拟层不再依赖模型，缺表时才回退 GLB 采样。
+    loadJson(new URL('../../data/muzzle-bake.json', import.meta.url)).catch(() => null),
   ]);
+  setMuzzleBakeTable(muzzleBake);
   characterData = data;
   // Shot physics, muzzle bindings and arena collision boxes ship as three provenance
   // layers; merge once here so a borrowed layer stays visible downstream. The stage
@@ -131,9 +155,15 @@ async function loadIndex() {
   return idx;
 }
 
-async function loadArena(name, group) {
+/** 场地契约 JSON（站位/掩体/机位）：只有几十 KB，数值链必需，与场地模型无关。 */
+async function loadArenaJson(name) {
   const json = await loadJson(`${ASSET}/arena/${name}.json`);
   validateArenaContract(json);
+  return json;
+}
+
+/** 场地模型（5–9MB）：只服务渲染，数值链不等它。 */
+async function loadArenaScene(name, group, json) {
   const glb = await loadGlb(`${ASSET}/out/arena_${name}.glb`);
   group.clear();
   arenaMixer = null;
@@ -187,19 +217,36 @@ function cfgFor(code, team, label) {
   return cfg;
 }
 
+/** 既无烘焙值又无模型时的兜底枪口偏移（胸口高度、朝前偏一点），只影响缺口角色。 */
+const FALLBACK_MUZZLE_OFFSET = [0, 1.35, 0.35];
+let muzzleFallbackIds = new Set();
+
 function runSimulation(cfgs) {
-  if (chars.length) {
+  // 不再要求 chars 里已有模型：枪口默认走烘焙表，模型只用于对拍/兜底。
+  if (cfgs.length) {
+    muzzleFallbackIds = new Set();
     shooting = createArenaShooting({arena:currentArena, characters:cfgs, native:nativeShooting,
       heightOffset:placementHeight,
       muzzleAt:(id,tick,point,index)=>{
+        // 数值表命中：站位 + 目标 yaw 旋转 root 局部偏移。场地站位是纯 yaw、scale=1，
+        // 与「摆姿势后取骨骼世界坐标」等价（对拍 284 个模型，偏差 < 5e-5）。
+        const baked = muzzleSource === 'glb' ? null : bakeMuzzles(id);
+        const state = shooting?.states?.get(id);
+        if (baked && state) return new THREE.Vector3(...muzzleWorld(state.pos.toArray(), point.toArray(), baked[index % baked.length]));
         const ch=chars.find(c=>c.code===id);
-        const face={point:point.toArray(),frame:tick*2};
-        // FIRE is the native Shot event, so sample the exported clip at its Shot time.
-        const shotTime=ch.clipEvents.cover_shot;
-        if (shotTime==null) throw new Error(`Missing Shot animation event: ${id}`);
-        applyPose(ch,{clip:'cover_shot',t:shotTime});
-        applyModelFacing(ch.model,ch.modelBaseMatrix,face);
-        return muzzleWorldAtPose(ch,index);
+        // 只有「整表缺失」或显式对拍模式才走骨骼：否则模型到没到会改变同一阵容的数值。
+        if ((muzzleSource === 'glb' || !muzzleBakeReady()) && ch?.mixer) {
+          const face={point:point.toArray(),frame:tick*2};
+          // FIRE is the native Shot event, so sample the exported clip at its Shot time.
+          const shotTime=ch.clipEvents.cover_shot;
+          if (shotTime==null) throw new Error(`Missing Shot animation event: ${id}`);
+          applyPose(ch,{clip:'cover_shot',t:shotTime});
+          applyModelFacing(ch.model,ch.modelBaseMatrix,face);
+          return muzzleWorldAtPose(ch,index);
+        }
+        if (!state) throw new Error(`Missing serialized muzzle: ${id}`);
+        muzzleFallbackIds.add(id);
+        return new THREE.Vector3(...muzzleWorld(state.pos.toArray(), point.toArray(), FALLBACK_MUZZLE_OFFSET));
       }});
   }
   const { simulation: res, result: chargeResult } = runChargeCalculation({
@@ -252,8 +299,9 @@ function renderFrame() {
   }
 
   // 爆裂槽
-  const g = gauges.series;
-  const ph = gauges.phases;
+  // 模拟尚未跑完时也会被调用（模型分批到位就渲染一帧），缺字段按空处理。
+  const g = gauges.series ?? new Map();
+  const ph = gauges.phases ?? new Map();
   const phaseName = ['充能中', '已满', '爆裂中'];
   const p0 = (g.get(0)?.[f] ?? 0) * 100;
   const p1 = (g.get(1)?.[f] ?? 0) * 100;
@@ -444,6 +492,8 @@ function labelSprite(text, color) {
 
 const raycaster = new THREE.Raycaster();
 let arenaRoot = null;
+/** 枪口来源：bake=数值表（默认，无模型也能算），glb=摆姿势取骨骼（旧路径，用于对拍）。 */
+let muzzleSource = 'bake';
 
 /** 从站位正上方往下打一条射线，取场地表面高度（角色脚底贴地） */
 function groundY(x, z, fallback) {
@@ -466,9 +516,139 @@ function placeAll() {
   }
 }
 
+// ---------- 角色（分两段构建：先骨架，后模型） ----------
+/**
+ * 骨架：只建挂点、脚环、名牌与时间轴所需数值。
+ * 时长与 Shot 时刻取自烘焙表，所以「模型没到」也能算出完整动作时间轴与弹道。
+ */
+function createCharacterSkeleton(cfg, group) {
+  // 外层只承载挂点；内部层仅为网页朝向层，不冒充角色原生 _model 绑定。
+  const root = new THREE.Group();
+  const model = new THREE.Group();
+  root.add(model);
+  model.updateMatrix();
+  const modelBaseMatrix = model.matrix.clone();
+  group.add(root);
+
+  const durs = { ...(bakeDurations(cfg.id) ?? {}) };
+  const clipEvents = {};
+  const shot = bakeShotTime(cfg.id);
+  if (shot != null) clipEvents.cover_shot = shot;
+
+  // 脚下圆环 + 名字，保证"看不清模型"时也能确认谁在哪一帧做什么
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.75, 1.05, 28),
+    new THREE.MeshBasicMaterial({ color: cfg.team === 0 ? 0xe05a4d : 0x4d8ee0, side: THREE.DoubleSide }),
+  );
+  ring.rotation.x = -Math.PI / 2;
+  root.add(ring);
+  const tag = labelSprite(`${cfg.name} · ${cfg.weaponType}`, cfg.team === 0 ? '#ffb3aa' : '#a9c8ff');
+  tag.position.set(0, 2.9, 0);
+  root.add(tag);
+
+  return {
+    code: cfg.id, name: cfg.name, team: cfg.team, label: cfg.label, weaponType:cfg.weaponType, maxAmmo:cfg.maxAmmo,
+    root, model, modelBaseMatrix, mixer:null, actions:{}, durs, clipEvents, ring, tag,
+    tracer: null, timeline: [], nativeMuzzles: [], stateSpeeds:requireBinding(nativeShooting,cfg.id).stateSpeeds,
+    modelLoaded: false,
+  };
+}
+
+/** 模型到位：补 Mixer / 动作 / 原生挂点，并把 tracer 的枪口取样接回骨骼。 */
+async function attachModel(ch, cfg, glb) {
+  ch.model.add(glb.scene);
+  const mixer = new THREE.AnimationMixer(glb.scene);
+  const actions = {};
+  for (const clip of glb.animations) {
+    const name = clip.name.replace(`${cfg.id}_`, '');
+    actions[name] = mixer.clipAction(clip);
+    ch.durs[name] = clip.duration;
+    if (name === 'aim_idle') actions[name].setLoop(THREE.LoopRepeat, Infinity);
+    else { actions[name].setLoop(THREE.LoopOnce, 1); actions[name].clampWhenFinished = true; }
+  }
+  ch.mixer = mixer;
+  ch.actions = actions;
+  // 烘焙表优先，与骨架阶段同口径：GLB 只补表里缺的剪辑，不覆盖表里的值。
+  const bakedDurs = bakeDurations(cfg.id);
+  if (bakedDurs) for (const [k, v] of Object.entries(bakedDurs)) ch.durs[k] = v;
+  // 剪辑内的逻辑结算点（GLB extras.events，如 {t, fn:'Shot'}）：
+  // FIRE 事件对应剪辑内 t 时刻，动画要提前 t×60 帧开播才能对上枪口帧
+  const clipEvents = extractShotEvents(glb, cfg.id);
+  const bakedShot = bakeShotTime(cfg.id);
+  if (bakedShot != null) clipEvents.cover_shot = bakedShot;
+  ch.clipEvents = clipEvents;
+  // Bindings come from the asset export layer, not the shot table: a character can
+  // have shot physics and still ship no exported muzzle. Fail by name, not by
+  // passing undefined into the node-path matcher.
+  ch.nativeMuzzles = await bindNativeMuzzles(glb, requireBinding(nativeShooting, cfg.id));
+  ch.modelLoaded = true;
+  if (ch.tracer) {
+    ch.tracer.resolveOrigin = (fire, projectileIndex) => {
+      applyPose(ch, poseAt(ch, fire));
+      applyModelFacing(ch.model, ch.modelBaseMatrix, facingAt(ch, fire));
+      const origin = muzzleWorldAtPose(ch, projectileIndex);
+      applyPose(ch, poseAt(ch, S.frame));
+      applyModelFacing(ch.model, ch.modelBaseMatrix, facingAt(ch, S.frame));
+      return origin;
+    };
+  }
+}
+
+/**
+ * 场地未到位时的落脚平面：尺寸按站位范围铺开，先让弹道与脚环落在可见地面附近。
+ */
+function addPlaceholderGround(arenaJson) {
+  const pts = arenaJson.covers.map((c) => new THREE.Vector3(...toGltf(c.character_position)));
+  const box = new THREE.Box3().setFromPoints(pts);
+  const size = box.getSize(new THREE.Vector3());
+  const c = box.getCenter(new THREE.Vector3());
+  const span = Math.max(size.x, size.z, 12) * 1.6;
+  const grid = new THREE.GridHelper(span, 20, 0x2a3140, 0x1b202b);
+  grid.position.set(c.x, 0, c.z);
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(span, span),
+    new THREE.MeshBasicMaterial({ color: 0x11151c, transparent: true, opacity: 0.9 }),
+  );
+  plane.rotation.x = -Math.PI / 2;
+  plane.position.set(c.x, -0.01, c.z);
+  const holder = new THREE.Group();
+  holder.add(plane, grid);
+  scene.add(holder);
+  return holder;
+}
+
+/** 分批拉模型：同一时刻最多 3 个在飞，每到一个就渲染一帧，边看边长。 */
+async function loadModelsProgressive(cfgs, concurrency = 3) {
+  const queue = cfgs.map((cfg, i) => ({ cfg, ch: chars[i] }));
+  let done = 0;
+  const failed = [];
+  const worker = async () => {
+    while (queue.length) {
+      const { cfg, ch } = queue.shift();
+      const entry = indexByCode.get(cfg.id);
+      try {
+        const glb = await loadGlb(`${ASSET}/out/sd_batch/${entry.file}`);
+        await attachModel(ch, cfg, glb);
+      } catch (err) {
+        failed.push(`${cfg.name}：${err.message}`);
+        console.warn('[stage] 模型加载失败', cfg.id, err);
+      }
+      done++;
+      status.textContent = `模型 ${done}/${cfgs.length}${failed.length ? ` · 失败 ${failed.length}` : ''}…`;
+      renderFrame();
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(concurrency, queue.length || 1) }, worker));
+  return failed;
+}
+
 // ---------- 启动 ----------
 async function boot() {
   const q = new URLSearchParams(location.search); // ?n=1 只加载一人（调试用）?look= / ?cam= / ?debug=1
+  if (q.get('muzzle') === 'glb') muzzleSource = 'glb'; // 对拍用：强制走骨骼采样
+  // 默认「数值优先」：场地模型与小人模型后台加载，首帧不等它们。
+  // ?eager=1 恢复旧顺序（全部资源到位再算），?muzzle=glb / ?debug=1 必须走旧顺序。
+  const eager = q.get('eager') === '1' || q.has('debug') || muzzleSource === 'glb';
   if (['arenanormal','arenaspecial','arenachampion'].includes(q.get('arena'))) {
     S.arena=q.get('arena');
     $('arena').value=S.arena;
@@ -500,8 +680,9 @@ async function boot() {
 
   const arenaGroup = new THREE.Group();
   scene.add(arenaGroup);
-  status.textContent = '加载场地…';
-  let arenaJson = await loadArena(S.arena, arenaGroup);
+  status.textContent = '加载场地配置…';
+  let arenaJson = await loadArenaJson(S.arena);
+  mark('data');
 
   const cfgs = [];
   lineup.red.forEach((code, i) => cfgs.push(cfgFor(code, 0, `R${i + 1}`)));
@@ -522,7 +703,7 @@ async function boot() {
   const noFx=missingFx.filter(c=>!c.weaponFx.fallback);
   const intlShot=cfgs.filter(c=>nativeShooting.weapons[String(Number(c.id.slice(1)))].source!=='cn-shot-table');
   const ambiguous=cfgs.filter(c=>characterData[String(Number(c.id.slice(1)))].skillExportWarnings?.length);
-  $('data-limit').textContent=`${intlShot.length ? `${intlShot.map(c=>c.name).join('、')}的射击配置暂用国际服表（国服表无该角色）` : '射击配置均来自国服表'}${fallbackFx.length ? `；${fallbackFx.map(c=>c.name).join('、')}暂用同枪种默认特效，专属特效尚未核对` : ''}${noFx.length ? `；${noFx.map(c=>c.name).join('、')}的特效绑定尚未核对` : ''}${ambiguous.length ? `；${ambiguous.map(c=>c.name).join('、')}存在技能表归属不明确` : ''}。`;
+  $('data-limit').textContent=`${intlShot.length ? `${intlShot.map(c=>c.name).join('、')}的射击配置暂用国际服表（国服表无该角色）` : '射击配置均来自国服表'}${fallbackFx.length ? `；${fallbackFx.map(c=>c.name).join('、')}暂用同枪种默认特效，专属特效尚未核对` : ''}${noFx.length ? `；${noFx.map(c=>c.name).join('、')}的特效绑定尚未核对` : ''}${ambiguous.length ? `；${ambiguous.map(c=>c.name).join('、')}存在技能表归属不明确` : ''}${muzzleSource === 'glb' ? '；枪口按 GLB 骨骼采样（对拍模式）' : (muzzleBakeCount() ? `；枪口取数值表 ${muzzleBakeCount()} 个角色（缺口 ${muzzleBakeGaps().length}）` : '；枪口表缺失，回退骨骼采样')}。`;
   const limit = Number(q.get('n'));
   if (limit > 0) cfgs.length = Math.min(limit, cfgs.length);
 
@@ -530,18 +711,25 @@ async function boot() {
   rebuildGeometry(arenaJson, cfgs);
 
 
-  // 角色模型
-  status.textContent = `加载小人 0/${cfgs.length}…`;
+  // 场地模型只服务渲染：立刻开始下载，数值链不 await 它。
+  const placeholder = eager ? null : addPlaceholderGround(arenaJson);
+  const arenaTask = loadArenaScene(S.arena, arenaGroup, arenaJson);
+
+  // ---- 第一段：数值与骨架。只依赖配置 + 烘焙表，不等场地模型和角色模型 ----
+  status.textContent = '计算模拟…';
   const group = new THREE.Group();
   scene.add(group);
-  let loaded = 0;
-  const models = await Promise.all(cfgs.map(async (cfg) => {
-    const entry = indexByCode.get(cfg.id);
-    const glb = await loadGlb(`${ASSET}/out/sd_batch/${entry.file}`);
-    loaded++;
-    status.textContent = `加载小人 ${loaded}/${cfgs.length}…`;
-    return glb;
-  }));
+  chars = cfgs.map((cfg) => createCharacterSkeleton(cfg, group));
+  if (eager) {
+    // 旧顺序：先备齐场地与模型再算。?muzzle=glb 对拍与 ?debug=1 需要真实的骨骼/包围盒。
+    await arenaTask;
+    mark('arena');
+    status.textContent = `加载小人 0/${cfgs.length}…`;
+    await loadModelsProgressive(cfgs, 4);
+    mark('models');
+  }
+  runSimulation(cfgs);
+  mark('sim');
 
   status.textContent = '加载弹体形状…';
   const projIndex = await loadJson(`${ASSET}/projectile/projectiles_index.json`).catch(() => ({ items: [] }));
@@ -553,67 +741,49 @@ async function boot() {
   const projectileAssets = await Promise.all(cfgs.map((cfg) =>
     loadProjectileAsset(cfg, projIndex, loadProjectile, `${ASSET}/projectile`)));
 
-  // Bindings come from the asset export layer, not the shot table: a character can
-  // have shot physics and still ship no exported muzzle. Fail by name, not by
-  // passing undefined into the node-path matcher.
-  const nativeMuzzles = await Promise.all(models.map((glb,i)=>bindNativeMuzzles(glb,requireBinding(nativeShooting,cfgs[i].id))));
-  chars = cfgs.map((cfg, i) => {
-    const glb = models[i];
-    // 外层只承载挂点；内部层仅为网页朝向层，不冒充角色原生 _model 绑定。
-    const root = new THREE.Group();
-    const model = new THREE.Group();
-    model.add(glb.scene);
-    root.add(model);
-    model.updateMatrix();
-    const modelBaseMatrix = model.matrix.clone();
-    group.add(root);
-    const mixer = new THREE.AnimationMixer(glb.scene);
-    const actions = {};
-    const durs = {};
-    for (const clip of glb.animations) {
-      const name = clip.name.replace(`${cfg.id}_`, '');
-      actions[name] = mixer.clipAction(clip);
-      durs[name] = clip.duration;
-      if (name === 'aim_idle') actions[name].setLoop(THREE.LoopRepeat, Infinity);
-      else { actions[name].setLoop(THREE.LoopOnce, 1); actions[name].clampWhenFinished = true; }
-    }
-    // 剪辑内的逻辑结算点（GLB extras.events，如 {t, fn:'Shot'}）：
-    // FIRE 事件对应剪辑内 t 时刻，动画要提前 t×60 帧开播才能对上枪口帧
-    const clipEvents = extractShotEvents(glb, cfg.id);
-    // 脚下圆环 + 名字，保证"看不清模型"时也能确认谁在哪一帧做什么
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(0.75, 1.05, 28),
-      new THREE.MeshBasicMaterial({ color: cfg.team === 0 ? 0xe05a4d : 0x4d8ee0, side: THREE.DoubleSide }),
-    );
-    ring.rotation.x = -Math.PI / 2;
-    root.add(ring);
-    const tag = labelSprite(`${cfg.name} · ${cfg.weaponType}`, cfg.team === 0 ? '#ffb3aa' : '#a9c8ff');
-    tag.position.set(0, 2.9, 0);
-    root.add(tag);
-
-    const tracer = createTracer(group, geoByCode.get(cfg.id), cfg, projectileAssets[i]);
-
-    const ch = {
-      code: cfg.id, name: cfg.name, team: cfg.team, label: cfg.label, weaponType:cfg.weaponType, maxAmmo:cfg.maxAmmo,
-      root, model, modelBaseMatrix, mixer, actions, durs, clipEvents, ring, tag, tracer,
-      timeline: [], nativeMuzzles:nativeMuzzles[i], stateSpeeds:requireBinding(nativeShooting,cfg.id).stateSpeeds,
-    };
-    tracer.resolveOrigin = (fire, projectileIndex) => {
-      applyPose(ch, poseAt(ch, fire));
-      applyModelFacing(ch.model, ch.modelBaseMatrix, facingAt(ch, fire));
-      const origin = muzzleWorldAtPose(ch, projectileIndex);
-      applyPose(ch, poseAt(ch, S.frame));
-      applyModelFacing(ch.model, ch.modelBaseMatrix, facingAt(ch, S.frame));
-      return origin;
-    };
-    return ch;
+  // 弹道线只依赖弹体形状与命中几何，模型还没到也能画。
+  cfgs.forEach((cfg, i) => {
+    chars[i].tracer = createTracer(group, geoByCode.get(cfg.id), cfg, projectileAssets[i]);
   });
 
   placeAll();
-  rebuildGeometry(arenaJson, cfgs);
-  runSimulation(cfgs);
   fitCameraToChars();
   refreshCharacters();
+  bindControls();
+  requestAnimationFrame(tickLoop);
+  setFrame(q.get('frame') ? Number(q.get('frame')) : 0);
+  // 首帧达成：此后再下载的都算「后台补齐」，不计入首屏。
+  firstFrameBytes = preloadBytes;
+  paintReady = true;
+  mark('first-frame');
+  status.textContent = `数值就绪 · ${chars.length} 人 · ${events.length} 事件 · ${markText()}`;
+
+  // ---- 第二段：场地与小人后台补齐。首帧、拖动、播放都不等它们 ----
+  const finishStatus = (failed = []) => {
+    status.textContent = `就绪 · ${chars.length} 人 · ${events.length} 事件 · ${window.__arenaBox ?? ''} · ${markText()}`
+      + (failed.length ? ` · 模型失败 ${failed.length}` : '')
+      + (muzzleFallbackIds.size ? ` · 枪口兜底 ${[...muzzleFallbackIds].join('、')}（表缺该皮肤）` : '');
+  };
+  if (!eager) {
+    arenaTask.then(() => {
+      mark('arena');
+      placeholder?.remove();
+      placeAll();
+      refreshCharacters();
+      renderFrame();
+      finishStatus();
+    }).catch((err) => {
+      console.error(err);
+      // 场地只是壳：加载失败也保留数值与弹道，别把整页推进失败态。
+      status.textContent = `场地加载失败：${err.message}（数值仍可用）`;
+    });
+    loadModelsProgressive(cfgs, 3).then((failed) => {
+      mark('models');
+      refreshCharacters();
+      renderFrame();
+      finishStatus(failed);
+    });
+  }
 
   rebuildAfterPlacementChange = () => {
     rebuildGeometry(arenaJson, cfgs);
@@ -627,14 +797,20 @@ async function boot() {
     S.arena = e.target.value;
     status.textContent = '切换场地…';
     try {
-      arenaJson = await loadArena(S.arena, arenaGroup);
+      // 契约 JSON 决定站位与命中几何，必须先到；场景模型随后到也不影响数值。
+      arenaJson = await loadArenaJson(S.arena);
       rebuildGeometry(arenaJson, cfgs);
       placeAll();
       runSimulation(cfgs);
       refreshCharacters();
       fitCameraToChars();
-      status.textContent = '就绪';
       renderFrame();
+      status.textContent = `就绪 · 场地模型加载中…`;
+      await loadArenaScene(S.arena, arenaGroup, arenaJson);
+      placeAll();
+      refreshCharacters();
+      renderFrame();
+      status.textContent = `就绪 · ${chars.length} 人 · ${events.length} 事件 · ${window.__arenaBox ?? ''}`;
     } catch (err) {
       S.playing = false;
       status.textContent = `失败：${err.message}`;
@@ -685,9 +861,9 @@ async function boot() {
   }
 
   bindControls();
-  status.textContent = `就绪 · ${chars.length} 人 · ${events.length} 事件 · ${window.__arenaBox ?? ''} · cam ${camera.position.toArray().map((v) => v.toFixed(1)).join(',')}`;
   setFrame(q.get('frame') ? Number(q.get('frame')) : 0);
   requestAnimationFrame(tickLoop);
+  finishStatus();
 }
 
 boot().catch((err) => {
