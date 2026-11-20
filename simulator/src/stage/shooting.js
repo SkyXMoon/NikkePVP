@@ -1,12 +1,14 @@
 /** Native arena shooting subset. Addresses and resource extraction: README.md.
  * All vectors here are glTF world space. Rendering consumes the recorded paths.
  */
-// 只用到三个数学类。`import * as T from 'three'` 会拖进整包 244KB（three 的 build
-// 单文件带顶层副作用，tree-shake 完全失效），而 src/math/*.js 是模块化源码，只留被
-// 引用的部分（实测 20.9KB）。纯数值核心要进小程序，包体积是硬约束，所以走深路径。
-import { Vector3 } from 'three/src/math/Vector3.js';
-import { Quaternion } from 'three/src/math/Quaternion.js';
-import { Matrix4 } from 'three/src/math/Matrix4.js';
+// 浏览器侧的裸说明符只由 index.html 的 importmap 解析，而那张表只映射了
+// `three` 与 `three/addons/`——`three/src/math/Vector3.js` 这种深路径在这里会直接
+// 抛 `Failed to resolve module specifier`，把整个 V2 模块图（v2-engine →
+// arena-calculator → 本文件）一起拖死，表现是「V2 核心选谁都没有充能线」。
+// 站点本来就整包加载 three.module.js，具名引入不会多下一个字节；真正需要压体积的
+// 是小程序那条纯数值打包链，那里应当由打包器的 alias 指到 src/math/*，不能靠源码
+// 写深路径。tests/module-specifiers.test.js 守着这条边界。
+import { Vector3, Quaternion, Matrix4 } from 'three';
 const T = { Vector3, Quaternion, Matrix4 };
 import { characterPlacement, toGltf, toGltfRotation, assignCovers } from './geometry.js';
 import { EVENT_DT_30, f32 } from '../core/time.js';
