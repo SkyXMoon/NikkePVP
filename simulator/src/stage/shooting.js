@@ -1,14 +1,13 @@
 /** Native arena shooting subset. Addresses and resource extraction: README.md.
  * All vectors here are glTF world space. Rendering consumes the recorded paths.
  */
-// 浏览器侧的裸说明符只由 index.html 的 importmap 解析，而那张表只映射了
-// `three` 与 `three/addons/`——`three/src/math/Vector3.js` 这种深路径在这里会直接
-// 抛 `Failed to resolve module specifier`，把整个 V2 模块图（v2-engine →
-// arena-calculator → 本文件）一起拖死，表现是「V2 核心选谁都没有充能线」。
-// 站点本来就整包加载 three.module.js，具名引入不会多下一个字节；真正需要压体积的
-// 是小程序那条纯数值打包链，那里应当由打包器的 alias 指到 src/math/*，不能靠源码
-// 写深路径。tests/module-specifiers.test.js 守着这条边界。
-import { Vector3, Quaternion, Matrix4 } from 'three';
+// 数学用 `core/math3.js`，不引 three：这条链（driver → shooting → charge-calculator）
+// 要整包打进小程序分包，而 `import ... from 'three'` 会把整包 three.module.js 拖进
+// 产物（实测 244KB / 358KB），tree-shaking 掉不掉。math3 只实现这里用到的算子，
+// 且与 three 逐算子对拍到 1e-12（tests/math3.test.js），所以换掉不改变任何数值。
+// 浏览器侧不受影响：调用方传进来的 three Vector3 也能用（鸭子类型，只用到
+// clone/sub/toArray 等方法），stage.js 与 arena-calculator.js 无需改动。
+import { Vector3, Quaternion, Matrix4 } from '../core/math3.js';
 const T = { Vector3, Quaternion, Matrix4 };
 import { characterPlacement, toGltf, toGltfRotation, assignCovers } from './geometry.js';
 import { EVENT_DT_30, f32 } from '../core/time.js';
