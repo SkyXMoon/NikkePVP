@@ -1,182 +1,3693 @@
 {
-  "region": "global",
-  "count": 44,
-  "characters": [
-    {
-      "code": "c012",
-      "file": "c012_00.glb"
-    },
-    {
-      "code": "c017",
-      "file": "c017_00.glb"
-    },
-    {
-      "code": "c018",
-      "file": "c018_00.glb"
-    },
-    {
-      "code": "c033",
-      "file": "c033_00.glb"
-    },
-    {
-      "code": "c060",
-      "file": "c060_00.glb"
-    },
-    {
-      "code": "c061",
-      "file": "c061_00.glb"
-    },
-    {
-      "code": "c063",
-      "file": "c063_00.glb"
-    },
-    {
-      "code": "c075",
-      "file": "c075_00.glb"
-    },
-    {
-      "code": "c080",
-      "file": "c080_00.glb"
-    },
-    {
-      "code": "c091",
-      "file": "c091_00.glb"
-    },
-    {
-      "code": "c094",
-      "file": "c094_00.glb"
-    },
-    {
-      "code": "c100",
-      "file": "c100_00.glb"
-    },
-    {
-      "code": "c103",
-      "file": "c103_00.glb"
-    },
-    {
-      "code": "c111",
-      "file": "c111_00.glb"
-    },
-    {
-      "code": "c120",
-      "file": "c120_00.glb"
-    },
-    {
-      "code": "c121",
-      "file": "c121_00.glb"
-    },
-    {
-      "code": "c160",
-      "file": "c160_00.glb"
-    },
-    {
-      "code": "c183",
-      "file": "c183_00.glb"
-    },
-    {
-      "code": "c201",
-      "file": "c201_00.glb"
-    },
-    {
-      "code": "c221",
-      "file": "c221_00.glb"
-    },
-    {
-      "code": "c225",
-      "file": "c225_00.glb"
-    },
-    {
-      "code": "c232",
-      "file": "c232_00.glb"
-    },
-    {
-      "code": "c240",
-      "file": "c240_00.glb"
-    },
-    {
-      "code": "c304",
-      "file": "c304_00.glb"
-    },
-    {
-      "code": "c351",
-      "file": "c351_00.glb"
-    },
-    {
-      "code": "c355",
-      "file": "c355_00.glb"
-    },
-    {
-      "code": "c381",
-      "file": "c381_00.glb"
-    },
-    {
-      "code": "c412",
-      "file": "c412_00.glb"
-    },
-    {
-      "code": "c430",
-      "file": "c430_00.glb"
-    },
-    {
-      "code": "c451",
-      "file": "c451_00.glb"
-    },
-    {
-      "code": "c473",
-      "file": "c473_00.glb"
-    },
-    {
-      "code": "c511",
-      "file": "c511_00.glb"
-    },
-    {
-      "code": "c521",
-      "file": "c521_00.glb"
-    },
-    {
-      "code": "c532",
-      "file": "c532_00.glb"
-    },
-    {
-      "code": "c550",
-      "file": "c550_00.glb"
-    },
-    {
-      "code": "c581",
-      "file": "c581_00.glb"
-    },
-    {
-      "code": "c600",
-      "file": "c600_00.glb"
-    },
-    {
-      "code": "c801",
-      "file": "c801_00.glb"
-    },
-    {
-      "code": "c811",
-      "file": "c811_00.glb"
-    },
-    {
-      "code": "c812",
-      "file": "c812_00.glb"
-    },
-    {
-      "code": "c821",
-      "file": "c821_00.glb"
-    },
-    {
-      "code": "c840",
-      "file": "c840_00.glb"
-    },
-    {
-      "code": "c842",
-      "file": "c842_00.glb"
-    },
-    {
-      "code": "c851",
-      "file": "c851_00.glb"
-    }
-  ]
+ "region": "global",
+ "generated_by": "NIKKE_Workflow/run_sd_batch.py",
+ "count": 210,
+ "missing": [],
+ "clips": [
+  "aim_start",
+  "aim_idle",
+  "aim_end",
+  "shot",
+  "cover_shot",
+  "cover_reload"
+ ],
+ "naming": "<code>_<clip>，例如 c010_aim_start",
+ "coordinate_system": "glTF 右手 Y-up，米；身高字段为模型顶端 Y",
+ "characters": [
+  {
+   "code": "c010",
+   "name": "（未翻译 c010）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c010_00.glb",
+   "bytes": 546460,
+   "vertices": 2449,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.284
+  },
+  {
+   "code": "c011",
+   "name": "（未翻译 c011）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c011_00.glb",
+   "bytes": 857512,
+   "vertices": 1951,
+   "animations": [
+    "c011_aim_end",
+    "c011_aim_idle",
+    "c011_aim_start",
+    "c011_cover_reload",
+    "c011_cover_shot",
+    "c011_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.306
+  },
+  {
+   "code": "c012",
+   "name": "（未翻译 c012）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c012_00.glb",
+   "bytes": 717392,
+   "vertices": 1634,
+   "animations": [
+    "c012_aim_end",
+    "c012_aim_idle",
+    "c012_aim_start",
+    "c012_cover_reload",
+    "c012_cover_shot",
+    "c012_shot"
+   ],
+   "skins": 1,
+   "height_m": 2.343
+  },
+  {
+   "code": "c013",
+   "name": "（未翻译 c013）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c013_00.glb",
+   "bytes": 906932,
+   "vertices": 2163,
+   "animations": [
+    "c013_aim_end",
+    "c013_aim_idle",
+    "c013_aim_start",
+    "c013_cover_reload",
+    "c013_cover_shot",
+    "c013_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.392
+  },
+  {
+   "code": "c014",
+   "name": "（未翻译 c014）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c014_00.glb",
+   "bytes": 844644,
+   "vertices": 2626,
+   "animations": [
+    "c014_aim_end",
+    "c014_aim_idle",
+    "c014_aim_start",
+    "c014_cover_reload",
+    "c014_cover_shot",
+    "c014_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.36
+  },
+  {
+   "code": "c015",
+   "name": "（未翻译 c015）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c015_00.glb",
+   "bytes": 916916,
+   "vertices": 2674,
+   "animations": [
+    "c015_aim_end",
+    "c015_aim_idle",
+    "c015_aim_start",
+    "c015_cover_reload",
+    "c015_cover_shot",
+    "c015_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.461
+  },
+  {
+   "code": "c016",
+   "name": "（未翻译 c016）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c016_00.glb",
+   "bytes": 1191340,
+   "vertices": 4278,
+   "animations": [
+    "c016_aim_end",
+    "c016_aim_idle",
+    "c016_aim_start",
+    "c016_cover_reload",
+    "c016_cover_shot",
+    "c016_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.339
+  },
+  {
+   "code": "c017",
+   "name": "（未翻译 c017）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "01",
+   "file": "c017_00.glb",
+   "bytes": 1766212,
+   "vertices": 4516,
+   "animations": [
+    "c017_aim_end",
+    "c017_aim_idle",
+    "c017_aim_start",
+    "c017_cover_reload",
+    "c017_cover_shot",
+    "c017_shot"
+   ],
+   "skins": 3,
+   "height_m": 3.723
+  },
+  {
+   "code": "c018",
+   "name": "（未翻译 c018）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c018_00.glb",
+   "bytes": 1349632,
+   "vertices": 6066,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.347
+  },
+  {
+   "code": "c019",
+   "name": "（未翻译 c019）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c019_00.glb",
+   "bytes": 1427268,
+   "vertices": 8231,
+   "animations": [],
+   "skins": 3,
+   "height_m": 3.534
+  },
+  {
+   "code": "c020",
+   "name": "（未翻译 c020）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c020_00.glb",
+   "bytes": 749680,
+   "vertices": 2372,
+   "animations": [
+    "c020_aim_end",
+    "c020_aim_idle",
+    "c020_aim_start",
+    "c020_cover_reload",
+    "c020_cover_shot",
+    "c020_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.192
+  },
+  {
+   "code": "c022",
+   "name": "（未翻译 c022）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c022_00.glb",
+   "bytes": 865316,
+   "vertices": 2704,
+   "animations": [
+    "c022_aim_end",
+    "c022_aim_idle",
+    "c022_aim_start",
+    "c022_cover_reload",
+    "c022_cover_shot",
+    "c022_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.497
+  },
+  {
+   "code": "c023",
+   "name": "（未翻译 c023）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c023_00.glb",
+   "bytes": 685420,
+   "vertices": 3933,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.405
+  },
+  {
+   "code": "c030",
+   "name": "（未翻译 c030）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c030_00.glb",
+   "bytes": 753168,
+   "vertices": 2036,
+   "animations": [
+    "c030_aim_end",
+    "c030_aim_idle",
+    "c030_aim_start",
+    "c030_cover_reload",
+    "c030_cover_shot",
+    "c030_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.414
+  },
+  {
+   "code": "c032",
+   "name": "（未翻译 c032）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c032_00.glb",
+   "bytes": 880868,
+   "vertices": 2246,
+   "animations": [
+    "c032_aim_end",
+    "c032_aim_idle",
+    "c032_aim_start",
+    "c032_cover_reload",
+    "c032_cover_shot",
+    "c032_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.428
+  },
+  {
+   "code": "c033",
+   "name": "（未翻译 c033）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c033_00.glb",
+   "bytes": 980524,
+   "vertices": 2893,
+   "animations": [
+    "c033_aim_end",
+    "c033_aim_idle",
+    "c033_aim_start",
+    "c033_cover_reload",
+    "c033_cover_shot",
+    "c033_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.329
+  },
+  {
+   "code": "c040",
+   "name": "（未翻译 c040）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c040_00.glb",
+   "bytes": 764668,
+   "vertices": 1929,
+   "animations": [
+    "c040_aim_end",
+    "c040_aim_idle",
+    "c040_aim_start",
+    "c040_cover_reload",
+    "c040_cover_shot",
+    "c040_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.221
+  },
+  {
+   "code": "c041",
+   "name": "（未翻译 c041）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c041_00.glb",
+   "bytes": 792040,
+   "vertices": 2561,
+   "animations": [
+    "c041_aim_end",
+    "c041_aim_idle",
+    "c041_aim_start",
+    "c041_cover_reload",
+    "c041_cover_shot",
+    "c041_shot"
+   ],
+   "skins": 3,
+   "height_m": 2.477
+  },
+  {
+   "code": "c043",
+   "name": "（未翻译 c043）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c043_00.glb",
+   "bytes": 914272,
+   "vertices": 2470,
+   "animations": [
+    "c043_aim_end",
+    "c043_aim_idle",
+    "c043_aim_start",
+    "c043_cover_reload",
+    "c043_cover_shot",
+    "c043_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.199
+  },
+  {
+   "code": "c060",
+   "name": "（未翻译 c060）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c060_00.glb",
+   "bytes": 715896,
+   "vertices": 1509,
+   "animations": [
+    "c060_aim_end",
+    "c060_aim_idle",
+    "c060_aim_start",
+    "c060_cover_reload",
+    "c060_cover_shot",
+    "c060_shot"
+   ],
+   "skins": 1,
+   "height_m": 2.206
+  },
+  {
+   "code": "c061",
+   "name": "（未翻译 c061）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c061_00.glb",
+   "bytes": 831224,
+   "vertices": 2057,
+   "animations": [
+    "c061_aim_end",
+    "c061_aim_idle",
+    "c061_aim_start",
+    "c061_cover_reload",
+    "c061_cover_shot",
+    "c061_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.23
+  },
+  {
+   "code": "c062",
+   "name": "（未翻译 c062）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c062_00.glb",
+   "bytes": 980864,
+   "vertices": 2499,
+   "animations": [
+    "c062_aim_end",
+    "c062_aim_idle",
+    "c062_aim_start",
+    "c062_cover_reload",
+    "c062_cover_shot",
+    "c062_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.143
+  },
+  {
+   "code": "c063",
+   "name": "（未翻译 c063）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c063_00.glb",
+   "bytes": 1269520,
+   "vertices": 6397,
+   "animations": [],
+   "skins": 3,
+   "height_m": 3.223
+  },
+  {
+   "code": "c070",
+   "name": "（未翻译 c070）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c070_00.glb",
+   "bytes": 952884,
+   "vertices": 2293,
+   "animations": [
+    "c070_aim_end",
+    "c070_aim_idle",
+    "c070_aim_start",
+    "c070_cover_reload",
+    "c070_cover_shot",
+    "c070_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.362
+  },
+  {
+   "code": "c071",
+   "name": "（未翻译 c071）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c071_00.glb",
+   "bytes": 795788,
+   "vertices": 2245,
+   "animations": [
+    "c071_aim_end",
+    "c071_aim_idle",
+    "c071_aim_start",
+    "c071_cover_reload",
+    "c071_cover_shot",
+    "c071_shot"
+   ],
+   "skins": 3,
+   "height_m": 2.301
+  },
+  {
+   "code": "c072",
+   "name": "（未翻译 c072）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c072_00.glb",
+   "bytes": 863224,
+   "vertices": 2422,
+   "animations": [
+    "c072_aim_end",
+    "c072_aim_idle",
+    "c072_aim_start",
+    "c072_cover_reload",
+    "c072_cover_shot",
+    "c072_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.695
+  },
+  {
+   "code": "c073",
+   "name": "（未翻译 c073）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c073_00.glb",
+   "bytes": 598364,
+   "vertices": 2530,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.454
+  },
+  {
+   "code": "c074",
+   "name": "（未翻译 c074）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c074_00.glb",
+   "bytes": 752096,
+   "vertices": 4381,
+   "animations": [],
+   "skins": 2,
+   "height_m": 3.033
+  },
+  {
+   "code": "c075",
+   "name": "（未翻译 c075）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c075_00.glb",
+   "bytes": 1079612,
+   "vertices": 4711,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.138
+  },
+  {
+   "code": "c080",
+   "name": "（未翻译 c080）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c080_00.glb",
+   "bytes": 804284,
+   "vertices": 2503,
+   "animations": [
+    "c080_aim_end",
+    "c080_aim_idle",
+    "c080_aim_start",
+    "c080_cover_reload",
+    "c080_cover_shot",
+    "c080_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.259
+  },
+  {
+   "code": "c082",
+   "name": "（未翻译 c082）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c082_00.glb",
+   "bytes": 937140,
+   "vertices": 2403,
+   "animations": [
+    "c082_aim_end",
+    "c082_aim_idle",
+    "c082_aim_start",
+    "c082_cover_reload",
+    "c082_cover_shot",
+    "c082_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.34
+  },
+  {
+   "code": "c090",
+   "name": "（未翻译 c090）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c090_00.glb",
+   "bytes": 858400,
+   "vertices": 3034,
+   "animations": [
+    "c090_aim_end",
+    "c090_aim_idle",
+    "c090_aim_start",
+    "c090_cover_reload",
+    "c090_cover_shot",
+    "c090_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.668
+  },
+  {
+   "code": "c091",
+   "name": "（未翻译 c091）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c091_00.glb",
+   "bytes": 516676,
+   "vertices": 2209,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.284
+  },
+  {
+   "code": "c092",
+   "name": "（未翻译 c092）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c092_00.glb",
+   "bytes": 727192,
+   "vertices": 2048,
+   "animations": [
+    "c092_aim_end",
+    "c092_aim_idle",
+    "c092_aim_start",
+    "c092_cover_reload",
+    "c092_cover_shot",
+    "c092_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.904
+  },
+  {
+   "code": "c093",
+   "name": "（未翻译 c093）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c093_00.glb",
+   "bytes": 654528,
+   "vertices": 4253,
+   "animations": [],
+   "skins": 2,
+   "height_m": 3.888
+  },
+  {
+   "code": "c094",
+   "name": "（未翻译 c094）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c094_00.glb",
+   "bytes": 1432312,
+   "vertices": 3537,
+   "animations": [
+    "c094_aim_end",
+    "c094_aim_idle",
+    "c094_aim_start",
+    "c094_cover_reload",
+    "c094_cover_shot",
+    "c094_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.267
+  },
+  {
+   "code": "c095",
+   "name": "（未翻译 c095）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c095_00.glb",
+   "bytes": 1037244,
+   "vertices": 3108,
+   "animations": [
+    "c095_aim_end",
+    "c095_aim_idle",
+    "c095_aim_start",
+    "c095_cover_reload",
+    "c095_cover_shot",
+    "c095_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.493
+  },
+  {
+   "code": "c100",
+   "name": "（未翻译 c100）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c100_00.glb",
+   "bytes": 1005516,
+   "vertices": 2604,
+   "animations": [
+    "c100_aim_end",
+    "c100_aim_idle",
+    "c100_aim_start",
+    "c100_cover_reload",
+    "c100_cover_shot",
+    "c100_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.354
+  },
+  {
+   "code": "c101",
+   "name": "（未翻译 c101）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c101_00.glb",
+   "bytes": 889000,
+   "vertices": 1781,
+   "animations": [
+    "c101_aim_end",
+    "c101_aim_idle",
+    "c101_aim_start",
+    "c101_cover_reload",
+    "c101_cover_shot",
+    "c101_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.201
+  },
+  {
+   "code": "c102",
+   "name": "（未翻译 c102）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c102_00.glb",
+   "bytes": 842448,
+   "vertices": 2608,
+   "animations": [
+    "c102_aim_end",
+    "c102_aim_idle",
+    "c102_aim_start",
+    "c102_cover_reload",
+    "c102_cover_shot",
+    "c102_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.19
+  },
+  {
+   "code": "c103",
+   "name": "（未翻译 c103）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c103_00.glb",
+   "bytes": 949384,
+   "vertices": 6777,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.353
+  },
+  {
+   "code": "c104",
+   "name": "（未翻译 c104）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c104_00.glb",
+   "bytes": 884624,
+   "vertices": 5119,
+   "animations": [],
+   "skins": 3,
+   "height_m": 3.068
+  },
+  {
+   "code": "c105",
+   "name": "（未翻译 c105）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c105_00.glb",
+   "bytes": 835400,
+   "vertices": 4568,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.936
+  },
+  {
+   "code": "c110",
+   "name": "（未翻译 c110）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c110_00.glb",
+   "bytes": 843404,
+   "vertices": 2310,
+   "animations": [
+    "c110_aim_end",
+    "c110_aim_idle",
+    "c110_aim_start",
+    "c110_cover_reload",
+    "c110_cover_shot",
+    "c110_shot"
+   ],
+   "skins": 3,
+   "height_m": 2.129
+  },
+  {
+   "code": "c111",
+   "name": "（未翻译 c111）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c111_00.glb",
+   "bytes": 827432,
+   "vertices": 1810,
+   "animations": [
+    "c111_aim_end",
+    "c111_aim_idle",
+    "c111_aim_start",
+    "c111_cover_reload",
+    "c111_cover_shot",
+    "c111_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.453
+  },
+  {
+   "code": "c112",
+   "name": "（未翻译 c112）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c112_00.glb",
+   "bytes": 809004,
+   "vertices": 1956,
+   "animations": [
+    "c112_aim_end",
+    "c112_aim_idle",
+    "c112_aim_start",
+    "c112_cover_reload",
+    "c112_cover_shot",
+    "c112_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.459
+  },
+  {
+   "code": "c113",
+   "name": "（未翻译 c113）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c113_00.glb",
+   "bytes": 834792,
+   "vertices": 4573,
+   "animations": [],
+   "skins": 2,
+   "height_m": 3.016
+  },
+  {
+   "code": "c120",
+   "name": "（未翻译 c120）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c120_00.glb",
+   "bytes": 925820,
+   "vertices": 2282,
+   "animations": [
+    "c120_aim_end",
+    "c120_aim_idle",
+    "c120_aim_start",
+    "c120_cover_reload",
+    "c120_cover_shot",
+    "c120_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.179
+  },
+  {
+   "code": "c121",
+   "name": "（未翻译 c121）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c121_00.glb",
+   "bytes": 620192,
+   "vertices": 2603,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.497
+  },
+  {
+   "code": "c130",
+   "name": "（未翻译 c130）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c130_00.glb",
+   "bytes": 584628,
+   "vertices": 1462,
+   "animations": [
+    "c130_aim_end",
+    "c130_aim_idle",
+    "c130_aim_start",
+    "c130_cover_reload",
+    "c130_cover_shot",
+    "c130_shot"
+   ],
+   "skins": 1,
+   "height_m": 2.158
+  },
+  {
+   "code": "c131",
+   "name": "（未翻译 c131）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c131_00.glb",
+   "bytes": 781256,
+   "vertices": 1849,
+   "animations": [
+    "c131_aim_end",
+    "c131_aim_idle",
+    "c131_aim_start",
+    "c131_cover_reload",
+    "c131_cover_shot",
+    "c131_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.245
+  },
+  {
+   "code": "c132",
+   "name": "（未翻译 c132）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c132_00.glb",
+   "bytes": 1018608,
+   "vertices": 2311,
+   "animations": [
+    "c132_aim_end",
+    "c132_aim_idle",
+    "c132_aim_start",
+    "c132_cover_reload",
+    "c132_cover_shot",
+    "c132_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.257
+  },
+  {
+   "code": "c140",
+   "name": "（未翻译 c140）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c140_00.glb",
+   "bytes": 771176,
+   "vertices": 2227,
+   "animations": [
+    "c140_aim_end",
+    "c140_aim_idle",
+    "c140_aim_start",
+    "c140_cover_reload",
+    "c140_cover_shot",
+    "c140_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.386
+  },
+  {
+   "code": "c141",
+   "name": "（未翻译 c141）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c141_00.glb",
+   "bytes": 945792,
+   "vertices": 2252,
+   "animations": [
+    "c141_aim_end",
+    "c141_aim_idle",
+    "c141_aim_start",
+    "c141_cover_reload",
+    "c141_cover_shot",
+    "c141_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.932
+  },
+  {
+   "code": "c142",
+   "name": "（未翻译 c142）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c142_00.glb",
+   "bytes": 746972,
+   "vertices": 2201,
+   "animations": [
+    "c142_aim_end",
+    "c142_aim_idle",
+    "c142_aim_start",
+    "c142_cover_reload",
+    "c142_cover_shot",
+    "c142_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.342
+  },
+  {
+   "code": "c143",
+   "name": "（未翻译 c143）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c143_00.glb",
+   "bytes": 649544,
+   "vertices": 3042,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.287
+  },
+  {
+   "code": "c150",
+   "name": "（未翻译 c150）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c150_00.glb",
+   "bytes": 886448,
+   "vertices": 1862,
+   "animations": [
+    "c150_aim_end",
+    "c150_aim_idle",
+    "c150_aim_start",
+    "c150_cover_reload",
+    "c150_cover_shot",
+    "c150_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.197
+  },
+  {
+   "code": "c160",
+   "name": "（未翻译 c160）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c160_00.glb",
+   "bytes": 966600,
+   "vertices": 2343,
+   "animations": [
+    "c160_aim_end",
+    "c160_aim_idle",
+    "c160_aim_start",
+    "c160_cover_reload",
+    "c160_cover_shot",
+    "c160_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.121
+  },
+  {
+   "code": "c161",
+   "name": "（未翻译 c161）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c161_00.glb",
+   "bytes": 821612,
+   "vertices": 2250,
+   "animations": [
+    "c161_aim_end",
+    "c161_aim_idle",
+    "c161_aim_start",
+    "c161_cover_reload",
+    "c161_cover_shot",
+    "c161_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.229
+  },
+  {
+   "code": "c162",
+   "name": "（未翻译 c162）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c162_00.glb",
+   "bytes": 943168,
+   "vertices": 2891,
+   "animations": [
+    "c162_aim_end",
+    "c162_aim_idle",
+    "c162_aim_start",
+    "c162_cover_reload",
+    "c162_cover_shot",
+    "c162_shot"
+   ],
+   "skins": 2,
+   "height_m": 3.107
+  },
+  {
+   "code": "c170",
+   "name": "（未翻译 c170）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c170_00.glb",
+   "bytes": 784496,
+   "vertices": 2184,
+   "animations": [
+    "c170_aim_end",
+    "c170_aim_idle",
+    "c170_aim_start",
+    "c170_cover_reload",
+    "c170_cover_shot",
+    "c170_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.27
+  },
+  {
+   "code": "c171",
+   "name": "（未翻译 c171）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c171_00.glb",
+   "bytes": 841204,
+   "vertices": 2453,
+   "animations": [
+    "c171_aim_end",
+    "c171_aim_idle",
+    "c171_aim_start",
+    "c171_cover_reload",
+    "c171_cover_shot",
+    "c171_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.513
+  },
+  {
+   "code": "c172",
+   "name": "（未翻译 c172）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c172_00.glb",
+   "bytes": 888428,
+   "vertices": 2059,
+   "animations": [
+    "c172_aim_end",
+    "c172_aim_idle",
+    "c172_aim_start",
+    "c172_cover_reload",
+    "c172_cover_shot",
+    "c172_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.515
+  },
+  {
+   "code": "c180",
+   "name": "（未翻译 c180）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c180_00.glb",
+   "bytes": 736736,
+   "vertices": 1952,
+   "animations": [
+    "c180_aim_end",
+    "c180_aim_idle",
+    "c180_aim_start",
+    "c180_cover_reload",
+    "c180_cover_shot",
+    "c180_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.455
+  },
+  {
+   "code": "c181",
+   "name": "（未翻译 c181）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c181_00.glb",
+   "bytes": 898208,
+   "vertices": 2263,
+   "animations": [
+    "c181_aim_end",
+    "c181_aim_idle",
+    "c181_aim_start",
+    "c181_cover_reload",
+    "c181_cover_shot",
+    "c181_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.344
+  },
+  {
+   "code": "c182",
+   "name": "（未翻译 c182）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c182_00.glb",
+   "bytes": 912716,
+   "vertices": 2849,
+   "animations": [
+    "c182_aim_end",
+    "c182_aim_idle",
+    "c182_aim_start",
+    "c182_cover_reload",
+    "c182_cover_shot",
+    "c182_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.454
+  },
+  {
+   "code": "c183",
+   "name": "（未翻译 c183）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c183_00.glb",
+   "bytes": 914988,
+   "vertices": 3108,
+   "animations": [
+    "c183_aim_end",
+    "c183_aim_idle",
+    "c183_aim_start",
+    "c183_cover_reload",
+    "c183_cover_shot",
+    "c183_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.627
+  },
+  {
+   "code": "c190",
+   "name": "（未翻译 c190）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c190_00.glb",
+   "bytes": 793680,
+   "vertices": 2338,
+   "animations": [
+    "c190_aim_end",
+    "c190_aim_idle",
+    "c190_aim_start",
+    "c190_cover_reload",
+    "c190_cover_shot",
+    "c190_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.729
+  },
+  {
+   "code": "c191",
+   "name": "（未翻译 c191）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c191_00.glb",
+   "bytes": 840652,
+   "vertices": 2350,
+   "animations": [
+    "c191_aim_end",
+    "c191_aim_idle",
+    "c191_aim_start",
+    "c191_cover_reload",
+    "c191_cover_shot",
+    "c191_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.314
+  },
+  {
+   "code": "c192",
+   "name": "（未翻译 c192）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c192_00.glb",
+   "bytes": 930508,
+   "vertices": 2453,
+   "animations": [
+    "c192_aim_end",
+    "c192_aim_idle",
+    "c192_aim_start",
+    "c192_cover_reload",
+    "c192_cover_shot",
+    "c192_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.324
+  },
+  {
+   "code": "c193",
+   "name": "（未翻译 c193）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c193_00.glb",
+   "bytes": 868456,
+   "vertices": 2205,
+   "animations": [
+    "c193_aim_end",
+    "c193_aim_idle",
+    "c193_aim_start",
+    "c193_cover_reload",
+    "c193_cover_shot",
+    "c193_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.452
+  },
+  {
+   "code": "c194",
+   "name": "（未翻译 c194）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c194_00.glb",
+   "bytes": 1100208,
+   "vertices": 2894,
+   "animations": [
+    "c194_aim_end",
+    "c194_aim_idle",
+    "c194_aim_start",
+    "c194_cover_reload",
+    "c194_cover_shot",
+    "c194_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.407
+  },
+  {
+   "code": "c195",
+   "name": "（未翻译 c195）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c195_00.glb",
+   "bytes": 936224,
+   "vertices": 2882,
+   "animations": [
+    "c195_aim_end",
+    "c195_aim_idle",
+    "c195_aim_start",
+    "c195_cover_reload",
+    "c195_cover_shot",
+    "c195_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.729
+  },
+  {
+   "code": "c200",
+   "name": "（未翻译 c200）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c200_00.glb",
+   "bytes": 961496,
+   "vertices": 2170,
+   "animations": [
+    "c200_aim_end",
+    "c200_aim_idle",
+    "c200_aim_start",
+    "c200_cover_reload",
+    "c200_cover_shot",
+    "c200_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.749
+  },
+  {
+   "code": "c201",
+   "name": "（未翻译 c201）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c201_00.glb",
+   "bytes": 843512,
+   "vertices": 2163,
+   "animations": [
+    "c201_aim_end",
+    "c201_aim_idle",
+    "c201_aim_start",
+    "c201_cover_reload",
+    "c201_cover_shot",
+    "c201_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.276
+  },
+  {
+   "code": "c202",
+   "name": "（未翻译 c202）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c202_00.glb",
+   "bytes": 717268,
+   "vertices": 1932,
+   "animations": [
+    "c202_aim_end",
+    "c202_aim_idle",
+    "c202_aim_start",
+    "c202_cover_reload",
+    "c202_cover_shot",
+    "c202_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.351
+  },
+  {
+   "code": "c203",
+   "name": "（未翻译 c203）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c203_00.glb",
+   "bytes": 948204,
+   "vertices": 2425,
+   "animations": [
+    "c203_aim_end",
+    "c203_aim_idle",
+    "c203_aim_start",
+    "c203_cover_reload",
+    "c203_cover_shot",
+    "c203_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.613
+  },
+  {
+   "code": "c210",
+   "name": "（未翻译 c210）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c210_00.glb",
+   "bytes": 877648,
+   "vertices": 2641,
+   "animations": [
+    "c210_aim_end",
+    "c210_aim_idle",
+    "c210_aim_start",
+    "c210_cover_reload",
+    "c210_cover_shot",
+    "c210_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.206
+  },
+  {
+   "code": "c212",
+   "name": "（未翻译 c212）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c212_00.glb",
+   "bytes": 866892,
+   "vertices": 2526,
+   "animations": [
+    "c212_aim_end",
+    "c212_aim_idle",
+    "c212_aim_start",
+    "c212_cover_reload",
+    "c212_cover_shot",
+    "c212_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.448
+  },
+  {
+   "code": "c220",
+   "name": "（未翻译 c220）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c220_00.glb",
+   "bytes": 824740,
+   "vertices": 2190,
+   "animations": [
+    "c220_aim_end",
+    "c220_aim_idle",
+    "c220_aim_start",
+    "c220_cover_reload",
+    "c220_cover_shot",
+    "c220_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.575
+  },
+  {
+   "code": "c221",
+   "name": "（未翻译 c221）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c221_00.glb",
+   "bytes": 971676,
+   "vertices": 2473,
+   "animations": [
+    "c221_aim_end",
+    "c221_aim_idle",
+    "c221_aim_start",
+    "c221_cover_reload",
+    "c221_cover_shot",
+    "c221_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.791
+  },
+  {
+   "code": "c222",
+   "name": "（未翻译 c222）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c222_00.glb",
+   "bytes": 906776,
+   "vertices": 2128,
+   "animations": [
+    "c222_aim_end",
+    "c222_aim_idle",
+    "c222_aim_start",
+    "c222_cover_reload",
+    "c222_cover_shot",
+    "c222_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.404
+  },
+  {
+   "code": "c223",
+   "name": "（未翻译 c223）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c223_00.glb",
+   "bytes": 1205228,
+   "vertices": 5185,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.71
+  },
+  {
+   "code": "c224",
+   "name": "（未翻译 c224）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c224_00.glb",
+   "bytes": 642456,
+   "vertices": 2866,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.717
+  },
+  {
+   "code": "c225",
+   "name": "（未翻译 c225）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c225_00.glb",
+   "bytes": 861268,
+   "vertices": 2506,
+   "animations": [
+    "c225_aim_end",
+    "c225_aim_idle",
+    "c225_aim_start",
+    "c225_cover_reload",
+    "c225_cover_shot",
+    "c225_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.146
+  },
+  {
+   "code": "c226",
+   "name": "（未翻译 c226）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c226_00.glb",
+   "bytes": 615828,
+   "vertices": 2616,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.105
+  },
+  {
+   "code": "c230",
+   "name": "（未翻译 c230）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c230_00.glb",
+   "bytes": 746544,
+   "vertices": 2073,
+   "animations": [
+    "c230_aim_end",
+    "c230_aim_idle",
+    "c230_aim_start",
+    "c230_cover_reload",
+    "c230_cover_shot",
+    "c230_shot"
+   ],
+   "skins": 2,
+   "height_m": 3.139
+  },
+  {
+   "code": "c231",
+   "name": "（未翻译 c231）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c231_00.glb",
+   "bytes": 1027612,
+   "vertices": 3065,
+   "animations": [
+    "c231_aim_end",
+    "c231_aim_idle",
+    "c231_aim_start",
+    "c231_cover_reload",
+    "c231_cover_shot",
+    "c231_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.293
+  },
+  {
+   "code": "c232",
+   "name": "（未翻译 c232）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c232_00.glb",
+   "bytes": 853420,
+   "vertices": 1987,
+   "animations": [
+    "c232_aim_end",
+    "c232_aim_idle",
+    "c232_aim_start",
+    "c232_cover_reload",
+    "c232_cover_shot",
+    "c232_shot"
+   ],
+   "skins": 3,
+   "height_m": 2.309
+  },
+  {
+   "code": "c233",
+   "name": "（未翻译 c233）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c233_00.glb",
+   "bytes": 650448,
+   "vertices": 3117,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.346
+  },
+  {
+   "code": "c234",
+   "name": "（未翻译 c234）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c234_00.glb",
+   "bytes": 1019992,
+   "vertices": 4127,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.448
+  },
+  {
+   "code": "c240",
+   "name": "（未翻译 c240）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c240_00.glb",
+   "bytes": 866076,
+   "vertices": 2768,
+   "animations": [
+    "c240_aim_end",
+    "c240_aim_idle",
+    "c240_aim_start",
+    "c240_cover_reload",
+    "c240_cover_shot",
+    "c240_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.152
+  },
+  {
+   "code": "c241",
+   "name": "（未翻译 c241）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c241_00.glb",
+   "bytes": 870872,
+   "vertices": 2264,
+   "animations": [
+    "c241_aim_end",
+    "c241_aim_idle",
+    "c241_aim_start",
+    "c241_cover_reload",
+    "c241_cover_shot",
+    "c241_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.722
+  },
+  {
+   "code": "c242",
+   "name": "（未翻译 c242）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c242_00.glb",
+   "bytes": 762596,
+   "vertices": 2037,
+   "animations": [
+    "c242_aim_end",
+    "c242_aim_idle",
+    "c242_aim_start",
+    "c242_cover_reload",
+    "c242_cover_shot",
+    "c242_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.2
+  },
+  {
+   "code": "c260",
+   "name": "（未翻译 c260）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c260_00.glb",
+   "bytes": 833476,
+   "vertices": 2272,
+   "animations": [
+    "c260_aim_end",
+    "c260_aim_idle",
+    "c260_aim_start",
+    "c260_cover_reload",
+    "c260_cover_shot",
+    "c260_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.208
+  },
+  {
+   "code": "c261",
+   "name": "（未翻译 c261）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c261_00.glb",
+   "bytes": 669168,
+   "vertices": 3934,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.251
+  },
+  {
+   "code": "c262",
+   "name": "（未翻译 c262）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c262_00.glb",
+   "bytes": 1001856,
+   "vertices": 3896,
+   "animations": [],
+   "skins": 4,
+   "height_m": 8.254
+  },
+  {
+   "code": "c270",
+   "name": "（未翻译 c270）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c270_00.glb",
+   "bytes": 735900,
+   "vertices": 2553,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.796
+  },
+  {
+   "code": "c271",
+   "name": "（未翻译 c271）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c271_00.glb",
+   "bytes": 596796,
+   "vertices": 2402,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.816
+  },
+  {
+   "code": "c272",
+   "name": "（未翻译 c272）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c272_00.glb",
+   "bytes": 597628,
+   "vertices": 2557,
+   "animations": [],
+   "skins": 2,
+   "height_m": 3.221
+  },
+  {
+   "code": "c280",
+   "name": "（未翻译 c280）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c280_00.glb",
+   "bytes": 780380,
+   "vertices": 2122,
+   "animations": [
+    "c280_aim_end",
+    "c280_aim_idle",
+    "c280_aim_start",
+    "c280_cover_reload",
+    "c280_cover_shot",
+    "c280_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.115
+  },
+  {
+   "code": "c281",
+   "name": "（未翻译 c281）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c281_00.glb",
+   "bytes": 973680,
+   "vertices": 2286,
+   "animations": [
+    "c281_aim_end",
+    "c281_aim_idle",
+    "c281_aim_start",
+    "c281_cover_reload",
+    "c281_cover_shot",
+    "c281_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.126
+  },
+  {
+   "code": "c282",
+   "name": "（未翻译 c282）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c282_00.glb",
+   "bytes": 856568,
+   "vertices": 2362,
+   "animations": [
+    "c282_aim_end",
+    "c282_aim_idle",
+    "c282_aim_start",
+    "c282_cover_reload",
+    "c282_cover_shot",
+    "c282_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.656
+  },
+  {
+   "code": "c283",
+   "name": "（未翻译 c283）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c283_00.glb",
+   "bytes": 604820,
+   "vertices": 3218,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.139
+  },
+  {
+   "code": "c284",
+   "name": "（未翻译 c284）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c284_00.glb",
+   "bytes": 695156,
+   "vertices": 4796,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.21
+  },
+  {
+   "code": "c290",
+   "name": "（未翻译 c290）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c290_00.glb",
+   "bytes": 583680,
+   "vertices": 2910,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.199
+  },
+  {
+   "code": "c291",
+   "name": "（未翻译 c291）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c291_00.glb",
+   "bytes": 831420,
+   "vertices": 2216,
+   "animations": [
+    "c291_aim_end",
+    "c291_aim_idle",
+    "c291_aim_start",
+    "c291_cover_reload",
+    "c291_cover_shot",
+    "c291_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.373
+  },
+  {
+   "code": "c300",
+   "name": "（未翻译 c300）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c300_00.glb",
+   "bytes": 640152,
+   "vertices": 2087,
+   "animations": [
+    "c300_aim_end",
+    "c300_aim_idle",
+    "c300_aim_start",
+    "c300_cover_reload",
+    "c300_cover_shot",
+    "c300_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.26
+  },
+  {
+   "code": "c301",
+   "name": "（未翻译 c301）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c301_00.glb",
+   "bytes": 721820,
+   "vertices": 2126,
+   "animations": [
+    "c301_aim_end",
+    "c301_aim_idle",
+    "c301_aim_start",
+    "c301_cover_reload",
+    "c301_cover_shot",
+    "c301_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.236
+  },
+  {
+   "code": "c302",
+   "name": "（未翻译 c302）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c302_00.glb",
+   "bytes": 642088,
+   "vertices": 1526,
+   "animations": [
+    "c302_aim_end",
+    "c302_aim_idle",
+    "c302_aim_start",
+    "c302_cover_reload",
+    "c302_cover_shot",
+    "c302_shot"
+   ],
+   "skins": 2,
+   "height_m": 3.045
+  },
+  {
+   "code": "c303",
+   "name": "（未翻译 c303）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c303_00.glb",
+   "bytes": 765340,
+   "vertices": 2220,
+   "animations": [
+    "c303_aim_end",
+    "c303_aim_idle",
+    "c303_aim_start",
+    "c303_cover_reload",
+    "c303_cover_shot",
+    "c303_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.23
+  },
+  {
+   "code": "c304",
+   "name": "（未翻译 c304）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c304_00.glb",
+   "bytes": 819916,
+   "vertices": 2343,
+   "animations": [
+    "c304_aim_end",
+    "c304_aim_idle",
+    "c304_aim_start",
+    "c304_cover_reload",
+    "c304_cover_shot",
+    "c304_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.319
+  },
+  {
+   "code": "c305",
+   "name": "（未翻译 c305）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c305_00.glb",
+   "bytes": 623448,
+   "vertices": 1831,
+   "animations": [
+    "c305_aim_end",
+    "c305_aim_idle",
+    "c305_aim_start",
+    "c305_cover_reload",
+    "c305_cover_shot",
+    "c305_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.127
+  },
+  {
+   "code": "c306",
+   "name": "（未翻译 c306）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c306_00.glb",
+   "bytes": 617020,
+   "vertices": 1970,
+   "animations": [
+    "c306_aim_end",
+    "c306_aim_idle",
+    "c306_aim_start",
+    "c306_cover_reload",
+    "c306_cover_shot",
+    "c306_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.437
+  },
+  {
+   "code": "c307",
+   "name": "（未翻译 c307）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c307_00.glb",
+   "bytes": 649556,
+   "vertices": 2290,
+   "animations": [
+    "c307_aim_end",
+    "c307_aim_idle",
+    "c307_aim_start",
+    "c307_cover_reload",
+    "c307_cover_shot",
+    "c307_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.509
+  },
+  {
+   "code": "c308",
+   "name": "（未翻译 c308）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c308_00.glb",
+   "bytes": 701784,
+   "vertices": 1804,
+   "animations": [
+    "c308_aim_end",
+    "c308_aim_idle",
+    "c308_aim_start",
+    "c308_cover_reload",
+    "c308_cover_shot",
+    "c308_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.386
+  },
+  {
+   "code": "c310",
+   "name": "（未翻译 c310）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c310_00.glb",
+   "bytes": 1160548,
+   "vertices": 2797,
+   "animations": [
+    "c310_aim_end",
+    "c310_aim_idle",
+    "c310_aim_start",
+    "c310_cover_reload",
+    "c310_cover_shot",
+    "c310_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.415
+  },
+  {
+   "code": "c311",
+   "name": "（未翻译 c311）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c311_00.glb",
+   "bytes": 1212980,
+   "vertices": 2376,
+   "animations": [
+    "c311_aim_end",
+    "c311_aim_idle",
+    "c311_aim_start",
+    "c311_cover_reload",
+    "c311_cover_shot",
+    "c311_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.448
+  },
+  {
+   "code": "c312",
+   "name": "（未翻译 c312）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c312_00.glb",
+   "bytes": 1178620,
+   "vertices": 2384,
+   "animations": [
+    "c312_aim_end",
+    "c312_aim_idle",
+    "c312_aim_start",
+    "c312_cover_reload",
+    "c312_cover_shot",
+    "c312_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.242
+  },
+  {
+   "code": "c313",
+   "name": "（未翻译 c313）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c313_00.glb",
+   "bytes": 1098668,
+   "vertices": 3086,
+   "animations": [
+    "c313_aim_end",
+    "c313_aim_idle",
+    "c313_aim_start",
+    "c313_cover_reload",
+    "c313_cover_shot",
+    "c313_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.659
+  },
+  {
+   "code": "c314",
+   "name": "（未翻译 c314）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c314_00.glb",
+   "bytes": 869208,
+   "vertices": 2844,
+   "animations": [
+    "c314_aim_end",
+    "c314_aim_idle",
+    "c314_aim_start",
+    "c314_cover_reload",
+    "c314_cover_shot",
+    "c314_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.633
+  },
+  {
+   "code": "c315",
+   "name": "（未翻译 c315）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c315_00.glb",
+   "bytes": 993596,
+   "vertices": 3332,
+   "animations": [
+    "c315_aim_end",
+    "c315_aim_idle",
+    "c315_aim_start",
+    "c315_cover_reload",
+    "c315_cover_shot",
+    "c315_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.604
+  },
+  {
+   "code": "c316",
+   "name": "（未翻译 c316）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c316_00.glb",
+   "bytes": 828160,
+   "vertices": 4512,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.223
+  },
+  {
+   "code": "c321",
+   "name": "（未翻译 c321）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c321_00.glb",
+   "bytes": 868016,
+   "vertices": 3248,
+   "animations": [
+    "c321_aim_end",
+    "c321_aim_idle",
+    "c321_aim_start",
+    "c321_cover_reload",
+    "c321_cover_shot",
+    "c321_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.333
+  },
+  {
+   "code": "c322",
+   "name": "（未翻译 c322）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c322_00.glb",
+   "bytes": 855200,
+   "vertices": 3898,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.889
+  },
+  {
+   "code": "c330",
+   "name": "（未翻译 c330）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c330_00.glb",
+   "bytes": 1392844,
+   "vertices": 4981,
+   "animations": [
+    "c330_aim_end",
+    "c330_aim_idle",
+    "c330_aim_start",
+    "c330_cover_reload",
+    "c330_cover_shot",
+    "c330_shot"
+   ],
+   "skins": 2,
+   "height_m": 3.092
+  },
+  {
+   "code": "c331",
+   "name": "（未翻译 c331）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c331_00.glb",
+   "bytes": 744128,
+   "vertices": 4305,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.716
+  },
+  {
+   "code": "c350",
+   "name": "（未翻译 c350）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c350_00.glb",
+   "bytes": 1096776,
+   "vertices": 2892,
+   "animations": [
+    "c350_aim_end",
+    "c350_aim_idle",
+    "c350_aim_start",
+    "c350_cover_reload",
+    "c350_cover_shot",
+    "c350_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.556
+  },
+  {
+   "code": "c351",
+   "name": "（未翻译 c351）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c351_00.glb",
+   "bytes": 897488,
+   "vertices": 2410,
+   "animations": [
+    "c351_aim_end",
+    "c351_aim_idle",
+    "c351_aim_start",
+    "c351_cover_reload",
+    "c351_cover_shot",
+    "c351_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.311
+  },
+  {
+   "code": "c352",
+   "name": "（未翻译 c352）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c352_00.glb",
+   "bytes": 781100,
+   "vertices": 2157,
+   "animations": [
+    "c352_aim_end",
+    "c352_aim_idle",
+    "c352_aim_start",
+    "c352_cover_reload",
+    "c352_cover_shot",
+    "c352_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.863
+  },
+  {
+   "code": "c353",
+   "name": "（未翻译 c353）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c353_00.glb",
+   "bytes": 934168,
+   "vertices": 2556,
+   "animations": [
+    "c353_aim_end",
+    "c353_aim_idle",
+    "c353_aim_start",
+    "c353_cover_reload",
+    "c353_cover_shot",
+    "c353_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.341
+  },
+  {
+   "code": "c354",
+   "name": "（未翻译 c354）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c354_00.glb",
+   "bytes": 857152,
+   "vertices": 3433,
+   "animations": [
+    "c354_aim_end",
+    "c354_aim_idle",
+    "c354_aim_start",
+    "c354_cover_reload",
+    "c354_cover_shot",
+    "c354_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.77
+  },
+  {
+   "code": "c355",
+   "name": "（未翻译 c355）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c355_00.glb",
+   "bytes": 1363504,
+   "vertices": 3478,
+   "animations": [
+    "c355_aim_end",
+    "c355_aim_idle",
+    "c355_aim_start",
+    "c355_cover_reload",
+    "c355_cover_shot",
+    "c355_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.506
+  },
+  {
+   "code": "c361",
+   "name": "（未翻译 c361）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c361_00.glb",
+   "bytes": 1189160,
+   "vertices": 6616,
+   "animations": [
+    "c361_aim_end",
+    "c361_aim_idle",
+    "c361_aim_start",
+    "c361_cover_reload",
+    "c361_cover_shot",
+    "c361_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.426
+  },
+  {
+   "code": "c380",
+   "name": "（未翻译 c380）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c380_00.glb",
+   "bytes": 991512,
+   "vertices": 2610,
+   "animations": [
+    "c380_aim_end",
+    "c380_aim_idle",
+    "c380_aim_start",
+    "c380_cover_reload",
+    "c380_cover_shot",
+    "c380_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.194
+  },
+  {
+   "code": "c381",
+   "name": "（未翻译 c381）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c381_00.glb",
+   "bytes": 902560,
+   "vertices": 2092,
+   "animations": [
+    "c381_aim_end",
+    "c381_aim_idle",
+    "c381_aim_start",
+    "c381_cover_reload",
+    "c381_cover_shot",
+    "c381_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.473
+  },
+  {
+   "code": "c382",
+   "name": "（未翻译 c382）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c382_00.glb",
+   "bytes": 1204896,
+   "vertices": 3601,
+   "animations": [
+    "c382_aim_end",
+    "c382_aim_idle",
+    "c382_aim_start",
+    "c382_cover_reload",
+    "c382_cover_shot",
+    "c382_shot"
+   ],
+   "skins": 3,
+   "height_m": 2.466
+  },
+  {
+   "code": "c390",
+   "name": "（未翻译 c390）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c390_00.glb",
+   "bytes": 936584,
+   "vertices": 3881,
+   "animations": [
+    "c390_aim_end",
+    "c390_aim_idle",
+    "c390_aim_start",
+    "c390_cover_reload",
+    "c390_cover_shot",
+    "c390_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.4
+  },
+  {
+   "code": "c391",
+   "name": "（未翻译 c391）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c391_00.glb",
+   "bytes": 1366792,
+   "vertices": 3851,
+   "animations": [
+    "c391_aim_end",
+    "c391_aim_idle",
+    "c391_aim_start",
+    "c391_cover_reload",
+    "c391_cover_shot",
+    "c391_shot"
+   ],
+   "skins": 3,
+   "height_m": 3.389
+  },
+  {
+   "code": "c392",
+   "name": "（未翻译 c392）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c392_00.glb",
+   "bytes": 901900,
+   "vertices": 2038,
+   "animations": [
+    "c392_aim_end",
+    "c392_aim_idle",
+    "c392_aim_start",
+    "c392_cover_reload",
+    "c392_cover_shot",
+    "c392_shot"
+   ],
+   "skins": 2,
+   "height_m": 1.831
+  },
+  {
+   "code": "c400",
+   "name": "（未翻译 c400）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c400_00.glb",
+   "bytes": 1045328,
+   "vertices": 2421,
+   "animations": [
+    "c400_aim_end",
+    "c400_aim_idle",
+    "c400_aim_start",
+    "c400_cover_reload",
+    "c400_cover_shot",
+    "c400_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.348
+  },
+  {
+   "code": "c401",
+   "name": "（未翻译 c401）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c401_00.glb",
+   "bytes": 835592,
+   "vertices": 1973,
+   "animations": [
+    "c401_aim_end",
+    "c401_aim_idle",
+    "c401_aim_start",
+    "c401_cover_reload",
+    "c401_cover_shot",
+    "c401_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.783
+  },
+  {
+   "code": "c402",
+   "name": "（未翻译 c402）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c402_00.glb",
+   "bytes": 850900,
+   "vertices": 2770,
+   "animations": [
+    "c402_aim_end",
+    "c402_aim_idle",
+    "c402_aim_start",
+    "c402_cover_reload",
+    "c402_cover_shot",
+    "c402_shot"
+   ],
+   "skins": 3,
+   "height_m": 2.261
+  },
+  {
+   "code": "c403",
+   "name": "（未翻译 c403）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c403_00.glb",
+   "bytes": 813772,
+   "vertices": 2406,
+   "animations": [
+    "c403_aim_end",
+    "c403_aim_idle",
+    "c403_aim_start",
+    "c403_cover_reload",
+    "c403_cover_shot",
+    "c403_shot"
+   ],
+   "skins": 3,
+   "height_m": 3.2
+  },
+  {
+   "code": "c404",
+   "name": "（未翻译 c404）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c404_00.glb",
+   "bytes": 971372,
+   "vertices": 7242,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.825
+  },
+  {
+   "code": "c405",
+   "name": "（未翻译 c405）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c405_00.glb",
+   "bytes": 866752,
+   "vertices": 6907,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.626
+  },
+  {
+   "code": "c411",
+   "name": "（未翻译 c411）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c411_00.glb",
+   "bytes": 737760,
+   "vertices": 3421,
+   "animations": [],
+   "skins": 3,
+   "height_m": 5.386
+  },
+  {
+   "code": "c412",
+   "name": "（未翻译 c412）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c412_00.glb",
+   "bytes": 663244,
+   "vertices": 3784,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.249
+  },
+  {
+   "code": "c430",
+   "name": "（未翻译 c430）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c430_00.glb",
+   "bytes": 810044,
+   "vertices": 2405,
+   "animations": [
+    "c430_aim_end",
+    "c430_aim_idle",
+    "c430_aim_start",
+    "c430_cover_reload",
+    "c430_cover_shot",
+    "c430_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.25
+  },
+  {
+   "code": "c431",
+   "name": "（未翻译 c431）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c431_00.glb",
+   "bytes": 750852,
+   "vertices": 2123,
+   "animations": [
+    "c431_aim_end",
+    "c431_aim_idle",
+    "c431_aim_start",
+    "c431_cover_reload",
+    "c431_cover_shot",
+    "c431_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.168
+  },
+  {
+   "code": "c432",
+   "name": "（未翻译 c432）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c432_00.glb",
+   "bytes": 790512,
+   "vertices": 2317,
+   "animations": [
+    "c432_aim_end",
+    "c432_aim_idle",
+    "c432_aim_start",
+    "c432_cover_reload",
+    "c432_cover_shot",
+    "c432_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.412
+  },
+  {
+   "code": "c441",
+   "name": "（未翻译 c441）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c441_00.glb",
+   "bytes": 765160,
+   "vertices": 4897,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.251
+  },
+  {
+   "code": "c450",
+   "name": "（未翻译 c450）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c450_00.glb",
+   "bytes": 925364,
+   "vertices": 2582,
+   "animations": [
+    "c450_aim_end",
+    "c450_aim_idle",
+    "c450_aim_start",
+    "c450_cover_reload",
+    "c450_cover_shot",
+    "c450_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.143
+  },
+  {
+   "code": "c451",
+   "name": "（未翻译 c451）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c451_00.glb",
+   "bytes": 1766040,
+   "vertices": 2993,
+   "animations": [
+    "c451_aim_end",
+    "c451_aim_idle",
+    "c451_aim_start",
+    "c451_cover_reload",
+    "c451_cover_shot",
+    "c451_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.136
+  },
+  {
+   "code": "c470",
+   "name": "（未翻译 c470）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c470_00.glb",
+   "bytes": 938328,
+   "vertices": 3277,
+   "animations": [
+    "c470_aim_end",
+    "c470_aim_idle",
+    "c470_aim_start",
+    "c470_cover_reload",
+    "c470_cover_shot",
+    "c470_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.517
+  },
+  {
+   "code": "c471",
+   "name": "（未翻译 c471）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c471_00.glb",
+   "bytes": 852052,
+   "vertices": 5148,
+   "animations": [],
+   "skins": 2,
+   "height_m": 3.56
+  },
+  {
+   "code": "c472",
+   "name": "（未翻译 c472）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c472_00.glb",
+   "bytes": 766988,
+   "vertices": 3233,
+   "animations": [],
+   "skins": 1,
+   "height_m": 2.216
+  },
+  {
+   "code": "c473",
+   "name": "（未翻译 c473）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c473_00.glb",
+   "bytes": 1535568,
+   "vertices": 9213,
+   "animations": [],
+   "skins": 3,
+   "height_m": 3.693
+  },
+  {
+   "code": "c500",
+   "name": "（未翻译 c500）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c500_00.glb",
+   "bytes": 1005472,
+   "vertices": 3345,
+   "animations": [
+    "c500_aim_end",
+    "c500_aim_idle",
+    "c500_aim_start",
+    "c500_cover_reload",
+    "c500_cover_shot",
+    "c500_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.276
+  },
+  {
+   "code": "c501",
+   "name": "（未翻译 c501）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c501_00.glb",
+   "bytes": 951104,
+   "vertices": 3087,
+   "animations": [
+    "c501_aim_end",
+    "c501_aim_idle",
+    "c501_aim_start",
+    "c501_cover_reload",
+    "c501_cover_shot",
+    "c501_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.133
+  },
+  {
+   "code": "c502",
+   "name": "（未翻译 c502）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c502_00.glb",
+   "bytes": 635548,
+   "vertices": 3175,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.28
+  },
+  {
+   "code": "c511",
+   "name": "（未翻译 c511）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c511_00.glb",
+   "bytes": 1388880,
+   "vertices": 5096,
+   "animations": [
+    "c511_aim_end",
+    "c511_aim_idle",
+    "c511_aim_start",
+    "c511_cover_reload",
+    "c511_cover_shot",
+    "c511_shot"
+   ],
+   "skins": 5,
+   "height_m": 5.045
+  },
+  {
+   "code": "c513",
+   "name": "（未翻译 c513）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c513_00.glb",
+   "bytes": 553216,
+   "vertices": 2752,
+   "animations": [],
+   "skins": 4,
+   "height_m": 5.126
+  },
+  {
+   "code": "c514",
+   "name": "（未翻译 c514）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c514_00.glb",
+   "bytes": 1054012,
+   "vertices": 4734,
+   "animations": [
+    "c514_aim_end",
+    "c514_aim_idle",
+    "c514_aim_start",
+    "c514_cover_reload",
+    "c514_cover_shot",
+    "c514_shot"
+   ],
+   "skins": 3,
+   "height_m": 5.668
+  },
+  {
+   "code": "c515",
+   "name": "（未翻译 c515）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c515_00.glb",
+   "bytes": 963904,
+   "vertices": 3724,
+   "animations": [],
+   "skins": 2,
+   "height_m": 5.045
+  },
+  {
+   "code": "c520",
+   "name": "（未翻译 c520）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c520_00.glb",
+   "bytes": 1068116,
+   "vertices": 3149,
+   "animations": [
+    "c520_aim_end",
+    "c520_aim_idle",
+    "c520_aim_start",
+    "c520_cover_reload",
+    "c520_cover_shot",
+    "c520_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.232
+  },
+  {
+   "code": "c521",
+   "name": "（未翻译 c521）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c521_00.glb",
+   "bytes": 1056992,
+   "vertices": 3956,
+   "animations": [
+    "c521_aim_end",
+    "c521_aim_idle",
+    "c521_aim_start",
+    "c521_cover_reload",
+    "c521_cover_shot",
+    "c521_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.876
+  },
+  {
+   "code": "c532",
+   "name": "（未翻译 c532）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c532_00.glb",
+   "bytes": 1009444,
+   "vertices": 3194,
+   "animations": [
+    "c532_aim_end",
+    "c532_aim_idle",
+    "c532_aim_start",
+    "c532_cover_reload",
+    "c532_cover_shot",
+    "c532_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.277
+  },
+  {
+   "code": "c550",
+   "name": "（未翻译 c550）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c550_00.glb",
+   "bytes": 1048896,
+   "vertices": 2905,
+   "animations": [
+    "c550_aim_end",
+    "c550_aim_idle",
+    "c550_aim_start",
+    "c550_cover_reload",
+    "c550_cover_shot",
+    "c550_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.293
+  },
+  {
+   "code": "c551",
+   "name": "（未翻译 c551）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c551_00.glb",
+   "bytes": 973556,
+   "vertices": 2851,
+   "animations": [
+    "c551_aim_end",
+    "c551_aim_idle",
+    "c551_aim_start",
+    "c551_cover_reload",
+    "c551_cover_shot",
+    "c551_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.13
+  },
+  {
+   "code": "c570",
+   "name": "（未翻译 c570）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c570_00.glb",
+   "bytes": 1028848,
+   "vertices": 4843,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.251
+  },
+  {
+   "code": "c580",
+   "name": "（未翻译 c580）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c580_00.glb",
+   "bytes": 1039744,
+   "vertices": 3416,
+   "animations": [
+    "c580_aim_end",
+    "c580_aim_idle",
+    "c580_aim_start",
+    "c580_cover_reload",
+    "c580_cover_shot",
+    "c580_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.531
+  },
+  {
+   "code": "c581",
+   "name": "（未翻译 c581）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c581_00.glb",
+   "bytes": 1128680,
+   "vertices": 3689,
+   "animations": [
+    "c581_aim_end",
+    "c581_aim_idle",
+    "c581_aim_start",
+    "c581_cover_reload",
+    "c581_cover_shot",
+    "c581_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.956
+  },
+  {
+   "code": "c582",
+   "name": "（未翻译 c582）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c582_00.glb",
+   "bytes": 1407548,
+   "vertices": 3762,
+   "animations": [
+    "c582_aim_end",
+    "c582_aim_idle",
+    "c582_aim_start",
+    "c582_cover_reload",
+    "c582_cover_shot",
+    "c582_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.138
+  },
+  {
+   "code": "c583",
+   "name": "（未翻译 c583）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c583_00.glb",
+   "bytes": 823248,
+   "vertices": 4745,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.125
+  },
+  {
+   "code": "c590",
+   "name": "（未翻译 c590）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c590_00.glb",
+   "bytes": 888852,
+   "vertices": 2930,
+   "animations": [
+    "c590_aim_end",
+    "c590_aim_idle",
+    "c590_aim_start",
+    "c590_cover_reload",
+    "c590_cover_shot",
+    "c590_shot"
+   ],
+   "skins": 2,
+   "height_m": 3.556
+  },
+  {
+   "code": "c600",
+   "name": "（未翻译 c600）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c600_00.glb",
+   "bytes": 765444,
+   "vertices": 4357,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.228
+  },
+  {
+   "code": "c601",
+   "name": "（未翻译 c601）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c601_00.glb",
+   "bytes": 840696,
+   "vertices": 5014,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.282
+  },
+  {
+   "code": "c610",
+   "name": "（未翻译 c610）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c610_00.glb",
+   "bytes": 615328,
+   "vertices": 2929,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.193
+  },
+  {
+   "code": "c620",
+   "name": "（未翻译 c620）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c620_00.glb",
+   "bytes": 893580,
+   "vertices": 5816,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.73
+  },
+  {
+   "code": "c800",
+   "name": "（未翻译 c800）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c800_00.glb",
+   "bytes": 779832,
+   "vertices": 2163,
+   "animations": [
+    "c800_aim_end",
+    "c800_aim_idle",
+    "c800_aim_start",
+    "c800_cover_reload",
+    "c800_cover_shot",
+    "c800_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.104
+  },
+  {
+   "code": "c801",
+   "name": "（未翻译 c801）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c801_00.glb",
+   "bytes": 896096,
+   "vertices": 2289,
+   "animations": [
+    "c801_aim_end",
+    "c801_aim_idle",
+    "c801_aim_start",
+    "c801_cover_reload",
+    "c801_cover_shot",
+    "c801_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.383
+  },
+  {
+   "code": "c802",
+   "name": "（未翻译 c802）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c802_00.glb",
+   "bytes": 650496,
+   "vertices": 1881,
+   "animations": [
+    "c802_aim_end",
+    "c802_aim_idle",
+    "c802_aim_start",
+    "c802_cover_reload",
+    "c802_cover_shot",
+    "c802_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.389
+  },
+  {
+   "code": "c810",
+   "name": "（未翻译 c810）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c810_00.glb",
+   "bytes": 844344,
+   "vertices": 6480,
+   "animations": [],
+   "skins": 4,
+   "height_m": 3.025
+  },
+  {
+   "code": "c811",
+   "name": "（未翻译 c811）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c811_00.glb",
+   "bytes": 471764,
+   "vertices": 2575,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.136
+  },
+  {
+   "code": "c812",
+   "name": "（未翻译 c812）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c812_00.glb",
+   "bytes": 1091108,
+   "vertices": 7011,
+   "animations": [
+    "c812_aim_end",
+    "c812_aim_idle",
+    "c812_aim_start",
+    "c812_cover_reload",
+    "c812_cover_shot",
+    "c812_shot"
+   ],
+   "skins": 2,
+   "height_m": 2.336
+  },
+  {
+   "code": "c820",
+   "name": "（未翻译 c820）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c820_00.glb",
+   "bytes": 916980,
+   "vertices": 4336,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.224
+  },
+  {
+   "code": "c821",
+   "name": "（未翻译 c821）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c821_00.glb",
+   "bytes": 602724,
+   "vertices": 2950,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.516
+  },
+  {
+   "code": "c822",
+   "name": "（未翻译 c822）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c822_00.glb",
+   "bytes": 692684,
+   "vertices": 4044,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.186
+  },
+  {
+   "code": "c830",
+   "name": "（未翻译 c830）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c830_00.glb",
+   "bytes": 589268,
+   "vertices": 2910,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.109
+  },
+  {
+   "code": "c831",
+   "name": "（未翻译 c831）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c831_00.glb",
+   "bytes": 590444,
+   "vertices": 3166,
+   "animations": [],
+   "skins": 2,
+   "height_m": 3.411
+  },
+  {
+   "code": "c832",
+   "name": "（未翻译 c832）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c832_00.glb",
+   "bytes": 612468,
+   "vertices": 3219,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.153
+  },
+  {
+   "code": "c833",
+   "name": "（未翻译 c833）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c833_00.glb",
+   "bytes": 569364,
+   "vertices": 3145,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.148
+  },
+  {
+   "code": "c834",
+   "name": "（未翻译 c834）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c834_00.glb",
+   "bytes": 670916,
+   "vertices": 3351,
+   "animations": [],
+   "skins": 3,
+   "height_m": 3.053
+  },
+  {
+   "code": "c835",
+   "name": "（未翻译 c835）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c835_00.glb",
+   "bytes": 484800,
+   "vertices": 2656,
+   "animations": [],
+   "skins": 1,
+   "height_m": 2.178
+  },
+  {
+   "code": "c836",
+   "name": "（未翻译 c836）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c836_00.glb",
+   "bytes": 564092,
+   "vertices": 3789,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.258
+  },
+  {
+   "code": "c840",
+   "name": "（未翻译 c840）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c840_00.glb",
+   "bytes": 597624,
+   "vertices": 3105,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.144
+  },
+  {
+   "code": "c841",
+   "name": "（未翻译 c841）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c841_00.glb",
+   "bytes": 585456,
+   "vertices": 2424,
+   "animations": [],
+   "skins": 2,
+   "height_m": 3.293
+  },
+  {
+   "code": "c842",
+   "name": "（未翻译 c842）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c842_00.glb",
+   "bytes": 592112,
+   "vertices": 2785,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.174
+  },
+  {
+   "code": "c850",
+   "name": "（未翻译 c850）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c850_00.glb",
+   "bytes": 784968,
+   "vertices": 5656,
+   "animations": [],
+   "skins": 2,
+   "height_m": 3.958
+  },
+  {
+   "code": "c851",
+   "name": "（未翻译 c851）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c851_00.glb",
+   "bytes": 692364,
+   "vertices": 4334,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.878
+  },
+  {
+   "code": "c852",
+   "name": "（未翻译 c852）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c852_00.glb",
+   "bytes": 652952,
+   "vertices": 3133,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.141
+  },
+  {
+   "code": "c860",
+   "name": "（未翻译 c860）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c860_00.glb",
+   "bytes": 750576,
+   "vertices": 4425,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.17
+  },
+  {
+   "code": "c861",
+   "name": "（未翻译 c861）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c861_00.glb",
+   "bytes": 673256,
+   "vertices": 4837,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.073
+  },
+  {
+   "code": "c862",
+   "name": "（未翻译 c862）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c862_00.glb",
+   "bytes": 749340,
+   "vertices": 6453,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.616
+  },
+  {
+   "code": "c870",
+   "name": "（未翻译 c870）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c870_00.glb",
+   "bytes": 699836,
+   "vertices": 3131,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.13
+  },
+  {
+   "code": "c871",
+   "name": "（未翻译 c871）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c871_00.glb",
+   "bytes": 703544,
+   "vertices": 3955,
+   "animations": [],
+   "skins": 2,
+   "height_m": 4.266
+  },
+  {
+   "code": "c872",
+   "name": "（未翻译 c872）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c872_00.glb",
+   "bytes": 676736,
+   "vertices": 4091,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.156
+  },
+  {
+   "code": "c901",
+   "name": "（未翻译 c901）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c901_00.glb",
+   "bytes": 753472,
+   "vertices": 3959,
+   "animations": [],
+   "skins": 3,
+   "height_m": 2.197
+  },
+  {
+   "code": "c907",
+   "name": "（未翻译 c907）",
+   "weapon": "",
+   "rarity": "",
+   "skin": "00",
+   "file": "c907_00.glb",
+   "bytes": 541388,
+   "vertices": 2112,
+   "animations": [],
+   "skins": 2,
+   "height_m": 2.203
+  }
+ ]
 }

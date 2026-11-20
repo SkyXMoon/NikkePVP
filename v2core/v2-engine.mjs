@@ -1,6 +1,7 @@
 import { Texture } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { toRunnerConfig } from '../simulator/src/core/data.js';
+import { decodeCharacter } from '../simulator/src/core/db-codec.js';
 import { groupByValue } from '../simulator/src/core/stat.js';
 import { mergeNativeData } from '../simulator/src/stage/native-data.js';
 import { addCnShootingProfiles } from '../simulator/src/stage/cn-roster.js';
@@ -63,10 +64,15 @@ async function loadJson(url) {
  *
  *  Two on-disk shapes have to behave the same: the published build writes an index
  *  (`characterFiles`) with one file per character, while the source tree keeps the
- *  same rows inline. A team may legitimately mix rosters (a player comparing the
- *  two clients) and the regions do not share a character list (CN 161, global 213),
- *  so a missing id falls back to the other region's file instead of leaving
- *  `undefined` behind — which used to take the whole calculation down.
+ *  same rows inline. The published per-character files are `db-codec` partitions —
+ *  the same encoder the mini program bundle uses, so there is one format and one
+ *  decoder, and only the packaging differs (one `{v,d}` payload per character here,
+ *  one `{v,t,c}` document per region there; the string table lives in this index).
+ *  `decodeCharacter` also returns a non-encoded row untouched, which is why the
+ *  inline source shape needs no special case. A team may legitimately mix rosters
+ *  (a player comparing the two clients) and the regions do not share a character
+ *  list (CN 161, global 213), so a missing id falls back to the other region's file
+ *  instead of leaving `undefined` behind — which used to take the whole calculation down.
  *  The returned map is exact, because everything region-bound downstream (shot
  *  profile, muzzle binding, arena model) has to follow the same source.
  */
@@ -76,9 +82,11 @@ async function loadCharacterData(region, resourceIds) {
   const ids = [...new Set(resourceIds)];
   const primary = await loadJson(fileFor(region));
   const has = (doc, id) => (doc?.characterFiles ? !!doc.characterFiles[id] : !!doc?.[id]);
-  const read = async (doc, id) => doc?.characterFiles
-    ? (doc.characterFiles[id] ? await loadJson(doc.characterFiles[id]) : undefined)
-    : doc?.[id];
+  const read = async (doc, id) => {
+    if (!doc?.characterFiles) return doc?.[id];
+    if (!doc.characterFiles[id]) return undefined;
+    return decodeCharacter(await loadJson(doc.characterFiles[id]), doc.t);
+  };
   const missing = ids.filter(id => !has(primary, id));
   const fallback = missing.length ? await loadJson(fileFor(other)) : null;
   const crossRegion = new Map();
