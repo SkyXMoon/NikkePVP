@@ -6,6 +6,10 @@ import { createArenaCalculator } from '../simulator/src/calculator/arena-calcula
 // 小程序分包用同一个函数、只换数据来源；抄第二份必然漂移——少写一个字段不会报错，
 // 只会让某个角色的充能线静默消失。
 import { assembleLineup, applyTeamEffects, emptyActor, HITSCAN_FIRE_TYPES } from '../simulator/src/calculator/lineup.js';
+// 模型加载完之后要自己验一遍 `cover_shot` 的 Shot 事件：GLB 可能模型正常、动画是 0 条，
+// 这种角色能通过 loadModel、却会在 createArenaCalculator 建 sampler 时整体抛出，
+// 结果是两个队的图一起没了。判定口径必须和那里完全一致，所以直接用同一个函数。
+import { extractShotEvents } from '../simulator/src/stage/animation.js';
 import { projectSiteTeam, specialChargeRows } from './v2-result.mjs';
 import { cloneCalculationModel } from './v2-model.mjs';
 import { buildJackalLinkTimeline } from './v2-link-groups.mjs';
@@ -217,10 +221,20 @@ async function calculate(input) {
     const modelIndex = actor.config.assetRegion && actor.config.assetRegion !== input.region
       ? await arenaAssetIndex(actor.config.assetRegion) : index;
     try {
-      models.set(actor.config.id, await loadModel(actor.config.assetCode, modelIndex, assetRegion));
+      const model = await loadModel(actor.config.assetCode, modelIndex, assetRegion);
+      // 导出的 GLB 有一批是「有模型、0 条动画」：c412（特蕾娜）、c103（拉普拉斯：究极英雄）
+      // 这类角色在 V2 里靠 `cover_shot` 采样枪口，没动画就取不到 Shot 时间。
+      // 以前这一步漏检，抛错在 createArenaCalculator 里，整次计算失败、图表全空；
+      // 现在按同一个判据提前拦下，和缺模型走同一条降级路径。
+      const clipCode = actor.config.assetCode ?? actor.config.id;
+      if (!model?.animations?.some(clip => clip.name === `${clipCode}_cover_shot`)
+        || !Number.isFinite(extractShotEvents(model, clipCode).cover_shot)) {
+        throw new Error('SD 动画里没有 cover_shot 的 Shot 事件');
+      }
+      models.set(actor.config.id, model);
     } catch (error) {
       const key = actor.config.team === 0 ? 'attack' : 'defense';
-      notes[key].push(`${actor.character.name} 的 SD 模型缺失（${error.message}），本次不参与计算`);
+      notes[key].push(`${actor.character.name} 的 SD 资源不可用（${error.message}），本次不参与计算`);
       actors[actors.indexOf(actor)] = emptyActor(key, actor.config.slotIndex);
     }
   }));
