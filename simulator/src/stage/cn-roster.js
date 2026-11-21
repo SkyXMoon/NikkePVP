@@ -60,13 +60,18 @@ export function selectableCnCharacters(roster, data, index, native) {
   }).map(entry=>({code:`c${entry.resourceId.padStart(3,'0')}`,name:entry.name}));
 }
 
-export function readLineup(params, fallback, allowed) {
+/**
+ * 只校验「攻守各 5 名」这一件事。
+ *
+ * 角色是否真的能演练，交给舞台逐个判断：缺角色表、缺枪口绑定、缺模型都只降级那一个
+ * 位置并在状态栏点名，不能因为其中一个 code 不认识就让整页打不开。`allowed` 参数保留
+ * 给调试页的候选列表用，这里不再据此拦截。
+ */
+export function readLineup(params, fallback, _allowed) {
   const red=params.get('red'), blue=params.get('blue');
   if (!red && !blue) return fallback;
   const lineup={red:(red??'').split(','),blue:(blue??'').split(',')};
-  const codes=[...lineup.red,...lineup.blue];
-  if (lineup.red.length!==5 || lineup.blue.length!==5 ||
-      new Set(codes).size!==10 || codes.some(code=>!allowed.has(code)))
-    throw new Error('阵容必须包含十名不同的可用国服角色');
+  if (lineup.red.length!==5 || lineup.blue.length!==5)
+    throw new Error('攻守两侧各需要 5 名角色');
   return lineup;
 }

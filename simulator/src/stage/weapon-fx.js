@@ -109,11 +109,13 @@ export function createNativeFx(profile) {
 }
 
 export function selectBoundEffects(cfg,contract) {
-  const binding=contract.characters[cfg.id];
-  if(!binding)throw new Error(`Missing arena FX binding: ${cfg.id}`);
+  // cfg.id 是「这一位」的实例键（攻守可有同名角色），特效表按角色码索引。
+  const code=cfg.assetCode??cfg.id;
+  const binding=contract.characters[code];
+  if(!binding)throw new Error(`Missing arena FX binding: ${code}`);
   const field=k=>binding.fields[k]?{...binding.fields[k],profile:contract.assets[binding.fields[k].name]}:null;
   const model=field('Model'),hit=field('Hit');
-  if(model&&!model.profile || hit&&!hit.profile)throw new Error(`Missing arena FX prefab: ${cfg.id}`);
+  if(model&&!model.profile || hit&&!hit.profile)throw new Error(`Missing arena FX prefab: ${code}`);
   return {binding,model,hit,muzzle:field('Muzzle'),trail:field('Trail')??field('Trance')};
 }
 

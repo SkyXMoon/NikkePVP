@@ -76,7 +76,7 @@ const FRONTEND_ADMIN_EMAILS = new Set(["307919309@qq.com"]);
 const CHARACTER_DETAIL_LONG_PRESS_DELAY_MS = 550;
 const CHARACTER_DETAIL_ASSET_TIMEOUT_MS = 3500;
 const CHARACTER_DETAIL_LEVEL_MAX = 1400;
-const APP_VERSION = "V1.80.1162";
+const APP_VERSION = "V1.80.1167";
 let arcaWorkspace=null,arcaWorkspacePromise=null;
 let privateHelpClientPromise=null;
 let pendingPrivateHelpOptions=null;
@@ -788,6 +788,7 @@ const els = {
   paidPModeButton: document.querySelector("#paidPModeButton"),
   teamShareButton: document.querySelector("#teamShareButton"),
   teamHelpButton: document.querySelector("#teamHelpButton"),
+  rehearseTeamButton: document.querySelector("#rehearseTeamButton"),
   saveTeamPresetButton: document.querySelector("#saveTeamPresetButton"),
   loadTeamPresetButton: document.querySelector("#loadTeamPresetButton"),
   clearTeamButton: document.querySelector("#clearTeamButton"),
@@ -2031,6 +2032,14 @@ function applyLanguage(language) {
     els.teamHelpButton.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Solutions" : "解题"));
     els.teamHelpButton.setAttribute("aria-label", helpLabel);
     els.teamHelpButton.setAttribute("title", helpLabel);
+  }
+  if (els.rehearseTeamButton) {
+    const rehearseLabel = localize("用当前队伍逐帧演练", "Rehearse this team frame by frame");
+    els.rehearseTeamButton.querySelector(".team-action-text")?.replaceChildren(document.createTextNode(isEnglishLanguage() ? "Rehearse" : "演练"));
+    els.rehearseTeamButton.setAttribute("aria-label", rehearseLabel);
+    els.rehearseTeamButton.setAttribute("title", rehearseLabel);
+    // 语言切换会重写 title，会员锁态要在它之后重新盖一次。
+    syncRehearseFeatureVisibility();
   }
   if (els.saveTeamPresetButton) {
     els.saveTeamPresetButton.setAttribute("aria-label", ui.saveTeamPreset || localize("保存", "Save team"));
@@ -8499,6 +8508,8 @@ function clearAccountStatus() {
   state.entitlementLoaded = false;
   state.isAdmin = false;
   syncAdminPageButtonVisibility();
+  // 登出/换号后会员权限立即失效，演练按钮要回到锁定态。
+  syncRehearseFeatureVisibility();
 }
 
 function getAuthFailureCode(payload) {
@@ -10188,6 +10199,24 @@ function syncChampionDataFeatureVisibility() {
   els.championDataButton.classList.toggle("is-locked", !enabled);
   els.championDataButton.setAttribute("aria-disabled", enabled ? "false" : "true");
   els.championDataButton.setAttribute("title", title);
+  syncRehearseFeatureVisibility();
+}
+
+/** 演练按钮的会员锁态。点击仍可触发，由 ensureRehearseAccess 统一弹提示/引导登录，
+ *  这样「按钮点了没反应」不会发生。 */
+function syncRehearseFeatureVisibility() {
+  if (!els.rehearseTeamButton) return;
+  const hasSession = Boolean(state.authSession?.accessToken);
+  const enabled = isRehearseMemberActive();
+  els.rehearseTeamButton.classList.toggle("is-locked", !enabled);
+  // 不设 aria-disabled：这个按钮在锁定时仍然要能点（点了给登录/开通指引），
+  // 标成 disabled 会让读屏与自动化都当它是死按钮，反而点不动。
+  const label = enabled
+    ? localize("用当前队伍逐帧演练", "Rehearse this team frame by frame")
+    : hasSession
+      ? localize("演练需要会员权限", "Rehearsal requires a membership")
+      : localize("演练需要登录并开通会员", "Sign in and subscribe to rehearse");
+  els.rehearseTeamButton.setAttribute("title", label);
 }
 
 function syncAdminPageButtonVisibility() {
@@ -16632,6 +16661,98 @@ async function shareCurrentTeamUrl() {
 async function handleCopyButtonClick() {
   return (await loadTeamShareActionsModule()).handleCopyButtonClick();
 }
+
+/** 演练用的角色码：`legacyId`（站点角色 id）→ `gameCharacterId` 的映射在主表里，
+ *  头像路径只有旧版角色才有 `cNNN_NN.webp`，不能拿来当唯一依据。主表按需加载一次，
+ *  失败时退回从头像路径解析，两者都拿不到就让该位置报缺。 */
+let rehearseAssetMasterPromise = null;
+function loadRehearseAssetMaster() {
+  if (!rehearseAssetMasterPromise) {
+    rehearseAssetMasterPromise = fetch("/src/data/character-assets.master.json", { cache: "force-cache" })
+      .then((response) => (response.ok ? response.json() : null))
+      .catch(() => null);
+  }
+  return rehearseAssetMasterPromise;
+}
+
+function characterAssetCode(character, master) {
+  const linked = master?.linked?.find((item) => String(item.legacyId) === String(character?.id));
+  if (linked?.gameCharacterId) return `c${String(linked.gameCharacterId).padStart(3, "0")}`;
+  const match = /\/c(\d{3})_\d{2}\.(?:webp|png)/i.exec(character?.avatarUrl || character?.standardAvatarUrl || "");
+  return match ? `c${match[1]}` : null;
+}
+
+/** 演练是会员功能。站内「会员」目前就是 season_data 这一条权益（购买会员时由服务端
+ *  写入 user_entitlements，30 天/份），所以这里直接复用同一判据，不另开后端 key。
+ *  将来若拆出独立 feature_key，只需改这两处。
+ */
+function isRehearseMemberActive() {
+  return canUseSeasonDataFeature();
+}
+
+/** 演练前的会员校验。返回 false 表示已经给过提示、不要继续跳转。 */
+async function ensureRehearseAccess() {
+  const session = state.authSession || getStoredAuthSession();
+  if (!session?.accessToken) {
+    showToast(localize("演练是会员功能，请先登录账号", "Rehearsal is a member feature. Sign in first."), { duration: 3600 });
+    void openAccountModal("login");
+    return false;
+  }
+  if (isRehearseMemberActive()) return true;
+  // 刚登录、或本次会话还没拉过权益时先补拉一次：否则会员会被误判成没权限。
+  if (!state.entitlementLoaded) {
+    await refreshAccountStatus().catch(() => null);
+    if (isRehearseMemberActive()) return true;
+  }
+  // 已登录但不是会员：不要再弹登录框（会让人以为登录失败），只说清楚去哪儿开通。
+  showToast(localize("演练是会员专属功能，可在小程序「账号 → 会员与我的订单」开通后使用", "Rehearsal requires an active membership."), { duration: 4800 });
+  return false;
+}
+
+/** 「演练」入口：把当前这一行队伍（攻守各 5 位）交给独立的 3D 逐帧页。
+ *
+ *  页面自己按需下载 10 个 SD 模型与整张场地模型，所以这里只带参数，不预加载任何
+ *  资源——主页面正在算的那一版不因为点了演练而变慢。攻守两侧允许同一角色：
+ *  舞台按「实例键（code#R1/B1）」区分，资源仍按角色码取。
+ */
+async function openRehearse() {
+  // 门槛放在最前面：非会员不该下载那 20MB 模型，也不该先看到「缺角色」这类无关提示。
+  if (!(await ensureRehearseAccess())) return;
+  const master = await loadRehearseAssetMaster();
+  const empty = [];
+  const unmapped = [];
+  const codes = [];
+  for (const [side, label, team] of [["red", "攻方", state.team], ["blue", "守方", state.defenseTeam]]) {
+    for (let i = 0; i < 5; i += 1) {
+      const character = team?.[i] || null;
+      if (!character) { empty.push(`${label}${i + 1}`); codes.push(null); continue; }
+      const code = characterAssetCode(character, master);
+      if (!code) unmapped.push(character.name);
+      codes.push(code);
+    }
+  }
+  if (empty.length) {
+    showToast(localize(`${empty.join("、")} 还没有角色，先补齐十人再演练`, `${empty.length} slots are empty; fill ten first`));
+    return;
+  }
+  if (unmapped.length) {
+    showToast(localize(`这些角色缺少模型编号，暂时无法演练：${unmapped.join("、")}`, `No model code for: ${unmapped.join(", ")}`));
+    return;
+  }
+  // 攻守两侧出现同一角色是正常对局（敌方也可能用她），这里不做去重。
+  const region = state.filters.region === "cn" ? "cn" : "global";
+  const arena = isPaidArenaModeActive()
+    ? (state.paidArenaMode === "c" ? "arenachampion" : "arenaspecial")
+    : "arenanormal";
+  const params = new URLSearchParams({
+    region,
+    arena,
+    red: codes.slice(0, 5).join(","),
+    blue: codes.slice(5).join(","),
+  });
+  // 直接在当前标签切过去：演练完按返回就回到这一版队伍，不需要多留一个标签页。
+  location.assign(`/rehearse.html?${params.toString()}`);
+}
 function suppressContextMenu(event) {
   event.preventDefault();
   event.stopPropagation();
@@ -17699,6 +17820,7 @@ function bindEvents() {
   els.loadTeamPresetButton?.addEventListener("click", openTeamPresetModal);
   els.clearTeamButton.addEventListener("click", clearTeam);
   els.teamShareButton?.addEventListener("click", handleCopyButtonClick);
+  els.rehearseTeamButton?.addEventListener("click", openRehearse);
   els.teamHelpButton?.addEventListener("click", () => {
     markFeatureHintSeenByElementId("helpCenterButton");
     openHelpCenterModal();
@@ -18056,6 +18178,10 @@ async function bootstrap() {
     if (shouldOpenPasswordRecovery) { dismissGuidedTourOverlay(); openAccountModal("update-password"); }
     else if (capturedInviteCodeOnLoad && state.authSession?.accessToken) openAccountModal("login");
     else if (capturedInviteCodeOnLoad && !state.authSession?.accessToken) openAccountModal("register");
+    else if (new URLSearchParams(location.search).get("signin") === "1" && !state.authSession?.accessToken) {
+      // 会员功能（演练）被拦后回主站，直接给登录表单，别让人再找一次入口。
+      openAccountModal("login");
+    }
     else if (getPendingArcaKey() && !state.authSession?.accessToken) {
       showToast(localize("注册或登录后即可绑定阿卡 Key。", "Register or sign in to connect your Arca key."));
       openAccountModal("register");

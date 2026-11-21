@@ -4085,6 +4085,16 @@ input:focus {
   hyphens: none;
 }
 
+/* 演练是会员功能：未登录或非会员时压暗，但按钮仍可点，点了会给出登录/开通会员的提示。 */
+.rehearse-team-button.is-locked {
+  opacity: 0.5;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rehearse-team-button.is-locked .team-action-text {
+  color: var(--muted, #8b93a1);
+}
+
 :root[data-language="en"] .team-action-text {
   font-size: 11px;
   line-height: 1;

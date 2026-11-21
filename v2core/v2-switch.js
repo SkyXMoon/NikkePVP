@@ -24,7 +24,7 @@
  */
 (function () {
   const STORAGE_KEY = 'nikke-calc-engine';
-  const V2_VERSION = 'V1.80.1162';
+  const V2_VERSION = 'V1.80.1167';
 
   /** 会被 V2 接管的全局入口。顺序不重要，名必须与 app.js / V2 侧一致。 */
   const ENTRIES = [

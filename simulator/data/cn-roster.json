@@ -1,0 +1,1021 @@
+{
+  "schemaVersion": 2,
+  "region": "cn",
+  "source": "F:/MarvsWorkSpace/NikkeData/ToGithub/cn/data/nikke_characters.csv",
+  "characters": [
+    {
+      "legacyId": 132,
+      "resourceId": "10",
+      "name": "拉毗",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 20,
+      "resourceId": "11",
+      "name": "尼恩",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 5,
+      "resourceId": "12",
+      "name": "阿妮斯",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": null,
+      "resourceId": "13",
+      "name": "玛丽安",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 185,
+      "resourceId": "14",
+      "name": "尼恩：蓝色海洋",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 54,
+      "resourceId": "15",
+      "name": "阿妮斯：闪耀夏日",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 181,
+      "resourceId": "16",
+      "name": "拉毗：小红帽",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 202,
+      "resourceId": "20",
+      "name": "德尔塔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 160,
+      "resourceId": "22",
+      "name": "西格娜",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 63,
+      "resourceId": "30",
+      "name": "波莉",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 146,
+      "resourceId": "32",
+      "name": "米兰达",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 46,
+      "resourceId": "33",
+      "name": "基里",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 147,
+      "resourceId": "40",
+      "name": "D",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 98,
+      "resourceId": "43",
+      "name": "D：杀手妻子",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 94,
+      "resourceId": "60",
+      "name": "贝洛塔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 48,
+      "resourceId": "61",
+      "name": "米卡",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 27,
+      "resourceId": "62",
+      "name": "米卡：雪地伙伴",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 129,
+      "resourceId": "70",
+      "name": "布丽德",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 78,
+      "resourceId": "71",
+      "name": "索林",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 175,
+      "resourceId": "72",
+      "name": "迪塞尔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 73,
+      "resourceId": "73",
+      "name": "布丽德：静默轨道",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 72,
+      "resourceId": "74",
+      "name": "索林：霜之旅票",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 35,
+      "resourceId": "75",
+      "name": "迪塞尔：冬日甜心",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 7,
+      "resourceId": "80",
+      "name": "桑迪",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 152,
+      "resourceId": "82",
+      "name": "丽塔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 174,
+      "resourceId": "90",
+      "name": "艾玛",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 41,
+      "resourceId": "91",
+      "name": "贝斯蒂",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 90,
+      "resourceId": "92",
+      "name": "银华",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 189,
+      "resourceId": "93",
+      "name": "艾玛：战术升级",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 87,
+      "resourceId": "94",
+      "name": "贝斯蒂：战术升级",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 114,
+      "resourceId": "95",
+      "name": "银华：战术升级",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 25,
+      "resourceId": "100",
+      "name": "拉普拉斯",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 15,
+      "resourceId": "101",
+      "name": "德雷克",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 106,
+      "resourceId": "102",
+      "name": "麦斯威尔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 77,
+      "resourceId": "110",
+      "name": "克拉乌",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 6,
+      "resourceId": "111",
+      "name": "豺狼",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 17,
+      "resourceId": "112",
+      "name": "毒蛇",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 93,
+      "resourceId": "120",
+      "name": "N102",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 40,
+      "resourceId": "121",
+      "name": "安妮：奇迹仙女",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 67,
+      "resourceId": "130",
+      "name": "梅里",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 22,
+      "resourceId": "131",
+      "name": "佩珀",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 123,
+      "resourceId": "132",
+      "name": "梅里：海湾女神",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 23,
+      "resourceId": "140",
+      "name": "舒格",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 107,
+      "resourceId": "141",
+      "name": "米尔克",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 124,
+      "resourceId": "142",
+      "name": "普琳玛",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 116,
+      "resourceId": "143",
+      "name": "米尔克：花漾兔女郎",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 143,
+      "resourceId": "150",
+      "name": "尤莉亚",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 96,
+      "resourceId": "160",
+      "name": "尤妮",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 83,
+      "resourceId": "161",
+      "name": "米哈拉",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 168,
+      "resourceId": "162",
+      "name": "米哈拉：羁绊锁链",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 137,
+      "resourceId": "170",
+      "name": "普丽瓦蒂",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 120,
+      "resourceId": "171",
+      "name": "尤尔夏",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 121,
+      "resourceId": "172",
+      "name": "艾德米",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 179,
+      "resourceId": "180",
+      "name": "吉萝婷",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 19,
+      "resourceId": "181",
+      "name": "梅登",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 131,
+      "resourceId": "182",
+      "name": "吉萝婷：寒冬杀手",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 14,
+      "resourceId": "183",
+      "name": "梅登：冰玫瑰",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 91,
+      "resourceId": "190",
+      "name": "鲁德米拉",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 167,
+      "resourceId": "191",
+      "name": "爱丽丝",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 140,
+      "resourceId": "192",
+      "name": "托比",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 69,
+      "resourceId": "193",
+      "name": "尼夫",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 171,
+      "resourceId": "194",
+      "name": "鲁德米拉：冬日之主",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 149,
+      "resourceId": "195",
+      "name": "爱丽丝：仙境兔女郎",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 133,
+      "resourceId": "200",
+      "name": "露菲",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 95,
+      "resourceId": "201",
+      "name": "杨",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 102,
+      "resourceId": "202",
+      "name": "朵拉",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 134,
+      "resourceId": "203",
+      "name": "露菲：冬日购物狂",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 99,
+      "resourceId": "210",
+      "name": "艾可希雅",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 158,
+      "resourceId": "212",
+      "name": "诺薇儿",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 80,
+      "resourceId": "220",
+      "name": "白雪公主",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 34,
+      "resourceId": "221",
+      "name": "长发公主",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 37,
+      "resourceId": "222",
+      "name": "红莲",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 163,
+      "resourceId": "223",
+      "name": "娜由塔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 191,
+      "resourceId": "224",
+      "name": "白雪公主：纯真年代",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 56,
+      "resourceId": "225",
+      "name": "红莲：暗影",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 112,
+      "resourceId": "226",
+      "name": "长发公主：纯洁恩典",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 57,
+      "resourceId": "230",
+      "name": "哈兰",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 71,
+      "resourceId": "231",
+      "name": "伊莎贝尔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 12,
+      "resourceId": "232",
+      "name": "诺雅",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 139,
+      "resourceId": "233",
+      "name": "桃乐丝",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 70,
+      "resourceId": "234",
+      "name": "桃乐丝：机缘巧遇",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 9,
+      "resourceId": "240",
+      "name": "鲁玛妮",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 148,
+      "resourceId": "241",
+      "name": "艾菲涅尔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 130,
+      "resourceId": "242",
+      "name": "富克旺",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 166,
+      "resourceId": "260",
+      "name": "神罚",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 29,
+      "resourceId": "261",
+      "name": "尼希利斯塔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 26,
+      "resourceId": "262",
+      "name": "莉贝雷利奥",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 128,
+      "resourceId": "270",
+      "name": "布兰儿",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 21,
+      "resourceId": "271",
+      "name": "诺亚尔",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 89,
+      "resourceId": "272",
+      "name": "露姬",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 170,
+      "resourceId": "280",
+      "name": "罗珊娜",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 84,
+      "resourceId": "281",
+      "name": "牡丹",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 122,
+      "resourceId": "282",
+      "name": "樱花",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 135,
+      "resourceId": "283",
+      "name": "罗珊娜：高雅海洋",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 110,
+      "resourceId": "284",
+      "name": "樱花：夏日绽放",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 53,
+      "resourceId": "290",
+      "name": "玛娜",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 62,
+      "resourceId": "291",
+      "name": "艾瑟儿",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 197,
+      "resourceId": "300",
+      "name": "士兵E.G.",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 207,
+      "resourceId": "301",
+      "name": "士兵F.A.",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 208,
+      "resourceId": "302",
+      "name": "产品08",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 206,
+      "resourceId": "303",
+      "name": "产品12",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 196,
+      "resourceId": "304",
+      "name": "iDoll花",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 209,
+      "resourceId": "305",
+      "name": "iDoll海",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 198,
+      "resourceId": "306",
+      "name": "士兵O.W.",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 195,
+      "resourceId": "307",
+      "name": "产品23",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 210,
+      "resourceId": "308",
+      "name": "iDoll太阳",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 81,
+      "resourceId": "310",
+      "name": "爱德",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 104,
+      "resourceId": "311",
+      "name": "可可",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 186,
+      "resourceId": "312",
+      "name": "索达",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 60,
+      "resourceId": "313",
+      "name": "普丽瓦蒂：不友善的女仆",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 24,
+      "resourceId": "314",
+      "name": "索达：闪亮兔女郎",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 115,
+      "resourceId": "315",
+      "name": "爱德：特工兔女郎",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 66,
+      "resourceId": "321",
+      "name": "玛律恰那",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 178,
+      "resourceId": "330",
+      "name": "皇冠",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 218,
+      "resourceId": "331",
+      "name": "钟鸣",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 153,
+      "resourceId": "350",
+      "name": "马斯特",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 38,
+      "resourceId": "351",
+      "name": "安克",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 1,
+      "resourceId": "352",
+      "name": "海伦",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 126,
+      "resourceId": "353",
+      "name": "海伦：海蓝宝石",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 184,
+      "resourceId": "354",
+      "name": "马斯特：浪漫的女仆",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 39,
+      "resourceId": "355",
+      "name": "安克：天真的女仆",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 180,
+      "resourceId": "361",
+      "name": "吉洛",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 157,
+      "resourceId": "380",
+      "name": "尼罗",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 44,
+      "resourceId": "381",
+      "name": "饼干",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 65,
+      "resourceId": "382",
+      "name": "莱昂纳",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 28,
+      "resourceId": "390",
+      "name": "茨瓦伊",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 97,
+      "resourceId": "391",
+      "name": "爱因",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 151,
+      "resourceId": "392",
+      "name": "莱伊",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 61,
+      "resourceId": "400",
+      "name": "吉尔提",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 138,
+      "resourceId": "401",
+      "name": "森",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 76,
+      "resourceId": "402",
+      "name": "坎西",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 92,
+      "resourceId": "403",
+      "name": "坎西：逃生女王",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 177,
+      "resourceId": "411",
+      "name": "芙罗拉",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 49,
+      "resourceId": "430",
+      "name": "诺伊斯",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 159,
+      "resourceId": "431",
+      "name": "沃纶姆",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 173,
+      "resourceId": "432",
+      "name": "阿莉亚",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 68,
+      "resourceId": "450",
+      "name": "娜嘉",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 45,
+      "resourceId": "451",
+      "name": "蒂亚",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 111,
+      "resourceId": "470",
+      "name": "小红帽",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 187,
+      "resourceId": "500",
+      "name": "伊莱格",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 109,
+      "resourceId": "501",
+      "name": "特罗尼",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 188,
+      "resourceId": "502",
+      "name": "伊莱格：BOOM与惊吓",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 169,
+      "resourceId": "511",
+      "name": "灰姑娘",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 161,
+      "resourceId": "513",
+      "name": "小美人鱼",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 36,
+      "resourceId": "514",
+      "name": "格拉维",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 101,
+      "resourceId": "520",
+      "name": "布蕾德",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 47,
+      "resourceId": "521",
+      "name": "克劳斯特",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 42,
+      "resourceId": "550",
+      "name": "贝伊",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 150,
+      "resourceId": "551",
+      "name": "克雷伊",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 85,
+      "resourceId": "580",
+      "name": "潘托姆",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 136,
+      "resourceId": "590",
+      "name": "莫莉",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 119,
+      "resourceId": "620",
+      "name": "白鹤",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 127,
+      "resourceId": "810",
+      "name": "2B",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 32,
+      "resourceId": "811",
+      "name": "A2",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 13,
+      "resourceId": "812",
+      "name": "帕斯卡",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 113,
+      "resourceId": "832",
+      "name": "玛丽",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 142,
+      "resourceId": "850",
+      "name": "伊芙",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 59,
+      "resourceId": "851",
+      "name": "渡鸦",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 201,
+      "resourceId": "852",
+      "name": "百合",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 164,
+      "resourceId": "860",
+      "name": "千束",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 118,
+      "resourceId": "861",
+      "name": "泷奈",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 199,
+      "resourceId": "862",
+      "name": "胡桃",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 224,
+      "resourceId": "870",
+      "name": "QUEEN（真）",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 225,
+      "resourceId": "871",
+      "name": "雪子",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 223,
+      "resourceId": "872",
+      "name": "埃癸斯",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 203,
+      "resourceId": "901",
+      "name": "舒恩",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 204,
+      "resourceId": "907",
+      "name": "谢芙蒂",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 194,
+      "resourceId": "8004",
+      "name": "婴宁",
+      "hasCnTable": true
+    },
+    {
+      "legacyId": 211,
+      "resourceId": "8005",
+      "name": "画皮",
+      "hasCnTable": true
+    }
+  ]
+}
