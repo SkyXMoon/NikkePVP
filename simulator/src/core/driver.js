@@ -234,6 +234,11 @@ export class CharacterRunner {
     // trigger 60 (OnFullChargeShotNum) 只在第 N 次满蓄射击触发——43 的 204311001 是后者
     // （threshold 3、发数 1），原来只认 trigger 6，那一条就从来没被算过。
     this.penetrateLeft = 0;
+    // 穿透半径：客户端 `GetTargetPenetration` 把 FT54 的 CurrentPenetration 直接当
+    // 球扫半径用（小红帽 50 ⇒ 0.5 世界单位，白雪公主重型武装 100 ⇒ 1.0）。取本角色
+    // 所有 FT54 行里最大的那个值，射击侧按 0.01 换算成世界单位。
+    const penValues = (cfg.skills ?? []).filter((s) => s.ft === 54).map((s) => Number(s.value)).filter((v) => v > 0);
+    if (penValues.length) cfg.penetrationValue = Math.max(...penValues);
     const ft54rows = (cfg.skills ?? []).filter((s) => s.ft === 54 && s.target === 1 && [6, 60].includes(s.trigger));
     this.ft54FullChargeShotRows = ft54rows.filter((s) => s.trigger === 6);
     this.ft54ShotCountRows = ft54rows.filter((s) => s.trigger === 60);

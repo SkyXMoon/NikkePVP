@@ -20,6 +20,18 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // constant 90 into the depth slot, so the overlap box is a long flat slab.
 const SHOT_TABLE_SCALE = 0.005;
 const INSTANT_BOX_DEPTH = 90;
+// `ShotLogic.GetTargetPenetration` (0x5DE94A0) is a sphere sweep down the whole
+// aim ray (`GetRays`, not the animated muzzle):
+// `PhysicsUtil.FireSphereCastAllNonAlloc(origin, dir, 180f, radius, ...)` keeps
+// every valid hit (max distance constant at RVA 0x7E651B4 = 180). The radius is
+// is `SpotWeaponData.CurrentPenetration`, i.e. the FT54 stat, so it is only > 0
+// while the penetration state is live — that is the same condition the driver
+// writes into `cfg.penetration`. There is no "target + its cover" pairing in the
+// client: a cover is one more collider on the ray, hit only when the ray reaches it.
+const PENETRATION_MAX_DISTANCE = 180;
+// FT54 values are percentages (471 = 100), and the stat is applied in world units.
+const PENETRATION_VALUE_SCALE = 0.01;
+const DEFAULT_PENETRATION_VALUE = 100;
 
 /** NKColliders.UpdateTick advances local offset by (Aim-Hide) / SPEED * dt. */
 export function stepColliderOffset(position, aim, hide, stance, dt, motion) {
@@ -223,21 +235,30 @@ export function createArenaShooting({arena, characters, native, muzzleAt, height
     }
     return hits;
   }
-  function complete(s,tick,contact,reason,boxHits) {
+  // `ShotLogic.GetTargetPenetration`: one sphere sweep along the fire ray; every
+  // enemy box it reaches becomes its own hit instance, in distance order.
+  function penetrationHits(team,from,dir,cfg) {
+    const value=Number.isFinite(cfg.penetrationValue)?cfg.penetrationValue:DEFAULT_PENETRATION_VALUE;
+    const radius=f32(value*PENETRATION_VALUE_SCALE);
+    const to=from.clone().addScaledVector(dir,PENETRATION_MAX_DISTANCE);
+    const found=[];
+    for (const box of enemyBoxes(team)) {
+      const t=sweepBox(from,to,box,radius);
+      if (t!==null) found.push({box,t});
+    }
+    found.sort((a,b)=>a.t-b.t);
+    return found.map(hit=>hit.box);
+  }
+  function complete(s,tick,contact,reason,boxHits,penHits) {
     const hits=new Map();
     // A native overlap-shaped shot (`FireType` 21) decides its own instance set at
     // fire time, so it bypasses the contact/penetration/splash derivation below.
     if (boxHits) for (const b of boxHits) hits.set(b.key,b);
     else {
       if (contact) hits.set(contact.box.key,contact.box);
-      // 满蓄穿透（FT54 竞技场特化）：命中实例 = 当前目标 + 掩体 共 2 个（用户实测定案）。
-      // IsValidFunctionTarget 拒绝 SpotDynamicObject/SpotSummon 但不拒 SpotCover，
-      // 掩体是合法函数目标 ⇒ 穿透命中必含角色掩体盒。
-      if (s.cfg.penetration>0 && contact) {
-        const other=contact.box.kind==='character'?'cover':'character';
-        const sibling=states.get(contact.box.id)?.boxes?.[other];
-        if (sibling) hits.set(sibling.key,sibling);
-      }
+      // 穿透（FT54 StatPenetration）：弹道球扫到的每个合法盒各算一次命中，掩体只
+      // 是其中一个盒——扫不到就没有第二个实例，不再强行配对。
+      if (penHits) for (const b of penHits) hits.set(b.key,b);
       const range=reason==='range'?0:(s.cfg.explosionRange??0)*.01;
       if (range>0) for (const b of enemyBoxes(s.cfg.team)) if (boxDistance(s.pos,b)<=range) hits.set(b.key,b);
     }
@@ -294,7 +315,9 @@ export function createArenaShooting({arena, characters, native, muzzleAt, height
       // FireType 1 Instant, 19 MechaShiftyShot and 21 InstantBox are all hitscan:
       // the client resolves and applies damage inside the fire call, so none of them
       // creates a projectile. Only the projectile types carry a real travel time.
-      if (cfg.penetration>0 && ![1,21].includes(cfg.fireType)) throw new Error('Penetration only modeled for hitscan fireType=1/21');
+      // FireType 21 resolves through FireInstantBox, which never calls
+      // GetTargetPenetration, so a penetration stat cannot widen its instance set.
+      if (cfg.penetration>0 && ![1,19,21].includes(cfg.fireType)) throw new Error('Penetration only modeled for instant fireType=1/19/21');
       const aimOrigin=V(toGltf(own.pl.aim_position));aimOrigin.y+=own.height;
       const aimDir=target.boxes.character.center.clone().sub(aimOrigin).normalize();
       own.aimRay={origin:aimOrigin.toArray(),direction:aimDir.toArray()};
@@ -319,7 +342,10 @@ export function createArenaShooting({arena, characters, native, muzzleAt, height
         shots.push(record);
         if (cfg.fireType===1 || cfg.fireType===19) {
           const s={cfg,pos:(pre?.point??rayEnd).clone(),record};
-          result.push(complete(s,tick,pre,pre?'contact':'ray-miss'));
+          // 穿透是整条瞄准射线的属性：`GetRays` 用的是角色 Aim 位置发出的射线
+          // （不是动画枪口），所以球扫也从 aimOrigin 起，而不是从这根枪口起。
+          const pen=cfg.penetration>0?penetrationHits(cfg.team,aimOrigin,aimDir,cfg):null;
+          result.push(complete(s,tick,pre,pre?'contact':'ray-miss',null,pen));
           continue;
         }
         if (cfg.fireType===21) {

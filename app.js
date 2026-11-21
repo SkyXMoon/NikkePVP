@@ -68,15 +68,15 @@ const EXTERNAL_EQUIPMENT_CACHE_STORAGE_PREFIX = "nikke-equipment-cache-v1";
 const TAPTAP_AUTO_SYNC_STORAGE_PREFIX = "nikke-taptap-auto-sync-v1";
 const AUTO_SYNC_DATE_TIME_ZONE = "Asia/Shanghai";
 const THIRD_PARTY_DATA_REGIONS = Object.freeze(["cn", "global"]);
-const THIRD_PARTY_EQUIPMENT_STAT_URL = "https://pinkuro.top:9984/third/bot/nikke/v1/getUserInfo";
-const THIRD_PARTY_USER_INFO_URL = "https://pinkuro.top:9984/third/bot/nikke/v1/getUserInfo";
-const THIRD_PARTY_UPDATE_USER_INFO_URL = "https://pinkuro.top:9984/third/bot/nikke/v1/updateUserInfo";
-const THIRD_PARTY_UPDATE_USER_CHARACTER_URL = "https://pinkuro.top:9984/third/bot/nikke/v2/updateUserCharacter";
+const THIRD_PARTY_EQUIPMENT_STAT_URL = "https://pinkuro.top/third/bot/nikke/v1/getUserInfo";
+const THIRD_PARTY_USER_INFO_URL = "https://pinkuro.top/third/bot/nikke/v1/getUserInfo";
+const THIRD_PARTY_UPDATE_USER_INFO_URL = "https://pinkuro.top/third/bot/nikke/v1/updateUserInfo";
+const THIRD_PARTY_UPDATE_USER_CHARACTER_URL = "https://pinkuro.top/third/bot/nikke/v2/updateUserCharacter";
 const FRONTEND_ADMIN_EMAILS = new Set(["307919309@qq.com"]);
 const CHARACTER_DETAIL_LONG_PRESS_DELAY_MS = 550;
 const CHARACTER_DETAIL_ASSET_TIMEOUT_MS = 3500;
 const CHARACTER_DETAIL_LEVEL_MAX = 1400;
-const APP_VERSION = "V1.80.1167";
+const APP_VERSION = "V1.80.1168";
 let arcaWorkspace=null,arcaWorkspacePromise=null;
 let privateHelpClientPromise=null;
 let pendingPrivateHelpOptions=null;
@@ -8952,7 +8952,7 @@ async function identifyEquipmentImagesAndUpdate(character, files, provider = EXT
   jpegFiles.forEach((file) => {
     if (file) formData.append("files", file);
   });
-  const url = `https://pinkuro.top:9984/third/bot/nikke/v2/identifyStatImageAndUpdate?characterName=${encodeURIComponent(characterName)}`;
+  const url = `https://pinkuro.top/third/bot/nikke/v2/identifyStatImageAndUpdate?characterName=${encodeURIComponent(characterName)}`;
   console.log("[ThirdPartyAPI] identifyStatImageAndUpdate request", {
     characterName,
     files: jpegFiles.map((file) => ({ name: file?.name || "", type: file?.type || "", size: file?.size || 0 })),
