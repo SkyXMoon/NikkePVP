@@ -76,7 +76,7 @@ const FRONTEND_ADMIN_EMAILS = new Set(["307919309@qq.com"]);
 const CHARACTER_DETAIL_LONG_PRESS_DELAY_MS = 550;
 const CHARACTER_DETAIL_ASSET_TIMEOUT_MS = 3500;
 const CHARACTER_DETAIL_LEVEL_MAX = 1400;
-const APP_VERSION = "V1.80.1158";
+const APP_VERSION = "V1.80.1159";
 let arcaWorkspace=null,arcaWorkspacePromise=null;
 let privateHelpClientPromise=null;
 let pendingPrivateHelpOptions=null;
@@ -7451,9 +7451,47 @@ function togglePaidArenaJackalLinkTarget(rowIndex, character, teamKey = getPaidA
   render();
 }
 
+// 搜索是「连续子串」匹配，中文名里差一个字（特雷娜 / 特蕾娜）就一个都搜不到。
+// 用户用输入法打名字，异体字很常见，所以精确匹配完全落空时回落成「一字之差」。
+let searchFuzzyFallback = false;
+
+function isOneCharAway(name, keyword) {
+  if (!name || !keyword) return false;
+  if (name.length !== keyword.length || name.length < 2) return false;
+  let diff = 0;
+  for (let index = 0; index < name.length; index += 1) {
+    if (name[index] !== keyword[index]) {
+      diff += 1;
+      if (diff > 1) return false;
+    }
+  }
+  return diff === 1;
+}
+
+function getFuzzyCharacterMatches(keywords) {
+  const chineseKeywords = keywords.filter((keyword) => /^[\u4e00-\u9fff]{2,}$/.test(keyword));
+  if (!chineseKeywords.length) return [];
+  return CHARACTERS.filter((character) => {
+    if (character.isHidden) return false;
+    const names = [character.name, character.nameCodeName, character.slug, character.enName]
+      .filter(Boolean)
+      .map((value) => String(value).replace(/[\s:：\-—–_]/g, ""));
+    return chineseKeywords.some((keyword) => names.some((name) => isOneCharAway(name, keyword)));
+  });
+}
+
+function sortCharacterList(list) {
+  return list.sort((a, b) => {
+    const chargeDiff = getSingleShotChargeValue(b) - getSingleShotChargeValue(a);
+    const weaponDiff = WEAPON_ORDER.indexOf(a.weapon) - WEAPON_ORDER.indexOf(b.weapon);
+    return chargeDiff || weaponDiff || a.name.localeCompare(b.name, "zh-CN");
+  });
+}
+
 function getFilteredCharacters() {
   const keywords = getSearchKeywords(state.filters.search);
-  return CHARACTERS.filter((character) => {
+  searchFuzzyFallback = false;
+  const matched = CHARACTERS.filter((character) => {
     if (character.isHidden) return false;
     const searchText = getCharacterSearchText(character);
     const matchesSearch = !keywords.length || keywords.some((keyword) => matchesSearchKeyword(searchText, keyword));
@@ -7463,11 +7501,15 @@ function getFilteredCharacters() {
     const matchesStage = stageFilter === "all" || getCharacterBurstStages(character).includes(stageFilter);
     if (keywords.length) return matchesSearch;
     return matchesCommon && matchesRegion && matchesStage && matchesSearch;
-  }).sort((a, b) => {
-    const chargeDiff = getSingleShotChargeValue(b) - getSingleShotChargeValue(a);
-    const weaponDiff = WEAPON_ORDER.indexOf(a.weapon) - WEAPON_ORDER.indexOf(b.weapon);
-    return chargeDiff || weaponDiff || a.name.localeCompare(b.name, "zh-CN");
   });
+  if (keywords.length && !matched.length) {
+    const fuzzy = getFuzzyCharacterMatches(keywords);
+    if (fuzzy.length) {
+      searchFuzzyFallback = true;
+      return sortCharacterList(fuzzy);
+    }
+  }
+  return sortCharacterList(matched);
 }
 
 async function loadArcaWorkspace() {
@@ -7513,7 +7555,7 @@ function renderCharacters() {
   const visibleCharacterCount = state.filters.search
     ? CHARACTERS.filter((character) => !character.isHidden).length
     : CHARACTERS.filter((character) => !character.isHidden && character.regions.includes(state.filters.region)).length;
-  els.listCount.textContent = `${characters.length}/${visibleCharacterCount} ${getCurrentLanguageText().listCountSuffix}`;
+  els.listCount.textContent = `${characters.length}/${visibleCharacterCount} ${getCurrentLanguageText().listCountSuffix}${searchFuzzyFallback ? localize("（近似匹配）", " (fuzzy)") : ""}`;
 
   characters.forEach((character, index) => {
     const tile = document.createElement("button");
@@ -7567,6 +7609,15 @@ function renderCharacters() {
     fragment.append(tile);
   });
 
+  if (!characters.length && String(state.filters.search || "").trim()) {
+    const hint = document.createElement("p");
+    hint.className = "character-empty-hint";
+    hint.textContent = localize(
+      "没有找到匹配的角色，检查一下名字是不是打错了（可以试拼音首字母或英文名）",
+      "No matching character. Check the spelling — pinyin initials or the English name also work.",
+    );
+    fragment.append(hint);
+  }
   els.characterGrid.replaceChildren(fragment);
 }
 

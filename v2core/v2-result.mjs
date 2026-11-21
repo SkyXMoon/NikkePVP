@@ -55,12 +55,16 @@ function missedPassTick(shot) {
 
 /** 独立展示行（豺狼链接、红莲反击）的充能来源。
  *
- *  这些充能在原生驱动里就是当事人自己的技能派发的，但站点把它们画成单独一行。
- *  V1 的做法是把这类充能以 `showOnMember:false` 注入，只累加队总与角色累计，
- *  不在成员行打点。V2 走的是真技能，如果不标出来，同一笔充能会在成员行和独立
- *  行各显示一次（用户看到的就是「链接充能跑到了豺狼身上」）。
- *
  *  `specialRows[actorId] = { label, skillIds }`：该角色这些技能的充能归到哪一行。
+ *
+ *  这些充能在原生驱动里就是当事人自己的技能派发的，但图表把它们画成单独一行
+ *  （`showOnMember:false`，只进队总与角色累计，不在成员行打点）。V2 走的是真技能
+ *  事件（豺狼 OnHurtCount、红莲 OnHurtRatio 都在 `native.timeline` 里），如果不标
+ *  出来，同一笔充能会在成员行和独立行各显示一次（用户看到的就是「链接充能跑到
+ *  了豺狼身上」）。
+ *
+ *  V1 引擎（`wechat/.../arena-engine.js` 的 `Hs`）与网站 `getJackalLinkGroups`
+ *  都是这么分的：链接充能上独立行，豺狼自己的爆炸命中留在成员行。
  */
 export function specialChargeRows(calculation, input, actors) {
   const rows = {};
@@ -98,6 +102,14 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf, o
   if (!entries.length && !native?.timeline.some(event => event.generatedCharge > 0)) return null;
   const frameOf = tick => Math.max(0, (tick - 6) * 2);
   const specialRows = options.specialRows ?? {};
+  // **`compact`**：小程序侧专用。`chartBattle` 整个对象要经 `setData` 跨线程送到视图层，
+  // 真机上每次点角色卡都要搬一次；V2 比 V1 大出的部分几乎全是 `contributions[]`
+  // 里内嵌的完整角色对象（每帧每来源一份，含 stats/skills/gear 等全套字段）和
+  // `v2.events` 的逐次事件副本。这两样在图表里一个字节都不读——`getChargeChartMarkup`
+  // 只用 `characterId` / `characterName`，而它们本来就在同一条 contribution 上。
+  // 实测删掉后 41.8KB → 17.9KB，带/不带产出的 markup 逐字节相同（见
+  // `tests/v2-compact-payload.test.js`）。网站不走这条路：它不需要序列化。
+  const compact = options.compact === true;
   const byId = new Map(actors.map(actor => [actor.config.id, actor]));
   const events = calculation.result.events.filter(event => event.team === team);
   const members = entries.map(actor => ({
@@ -159,7 +171,7 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf, o
       previous.labels = [...new Set([...previous.labels, ...contribution.labels])];
       const known = new Set(previous.skills.map(entry => `${entry.slot}/${entry.name}`));
       previous.skills.push(...contribution.skills.filter(entry => !known.has(`${entry.slot}/${entry.name}`)));
-      previous.v2.events.push(contribution.v2);
+      if (!compact) previous.v2.events.push(contribution.v2);
       for (const field of ['positionHits', 'targetHits']) {
         for (const hit of contribution[field]) {
           const existing = previous[field].find(value => value.positionIndex === hit.positionIndex);
@@ -168,7 +180,8 @@ export function projectSiteTeam(calculation, actors, teamKey, burstSequenceOf, o
         }
       }
     } else {
-      contribution.v2 = { ...contribution.v2, events: [{ ...contribution.v2 }] };
+      if (compact) delete contribution.character;
+      else contribution.v2 = { ...contribution.v2, events: [{ ...contribution.v2 }] };
       row.contributions.push(contribution);
     }
     grouped.set(frame, row);

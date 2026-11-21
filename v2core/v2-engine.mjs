@@ -1,11 +1,11 @@
 import { Texture } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { toRunnerConfig } from '../simulator/src/core/data.js';
 import { decodeCharacter } from '../simulator/src/core/db-codec.js';
-import { groupByValue } from '../simulator/src/core/stat.js';
-import { mergeNativeData } from '../simulator/src/stage/native-data.js';
-import { addCnShootingProfiles } from '../simulator/src/stage/cn-roster.js';
 import { createArenaCalculator } from '../simulator/src/calculator/arena-calculator.js';
+// 阵容装配（槽位 → characters / native）在 `calculator/lineup.js`。那里是纯函数，
+// 小程序分包用同一个函数、只换数据来源；抄第二份必然漂移——少写一个字段不会报错，
+// 只会让某个角色的充能线静默消失。
+import { assembleLineup, applyTeamEffects, emptyActor, HITSCAN_FIRE_TYPES } from '../simulator/src/calculator/lineup.js';
 import { projectSiteTeam, specialChargeRows } from './v2-result.mjs';
 import { cloneCalculationModel } from './v2-model.mjs';
 import { buildJackalLinkTimeline } from './v2-link-groups.mjs';
@@ -122,32 +122,6 @@ async function arenaAssetIndex(region) {
   return assetIndexCache.get(url);
 }
 
-/** Native tables for a possibly mixed team.
- *  Arena colliders and motion follow the selected client region. A borrowed
- *  character keeps its own muzzle binding and shot profile within that arena.
- */
-async function nativeForTeam(base, { region, db, crossRegion, codes = [] }) {
-  // 绑定表（muzzle socket / stateSpeeds）和模型是同一批 SD 资产的两种导出。国服的
-  // 资产是分批交付的：一个新角色可能只有国际服那一份模型，对应也就只有国际服的
-  // 绑定。既然 `loadModel` 已经允许模型跨区回退，绑定必须按同一条判据回退，否则
-  // 会出现「模型拿到了、绑定没有」的错配——`requireBinding` 会在装配 calculator
-  // 时抛错，把整次计算连带两个队一起判死，图表跟着消失。
-  const other = region === 'cn' ? 'global' : 'cn';
-  const borrowedDoc = await loadJson(`/simulator/data/native-bindings${other === 'global' ? '.global' : ''}.json`);
-  const bindings = { ...base.bindings };
-  const borrowedBindings = {};
-  const wanted = new Set([...codes, ...[...crossRegion.keys()].map(id => `c${String(id).padStart(3, '0')}`)]);
-  for (const code of wanted) {
-    if (bindings[code]?.muzzles?.length) continue;
-    const alt = borrowedDoc.characters?.[code];
-    if (alt?.muzzles?.length) { bindings[code] = alt; borrowedBindings[code] = other; }
-  }
-  const native = { ...base, bindings, borrowedBindings };
-  return region === 'cn'
-    ? addCnShootingProfiles(native, db, new Set(crossRegion.keys()))
-    : native;
-}
-
 function slotInput(character, positionIndex, teamKey, team) {
   if (!character) return null;
   const effective = characterForSlot(character, positionIndex, teamKey, team);
@@ -177,50 +151,6 @@ function snapshot(contexts={}) {
     sacrifices: Object.fromEntries(['attack','defense'].map(key=>[key,[...(contexts[key]?.sacrificeFrames??getRosannaSacrificeFrameState(key))]])),
     links: Object.fromEntries(['attack','defense'].map(key=>[key,structuredClone(contexts[key]?.jackalLink??getJackalLinkState(key))])),
   };
-}
-
-function configuredActor(input, side, db, resourceIds, crossRegion, notes, skillText) {
-  const resourceId = resourceIds.get(String(input.character.id));
-  const source = db[resourceId];
-  if (!source) throw new Error(`${input.character.name} 缺少${side.region === 'cn' ? '国服' : '国际服'}V2原始数据`);
-  const code = `c${resourceId.padStart(3, '0')}`;
-  // A character the current client does not ship is computed from the other
-  // region's own files (data, shot profile, muzzle binding, arena model). Its
-  // numbers are that client's numbers, so the result has to say so.
-  const assetRegion = crossRegion.get(String(resourceId)) ?? side.region;
-  if (assetRegion !== side.region) {
-    notes?.push(`${input.character.name} 不在${side.region === 'cn' ? '国服' : '国际服'}，按${assetRegion === 'cn' ? '国服' : '国际服'}数据计算`);
-  }
-  const treasure = /珍藏$/.test(input.character.name);
-  const config = {
-    ...toRunnerConfig(source, { treasure, treasurePhase: input.treasurePhase, hasPresentation: true, presentationKind: 'sd' }),
-    id: `${side.key}-${input.positionIndex}`, assetCode: code, resourceId,
-    slotIndex: input.positionIndex, team: side.key === 'attack' ? 0 : 1,
-    skillMissingRankingPolicy: 'current-target',
-    assetRegion,
-    ...(assetRegion !== side.region ? { crossRegion: assetRegion } : {}),
-  };
-  const percentages = input.entries.filter(value => Number(value) > 0).map(Number);
-  if (percentages.length || !(input.character.chargeSpeedPercent > 0)) {
-    const cube = input.cubeBonus ?? (input.cubeType === 'charge-speed' ? 2.12 : 0);
-    if (cube > 0) percentages.push(cube);
-  } else if (input.character.chargeSpeedPercent > 0) {
-    percentages.push(input.character.chargeSpeedPercent);
-  }
-  for (const [index, row] of groupByValue(percentages.map(value => -Math.round(value * 100))).entries()) {
-    config.onStartBuffs.push({ id: `equipment-charge-${index}`, kind: 'permanent', remain: Infinity,
-      standard: 1, stacks: row.n, effect: { kind: 'chargeSpeed', percent: row.p } });
-  }
-  if (input.cubeType === 'quantum') config.onStartBuffs.push({ id: 'equipment-quantum',
-    ft: 102, value: 466, valueType: 2, standard: 1, stacks: 1, kind: 'permanent', remain: Infinity });
-  if (input.magazine > 0) config.maxAmmo = input.magazine;
-  if (input.reloadSeconds != null) config.reloadTimeUnits = Math.round(input.reloadSeconds * 100);
-  const stats=input.character.stats??{};
-  config.counterEnabled=input.counterEnabled;
-  config.penetrationShots=input.penetrationShots;
-  config.rankingStats=Object.fromEntries(['attack','defence','hp','maxHp'].filter(key=>Number.isFinite(stats[key]))
-    .map(key=>[key,stats[key]]));
-  return { config, character: input.character, skillText: skillText?.[resourceId] };
 }
 
 async function loadModel(code, index, region) {
@@ -262,56 +192,27 @@ async function calculate(input) {
     return loadSkillText(input.region, [...new Set(master.linked.filter(row => ids.has(String(row.legacyId)))
       .map(row => String(Number(row.gameCharacterId))))]);
   }).catch(() => ({}));
-  const [{ db, crossRegion }, shooting, bindings, colliders, index, master, arena, skillText] = await Promise.all([
+  const [{ db, crossRegion }, shooting, bindings, colliders, borrowedBindings, index, master, arena, skillText] = await Promise.all([
     dbPromise,
     loadJson(`/simulator/data/native-shooting${input.region === 'global' ? '.global' : ''}.json`),
     loadJson(`/simulator/data/native-bindings${input.region === 'global' ? '.global' : ''}.json`),
     loadJson(`/simulator/data/native-colliders.${input.region}.json`),
+    // 跨区借绑定用：对方区的绑定表只在真的缺绑定时才读，这里并行拿一份不额外花钱
+    // （同一个 URL 有 `dataCache`，另一处也要读它）。
+    loadJson(`/simulator/data/native-bindings${input.region === 'cn' ? '.global' : ''}.json`),
     loadJson(`${regionAssets}out/sd_batch/index.json`), masterPromise,
     loadJson(`${regionAssets}arena/${input.arena}.json`), skillTextPromise,
   ]);
   const resourceIds = new Map(master.linked.map(row => [String(row.legacyId), String(Number(row.gameCharacterId))]));
-  // 本队实际会用到的角色码，供绑定表决定要不要跨区借。码表与 `configuredActor`
-  // 同源（legacyId → gameCharacterId），不要拿 legacyId 直接拼，那会错到别的角色上。
-  const teamCodes = [...new Set([...input.attack, ...input.defense].filter(Boolean)
-    .map(slot => resourceIds.get(String(slot.character.id))).filter(Boolean)
-    .map(rid => `c${rid.padStart(3, '0')}`))];
-  const merged = mergeNativeData(shooting, bindings, colliders);
-  const native = await nativeForTeam(merged, { region: input.region, db, crossRegion, codes: teamCodes });
-  const actors = [];
-  const burstCharges = {};
-  const notes = { attack: [], defense: [] };
-  const emptyActor = (key, position) => ({
-    character: null,
-    config: { id: `${key}-${position}`, team: key === 'attack' ? 0 : 1, slotIndex: position,
-      calculationTarget: true, weaponType: 'None', inputType: 1, rateOfFire: 0,
-      initialAcc: 0, maxAmmo: 0, fireType: 1, burstEnergyBp: 0, skills: [] },
+  // 装配在 `calculator/lineup.js`：小程序分包调的是同一个函数，只换数据来源。
+  const { actors, native, burstCharges, notes } = assembleLineup(input, {
+    db, crossRegion, resourceIds, skillText, shooting, bindings, colliders, borrowedBindings,
   });
-  for (const key of ['attack', 'defense']) {
-    for (let position = 0; position < 5; position++) {
-      const slot = input[key][position];
-      let actor;
-      if (!slot) actor = emptyActor(key, position);
-      else {
-        // One unusable slot must not cost the other four their timeline: build it
-        // as an empty slot and say why. This also covers a character that is in
-        // neither region's export.
-        try { actor = configuredActor(slot, { key, region: input.region }, db, resourceIds, crossRegion, notes[key], skillText); }
-        catch (error) {
-          actor = emptyActor(key, position);
-          notes[key].push(`${slot.character.name} 无法参与计算：${error.message}`);
-        }
-      }
-      actors.push(actor);
-      if (!slot && input.universal[key][position] > 0)
-        burstCharges[actor.config.id] = Math.round(input.universal[key][position] * 100);
-    }
-  }
   // 逐个加载模型，失败只降级这一个角色：把它换成空位并记一条提示。以前这里是
   // Promise.all 直接抛，一个角色缺模型就会让整次 calculate 失败，两个队的结果都
   // 变成错误文本，图表被顶掉——用户看到的就是「图表没了」。
   const models = new Map();
-  await Promise.all(actors.filter(actor => actor.character && ![1,19,21].includes(actor.config.fireType)).map(async actor => {
+  await Promise.all(actors.filter(actor => actor.character && !HITSCAN_FIRE_TYPES.has(actor.config.fireType)).map(async actor => {
     const assetRegion = actor.config.assetRegion ?? input.region;
     const modelIndex = actor.config.assetRegion && actor.config.assetRegion !== input.region
       ? await arenaAssetIndex(actor.config.assetRegion) : index;
@@ -327,7 +228,7 @@ async function calculate(input) {
   // 那里的失败是整体抛出的，一个角色就能顶掉两队的图。所以缺绑定的角色在这里先降级
   // 成空位，和缺模型走同一条路——提示只进 notes（最终合成 toast），不进图表。
   for (const actor of [...actors]) {
-    if (!actor.character || [1, 19, 21].includes(actor.config.fireType)) continue;
+    if (!actor.character || HITSCAN_FIRE_TYPES.has(actor.config.fireType)) continue;
     if (native.bindings?.[actor.config.assetCode]?.muzzles?.length) continue;
     const key = actor.config.team === 0 ? 'attack' : 'defense';
     notes[key].push(`${actor.character.name} 的枪口绑定缺失，本次不参与计算`);
@@ -340,21 +241,8 @@ async function calculate(input) {
     if (from) notes[actor.config.team === 0 ? 'attack' : 'defense']
       .push(`${actor.character.name} 的枪口绑定借用${from === 'cn' ? '国服' : '国际服'}资产`);
   }
-  const passiveEvents=[];
-  for(const key of ['attack','defense']){
-    const members=actors.filter(actor=>actor.config.team===(key==='attack'?0:1)&&actor.character);
-    const link=input.links[key];
-    if(link?.enabled){
-      const ids=new Set([link.ownerId,...link.targetIds].map(String));
-      const linked=members.filter(actor=>ids.has(String(actor.character.id))).map(actor=>actor.config.id);
-      for(const actor of members)if(linked.includes(actor.config.id))actor.config.hurtShareTargetIds=linked;
-    }
-    for(const actor of members){
-      const frame=input.sacrifices[key][actor.config.slotIndex];
-      if(frame!=null&&Number.isFinite(Number(frame)))passiveEvents.push({type:'death',targetId:actor.config.id,
-        tick:Math.max(1,6+Math.ceil(Number(frame)/2))});
-    }
-  }
+  // 链接分摊与献祭死亡事件必须在降级之后：被换成空位的角色不该还收死亡事件。
+  const passiveEvents = applyTeamEffects(actors, input);
   const calculator = await createArenaCalculator({ arena, characters: actors.map(actor => actor.config), native, models });
   const activeTeams = [...new Set(actors.filter(actor => actor.character).map(actor => actor.config.team))];
   // `simulateBurst` 的 options.continueUntilFrame 折成上限；其余入口不带这个字段。

@@ -2000,6 +2000,17 @@ input:focus {
   padding-bottom: 8px;
 }
 
+.character-empty-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 28px 12px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.7;
+  color: inherit;
+  opacity: 0.6;
+}
+
 .character-tile {
   position: relative;
   display: block;

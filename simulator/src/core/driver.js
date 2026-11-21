@@ -779,9 +779,29 @@ export function runSpotDriver({ characters, totalTicks, btBeforeWeapon = false, 
     if(!hit.sharedHurtContacts)reactToContacts(t,hit,r);
   };
   const reactToContacts=(t,hit,r)=>{
+    // **链接名单（豺狼 + 被链接队友）的受击计数：每次攻击让组内每个人都 +1。**
+    //
+    //  语义：链接里的成员共享受击。组内任何人被打，整组各算一次受击——这正是
+    //  红莲能被链接、进而在链接里反击的原因（`OnHurtRatio` 的受击反应同样会分给
+    //  组内每个成员）。所以「被链接者挨了 6 下、豺狼挨了 4 下」合计 10 次，而不是
+    //  各自 10 次。
+    //
+    //  但**一次攻击只算一次**，与这一发打中组内几个人、展开成几个 contact 无关：
+    //  RL/SG 一发会展开成多个 contact（观测到 tick 39 一次 6 个），早先的实现对
+    //  每个 contact 都展开一遍链接名单，等于把整组又乘了一遍弹片数——实测豺狼
+    //  hurtCount 从 10 涨到 41，「欢乐豺狼」（被攻击 10 次）被提前跨过，多派发
+    //  3 次受击充能，队伍提前 10 帧充满（148F → 134F），第二发爆炸因此画不出来。
+    //
+    //  做法：先按链接组把这一发的 contact 归并（`sharedHurtContacts` 已经是驱动
+    //  算好的分摊结果），组内每个成员各记一次，但同一发对同一组只展开一次。
+    const countedLinks=new Set();
     const contacts=(hit.sharedHurtContacts??hit.contacts??[]).flatMap(contact=>{
       const victim=byId.get(contact.id);
       if(contact.kind!=='character'||!victim?.cfg.hurtShareTargetIds?.length)return [contact];
+      const linkKey=`link:${[...victim.cfg.hurtShareTargetIds].sort().join(',')}`;
+      // 同一发里该组已经展开过一次，后面的 contact 不再重复发放。
+      if(countedLinks.has(linkKey))return [];
+      countedLinks.add(linkKey);
       return [...new Set([contact.id,...victim.cfg.hurtShareTargetIds])]
         .filter(id=>byId.get(id)?.alive&&(byId.get(id).cfg.team??0)===(victim.cfg.team??0))
         .map(id=>({...contact,id}));
