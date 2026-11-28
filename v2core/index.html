@@ -1,0 +1,21 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>NIKKE PVP · 计算核心已并入主页面</title>
+    <meta name="robots" content="noindex" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- V2 不再是独立页面。计算核心现在是主页面上侧边栏/角标里的一个开关，
+         同一张 DOM、同一套操作，只换计算引擎。这里只负责把老书签和旧分享链接
+         送到对应核心，参数原样带过去。 -->
+    <script nonce="nikke-seo-v1">
+      (() => {
+        const search = location.search ? `&${location.search.slice(1)}` : '';
+        location.replace(`/?engine=v2${search}${location.hash}`);
+      })();
+    </script>
+  </head>
+  <body>
+    <p>正在切换到主页面… 如果没有自动跳转，请<a href="/?engine=v2">点这里</a>。</p>
+  </body>
+</html>
